@@ -136,9 +136,15 @@ func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
 	 int prio)
 {
 	struct tracepoint_func *old, *new;
+<<<<<<< HEAD
 	int iter_probes;	/* Iterate over old probe array. */
 	int nr_probes = 0;	/* Counter for probes */
 	int pos = -1;		/* Insertion position into new array */
+=======
+	int nr_probes = 0;
+	int stub_funcs = 0;
+	int pos = -1;
+>>>>>>> befe6d946551... tracepoint: Do not fail unregistering a probe due to memory failure
 
 	if (WARN_ON(!tp_func->func))
 		return ERR_PTR(-EINVAL);
@@ -153,14 +159,20 @@ func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
 			if (old[iter_probes].func == tp_func->func &&
 			    old[iter_probes].data == tp_func->data)
 				return ERR_PTR(-EEXIST);
+<<<<<<< HEAD
 			nr_probes++;
+=======
+			if (old[nr_probes].func == tp_stub_func)
+				stub_funcs++;
+>>>>>>> befe6d946551... tracepoint: Do not fail unregistering a probe due to memory failure
 		}
 	}
-	/* + 2 : one for new probe, one for NULL func */
-	new = allocate_probes(nr_probes + 2);
+	/* + 2 : one for new probe, one for NULL func - stub functions */
+	new = allocate_probes(nr_probes + 2 - stub_funcs);
 	if (new == NULL)
 		return ERR_PTR(-ENOMEM);
 	if (old) {
+<<<<<<< HEAD
 		nr_probes = 0;
 		for (iter_probes = 0; old[iter_probes].func; iter_probes++) {
 			if (old[iter_probes].func == tp_stub_func)
@@ -169,6 +181,35 @@ func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
 			if (pos < 0 && old[iter_probes].prio < prio)
 				pos = nr_probes++;
 			new[nr_probes++] = old[iter_probes];
+=======
+		if (stub_funcs) {
+			/* Need to copy one at a time to remove stubs */
+			int probes = 0;
+
+			pos = -1;
+			for (nr_probes = 0; old[nr_probes].func; nr_probes++) {
+				if (old[nr_probes].func == tp_stub_func)
+					continue;
+				if (pos < 0 && old[nr_probes].prio < prio)
+					pos = probes++;
+				new[probes++] = old[nr_probes];
+			}
+			nr_probes = probes;
+			if (pos < 0)
+				pos = probes;
+			else
+				nr_probes--; /* Account for insertion */
+
+		} else if (pos < 0) {
+			pos = nr_probes;
+			memcpy(new, old, nr_probes * sizeof(struct tracepoint_func));
+		} else {
+			/* Copy higher priority probes ahead of the new probe */
+			memcpy(new, old, pos * sizeof(struct tracepoint_func));
+			/* Copy the rest after it. */
+			memcpy(new + pos + 1, old + pos,
+			       (nr_probes - pos) * sizeof(struct tracepoint_func));
+>>>>>>> befe6d946551... tracepoint: Do not fail unregistering a probe due to memory failure
 		}
 		if (pos < 0)
 			pos = nr_probes++;
@@ -221,12 +262,20 @@ static void *func_remove(struct tracepoint_func **funcs,
 		/* + 1 for NULL */
 		new = allocate_probes(nr_probes - nr_del + 1);
 		if (new) {
+<<<<<<< HEAD
 			for (i = 0; old[i].func; i++) {
 				if ((old[i].func != tp_func->func ||
 				     old[i].data != tp_func->data) &&
 				    old[i].func != tp_stub_func)
 					new[j++] = old[i];
 			}
+=======
+			for (i = 0; old[i].func; i++)
+				if ((old[i].func != tp_func->func
+				     || old[i].data != tp_func->data)
+				    && old[i].func != tp_stub_func)
+					new[j++] = old[i];
+>>>>>>> befe6d946551... tracepoint: Do not fail unregistering a probe due to memory failure
 			new[nr_probes - nr_del].func = NULL;
 			*funcs = new;
 		} else {
@@ -234,11 +283,25 @@ static void *func_remove(struct tracepoint_func **funcs,
 			 * Failed to allocate, replace the old function
 			 * with calls to tp_stub_func.
 			 */
+<<<<<<< HEAD
 			for (i = 0; old[i].func; i++) {
 				if (old[i].func == tp_func->func &&
 				    old[i].data == tp_func->data)
 					WRITE_ONCE(old[i].func, tp_stub_func);
 			}
+=======
+			for (i = 0; old[i].func; i++)
+				if (old[i].func == tp_func->func &&
+				    old[i].data == tp_func->data) {
+					old[i].func = tp_stub_func;
+					/* Set the prio to the next event. */
+					if (old[i + 1].func)
+						old[i].prio =
+							old[i + 1].prio;
+					else
+						old[i].prio = -1;
+				}
+>>>>>>> befe6d946551... tracepoint: Do not fail unregistering a probe due to memory failure
 			*funcs = old;
 		}
 	}
