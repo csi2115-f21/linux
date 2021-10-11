@@ -87,7 +87,7 @@ static char *os_version;
 static char *lic_version = "Unknown version";
 static char full_domain_name[HV_KVP_EXCHANGE_MAX_VALUE_SIZE];
 static struct utsname uts_buf;
-
+static int hi;
 /*
  * The location of the interface configuration file.
  */
