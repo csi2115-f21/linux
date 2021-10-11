@@ -139,6 +139,7 @@ static void sock_show_fdinfo(struct seq_file *m, struct file *f)
 }
 #else
 #define sock_show_fdinfo NULL
+#define test_test_test NULL
 #endif
 
 /*
