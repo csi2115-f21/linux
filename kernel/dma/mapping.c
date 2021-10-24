@@ -552,6 +552,9 @@ struct page *dma_alloc_pages(struct device *dev, size_t size,
 	if (page)
 		debug_dma_map_page(dev, page, 0, size, dir, *dma_handle);
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
