@@ -2,8 +2,31 @@
 VERSION = 5
 PATCHLEVEL = 12
 SUBLEVEL = 0
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 EXTRAVERSION = -rc1
 NAME = Frozen Wasteland
+=======
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+=======
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
+EXTRAVERSION = -rc6
+NAME = Opossums on Parade
+>>>>>>> 519d81956ee2... Linux 5.15-rc6
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
