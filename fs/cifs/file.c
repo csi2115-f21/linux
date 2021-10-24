@@ -853,7 +853,11 @@ int cifs_close(struct inode *inode, struct file *file)
 		if ((cinode->oplock == CIFS_CACHE_RHW_FLG) &&
 		    cinode->lease_granted &&
 		    dclose) {
+<<<<<<< HEAD
 			if (test_bit(CIFS_INO_MODIFIED_ATTR, &cinode->flags))
+=======
+			if (test_bit(CIFS_INO_MODIFIED_ATTR, &cinode->flags)) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 				inode->i_ctime = inode->i_mtime = current_time(inode);
 			spin_lock(&cinode->deferred_lock);
 			cifs_add_deferred_close(cfile, dclose);

@@ -195,7 +195,10 @@ struct buffer_head *__bread_gfp(struct block_device *,
 				sector_t block, unsigned size, gfp_t gfp);
 void invalidate_bh_lrus(void);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 void invalidate_bh_lrus_cpu(int cpu);
 bool has_bh_in_lru(int cpu, void *dummy);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
@@ -412,10 +415,15 @@ static inline void invalidate_inode_buffers(struct inode *inode) {}
 static inline int remove_inode_buffers(struct inode *inode) { return 1; }
 static inline int sync_mapping_buffers(struct address_space *mapping) { return 0; }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 static inline void invalidate_bh_lrus_cpu(int cpu) {}
 static inline bool has_bh_in_lru(int cpu, void *dummy) { return 0; }
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+static inline void invalidate_bh_lrus_cpu(int cpu) {}
+static inline bool has_bh_in_lru(int cpu, void *dummy) { return false; }
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #define buffer_heads_over_limit 0
 
 #endif /* CONFIG_BLOCK */

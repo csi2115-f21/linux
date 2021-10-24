@@ -131,11 +131,16 @@ config NET_DSA_TAG_OCELOT
 config NET_DSA_TAG_OCELOT_8021Q
 	tristate "Tag driver for Ocelot family of switches, using VLAN"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	depends on MSCC_OCELOT_SWITCH_LIB || \
 	          (MSCC_OCELOT_SWITCH_LIB=n && COMPILE_TEST)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	select NET_DSA_TAG_8021Q
+=======
+	depends on MSCC_OCELOT_SWITCH_LIB || \
+	          (MSCC_OCELOT_SWITCH_LIB=n && COMPILE_TEST)
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	help
 	  Say Y or M if you want to enable support for tagging frames with a
 	  custom VLAN-based header. Frames that require timestamping, such as
@@ -158,7 +163,11 @@ config NET_DSA_TAG_LAN9303
 
 config NET_DSA_TAG_SJA1105
 	tristate "Tag driver for NXP SJA1105 switches"
+<<<<<<< HEAD
 	select NET_DSA_TAG_8021Q
+=======
+	depends on NET_DSA_SJA1105 || !NET_DSA_SJA1105
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	select PACKING
 	help
 	  Say Y or M if you want to enable support for tagging frames with the

@@ -164,6 +164,7 @@ static size_t pci_vpd_size(struct pci_dev *dev, size_t old_size)
 				pci_vpd_srdt_size(header);
 			tag = pci_vpd_srdt_tag(header);
 		}
+<<<<<<< HEAD
 
 		if (tag == PCI_VPD_STIN_END)	/* End tag descriptor */
 			return off;
@@ -178,6 +179,16 @@ static size_t pci_vpd_size(struct pci_dev *dev, size_t old_size)
 		}
 	}
 	return 0;
+=======
+	}
+	return off;
+
+error:
+	pci_info(dev, "invalid VPD tag %#04x (size %zu) at offset %zu%s\n",
+		 header[0], size, off, off == 0 ?
+		 "; assume missing optional EEPROM" : "");
+	return off ?: PCI_VPD_SZ_INVALID;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 /*
@@ -233,6 +244,12 @@ static ssize_t pci_vpd_read(struct pci_dev *dev, loff_t pos, size_t count,
 	loff_t end = pos + count;
 	u8 *buf = arg;
 
+<<<<<<< HEAD
+=======
+	if (!vpd->cap)
+		return -ENODEV;
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (pos < 0)
 		return -EINVAL;
 
@@ -300,6 +317,12 @@ static ssize_t pci_vpd_write(struct pci_dev *dev, loff_t pos, size_t count,
 	loff_t end = pos + count;
 	int ret = 0;
 
+<<<<<<< HEAD
+=======
+	if (!vpd->cap)
+		return -ENODEV;
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (pos < 0 || (pos & 3) || (count & 3))
 		return -EINVAL;
 
@@ -353,6 +376,7 @@ out:
 <<<<<<< HEAD
 static int pci_vpd_set_size(struct pci_dev *dev, size_t len)
 {
+<<<<<<< HEAD
 	struct pci_vpd *vpd = dev->vpd;
 
 	if (len == 0 || len > PCI_VPD_MAX_SIZE)
@@ -362,6 +386,17 @@ static const struct pci_vpd_ops pci_vpd_ops = {
 	.read = pci_vpd_read,
 	.write = pci_vpd_write,
 };
+=======
+	dev->vpd.cap = pci_find_capability(dev, PCI_CAP_ID_VPD);
+	mutex_init(&dev->vpd.lock);
+
+	if (!dev->vpd.len)
+		dev->vpd.len = pci_vpd_size(dev);
+
+	if (dev->vpd.len == PCI_VPD_SZ_INVALID)
+		dev->vpd.cap = 0;
+}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 static ssize_t pci_vpd_f0_read(struct pci_dev *dev, loff_t pos, size_t count,
 			       void *arg)
@@ -442,6 +477,7 @@ static const struct pci_vpd_ops pci_vpd_ops = {
 static ssize_t pci_vpd_f0_read(struct pci_dev *dev, loff_t pos, size_t count,
 			       void *arg)
 {
+<<<<<<< HEAD
 	struct pci_dev *tdev = pci_get_slot(dev->bus,
 					    PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
 	ssize_t ret;
@@ -453,6 +489,18 @@ static ssize_t pci_vpd_f0_read(struct pci_dev *dev, loff_t pos, size_t count,
 	pci_dev_put(tdev);
 	return ret;
 }
+=======
+	unsigned int len = dev->vpd.len;
+	void *buf;
+	int cnt;
+
+	if (!dev->vpd.cap)
+		return ERR_PTR(-ENODEV);
+
+	buf = kmalloc(len, GFP_KERNEL);
+	if (!buf)
+		return ERR_PTR(-ENOMEM);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 static ssize_t pci_vpd_f0_write(struct pci_dev *dev, loff_t pos, size_t count,
 				const void *arg)

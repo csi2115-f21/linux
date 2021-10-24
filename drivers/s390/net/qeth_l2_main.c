@@ -2211,7 +2211,17 @@ static void qeth_l2_remove_device(struct ccwgroup_device *gdev)
 		qeth_set_offline(card, card->discipline, false);
 
 	cancel_work_sync(&card->close_dev_work);
+<<<<<<< HEAD
 	if (card->dev->reg_state == NETREG_REGISTERED)
+=======
+	if (card->dev->reg_state == NETREG_REGISTERED) {
+		priv = netdev_priv(card->dev);
+		if (priv->brport_features & BR_LEARNING_SYNC) {
+			rtnl_lock();
+			qeth_l2_br2dev_put();
+			rtnl_unlock();
+		}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		unregister_netdev(card->dev);
 }
 

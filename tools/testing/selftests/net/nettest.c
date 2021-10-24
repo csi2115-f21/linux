@@ -26,6 +26,13 @@
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
+<<<<<<< HEAD
+=======
+
+#include <linux/xfrm.h>
+#include <linux/ipsec.h>
+#include <linux/pfkeyv2.h>
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 #ifndef IPV6_UNICAST_IF
 #define IPV6_UNICAST_IF         76
@@ -1772,7 +1779,11 @@ static int ipc_parent(int cpid, int fd, struct sock_args *args)
 	return client_status;
 }
 
+<<<<<<< HEAD
 #define GETOPT_STR  "sr:l:c:p:t:g:P:DRn:M:X:m:d:I:BN:O:SCi6L:0:1:2:3:Fbq"
+=======
+#define GETOPT_STR  "sr:l:c:p:t:g:P:DRn:M:X:m:d:I:BN:O:SCi6xL:0:1:2:3:Fbq"
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 static void print_usage(char *prog)
 {

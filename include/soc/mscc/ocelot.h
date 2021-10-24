@@ -764,9 +764,13 @@ int ocelot_xtr_poll_frame(struct ocelot *ocelot, int grp, struct sk_buff **skb);
 void ocelot_drain_cpu_queue(struct ocelot *ocelot, int grp);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 u32 ocelot_ptp_rew_op(struct sk_buff *skb);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+u32 ocelot_ptp_rew_op(struct sk_buff *skb);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #else
 
 static inline bool ocelot_can_inject(struct ocelot *ocelot, int grp)
@@ -791,12 +795,18 @@ static inline void ocelot_drain_cpu_queue(struct ocelot *ocelot, int grp)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static inline u32 ocelot_ptp_rew_op(struct sk_buff *skb)
 {
 	return 0;
 }
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #endif
 
 /* Hardware initialization */

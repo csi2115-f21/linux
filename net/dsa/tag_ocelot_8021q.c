@@ -14,6 +14,7 @@
 #include "dsa_priv.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 static struct sk_buff *ocelot_xmit_ptp(struct dsa_port *dp,
 				       struct sk_buff *skb,
 				       struct sk_buff *clone)
@@ -42,6 +43,8 @@ static struct sk_buff *ocelot_xmit_ptp(struct dsa_port *dp,
 
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static struct sk_buff *ocelot_xmit(struct sk_buff *skb,
 				   struct net_device *netdev)
 {
@@ -50,12 +53,15 @@ static struct sk_buff *ocelot_xmit(struct sk_buff *skb,
 	u16 queue_mapping = skb_get_queue_mapping(skb);
 	u8 pcp = netdev_txq_to_tc(netdev, queue_mapping);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	struct sk_buff *clone = DSA_SKB_CB(skb)->clone;
 
 	/* TX timestamping was requested, so inject through MMIO */
 	if (clone)
 		return ocelot_xmit_ptp(dp, skb, clone);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct ocelot *ocelot = dp->ds->priv;
 	int port = dp->index;
 	u32 rew_op = 0;
@@ -68,7 +74,10 @@ static struct sk_buff *ocelot_xmit(struct sk_buff *skb,
 		ocelot_port_inject_frame(ocelot, port, 0, rew_op, skb);
 		return NULL;
 	}
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	return dsa_8021q_xmit(skb, netdev, ETH_P_8021Q,
 			      ((pcp << VLAN_PRIO_SHIFT) | tx_vid));

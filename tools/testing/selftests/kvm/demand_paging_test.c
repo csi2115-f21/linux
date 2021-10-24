@@ -397,7 +397,10 @@ static void help(char *name)
 =======
 	printf("usage: %s [-h] [-m vm_mode] [-u uffd_mode] [-d uffd_delay_usec]\n"
 	       "          [-b memory] [-t type] [-v vcpus] [-o]\n", name);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	guest_modes_help();
 	printf(" -u: use User Fault FD to handle vCPU page\n"
 	       "     faults.\n");
@@ -408,10 +411,15 @@ static void help(char *name)
 	       "     demand paged by each vCPU. e.g. 10M or 3G.\n"
 	       "     Default: 1G\n");
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	printf(" -t: The type of backing memory to use. Default: anonymous\n");
 	backing_src_help();
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	printf(" -t: The type of backing memory to use. Default: anonymous\n");
+	backing_src_help();
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	printf(" -v: specify the number of vCPUs to run.\n");
 	printf(" -o: Overlap guest memory accesses instead of partitioning\n"
 	       "     them into a separate region of memory for each vCPU.\n");
@@ -424,9 +432,13 @@ int main(int argc, char *argv[])
 	int max_vcpus = kvm_check_cap(KVM_CAP_MAX_VCPUS);
 	struct test_params p = {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 		.src_type = VM_MEM_SRC_ANONYMOUS,
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		.src_type = VM_MEM_SRC_ANONYMOUS,
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		.partition_vcpu_memory_access = true,
 	};
 	int opt;
@@ -434,10 +446,14 @@ int main(int argc, char *argv[])
 	guest_modes_append_default();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	while ((opt = getopt(argc, argv, "hm:ud:b:v:o")) != -1) {
 =======
 	while ((opt = getopt(argc, argv, "hm:u:d:b:t:v:o")) != -1) {
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	while ((opt = getopt(argc, argv, "hm:u:d:b:t:v:o")) != -1) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		switch (opt) {
 		case 'm':
 			guest_modes_cmdline(optarg);
@@ -453,7 +469,10 @@ int main(int argc, char *argv[])
 			guest_percpu_mem_size = parse_size(optarg);
 			break;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		case 't':
 			p.src_type = parse_backing_src_type(optarg);
 			break;

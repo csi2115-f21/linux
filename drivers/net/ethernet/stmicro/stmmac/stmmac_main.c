@@ -5841,6 +5841,7 @@ int stmmac_resume(struct device *dev)
 		pinctrl_pm_select_default_state(priv->device);
 		/* enable the clk previously disabled */
 <<<<<<< HEAD
+<<<<<<< HEAD
 		clk_prepare_enable(priv->plat->stmmac_clk);
 		clk_prepare_enable(priv->plat->pclk);
 =======
@@ -5848,6 +5849,11 @@ int stmmac_resume(struct device *dev)
 		if (ret)
 			return ret;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		ret = pm_runtime_force_resume(dev);
+		if (ret)
+			return ret;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (priv->plat->clk_ptp_ref)
 			clk_prepare_enable(priv->plat->clk_ptp_ref);
 		/* reset the phy so that it's ready */

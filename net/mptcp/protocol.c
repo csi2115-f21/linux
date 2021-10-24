@@ -1345,12 +1345,29 @@ static int mptcp_sendmsg_frag(struct sock *sk, struct sock *ssk,
 			 mptcp_skb_can_collapse_to(data_seq, skb, mpext);
 		if (!can_collapse) {
 			TCP_SKB_CB(skb)->eor = 1;
+<<<<<<< HEAD
 		} else {
+=======
+			goto alloc_skb;
+		}
+
+		must_collapse = (info->size_goal - skb->len > 0) &&
+				(skb_shinfo(skb)->nr_frags < sysctl_max_skb_frags);
+		if (must_collapse) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			size_bias = skb->len;
 			avail_size = info->size_goal - skb->len;
 		}
 	}
 
+<<<<<<< HEAD
+=======
+alloc_skb:
+	if (!must_collapse && !ssk->sk_tx_skb_cache &&
+	    !mptcp_alloc_tx_skb(sk, ssk, info->data_lock_held))
+		return 0;
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	/* Zero window and all data acked? Probe. */
 	avail_size = mptcp_check_allowed_size(msk, data_seq, avail_size);
 	if (avail_size == 0) {
@@ -1782,10 +1799,14 @@ static void mptcp_wait_data(struct sock *sk, long *timeo)
 
 	sk_wait_event(sk, timeo,
 <<<<<<< HEAD
+<<<<<<< HEAD
 		      test_and_clear_bit(MPTCP_DATA_READY, &msk->flags), &wait);
 =======
 		      test_bit(MPTCP_DATA_READY, &msk->flags), &wait);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		      test_bit(MPTCP_DATA_READY, &msk->flags), &wait);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	sk_clear_bit(SOCKWQ_ASYNC_WAITDATA, sk);
 	remove_wait_queue(sk_sleep(sk), &wait);
@@ -2081,7 +2102,22 @@ static int mptcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
 		pr_debug("block timeout %ld", timeo);
 		mptcp_wait_data(sk, &timeo);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+	}
+
+	if (skb_queue_empty_lockless(&sk->sk_receive_queue) &&
+	    skb_queue_empty(&msk->receive_queue)) {
+		/* entire backlog drained, clear DATA_READY. */
+		clear_bit(MPTCP_DATA_READY, &msk->flags);
+
+		/* .. race-breaker: ssk might have gotten new data
+		 * after last __mptcp_move_skbs() returned false.
+		 */
+		if (unlikely(__mptcp_move_skbs(msk)))
+			set_bit(MPTCP_DATA_READY, &msk->flags);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	if (skb_queue_empty_lockless(&sk->sk_receive_queue) &&
@@ -2097,6 +2133,7 @@ static int mptcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
+<<<<<<< HEAD
 	if (skb_queue_empty_lockless(&sk->sk_receive_queue) &&
 	    skb_queue_empty(&msk->receive_queue)) {
 		/* entire backlog drained, clear DATA_READY. */
@@ -2118,6 +2155,8 @@ out_err:
 		 skb_queue_empty_lockless(&sk->sk_receive_queue), copied);
 	mptcp_rcv_space_adjust(msk, copied);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	pr_debug("msk=%p data_ready=%d rx queue empty=%d copied=%d",
 		 msk, test_bit(MPTCP_DATA_READY, &msk->flags),
 		 skb_queue_empty_lockless(&sk->sk_receive_queue), copied);

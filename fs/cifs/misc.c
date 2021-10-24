@@ -740,10 +740,29 @@ cifs_close_deferred_file(struct cifsInodeInfo *cifs_inode)
 	struct cifs_deferred_close *dclose;
 
 	list_for_each_entry(cfile, &cifs_inode->openFileList, flist) {
+<<<<<<< HEAD
 		spin_lock(&cifs_inode->deferred_lock);
 		if (cifs_is_deferred_close(cfile, &dclose))
 			mod_delayed_work(deferredclose_wq, &cfile->deferred, 0);
 		spin_unlock(&cifs_inode->deferred_lock);
+=======
+		if (delayed_work_pending(&cfile->deferred)) {
+			if (cancel_delayed_work(&cfile->deferred)) {
+				tmp_list = kmalloc(sizeof(struct file_list), GFP_ATOMIC);
+				if (tmp_list == NULL)
+					continue;
+				tmp_list->cfile = cfile;
+				list_add_tail(&tmp_list->list, &file_head);
+			}
+		}
+	}
+	spin_unlock(&cifs_inode->open_file_lock);
+
+	list_for_each_entry_safe(tmp_list, tmp_next_list, &file_head, list) {
+		_cifsFileInfo_put(tmp_list->cfile, true, false);
+		list_del(&tmp_list->list);
+		kfree(tmp_list);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 }
 
@@ -757,6 +776,7 @@ cifs_close_all_deferred_files(struct cifs_tcon *tcon)
 	list_for_each(tmp, &tcon->openFileList) {
 		cfile = list_entry(tmp, struct cifsFileInfo, tlist);
 		if (delayed_work_pending(&cfile->deferred)) {
+<<<<<<< HEAD
 			/*
 			 * If there is no pending work, mod_delayed_work queues new work.
 			 * So, Increase the ref count to avoid use-after-free.
@@ -766,6 +786,24 @@ cifs_close_all_deferred_files(struct cifs_tcon *tcon)
 		}
 	}
 	spin_unlock(&tcon->open_file_lock);
+=======
+			if (cancel_delayed_work(&cfile->deferred)) {
+				tmp_list = kmalloc(sizeof(struct file_list), GFP_ATOMIC);
+				if (tmp_list == NULL)
+					continue;
+				tmp_list->cfile = cfile;
+				list_add_tail(&tmp_list->list, &file_head);
+			}
+		}
+	}
+	spin_unlock(&tcon->open_file_lock);
+
+	list_for_each_entry_safe(tmp_list, tmp_next_list, &file_head, list) {
+		_cifsFileInfo_put(tmp_list->cfile, true, false);
+		list_del(&tmp_list->list);
+		kfree(tmp_list);
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

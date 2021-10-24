@@ -570,7 +570,10 @@ static int afs_write_back_from_locked_page(struct address_space *mapping,
 
 			if (!trylock_page(page))
 				break;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			if (!PageDirty(page) || PageWriteback(page)) {
 				unlock_page(page);
 				break;
@@ -855,11 +858,16 @@ vm_fault_t afs_page_mkwrite(struct vm_fault *vmf)
 	unsigned long priv;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	_enter("{{%llx:%llu}},{%lx}",
 	       vnode->fid.vid, vnode->fid.vnode, vmf->page->index);
 
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	_enter("{{%llx:%llu}},{%lx}", vnode->fid.vid, vnode->fid.vnode, page->index);
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	sb_start_pagefault(inode->i_sb);
 
 	/* Wait for the page to be written to the cache before we allow it to
@@ -959,7 +967,10 @@ int afs_launder_page(struct page *page)
 		trace_afs_page_dirty(vnode, tracepoint_string("launder"), page);
 		ret = afs_store_data(vnode, &iter, (loff_t)page->index * PAGE_SIZE,
 				     true);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	priv = (unsigned long)detach_page_private(page);

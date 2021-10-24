@@ -831,13 +831,19 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
 
 exit:
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (reset->clkdm)
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (reset->clkdm) {
 		/* At least dra7 iva needs a delay before clkdm idle */
 		if (has_rstst)
 			udelay(1);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		pdata->clkdm_allow_idle(reset->clkdm);
 	}
 

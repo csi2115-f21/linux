@@ -1583,8 +1583,39 @@ again_under_lmqt:
 	}
 }
 
+<<<<<<< HEAD
 static void br_multicast_send_query(struct net_bridge *br,
 				    struct net_bridge_port *port,
+=======
+static void br_multicast_read_querier(const struct bridge_mcast_querier *querier,
+				      struct bridge_mcast_querier *dest)
+{
+	unsigned int seq;
+
+	memset(dest, 0, sizeof(*dest));
+	do {
+		seq = read_seqcount_begin(&querier->seq);
+		dest->port_ifidx = querier->port_ifidx;
+		memcpy(&dest->addr, &querier->addr, sizeof(struct br_ip));
+	} while (read_seqcount_retry(&querier->seq, seq));
+}
+
+static void br_multicast_update_querier(struct net_bridge_mcast *brmctx,
+					struct bridge_mcast_querier *querier,
+					int ifindex,
+					struct br_ip *saddr)
+{
+	lockdep_assert_held_once(&brmctx->br->multicast_lock);
+
+	write_seqcount_begin(&querier->seq);
+	querier->port_ifidx = ifindex;
+	memcpy(&querier->addr, saddr, sizeof(*saddr));
+	write_seqcount_end(&querier->seq);
+}
+
+static void br_multicast_send_query(struct net_bridge_mcast *brmctx,
+				    struct net_bridge_mcast_port *pmctx,
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 				    struct bridge_mcast_own_query *own_query)
 {
 	struct bridge_mcast_other_query *other_query = NULL;
@@ -3711,6 +3742,7 @@ static void br_multicast_gc_work(struct work_struct *work)
 
 void br_multicast_init(struct net_bridge *br)
 {
+<<<<<<< HEAD
 	br->hash_max = BR_MULTICAST_DEFAULT_HASH_MAX;
 <<<<<<< HEAD
 
@@ -3746,6 +3778,30 @@ void br_multicast_init(struct net_bridge *br)
 	br->multicast_mld_version = 1;
 	br->ip6_other_query.delay_time = 0;
 	br->ip6_querier.port = NULL;
+=======
+	brmctx->br = br;
+	brmctx->vlan = vlan;
+	brmctx->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
+	brmctx->multicast_last_member_count = 2;
+	brmctx->multicast_startup_query_count = 2;
+
+	brmctx->multicast_last_member_interval = HZ;
+	brmctx->multicast_query_response_interval = 10 * HZ;
+	brmctx->multicast_startup_query_interval = 125 * HZ / 4;
+	brmctx->multicast_query_interval = 125 * HZ;
+	brmctx->multicast_querier_interval = 255 * HZ;
+	brmctx->multicast_membership_interval = 260 * HZ;
+
+	brmctx->ip4_other_query.delay_time = 0;
+	brmctx->ip4_querier.port_ifidx = 0;
+	seqcount_init(&brmctx->ip4_querier.seq);
+	brmctx->multicast_igmp_version = 2;
+#if IS_ENABLED(CONFIG_IPV6)
+	brmctx->multicast_mld_version = 1;
+	brmctx->ip6_other_query.delay_time = 0;
+	brmctx->ip6_querier.port_ifidx = 0;
+	seqcount_init(&brmctx->ip6_querier.seq);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #endif
 	br_opt_toggle(br, BROPT_MULTICAST_ENABLED, true);
 	br_opt_toggle(br, BROPT_HAS_IPV6_ADDR, true);

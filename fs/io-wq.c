@@ -178,9 +178,12 @@ static void io_worker_exit(struct io_worker *worker)
 	struct io_wqe *wqe = worker->wqe;
 	struct io_wqe_acct *acct = io_wqe_get_acct(worker);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	unsigned flags;
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	if (refcount_dec_and_test(&worker->ref))
 		complete(&worker->ref_done);
@@ -193,7 +196,10 @@ static void io_worker_exit(struct io_worker *worker)
 		hlist_nulls_del_rcu(&worker->nulls_node);
 	list_del_rcu(&worker->all_list);
 	acct->nr_workers--;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	preempt_disable();
 	current->flags &= ~PF_IO_WORKER;
 	flags = worker->flags;
@@ -276,7 +282,11 @@ static bool io_wqe_activate_free_worker(struct io_wqe *wqe)
  */
 static void io_wqe_wake_worker(struct io_wqe *wqe, struct io_wqe_acct *acct)
 {
+<<<<<<< HEAD
 	bool ret;
+=======
+	bool do_create = false;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	/*
 	 * Most likely an attempt to queue unbounded work on an io_wq that
@@ -284,6 +294,7 @@ static void io_wqe_wake_worker(struct io_wqe *wqe, struct io_wqe_acct *acct)
 	 */
 	WARN_ON_ONCE(!acct->max_workers);
 
+<<<<<<< HEAD
 	rcu_read_lock();
 	ret = io_wqe_activate_free_worker(wqe);
 	rcu_read_unlock();
@@ -307,6 +318,21 @@ static void io_wqe_wake_worker(struct io_wqe *wqe, struct io_wqe_acct *acct)
 			create_io_worker(wqe->wq, wqe, acct->index);
 	}
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	raw_spin_lock(&wqe->lock);
+	if (acct->nr_workers < acct->max_workers) {
+		acct->nr_workers++;
+		do_create = true;
+	}
+	raw_spin_unlock(&wqe->lock);
+	if (do_create) {
+		atomic_inc(&acct->nr_running);
+		atomic_inc(&wqe->wq->worker_refs);
+		return create_io_worker(wqe->wq, wqe, acct->index);
+	}
+
+	return true;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static void io_wqe_inc_running(struct io_worker *worker)
@@ -646,6 +672,16 @@ loop:
 			io_worker_handle_work(worker);
 			goto loop;
 		}
+<<<<<<< HEAD
+=======
+		/* timed out, exit unless we're the last worker */
+		if (last_timeout && acct->nr_workers > 1) {
+			raw_spin_unlock(&wqe->lock);
+			__set_current_state(TASK_RUNNING);
+			break;
+		}
+		last_timeout = false;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		__io_worker_idle(wqe, worker);
 		raw_spin_unlock_irq(&wqe->lock);
 <<<<<<< HEAD
@@ -655,6 +691,7 @@ loop:
 		if (io_flush_signals())
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			continue;
+<<<<<<< HEAD
 		if (fatal_signal_pending(current))
 			break;
 		/* timed out, exit unless we're the fixed worker */
@@ -663,6 +700,17 @@ loop:
 			break;
 <<<<<<< HEAD
 =======
+=======
+		ret = schedule_timeout(WORKER_IDLE_TIMEOUT);
+		if (signal_pending(current)) {
+			struct ksignal ksig;
+
+			if (!get_signal(&ksig))
+				continue;
+			if (fatal_signal_pending(current))
+				break;
+			continue;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		}
 		if (ret)
 			continue;
@@ -1378,7 +1426,39 @@ static int io_wq_cpu_online(unsigned int cpu, struct hlist_node *node)
 		else
 			cpumask_copy(wqe->cpu_mask, cpumask_of_node(i));
 	}
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	rcu_read_unlock();
+	return 0;
+}
+
+/*
+ * Set max number of unbounded workers, returns old value. If new_count is 0,
+ * then just return the old value.
+ */
+int io_wq_max_workers(struct io_wq *wq, int *new_count)
+{
+	int i, node, prev = 0;
+
+	for (i = 0; i < 2; i++) {
+		if (new_count[i] > task_rlimit(current, RLIMIT_NPROC))
+			new_count[i] = task_rlimit(current, RLIMIT_NPROC);
+	}
+
+	rcu_read_lock();
+	for_each_node(node) {
+		struct io_wqe_acct *acct;
+
+		for (i = 0; i < IO_WQ_ACCT_NR; i++) {
+			acct = &wq->wqes[node]->acct[i];
+			prev = max_t(int, acct->max_workers, prev);
+			if (new_count[i])
+				acct->max_workers = new_count[i];
+			new_count[i] = prev;
+		}
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	rcu_read_unlock();
 	return 0;
 }

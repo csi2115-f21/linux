@@ -619,6 +619,45 @@ static int acpi_add(struct acpi_device *device)
 		pr_err("unable to register platform device\n");
 		goto out_platform_registered;
 	}
+<<<<<<< HEAD
+=======
+	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+	if (strlen(product) > 4)
+		switch (product[4]) {
+		case '5':
+		case '6':
+			year = 2016;
+			break;
+		case '7':
+			year = 2017;
+			break;
+		case '8':
+			year = 2018;
+			break;
+		case '9':
+			year = 2019;
+			break;
+		case '0':
+			if (strlen(product) > 5)
+				switch (product[5]) {
+				case 'N':
+					year = 2020;
+					break;
+				case 'P':
+					year = 2021;
+					break;
+				default:
+					year = 2022;
+				}
+			break;
+		default:
+			year = 2019;
+		}
+	pr_info("product: %s  year: %d\n", product, year);
+
+	if (year >= 2019)
+		battery_limit_use_wmbb = 1;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	ret = sysfs_create_group(&pf_device->dev.kobj, &dev_attribute_group);
 	if (ret)

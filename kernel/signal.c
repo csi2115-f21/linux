@@ -425,10 +425,29 @@ __sigqueue_alloc(int sig, struct task_struct *t, gfp_t flags, int override_rlimi
 	 * changes from/to zero.
 	 */
 	rcu_read_lock();
+<<<<<<< HEAD
 	user = __task_cred(t)->user;
 	sigpending = atomic_inc_return(&user->sigpending);
 	if (sigpending == 1)
 		get_uid(user);
+=======
+	ucounts = task_ucounts(t);
+	sigpending = inc_rlimit_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING, 1);
+	switch (sigpending) {
+	case 1:
+		if (likely(get_ucounts(ucounts)))
+			break;
+		fallthrough;
+	case LONG_MAX:
+		/*
+		 * we need to decrease the ucount in the userns tree on any
+		 * failure to avoid counts leaking.
+		 */
+		dec_rlimit_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING, 1);
+		rcu_read_unlock();
+		return NULL;
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	rcu_read_unlock();
 
 	if (override_rlimit || likely(sigpending <= task_rlimit(t, RLIMIT_SIGPENDING))) {
@@ -438,8 +457,13 @@ __sigqueue_alloc(int sig, struct task_struct *t, gfp_t flags, int override_rlimi
 	}
 
 	if (unlikely(q == NULL)) {
+<<<<<<< HEAD
 		if (atomic_dec_and_test(&user->sigpending))
 			free_uid(user);
+=======
+		if (dec_rlimit_ucounts(ucounts, UCOUNT_RLIMIT_SIGPENDING, 1))
+			put_ucounts(ucounts);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	} else {
 		INIT_LIST_HEAD(&q->list);
 		q->flags = 0;
@@ -453,8 +477,15 @@ static void __sigqueue_free(struct sigqueue *q)
 {
 	if (q->flags & SIGQUEUE_PREALLOC)
 		return;
+<<<<<<< HEAD
 	if (atomic_dec_and_test(&q->user->sigpending))
 		free_uid(q->user);
+=======
+	if (q->ucounts && dec_rlimit_ucounts(q->ucounts, UCOUNT_RLIMIT_SIGPENDING, 1)) {
+		put_ucounts(q->ucounts);
+		q->ucounts = NULL;
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	kmem_cache_free(sigqueue_cachep, q);
 }
 

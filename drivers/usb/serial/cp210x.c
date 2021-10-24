@@ -255,7 +255,10 @@ struct cp210x_serial_private {
 <<<<<<< HEAD
 =======
 	bool			no_flow_control;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 };
 
 enum cp210x_event_state {
@@ -1903,7 +1906,10 @@ static void cp210x_init_max_speed(struct usb_serial *serial)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static int cp210x_get_fw_version(struct usb_serial *serial, u16 value)
 {
 	struct cp210x_serial_private *priv = usb_get_serial_data(serial);
@@ -1928,7 +1934,25 @@ static void cp210x_determine_quirks(struct usb_serial *serial)
 	struct cp210x_serial_private *priv = usb_get_serial_data(serial);
 	int ret;
 
+<<<<<<< HEAD
 	switch (priv->partnum) {
+=======
+	ret = cp210x_read_vendor_block(serial, REQTYPE_DEVICE_TO_HOST,
+			CP210X_GET_PARTNUM, &priv->partnum,
+			sizeof(priv->partnum));
+	if (ret < 0) {
+		dev_warn(&serial->interface->dev,
+				"querying part number failed\n");
+		priv->partnum = CP210X_PARTNUM_UNKNOWN;
+		return;
+	}
+
+	switch (priv->partnum) {
+	case CP210X_PARTNUM_CP2105:
+	case CP210X_PARTNUM_CP2108:
+		cp210x_get_fw_version(serial, CP210X_GET_FW_VER);
+		break;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	case CP210X_PARTNUM_CP2102N_QFN28:
 	case CP210X_PARTNUM_CP2102N_QFN24:
 	case CP210X_PARTNUM_CP2102N_QFN20:

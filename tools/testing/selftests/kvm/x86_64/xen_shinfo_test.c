@@ -17,7 +17,10 @@
 =======
 #include <sched.h>
 #include <sys/syscall.h>
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 #define VCPU_ID		5
 
@@ -51,6 +54,20 @@ struct pvclock_wall_clock {
 static void guest_code(void)
 {
 	GUEST_DONE();
+}
+
+static long get_run_delay(void)
+{
+        char path[64];
+        long val[2];
+        FILE *fp;
+
+        sprintf(path, "/proc/%ld/schedstat", syscall(SYS_gettid));
+        fp = fopen(path, "r");
+        fscanf(fp, "%ld %ld ", &val[0], &val[1]);
+        fclose(fp);
+
+        return val[1];
 }
 
 static long get_run_delay(void)

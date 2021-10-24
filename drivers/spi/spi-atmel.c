@@ -1310,10 +1310,14 @@ static int atmel_spi_one_transfer(struct spi_master *master,
 	 * better fault reporting.
 	 */
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if ((!msg->is_dma_mapped)
 =======
 	if ((!master->cur_msg_mapped)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	if ((!master->cur_msg_mapped)
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		&& as->use_pdc) {
 		if (atmel_spi_dma_map_xfer(as, xfer) < 0)
 			return -ENOMEM;
@@ -1402,10 +1406,14 @@ static int atmel_spi_one_transfer(struct spi_master *master,
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (!msg->is_dma_mapped
 =======
 	if (!master->cur_msg_mapped
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	if (!master->cur_msg_mapped
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		&& as->use_pdc)
 		atmel_spi_dma_unmap_xfer(master, xfer);
 

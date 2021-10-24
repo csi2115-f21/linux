@@ -317,6 +317,7 @@ void kvm_flush_remote_tlbs(struct kvm *kvm)
 	 */
 	long dirty_count = smp_load_acquire(&kvm->tlbs_dirty);
 
+	++kvm->stat.generic.remote_tlb_flush_requests;
 	/*
 	 * We want to publish modifications to the page tables before reading
 	 * mode. Pairs with a memory barrier in arch-specific code.
@@ -334,7 +335,10 @@ void kvm_flush_remote_tlbs(struct kvm *kvm)
 		++kvm->stat.remote_tlb_flush;
 =======
 		++kvm->stat.generic.remote_tlb_flush;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	cmpxchg(&kvm->tlbs_dirty, dirty_count, 0);
 }
 EXPORT_SYMBOL_GPL(kvm_flush_remote_tlbs);

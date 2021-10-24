@@ -3821,6 +3821,7 @@ static long st_ioctl_common(struct file *file, unsigned int cmd_in, void __user 
 	}
 	mutex_unlock(&STp->lock);
 	switch (cmd_in) {
+<<<<<<< HEAD
 		case SCSI_IOCTL_STOP_UNIT:
 			/* unload */
 			retval = scsi_ioctl(STp->device, cmd_in, p);
@@ -3834,6 +3835,16 @@ static long st_ioctl_common(struct file *file, unsigned int cmd_in, void __user 
 		case SCSI_IOCTL_GET_IDLUN:
 		case SCSI_IOCTL_GET_BUS_NUMBER:
 			break;
+=======
+	case SG_IO:
+	case SCSI_IOCTL_SEND_COMMAND:
+	case CDROM_SEND_PACKET:
+		if (!capable(CAP_SYS_RAWIO))
+			return -EPERM;
+	default:
+		break;
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 =======
 

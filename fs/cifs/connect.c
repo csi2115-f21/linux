@@ -1558,7 +1558,10 @@ out:
 /**
  * cifs_free_ipc - helper to release the session IPC tcon
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
  *
  * Needs to be called everytime a session is destroyed.
  *

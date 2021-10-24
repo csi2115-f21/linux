@@ -146,8 +146,11 @@ struct scsi_device {
 	struct scsi_vpd __rcu *vpd_pg89;
 	unsigned char current_tag;	/* current tag */
 <<<<<<< HEAD
+<<<<<<< HEAD
 	struct scsi_target      *sdev_target;   /* used only for single_lun */
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct scsi_target      *sdev_target;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 

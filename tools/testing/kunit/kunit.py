@@ -14,6 +14,10 @@ import time
 
 from collections import namedtuple
 from enum import Enum, auto
+<<<<<<< HEAD
+=======
+from typing import Iterable
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 import kunit_config
 import kunit_json

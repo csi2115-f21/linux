@@ -1342,10 +1342,14 @@ made_compressed_probe:
 	minor = acm_alloc_minor(acm);
 	if (minor < 0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		goto alloc_fail1;
 =======
 		goto err_put_port;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		goto err_put_port;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	acm->minor = minor;
 	acm->dev = usb_dev;

@@ -3605,7 +3605,10 @@ static int restore_mixer_value(struct usb_mixer_elem_list *list)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static int default_mixer_reset_resume(struct usb_mixer_elem_list *list)
 {
 	int err;
@@ -3618,7 +3621,10 @@ static int default_mixer_reset_resume(struct usb_mixer_elem_list *list)
 	return restore_mixer_value(list);
 }
 
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 int snd_usb_mixer_resume(struct usb_mixer_interface *mixer, bool reset_resume)
 {
 	struct usb_mixer_elem_list *list;

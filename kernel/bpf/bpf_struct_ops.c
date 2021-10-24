@@ -431,8 +431,11 @@ static int bpf_struct_ops_map_update_elem(struct bpf_map *map, void *key,
 		tprogs[BPF_TRAMP_FENTRY].progs[0] = prog;
 		tprogs[BPF_TRAMP_FENTRY].nr_progs = 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
 		err = arch_prepare_bpf_trampoline(image,
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		err = arch_prepare_bpf_trampoline(NULL, image,
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						  st_map->image + PAGE_SIZE,

@@ -587,8 +587,11 @@ void kunit_remove_resource(struct kunit *test, struct kunit_resource *res);
  * kunit_resource for more information.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 void *kunit_kmalloc(struct kunit *test, size_t size, gfp_t gfp);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 void *kunit_kmalloc_array(struct kunit *test, size_t n, size_t size, gfp_t flags);
 
 /**

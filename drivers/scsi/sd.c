@@ -2165,7 +2165,12 @@ sd_spinup_disk(struct scsi_disk *sdkp)
 			 * doesn't have any media in it, don't bother
 			 * with any more polling.
 			 */
+<<<<<<< HEAD
 			if (media_not_present(sdkp, &sshdr))
+=======
+			if (media_not_present(sdkp, &sshdr)) {
+				sd_printk(KERN_NOTICE, sdkp, "Media removed, stopped polling\n");
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 				return;
 
 			if (the_result)

@@ -5540,6 +5540,7 @@ lpfc_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *cmnd)
 <<<<<<< HEAD
 =======
 	u8 *uuid = NULL;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_SCSI_LPFC_DEBUG_FS
 	uint64_t start = 0L;
@@ -5548,6 +5549,15 @@ lpfc_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *cmnd)
 		start = ktime_get_ns();
 #endif
 
+=======
+#ifdef CONFIG_SCSI_LPFC_DEBUG_FS
+	uint64_t start = 0L;
+
+	if (phba->ktime_on)
+		start = ktime_get_ns();
+#endif
+	start = ktime_get_ns();
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	rdata = lpfc_rport_data_from_scsi_device(cmnd->device);
 
 	/* sanity check on references */

@@ -112,18 +112,24 @@ static const struct nf_hook_ops ipv4_defrag_ops[] = {
 static void __net_exit defrag4_net_exit(struct net *net)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (net->nf.defrag_ipv4) {
 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
 					ARRAY_SIZE(ipv4_defrag_ops));
 		net->nf.defrag_ipv4 = false;
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
 
 	if (nf_defrag->users) {
 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
 					ARRAY_SIZE(ipv4_defrag_ops));
 		nf_defrag->users = 0;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 }
 
@@ -165,17 +171,24 @@ int nf_defrag_ipv4_enable(struct net *net)
 
 	if (nf_defrag->users) {
 		nf_defrag->users++;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		goto out_unlock;
 
 	err = nf_register_net_hooks(net, ipv4_defrag_ops,
 				    ARRAY_SIZE(ipv4_defrag_ops));
 	if (err == 0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		net->nf.defrag_ipv4 = true;
 =======
 		nf_defrag->users = 1;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		nf_defrag->users = 1;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
  out_unlock:
 	mutex_unlock(&defrag4_mutex);

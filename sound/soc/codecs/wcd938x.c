@@ -3376,6 +3376,22 @@ err:
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+static int wcd938x_codec_set_jack(struct snd_soc_component *comp,
+				  struct snd_soc_jack *jack, void *data)
+{
+	struct wcd938x_priv *wcd = dev_get_drvdata(comp->dev);
+
+	if (!jack)
+		return wcd_mbhc_start(wcd->wcd_mbhc, &wcd->mbhc_cfg, jack);
+
+	wcd_mbhc_stop(wcd->wcd_mbhc);
+
+	return 0;
+}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static const struct snd_soc_component_driver soc_codec_dev_wcd938x = {
 	.name = "wcd938x_codec",
 	.probe = wcd938x_soc_codec_probe,

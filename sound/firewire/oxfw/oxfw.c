@@ -182,10 +182,14 @@ static int detect_quirks(struct snd_oxfw *oxfw)
 	 */
 	if (vendor == VENDOR_LOUD && model == MODEL_SATELLITE)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		oxfw->wrong_dbs = true;
 =======
 		oxfw->quirks |= SND_OXFW_QUIRK_WRONG_DBS;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		oxfw->quirks |= SND_OXFW_QUIRK_WRONG_DBS;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	return 0;
 }

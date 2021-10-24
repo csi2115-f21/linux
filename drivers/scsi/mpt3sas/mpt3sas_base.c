@@ -1548,6 +1548,56 @@ _base_get_cb_idx(struct MPT3SAS_ADAPTER *ioc, u16 smid)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * mpt3sas_base_pause_mq_polling - pause polling on the mq poll queues
+ *				when driver is flushing out the IOs.
+ * @ioc: per adapter object
+ *
+ * Pause polling on the mq poll (io uring) queues when driver is flushing
+ * out the IOs. Otherwise we may see the race condition of completing the same
+ * IO from two paths.
+ *
+ * Returns nothing.
+ */
+void
+mpt3sas_base_pause_mq_polling(struct MPT3SAS_ADAPTER *ioc)
+{
+	int iopoll_q_count =
+	    ioc->reply_queue_count - ioc->iopoll_q_start_index;
+	int qid;
+
+	for (qid = 0; qid < iopoll_q_count; qid++)
+		atomic_set(&ioc->io_uring_poll_queues[qid].pause, 1);
+
+	/*
+	 * wait for current poll to complete.
+	 */
+	for (qid = 0; qid < iopoll_q_count; qid++) {
+		while (atomic_read(&ioc->io_uring_poll_queues[qid].busy))
+			udelay(500);
+	}
+}
+
+/**
+ * mpt3sas_base_resume_mq_polling - Resume polling on mq poll queues.
+ * @ioc: per adapter object
+ *
+ * Returns nothing.
+ */
+void
+mpt3sas_base_resume_mq_polling(struct MPT3SAS_ADAPTER *ioc)
+{
+	int iopoll_q_count =
+	    ioc->reply_queue_count - ioc->iopoll_q_start_index;
+	int qid;
+
+	for (qid = 0; qid < iopoll_q_count; qid++)
+		atomic_set(&ioc->io_uring_poll_queues[qid].pause, 0);
+}
+
+/**
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
  * mpt3sas_base_mask_interrupts - disable interrupts
  * @ioc: per adapter object
  *

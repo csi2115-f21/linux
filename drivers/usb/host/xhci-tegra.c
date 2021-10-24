@@ -1679,10 +1679,14 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef CONFIG_PM_SLEEP
 =======
 #if IS_ENABLED(CONFIG_PM) || IS_ENABLED(CONFIG_PM_SLEEP)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+#if IS_ENABLED(CONFIG_PM) || IS_ENABLED(CONFIG_PM_SLEEP)
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static bool xhci_hub_ports_suspended(struct xhci_hub *hub)
 {
 	struct device *dev = hub->hcd->self.controller;
@@ -1844,7 +1848,10 @@ static int tegra_xusb_suspend(struct device *dev)
 
 static int tegra_xusb_resume(struct device *dev)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
 	int err;
@@ -1891,7 +1898,10 @@ static int tegra_xusb_runtime_suspend(struct device *dev)
 }
 
 static int tegra_xusb_runtime_resume(struct device *dev)
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 {
 	struct tegra_xusb *tegra = dev_get_drvdata(dev);
 	bool wakeup = device_may_wakeup(dev);

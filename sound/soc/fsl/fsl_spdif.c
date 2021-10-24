@@ -1399,12 +1399,17 @@ static int fsl_spdif_probe(struct platform_device *pdev)
 	ret = devm_snd_soc_register_component(&pdev->dev, &fsl_spdif_component,
 					      &spdif_priv->cpu_dai_drv, 1);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (ret) {
 		dev_err(&pdev->dev, "failed to register DAI: %d\n", ret);
 		return ret;
 =======
 	if (ret) {
 		dev_err(&pdev->dev, "failed to register DAI: %d\n", ret);
+=======
+	if (ret) {
+		dev_err(&pdev->dev, "failed to register DAI: %d\n", ret);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		goto err_pm_disable;
 	}
 

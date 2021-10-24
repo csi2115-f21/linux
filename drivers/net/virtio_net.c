@@ -415,6 +415,7 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
 	 * Buffers with headroom use PAGE_SIZE as alloc size, see
 	 * add_recvbuf_mergeable() + get_mergeable_buf_len()
 	 */
+<<<<<<< HEAD
 	if (whole_page) {
 		/* Buffers with whole_page use PAGE_SIZE as alloc size,
 		 * see add_recvbuf_mergeable() + get_mergeable_buf_len()
@@ -431,6 +432,11 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
 		buf = p;
 	}
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	truesize = headroom ? PAGE_SIZE : truesize;
+	tailroom = truesize - len - headroom;
+	buf = p - headroom;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	len -= hdr_len;
 	offset += hdr_padded_len;

@@ -482,7 +482,30 @@ struct io_ring_ctx {
 	/* exit task_work */
 	struct callback_head		*exit_task_work;
 
+<<<<<<< HEAD
 	struct wait_queue_head		hash_wait;
+=======
+	/* Keep this last, we don't need it for the fast path */
+	struct {
+		#if defined(CONFIG_UNIX)
+			struct socket		*ring_sock;
+		#endif
+		/* hashed buffered write serialization */
+		struct io_wq_hash		*hash_map;
+
+		/* Only used for accounting purposes */
+		struct user_struct		*user;
+		struct mm_struct		*mm_account;
+
+		/* ctx exit and cancelation */
+		struct llist_head		fallback_llist;
+		struct delayed_work		fallback_work;
+		struct work_struct		exit_work;
+		struct list_head		tctx_list;
+		struct completion		ref_comp;
+	};
+};
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 <<<<<<< HEAD
 	/* Keep this last, we don't need it for the fast path */
@@ -1137,8 +1160,14 @@ static void io_submit_flush_completions(struct io_ring_ctx *ctx);
 static bool io_poll_remove_waitqs(struct io_kiocb *req);
 static int io_req_prep_async(struct io_kiocb *req);
 
+<<<<<<< HEAD
 static void io_fallback_req_func(struct work_struct *unused);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+static int io_install_fixed_file(struct io_kiocb *req, struct file *file,
+				 unsigned int issue_flags, u32 slot_index);
+static enum hrtimer_restart io_link_timeout_fn(struct hrtimer *timer);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 static struct kmem_cache *req_cachep;
 
@@ -1342,10 +1371,24 @@ static void io_req_track_inflight(struct io_kiocb *req)
 		atomic_inc(&current->io_uring->inflight_tracked);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
+<<<<<<< HEAD
 	if (req->flags & REQ_F_INFLIGHT) {
 		struct io_ring_ctx *ctx = req->ctx;
 		struct io_uring_task *tctx = req->task->io_uring;
 		unsigned long flags;
+=======
+}
+
+static inline void io_unprep_linked_timeout(struct io_kiocb *req)
+{
+	req->flags &= ~REQ_F_LINK_TIMEOUT;
+}
+
+static struct io_kiocb *__io_prep_linked_timeout(struct io_kiocb *req)
+{
+	if (WARN_ON_ONCE(!req->link))
+		return NULL;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 <<<<<<< HEAD
 		spin_lock_irqsave(&ctx->inflight_lock, flags);
@@ -1618,12 +1661,17 @@ static void io_cqring_ev_posted(struct io_ring_ctx *ctx)
 	if (io_should_trigger_evfd(ctx))
 		eventfd_signal(ctx->cq_ev_fd, 1);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (waitqueue_active(&ctx->cq_wait)) {
 		wake_up_interruptible(&ctx->cq_wait);
 =======
 	if (waitqueue_active(&ctx->poll_wait)) {
 		wake_up_interruptible(&ctx->poll_wait);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	if (waitqueue_active(&ctx->poll_wait)) {
+		wake_up_interruptible(&ctx->poll_wait);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		kill_fasync(&ctx->cq_fasync, SIGIO, POLL_IN);
 	}
 }
@@ -1650,7 +1698,10 @@ static void io_cqring_ev_posted_iopoll(struct io_ring_ctx *ctx)
 		eventfd_signal(ctx->cq_ev_fd, 1);
 	if (waitqueue_active(&ctx->poll_wait)) {
 		wake_up_interruptible(&ctx->poll_wait);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		kill_fasync(&ctx->cq_fasync, SIGIO, POLL_IN);
 	}
 }
@@ -2833,6 +2884,7 @@ static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
 		list_del(&req->inflight_entry);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (READ_ONCE(req->result) == -EAGAIN) {
 			req->iopoll_completed = 0;
 			if (io_rw_reissue(req))
@@ -2855,6 +2907,17 @@ static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
 =======
 		__io_cqring_fill_event(ctx, req->user_data, req->result, cflags);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		if (READ_ONCE(req->result) == -EAGAIN &&
+		    !(req->flags & REQ_F_DONT_REISSUE)) {
+			req->iopoll_completed = 0;
+			io_req_task_queue_reissue(req);
+			continue;
+		}
+
+		__io_cqring_fill_event(ctx, req->user_data, req->result,
+					io_put_rw_kbuf(req));
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		(*nr_events)++;
 
 		if (refcount_dec_and_test(&req->refs))
@@ -3371,7 +3434,10 @@ static bool io_file_supports_async(struct io_kiocb *req, int rw)
 	return __io_file_supports_async(req->file, rw);
 }
 
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static int io_prep_rw(struct io_kiocb *req, const struct io_uring_sqe *sqe)
 {
 	struct io_ring_ctx *ctx = req->ctx;
@@ -3471,11 +3537,14 @@ static void kiocb_done(struct kiocb *kiocb, ssize_t ret,
 	if (req->flags & REQ_F_CUR_POS)
 		req->file->f_pos = kiocb->ki_pos;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if (ret >= 0 && kiocb->ki_complete == io_complete_rw)
 		__io_complete_rw(req, ret, 0, issue_flags);
 	else
 		io_rw_done(kiocb, ret);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (ret >= 0 && check_reissue)
 		__io_complete_rw(req, ret, 0, issue_flags);
 	else
@@ -3487,12 +3556,18 @@ static void kiocb_done(struct kiocb *kiocb, ssize_t ret,
 			req_ref_get(req);
 			io_req_task_queue_reissue(req);
 		} else {
+<<<<<<< HEAD
 			int cflags = 0;
 
 			req_set_fail(req);
 			if (req->flags & REQ_F_BUFFER_SELECTED)
 				cflags = io_put_rw_kbuf(req);
 			__io_req_complete(req, issue_flags, ret, cflags);
+=======
+			req_set_fail(req);
+			__io_req_complete(req, issue_flags, ret,
+					  io_put_rw_kbuf(req));
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		}
 	}
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
@@ -3855,8 +3930,11 @@ static int io_setup_async_rw(struct io_kiocb *req, const struct iovec *iovec,
 		return 0;
 	if (!req->async_data) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (__io_alloc_async_data(req)) {
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (io_alloc_async_data(req)) {
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			kfree(iovec);
@@ -4034,15 +4112,24 @@ static int io_read(struct io_kiocb *req, unsigned int issue_flags)
 		if (req->flags & REQ_F_NOWAIT)
 			goto done;
 		/* some cases will consume bytes even on error returns */
+<<<<<<< HEAD
+=======
+		iov_iter_reexpand(iter, iter->count + iter->truncated);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		iov_iter_revert(iter, io_size - iov_iter_count(iter));
 		ret = 0;
 <<<<<<< HEAD
 =======
 	} else if (ret == -EIOCBQUEUED) {
 		goto out_free;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else if (ret <= 0 || ret == io_size || !force_nonblock ||
 		   (req->flags & REQ_F_NOWAIT) || !(req->flags & REQ_F_ISREG)) {
+=======
+	} else if (ret <= 0 || ret == io_size || !force_nonblock ||
+		   (req->flags & REQ_F_NOWAIT) || !need_read_all(req)) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		/* read all, failed, already did sync or don't want to retry */
 		goto done;
 	}
@@ -4078,7 +4165,10 @@ static int io_read(struct io_kiocb *req, unsigned int issue_flags)
 <<<<<<< HEAD
 =======
 		kiocb->ki_flags &= ~IOCB_WAITQ;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	} while (ret > 0 && ret < io_size);
 done:
 	kiocb_done(kiocb, ret, issue_flags);
@@ -4178,6 +4268,10 @@ done:
 	} else {
 copy_iov:
 		/* some cases will consume bytes even on error returns */
+<<<<<<< HEAD
+=======
+		iov_iter_reexpand(iter, iter->count + iter->truncated);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		iov_iter_revert(iter, io_size - iov_iter_count(iter));
 		ret = io_setup_async_rw(req, iovec, inline_vecs, iter, false);
 		return ret ?: -EAGAIN;
@@ -4993,7 +5087,7 @@ static int io_close_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe)
 	if (unlikely(req->ctx->flags & IORING_SETUP_IOPOLL))
 		return -EINVAL;
 	if (sqe->ioprio || sqe->off || sqe->addr || sqe->len ||
-	    sqe->rw_flags || sqe->buf_index)
+	    sqe->rw_flags || sqe->buf_index || sqe->splice_fd_in)
 		return -EINVAL;
 	if (req->flags & REQ_F_FIXED_FILE)
 		return -EBADF;
@@ -5017,7 +5111,10 @@ static int io_close(struct io_kiocb *req, unsigned int issue_flags)
 	struct file *file = NULL;
 	int ret = -EBADF;
 
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	spin_lock(&files->file_lock);
 	fdt = files_fdtable(files);
 	if (close->fd >= fdt->max_fds) {
@@ -5772,12 +5869,16 @@ static void io_poll_task_func(struct io_kiocb *req)
 		spin_unlock_irq(&ctx->completion_lock);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		nxt = io_put_req_find_next(req);
 		io_cqring_ev_posted(ctx);
 		if (nxt)
 			__io_req_task_submit(nxt);
 =======
 		done = io_poll_complete(req, req->result);
+=======
+		done = __io_poll_complete(req, req->result);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (done) {
 			io_poll_remove_double(req);
 			hash_del(&req->hash_node);
@@ -5928,7 +6029,11 @@ static void io_async_task_func(struct io_kiocb *req)
 		hash_del(&req->hash_node);
 
 	io_poll_remove_double(req);
+<<<<<<< HEAD
 	spin_unlock_irq(&ctx->completion_lock);
+=======
+	spin_unlock(&ctx->completion_lock);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	if (!READ_ONCE(apoll->poll.canceled))
 <<<<<<< HEAD
@@ -6300,7 +6405,10 @@ static int io_poll_add(struct io_kiocb *req, unsigned int issue_flags)
 	struct io_poll_table ipt;
 	__poll_t mask;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	ipt.pt._qproc = io_poll_queue_proc;
 
@@ -6829,11 +6937,16 @@ static int io_files_update(struct io_kiocb *req, unsigned int issue_flags)
 
 	mutex_lock(&ctx->uring_lock);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	ret = __io_sqe_files_update(ctx, &up, req->rsrc_update.nr_args);
 =======
 	ret = __io_register_rsrc_update(ctx, IORING_RSRC_FILE,
 					&up, req->rsrc_update.nr_args);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	ret = __io_register_rsrc_update(ctx, IORING_RSRC_FILE,
+					&up, req->rsrc_update.nr_args);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	mutex_unlock(&ctx->uring_lock);
 
 	if (ret < 0)
@@ -7496,6 +7609,11 @@ static void __io_queue_sqe(struct io_kiocb *req)
 	} else if (ret == -EAGAIN && !(req->flags & REQ_F_NOWAIT)) {
 		switch (io_arm_poll_handler(req)) {
 		case IO_APOLL_READY:
+<<<<<<< HEAD
+=======
+			if (linked_timeout)
+				io_unprep_linked_timeout(req);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			goto issue_sqe;
 		case IO_APOLL_ABORTED:
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
@@ -8240,12 +8358,22 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 	if (uts) {
 		struct timespec64 ts;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		if (get_timespec64(&ts, uts))
 			return -EFAULT;
 		timeout = timespec64_to_jiffies(&ts);
 	}
 
+<<<<<<< HEAD
+=======
+	init_waitqueue_func_entry(&iowq.wq, io_wake_function);
+	iowq.wq.private = current;
+	INIT_LIST_HEAD(&iowq.wq.entry);
+	iowq.ctx = ctx;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	iowq.nr_timeouts = atomic_read(&ctx->cq_timeouts);
 	trace_io_uring_cqring_wait(ctx, min_events);
 	do {
@@ -9171,6 +9299,7 @@ static int io_sqe_file_register(struct io_ring_ctx *ctx, struct file *file,
 #endif
 }
 
+<<<<<<< HEAD
 static int io_queue_rsrc_removal(struct fixed_rsrc_data *data, void *rsrc)
 {
 	struct io_rsrc_put *prsrc;
@@ -9194,6 +9323,59 @@ static inline int io_queue_file_removal(struct fixed_rsrc_data *data,
 }
 
 =======
+=======
+static int io_install_fixed_file(struct io_kiocb *req, struct file *file,
+				 unsigned int issue_flags, u32 slot_index)
+{
+	struct io_ring_ctx *ctx = req->ctx;
+	bool force_nonblock = issue_flags & IO_URING_F_NONBLOCK;
+	struct io_fixed_file *file_slot;
+	int ret = -EBADF;
+
+	io_ring_submit_lock(ctx, !force_nonblock);
+	if (file->f_op == &io_uring_fops)
+		goto err;
+	ret = -ENXIO;
+	if (!ctx->file_data)
+		goto err;
+	ret = -EINVAL;
+	if (slot_index >= ctx->nr_user_files)
+		goto err;
+
+	slot_index = array_index_nospec(slot_index, ctx->nr_user_files);
+	file_slot = io_fixed_file_slot(&ctx->file_table, slot_index);
+	ret = -EBADF;
+	if (file_slot->file_ptr)
+		goto err;
+
+	*io_get_tag_slot(ctx->file_data, slot_index) = 0;
+	io_fixed_file_set(file_slot, file);
+	ret = io_sqe_file_register(ctx, file, slot_index);
+	if (ret) {
+		file_slot->file_ptr = 0;
+		goto err;
+	}
+
+	ret = 0;
+err:
+	io_ring_submit_unlock(ctx, !force_nonblock);
+	if (ret)
+		fput(file);
+	return ret;
+}
+
+static int io_queue_rsrc_removal(struct io_rsrc_data *data, unsigned idx,
+				 struct io_rsrc_node *node, void *rsrc)
+{
+	struct io_rsrc_put *prsrc;
+
+	prsrc = kzalloc(sizeof(*prsrc), GFP_KERNEL);
+	if (!prsrc)
+		return -ENOMEM;
+
+	prsrc->tag = *io_get_tag_slot(data, idx);
+	prsrc->rsrc = rsrc;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	list_add(&prsrc->list, &node->rsrc_list);
 	return 0;
 }
@@ -9917,6 +10099,7 @@ static int __io_destroy_buffers(int id, void *p, void *data)
 	return 0;
 }
 
+<<<<<<< HEAD
 static void io_destroy_buffers(struct io_ring_ctx *ctx)
 {
 	idr_for_each(&ctx->io_buffer_idr, __io_destroy_buffers, ctx);
@@ -9925,6 +10108,10 @@ static void io_destroy_buffers(struct io_ring_ctx *ctx)
 	xa_for_each(&ctx->io_buffers, index, buf)
 		__io_remove_buffers(ctx, buf, index, -1U);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	xa_for_each(&ctx->io_buffers, index, buf)
+		__io_remove_buffers(ctx, buf, index, -1U);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static void io_req_cache_free(struct list_head *list, struct task_struct *tsk)
@@ -10448,6 +10635,7 @@ static int io_uring_add_task_file(struct io_ring_ctx *ctx, struct file *file)
 		if (unlikely(ret))
 			return ret;
 		tctx = current->io_uring;
+<<<<<<< HEAD
 	}
 	if (tctx->last != file) {
 		void *old = xa_load(&tctx->xa, (unsigned long)file);
@@ -10466,6 +10654,8 @@ static int io_uring_add_task_file(struct io_ring_ctx *ctx, struct file *file)
 				     current != ctx->sqo_task);
 		}
 		tctx->last = file;
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	/*
@@ -10509,6 +10699,7 @@ void __io_uring_files_cancel(struct files_struct *files)
 	unsigned long index;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	/* make sure overflow events are dropped */
 	atomic_inc(&tctx->in_idle);
 	xa_for_each(&tctx->xa, index, file)
@@ -10522,6 +10713,8 @@ void __io_uring_files_cancel(struct files_struct *files)
 			tctx->io_wq = NULL;
 		}
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	xa_for_each(&tctx->xa, index, node)
 		io_uring_del_tctx_node(index);
 	if (wq) {
@@ -11553,7 +11746,62 @@ static int io_unregister_iowq_aff(struct io_ring_ctx *ctx)
 		return -EINVAL;
 
 	return io_wq_cpu_affinity(tctx->io_wq, NULL);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+}
+
+static int io_register_iowq_max_workers(struct io_ring_ctx *ctx,
+					void __user *arg)
+{
+	struct io_uring_task *tctx = NULL;
+	struct io_sq_data *sqd = NULL;
+	__u32 new_count[2];
+	int i, ret;
+
+	if (copy_from_user(new_count, arg, sizeof(new_count)))
+		return -EFAULT;
+	for (i = 0; i < ARRAY_SIZE(new_count); i++)
+		if (new_count[i] > INT_MAX)
+			return -EINVAL;
+
+	if (ctx->flags & IORING_SETUP_SQPOLL) {
+		sqd = ctx->sq_data;
+		if (sqd) {
+			/*
+			 * Observe the correct sqd->lock -> ctx->uring_lock
+			 * ordering. Fine to drop uring_lock here, we hold
+			 * a ref to the ctx.
+			 */
+			mutex_unlock(&ctx->uring_lock);
+			mutex_lock(&sqd->lock);
+			mutex_lock(&ctx->uring_lock);
+			tctx = sqd->thread->io_uring;
+		}
+	} else {
+		tctx = current->io_uring;
+	}
+
+	ret = -EINVAL;
+	if (!tctx || !tctx->io_wq)
+		goto err;
+
+	ret = io_wq_max_workers(tctx->io_wq, new_count);
+	if (ret)
+		goto err;
+
+	if (sqd)
+		mutex_unlock(&sqd->lock);
+
+	if (copy_to_user(arg, new_count, sizeof(new_count)))
+		return -EFAULT;
+
+	return 0;
+err:
+	if (sqd)
+		mutex_unlock(&sqd->lock);
+	return ret;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static bool io_register_op_must_quiesce(int op)

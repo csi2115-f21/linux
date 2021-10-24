@@ -19,7 +19,11 @@
 static void __ap_flush_queue(struct ap_queue *aq);
 
 /**
+<<<<<<< HEAD
  * ap_queue_enable_interruption(): Enable interruption on an AP queue.
+=======
+ * ap_queue_enable_irq(): Enable interrupt support on this AP queue.
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
  * @qid: The AP queue number
  * @ind: the notification indicator byte
  *

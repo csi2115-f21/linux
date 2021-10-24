@@ -48,9 +48,13 @@
 static const char nf_frags_cache_name[] = "nf-frags";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 unsigned int nf_frag_pernet_id __read_mostly;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+unsigned int nf_frag_pernet_id __read_mostly;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static struct inet_frags nf_frags;
 
 #ifdef CONFIG_SYSCTL

@@ -625,7 +625,10 @@ static bool __iwl_mvm_remove_time_event(struct iwl_mvm *mvm,
 	u32 id;
 	struct iwl_mvm_vif *mvmvif = iwl_mvm_vif_from_mac80211(te_data->vif);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	enum nl80211_iftype iftype;
 
 	if (!te_data->vif)

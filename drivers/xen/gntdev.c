@@ -397,7 +397,10 @@ static int __unmap_grant_pages(struct gntdev_grant_map *map, int offset,
 		map->unmap_ops[offset+i].handle = -1;
 =======
 		map->unmap_ops[offset+i].handle = INVALID_GRANT_HANDLE;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 	return err;
 }

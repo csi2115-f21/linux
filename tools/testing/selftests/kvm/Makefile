@@ -73,7 +73,10 @@ TEST_GEN_PROGS_x86_64 += memslot_modification_stress_test
 <<<<<<< HEAD
 =======
 TEST_GEN_PROGS_x86_64 += memslot_perf_test
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 TEST_GEN_PROGS_x86_64 += set_memory_region_test
 TEST_GEN_PROGS_x86_64 += steal_time
 
@@ -90,7 +93,10 @@ TEST_GEN_PROGS_aarch64 += kvm_create_max_vcpus
 <<<<<<< HEAD
 =======
 TEST_GEN_PROGS_aarch64 += kvm_page_table_test
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 TEST_GEN_PROGS_aarch64 += set_memory_region_test
 TEST_GEN_PROGS_aarch64 += steal_time
 
@@ -103,7 +109,10 @@ TEST_GEN_PROGS_s390x += kvm_create_max_vcpus
 <<<<<<< HEAD
 =======
 TEST_GEN_PROGS_s390x += kvm_page_table_test
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 TEST_GEN_PROGS_s390x += set_memory_region_test
 
 TEST_GEN_PROGS += $(TEST_GEN_PROGS_$(UNAME_M))

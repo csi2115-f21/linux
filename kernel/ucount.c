@@ -222,6 +222,51 @@ void dec_ucount(struct ucounts *ucounts, enum ucount_type type)
 	put_ucounts(ucounts);
 }
 
+<<<<<<< HEAD
+=======
+long inc_rlimit_ucounts(struct ucounts *ucounts, enum ucount_type type, long v)
+{
+	struct ucounts *iter;
+	long ret = 0;
+
+	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
+		long max = READ_ONCE(iter->ns->ucount_max[type]);
+		long new = atomic_long_add_return(v, &iter->ucount[type]);
+		if (new < 0 || new > max)
+			ret = LONG_MAX;
+		else if (iter == ucounts)
+			ret = new;
+	}
+	return ret;
+}
+
+bool dec_rlimit_ucounts(struct ucounts *ucounts, enum ucount_type type, long v)
+{
+	struct ucounts *iter;
+	long new = -1; /* Silence compiler warning */
+	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
+		long dec = atomic_long_add_return(-v, &iter->ucount[type]);
+		WARN_ON_ONCE(dec < 0);
+		if (iter == ucounts)
+			new = dec;
+	}
+	return (new == 0);
+}
+
+bool is_ucounts_overlimit(struct ucounts *ucounts, enum ucount_type type, unsigned long max)
+{
+	struct ucounts *iter;
+	if (get_ucounts_value(ucounts, type) > max)
+		return true;
+	for (iter = ucounts; iter; iter = iter->ns->ucounts) {
+		max = READ_ONCE(iter->ns->ucount_max[type]);
+		if (get_ucounts_value(iter, type) > max)
+			return true;
+	}
+	return false;
+}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static __init int user_namespace_sysctl_init(void)
 {
 #ifdef CONFIG_SYSCTL

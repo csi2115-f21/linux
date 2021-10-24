@@ -188,8 +188,14 @@ int __ref xen_swiotlb_init(int verbose, bool early)
 
 #define DEFAULT_NSLABS		ALIGN(SZ_64M >> IO_TLB_SHIFT, IO_TLB_SEGSIZE)
 
+<<<<<<< HEAD
 int __ref xen_swiotlb_init(void)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+#define DEFAULT_NSLABS		ALIGN(SZ_64M >> IO_TLB_SHIFT, IO_TLB_SEGSIZE)
+
+int __ref xen_swiotlb_init(void)
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 {
 	unsigned long bytes, order;
 	int rc = -ENOMEM;
@@ -291,6 +297,7 @@ end:
 error:
 	if (repeat--) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		xen_io_tlb_nslabs = max(1024UL, /* Min is 2MB */
 					(xen_io_tlb_nslabs >> 1));
 		pr_info("Lowering to %luMB\n",
@@ -306,6 +313,8 @@ error:
 }
 
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		/* Min is 2MB */
 		nslabs = max(1024UL, (nslabs >> 1));
 		pr_info("Lowering to %luMB\n",

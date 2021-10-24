@@ -52,9 +52,28 @@ static int __hw_addr_add_ex(struct netdev_hw_addr_list *list,
 	if (addr_len > MAX_ADDR_LEN)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	list_for_each_entry(ha, &list->list, list) {
 		if (ha->type == addr_type &&
 		    !memcmp(ha->addr, addr, addr_len)) {
+=======
+	while (*ins_point) {
+		int diff;
+
+		ha = rb_entry(*ins_point, struct netdev_hw_addr, node);
+		diff = memcmp(addr, ha->addr, addr_len);
+		if (diff == 0)
+			diff = memcmp(&addr_type, &ha->type, sizeof(addr_type));
+
+		parent = *ins_point;
+		if (diff < 0) {
+			ins_point = &parent->rb_left;
+		} else if (diff > 0) {
+			ins_point = &parent->rb_right;
+		} else {
+			if (exclusive)
+				return -EEXIST;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			if (global) {
 				/* check if addr is already used as global */
 				if (ha->global_use)

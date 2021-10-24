@@ -17,6 +17,14 @@ typedef __u16 __sum16;
 #define VIP_NUM 5
 #define MAGIC_BYTES 123
 
+<<<<<<< HEAD
+=======
+struct network_helper_opts {
+	const char *cc;
+	int timeout_ms;
+};
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 /* ipv4 test vector */
 struct ipv4_packet {
 	struct ethhdr eth;

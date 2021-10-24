@@ -1521,6 +1521,10 @@ config SND_SOC_WCD938X
 config SND_SOC_WCD938X_SDW
 	tristate "WCD9380/WCD9385 Codec - SDW"
 	select SND_SOC_WCD938X
+<<<<<<< HEAD
+=======
+	select SND_SOC_WCD_MBHC
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	depends on SOUNDWIRE
 	select REGMAP_SOUNDWIRE
 	help

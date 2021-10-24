@@ -1346,8 +1346,11 @@ void set_process_cpu_timer(struct task_struct *tsk, unsigned int clkid,
 			}
 		}
 
+<<<<<<< HEAD
 		if (!*newval)
 			return;
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		*newval += now;
 	}
 

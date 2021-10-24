@@ -127,10 +127,14 @@ static int tcc_offset_update(int tcc)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 static int tcc_offset_save;
 =======
 static unsigned int tcc_offset_save;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+static unsigned int tcc_offset_save;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 static ssize_t tcc_offset_degree_celsius_store(struct device *dev,
 				struct device_attribute *attr, const char *buf,
@@ -378,6 +382,7 @@ static int int3401_add(struct platform_device *pdev)
 	proc_thermal_emum_mode = PROC_THERMAL_PLATFORM_DEV;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	dev_info(&pdev->dev, "Creating sysfs group for PROC_THERMAL_PLATFORM_DEV\n");
 
 	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_tcc_offset_degree_celsius.attr);
@@ -397,6 +402,9 @@ static int int3401_remove(struct platform_device *pdev)
 =======
 	tcc_offset_update(tcc_offset_save);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	tcc_offset_update(tcc_offset_save);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	return 0;
 }

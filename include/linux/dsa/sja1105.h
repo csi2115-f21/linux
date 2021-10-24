@@ -51,7 +51,10 @@ struct sja1105_tagger_data {
 <<<<<<< HEAD
 =======
 	u8 ts_id;
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 };
 
 struct sja1105_skb_cb {
@@ -73,11 +76,15 @@ struct sja1105_port {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 enum sja1110_meta_tstamp {
 	SJA1110_META_TSTAMP_TX = 0,
 	SJA1110_META_TSTAMP_RX = 1,
 };
+<<<<<<< HEAD
 
 #if IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP)
 
@@ -95,4 +102,40 @@ static inline void sja1110_process_meta_tstamp(struct dsa_switch *ds, int port,
 #endif /* IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP) */
 
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+
+#if IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP)
+
+void sja1110_process_meta_tstamp(struct dsa_switch *ds, int port, u8 ts_id,
+				 enum sja1110_meta_tstamp dir, u64 tstamp);
+
+#else
+
+static inline void sja1110_process_meta_tstamp(struct dsa_switch *ds, int port,
+					       u8 ts_id, enum sja1110_meta_tstamp dir,
+					       u64 tstamp)
+{
+}
+
+#endif /* IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP) */
+
+#if IS_ENABLED(CONFIG_NET_DSA_SJA1105)
+
+extern const struct dsa_switch_ops sja1105_switch_ops;
+
+static inline bool dsa_port_is_sja1105(struct dsa_port *dp)
+{
+	return dp->ds->ops == &sja1105_switch_ops;
+}
+
+#else
+
+static inline bool dsa_port_is_sja1105(struct dsa_port *dp)
+{
+	return false;
+}
+
+#endif
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #endif /* _NET_DSA_SJA1105_H */

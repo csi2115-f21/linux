@@ -1376,6 +1376,8 @@ static struct sk_buff *vrf_ip6_rcv(struct net_device *vrf_dev,
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
+	nf_reset_ct(skb);
+
 	/* loopback, multicast & non-ND link-local traffic; do not push through
 	 * packet taps again. Reset pkt_type for upper layers to process skb.
 	 * for packets with lladdr src, however, skip so that the dst can be
@@ -1436,6 +1438,8 @@ static struct sk_buff *vrf_ip_rcv(struct net_device *vrf_dev,
 	skb->dev = vrf_dev;
 	skb->skb_iif = vrf_dev->ifindex;
 	IPCB(skb)->flags |= IPSKB_L3SLAVE;
+
+	nf_reset_ct(skb);
 
 	if (ipv4_is_multicast(ip_hdr(skb)->daddr))
 		goto out;

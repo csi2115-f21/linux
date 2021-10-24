@@ -799,8 +799,11 @@ static int hantro_probe(struct platform_device *pdev)
 			continue;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		irq = platform_get_irq_byname(vpu->pdev, irq_name);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (vpu->variant->num_clocks > 1) {
 			irq_name = vpu->variant->irqs[i].name;
 			irq = platform_get_irq_byname(vpu->pdev, irq_name);

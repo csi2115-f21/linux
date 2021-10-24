@@ -2795,9 +2795,12 @@ static bool rockchip_pinconf_pull_valid(struct rockchip_pin_ctrl *ctrl,
 	return false;
 }
 
+<<<<<<< HEAD
 static void rockchip_gpio_set(struct gpio_chip *gc, unsigned offset, int value);
 static int rockchip_gpio_get(struct gpio_chip *gc, unsigned offset);
 
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 /* set the pin config settings for a specified pin */
 static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 				unsigned long *configs, unsigned num_configs)
@@ -2836,10 +2839,20 @@ static int rockchip_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 				return rc;
 			break;
 		case PIN_CONFIG_OUTPUT:
+<<<<<<< HEAD
 			rockchip_gpio_set(&bank->gpio_chip,
 					  pin - bank->pin_base, arg);
 			rc = _rockchip_pmx_gpio_set_direction(&bank->gpio_chip,
 					  pin - bank->pin_base, false);
+=======
+			rc = rockchip_set_mux(bank, pin - bank->pin_base,
+					      RK_FUNC_GPIO);
+			if (rc != RK_FUNC_GPIO)
+				return -EINVAL;
+
+			rc = gpio->direction_output(gpio, pin - bank->pin_base,
+						    arg);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			if (rc)
 				return rc;
 			break;
@@ -2905,7 +2918,11 @@ static int rockchip_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 		if (rc != RK_FUNC_GPIO)
 			return -EINVAL;
 
+<<<<<<< HEAD
 		rc = rockchip_gpio_get(&bank->gpio_chip, pin - bank->pin_base);
+=======
+		rc = gpio->get(gpio, pin - bank->pin_base);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (rc < 0)
 			return rc;
 
@@ -4280,8 +4297,11 @@ static int rockchip_pinctrl_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+<<<<<<< HEAD
 	platform_set_drvdata(pdev, info);
 
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	return 0;
 }
 

@@ -1032,6 +1032,11 @@ out_push:
 out:
 	tcf_action_update_bstats(&c->common, skb);
 	qdisc_skb_cb(skb)->post_ct = true;
+<<<<<<< HEAD
+=======
+out_clear:
+	tcf_action_update_bstats(&c->common, skb);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (defrag)
 		qdisc_skb_cb(skb)->pkt_len = skb->len;
 	return retval;

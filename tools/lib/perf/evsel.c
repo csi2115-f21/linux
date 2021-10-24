@@ -39,7 +39,10 @@ void perf_evsel__delete(struct perf_evsel *evsel)
 
 #define FD(e, x, y) (*(int *) xyarray__entry(e->fd, x, y))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #define MMAP(e, x, y) (e->mmap ? ((struct perf_mmap *) xyarray__entry(e->mmap, x, y)) : NULL)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
@@ -132,8 +135,11 @@ int perf_evsel__open(struct perf_evsel *evsel, struct perf_cpu_map *cpus,
 	for (cpu = 0; cpu < cpus->nr; cpu++) {
 		for (thread = 0; thread < threads->nr; thread++) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			int fd;
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			int fd, group_fd;
 
 			err = get_group_fd(evsel, cpu, thread, &group_fd);
@@ -307,7 +313,10 @@ int perf_evsel__read(struct perf_evsel *evsel, int cpu, int thread,
 	    !perf_mmap__read_self(MMAP(evsel, cpu, thread), count))
 		return 0;
 
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (readn(FD(evsel, cpu, thread), count->values, size) <= 0)
 		return -errno;
 

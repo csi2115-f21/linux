@@ -4,10 +4,14 @@ if (ARCH_QCOM || COMPILE_TEST)
 config PINCTRL_MSM
 	tristate "Qualcomm core pin controller driver"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	depends on QCOM_SCM || !QCOM_SCM #if QCOM_SCM=m this can't be =y
 =======
 	depends on GPIOLIB && (QCOM_SCM || !QCOM_SCM) #if QCOM_SCM=m this can't be =y
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	depends on GPIOLIB && (QCOM_SCM || !QCOM_SCM) #if QCOM_SCM=m this can't be =y
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	select PINMUX
 	select PINCONF
 	select GENERIC_PINCONF

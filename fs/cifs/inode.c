@@ -1644,9 +1644,13 @@ int cifs_unlink(struct inode *dir, struct dentry *dentry)
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	cifs_close_all_deferred_files(tcon);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	cifs_close_deferred_file(CIFS_I(inode));
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (cap_unix(tcon->ses) && (CIFS_UNIX_POSIX_PATH_OPS_CAP &
 				le64_to_cpu(tcon->fsUnixInfo.Capability))) {
 		rc = CIFSPOSIXDelFile(xid, tcon, full_path,
@@ -2114,9 +2118,16 @@ cifs_rename2(struct user_namespace *mnt_userns, struct inode *source_dir,
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	cifs_close_all_deferred_files(tcon);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	cifs_close_deferred_file(CIFS_I(d_inode(source_dentry)));
+	if (d_inode(target_dentry) != NULL)
+		cifs_close_deferred_file(CIFS_I(d_inode(target_dentry)));
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	rc = cifs_do_rename(xid, source_dentry, from_name, target_dentry,
 			    to_name);
 

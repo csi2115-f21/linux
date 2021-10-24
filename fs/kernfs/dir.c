@@ -1143,11 +1143,23 @@ static struct dentry *kernfs_iop_lookup(struct inode *dir,
 	}
 
 	/* attach dentry and inode */
+<<<<<<< HEAD
 	inode = kernfs_get_inode(dir->i_sb, kn);
 	if (!inode) {
 		ret = ERR_PTR(-ENOMEM);
 		goto out_unlock;
 	}
+=======
+	if (kn && kernfs_active(kn)) {
+		inode = kernfs_get_inode(dir->i_sb, kn);
+		if (!inode)
+			inode = ERR_PTR(-ENOMEM);
+	}
+	/* Needed only for negative dentry validation */
+	if (!inode)
+		kernfs_set_rev(parent, dentry);
+	up_read(&kernfs_rwsem);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	/* instantiate and hash dentry */
 	ret = d_splice_alias(inode, dentry);

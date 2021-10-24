@@ -178,7 +178,11 @@ TRACE_EVENT(cachefiles_unlink,
 			     ),
 
 	    TP_fast_assign(
+<<<<<<< HEAD
 		    __entry->obj	= obj;
+=======
+		    __entry->obj	= obj->fscache.debug_id;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		    __entry->de		= de;
 		    __entry->why	= why;
 			   ),
@@ -205,7 +209,11 @@ TRACE_EVENT(cachefiles_rename,
 			     ),
 
 	    TP_fast_assign(
+<<<<<<< HEAD
 		    __entry->obj	= obj;
+=======
+		    __entry->obj	= obj->fscache.debug_id;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		    __entry->de		= de;
 		    __entry->to		= to;
 		    __entry->why	= why;
@@ -305,7 +313,11 @@ TRACE_EVENT(cachefiles_mark_buried,
 			     ),
 
 	    TP_fast_assign(
+<<<<<<< HEAD
 		    __entry->obj	= obj;
+=======
+		    __entry->obj	= obj->fscache.debug_id;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		    __entry->de		= de;
 		    __entry->why	= why;
 			   ),

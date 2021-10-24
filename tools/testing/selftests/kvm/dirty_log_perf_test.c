@@ -96,6 +96,59 @@ struct test_params {
 	enum vm_mem_backing_src_type backing_src;
 };
 
+<<<<<<< HEAD
+=======
+static void toggle_dirty_logging(struct kvm_vm *vm, int slots, bool enable)
+{
+	int i;
+
+	for (i = 0; i < slots; i++) {
+		int slot = PERF_TEST_MEM_SLOT_INDEX + i;
+		int flags = enable ? KVM_MEM_LOG_DIRTY_PAGES : 0;
+
+		vm_mem_region_set_flags(vm, slot, flags);
+	}
+}
+
+static inline void enable_dirty_logging(struct kvm_vm *vm, int slots)
+{
+	toggle_dirty_logging(vm, slots, true);
+}
+
+static inline void disable_dirty_logging(struct kvm_vm *vm, int slots)
+{
+	toggle_dirty_logging(vm, slots, false);
+}
+
+static void get_dirty_log(struct kvm_vm *vm, int slots, unsigned long *bitmap,
+			  uint64_t nr_pages)
+{
+	uint64_t slot_pages = nr_pages / slots;
+	int i;
+
+	for (i = 0; i < slots; i++) {
+		int slot = PERF_TEST_MEM_SLOT_INDEX + i;
+		unsigned long *slot_bitmap = bitmap + i * slot_pages;
+
+		kvm_vm_get_dirty_log(vm, slot, slot_bitmap);
+	}
+}
+
+static void clear_dirty_log(struct kvm_vm *vm, int slots, unsigned long *bitmap,
+			    uint64_t nr_pages)
+{
+	uint64_t slot_pages = nr_pages / slots;
+	int i;
+
+	for (i = 0; i < slots; i++) {
+		int slot = PERF_TEST_MEM_SLOT_INDEX + i;
+		unsigned long *slot_bitmap = bitmap + i * slot_pages;
+
+		kvm_vm_clear_dirty_log(vm, slot, slot_bitmap, 0, slot_pages);
+	}
+}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static void run_test(enum vm_guest_mode mode, void *arg)
 {
 	struct test_params *p = arg;
@@ -121,7 +174,11 @@ static void run_test(enum vm_guest_mode mode, void *arg)
 	guest_num_pages = (nr_vcpus * guest_percpu_mem_size) >> vm_get_page_shift(vm);
 	guest_num_pages = vm_adjust_num_guest_pages(mode, guest_num_pages);
 	host_num_pages = vm_num_host_pages(mode, guest_num_pages);
+<<<<<<< HEAD
 	bmap = bitmap_alloc(host_num_pages);
+=======
+	bmap = bitmap_zalloc(host_num_pages);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	if (dirty_log_manual_caps) {
 		cap.cap = KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2;
@@ -190,8 +247,12 @@ static void run_test(enum vm_guest_mode mode, void *arg)
 			iteration, ts_diff.tv_sec, ts_diff.tv_nsec);
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
+<<<<<<< HEAD
 		kvm_vm_get_dirty_log(vm, PERF_TEST_MEM_SLOT_INDEX, bmap);
 
+=======
+		get_dirty_log(vm, p->slots, bmap, host_num_pages);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		ts_diff = timespec_elapsed(start);
 		get_dirty_log_total = timespec_add(get_dirty_log_total,
 						   ts_diff);
@@ -200,9 +261,13 @@ static void run_test(enum vm_guest_mode mode, void *arg)
 
 		if (dirty_log_manual_caps) {
 			clock_gettime(CLOCK_MONOTONIC, &start);
+<<<<<<< HEAD
 			kvm_vm_clear_dirty_log(vm, PERF_TEST_MEM_SLOT_INDEX, bmap, 0,
 					       host_num_pages);
 
+=======
+			clear_dirty_log(vm, p->slots, bmap, host_num_pages);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			ts_diff = timespec_elapsed(start);
 			clear_dirty_log_total = timespec_add(clear_dirty_log_total,
 							     ts_diff);
@@ -263,6 +328,11 @@ static void help(char *name)
 	       "     them into a separate region of memory for each vCPU.\n");
 	printf(" -s: specify the type of memory that should be used to\n"
 	       "     back the guest data region.\n\n");
+<<<<<<< HEAD
+=======
+	printf(" -x: Split the memory region into this number of memslots.\n"
+	       "     (default: 1)");
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	backing_src_help();
 	puts("");
 	exit(0);
@@ -276,6 +346,10 @@ int main(int argc, char *argv[])
 		.wr_fract = 1,
 		.partition_vcpu_memory_access = true,
 		.backing_src = VM_MEM_SRC_ANONYMOUS,
+<<<<<<< HEAD
+=======
+		.slots = 1,
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	};
 	int opt;
 

@@ -33,9 +33,12 @@ static int pool_op_alloc(struct tee_shm_pool_mgr *poolm,
 
 		pages = kcalloc(nr_pages, sizeof(pages), GFP_KERNEL);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (!pages)
 			return -ENOMEM;
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		if (!pages) {
 			rc = -ENOMEM;
 			goto err;

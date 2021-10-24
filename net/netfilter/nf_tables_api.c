@@ -2856,7 +2856,10 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
 <<<<<<< HEAD
 =======
 	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct sk_buff *skb;
 	int err;
 	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
@@ -3089,7 +3092,10 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
 =======
 				       info->nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 				       family, table, chain, rule, NULL);
 	if (err < 0)
 		goto err_fill_rule_info;
@@ -3351,7 +3357,10 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
 	}
 
 	if (info->nlh->nlmsg_flags & NLM_F_REPLACE) {
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
 		if (trans == NULL) {
 			err = -ENOMEM;
@@ -3369,7 +3378,15 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
 			nft_trans_destroy(trans);
 			goto err_destroy_flow_rule;
 		}
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		err = nft_delrule(&ctx, old_rule);
+		if (err < 0) {
+			nft_trans_destroy(trans);
+			goto err_destroy_flow_rule;
+		}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		list_add_tail_rcu(&rule->list, &old_rule->list);
 	} else {
@@ -3929,7 +3946,10 @@ static void nf_tables_set_notify(const struct nft_ctx *ctx,
 <<<<<<< HEAD
 =======
 	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct sk_buff *skb;
 	u32 portid = ctx->portid;
 	int err;
@@ -8185,10 +8205,13 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
 						 &te->elem,
 						 NFT_MSG_DELSETELEM, 0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 			te->set->ops->remove(net, te->set, &te->elem);
 			atomic_dec(&te->set->nelems);
 			te->set->ndeact--;
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			nft_setelem_remove(net, te->set, &te->elem);
 			if (!nft_setelem_is_catchall(te->set, &te->elem)) {
 				atomic_dec(&te->set->nelems);
@@ -9137,7 +9160,10 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
 			    void *ptr)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct nftables_pernet *nft_net;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct netlink_notify *n = ptr;
@@ -9165,10 +9191,14 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
 	if (release) {
 		synchronize_rcu();
 <<<<<<< HEAD
+<<<<<<< HEAD
 		list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
 =======
 		list_for_each_entry_safe(table, nt, &nft_net->tables, list) {
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		list_for_each_entry_safe(table, nt, &nft_net->tables, list) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 			if (nft_table_has_owner(table) &&
 			    n->portid == table->nlpid)
 				__nft_release_table(net, table);

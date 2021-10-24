@@ -938,6 +938,7 @@ static int cs42l42_mute(struct snd_soc_dai *dai, int mute, int direction)
 	unsigned int regval;
 	u8 fullScaleVol;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 	if (mute) {
 		/* Mark SCLK as not present to turn on the internal
@@ -968,6 +969,8 @@ static int cs42l42_mute(struct snd_soc_dai *dai, int mute, int direction)
 		} else {
 			fullScaleVol = 0;
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	int ret;
 
 	if (mute) {
@@ -1038,7 +1041,10 @@ static int cs42l42_mute(struct snd_soc_dai *dai, int mute, int direction)
 						      CS42L42_HP_ANA_AMUTE_MASK |
 						      CS42L42_HP_ANA_BMUTE_MASK |
 						      CS42L42_HP_FULL_SCALE_VOL_MASK, fullScaleVol);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		}
 
 		/* Un-mute the headphone, set the full scale volume flag */

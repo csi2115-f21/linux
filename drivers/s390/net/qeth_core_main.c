@@ -94,6 +94,15 @@ static void qeth_close_dev_handler(struct work_struct *work)
 	ccwgroup_set_offline(card->gdev);
 }
 
+static void qeth_close_dev_handler(struct work_struct *work)
+{
+	struct qeth_card *card;
+
+	card = container_of(work, struct qeth_card, close_dev_work);
+	QETH_CARD_TEXT(card, 2, "cldevhdl");
+	ccwgroup_set_offline(card->gdev);
+}
+
 static const char *qeth_get_cardname(struct qeth_card *card)
 {
 	if (IS_VM_NIC(card)) {

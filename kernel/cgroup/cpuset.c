@@ -979,7 +979,11 @@ partition_and_rebuild_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
  * 'cpus' is removed, then call this routine to rebuild the
  * scheduler's dynamic sched domains.
  *
+<<<<<<< HEAD
  * Call with cpuset_mutex held.  Takes get_online_cpus().
+=======
+ * Call with cpuset_mutex held.  Takes cpus_read_lock().
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
  */
 static void rebuild_sched_domains_locked(void)
 {

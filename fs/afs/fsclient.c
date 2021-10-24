@@ -1141,6 +1141,7 @@ void afs_fs_store_data(struct afs_operation *op)
 	pos = (loff_t)op->store.first << PAGE_SHIFT;
 	pos += op->store.first_offset;
 
+<<<<<<< HEAD
 	i_size = i_size_read(&vp->vnode->vfs_inode);
 	if (pos + size > i_size)
 		i_size = size + pos;
@@ -1154,6 +1155,8 @@ void afs_fs_store_data(struct afs_operation *op)
 	    upper_32_bits(pos + size))
 		return afs_fs_store_data64(op, pos, size, i_size);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (upper_32_bits(op->store.pos) ||
 	    upper_32_bits(op->store.size) ||
 	    upper_32_bits(op->store.i_size))

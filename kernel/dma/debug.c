@@ -569,6 +569,7 @@ static void add_dma_entry(struct dma_debug_entry *entry)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
@@ -578,6 +579,10 @@ static void add_dma_entry(struct dma_debug_entry *entry)
 		err_printk(entry->dev, entry,
 			"cacheline tracking EEXIST, overlapping mappings aren't supported\n");
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	} else if (rc == -EEXIST) {
+		pr_err("cacheline tracking EEXIST, overlapping mappings aren't supported\n");
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	/* TODO: report -EEXIST errors here as overlapping mappings are

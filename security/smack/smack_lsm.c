@@ -2034,10 +2034,14 @@ static int smk_curacc_on_task(struct task_struct *p, int access,
 {
 	struct smk_audit_info ad;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	struct smack_known *skp = smk_of_task_struct(p);
 =======
 	struct smack_known *skp = smk_of_task_struct_subj(p);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	struct smack_known *skp = smk_of_task_struct_subj(p);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	int rc;
 
 	smk_ad_init(&ad, caller, LSM_AUDIT_DATA_TASK);
@@ -3488,10 +3492,14 @@ static void smack_d_instantiate(struct dentry *opt_dentry, struct inode *inode)
 static int smack_getprocattr(struct task_struct *p, char *name, char **value)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	struct smack_known *skp = smk_of_task_struct(p);
 =======
 	struct smack_known *skp = smk_of_task_struct_subj(p);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	struct smack_known *skp = smk_of_task_struct_subj(p);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	char *cp;
 	int slen;
 

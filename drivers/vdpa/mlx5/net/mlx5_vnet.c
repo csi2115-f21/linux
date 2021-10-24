@@ -1397,7 +1397,19 @@ static void mlx5_vdpa_set_vq_ready(struct vdpa_device *vdev, u16 idx, bool ready
 {
 	struct mlx5_vdpa_dev *mvdev = to_mvdev(vdev);
 	struct mlx5_vdpa_net *ndev = to_mlx5_vdpa_ndev(mvdev);
+<<<<<<< HEAD
 	struct mlx5_vdpa_virtqueue *mvq = &ndev->vqs[idx];
+=======
+	struct mlx5_vdpa_virtqueue *mvq;
+
+	if (!is_index_valid(mvdev, idx))
+		return;
+
+	if (is_ctrl_vq_idx(mvdev, idx)) {
+		set_cvq_ready(mvdev, ready);
+		return;
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	if (!ready)
 		suspend_vq(ndev, mvq);

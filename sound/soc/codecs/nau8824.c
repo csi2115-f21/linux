@@ -897,8 +897,13 @@ static void nau8824_jdet_work(struct work_struct *work)
 	struct regmap *regmap = nau8824->regmap;
 	int adc_value, event = 0, event_mask = 0;
 
+<<<<<<< HEAD
 	nau8824_dapm_enable_pin(nau8824, "MICBIAS");
 	nau8824_dapm_enable_pin(nau8824, "SAR");
+=======
+	snd_soc_dapm_enable_pin(dapm, "MICBIAS");
+	snd_soc_dapm_enable_pin(dapm, "SAR");
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	snd_soc_dapm_sync(dapm);
 
 	msleep(100);

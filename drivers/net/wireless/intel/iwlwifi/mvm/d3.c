@@ -166,6 +166,7 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 			wkc.wep_key.key_offset = data->wep_key_idx;
 		}
 
+<<<<<<< HEAD
 		if (data->configure_keys) {
 			mutex_lock(&mvm->mutex);
 			ret = iwl_mvm_send_cmd_pdu(mvm, WEP_KEY, 0,
@@ -178,6 +179,16 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 			mvm->gtk_icvlen = key->icv_len;
 			mutex_unlock(&mvm->mutex);
 		}
+=======
+		mutex_lock(&mvm->mutex);
+		ret = iwl_mvm_send_cmd_pdu(mvm, WEP_KEY, 0, sizeof(wkc), &wkc);
+		data->error = ret != 0;
+
+		mvm->ptk_ivlen = key->iv_len;
+		mvm->ptk_icvlen = key->icv_len;
+		mvm->gtk_ivlen = key->iv_len;
+		mvm->gtk_icvlen = key->icv_len;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		/* don't upload key again */
 		return;
@@ -330,8 +341,66 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 
 	IWL_DEBUG_WOWLAN(mvm, "GTK cipher %d\n", data->kek_kck_cmd->gtk_cipher);
 
+<<<<<<< HEAD
 	if (data->configure_keys) {
 		mutex_lock(&mvm->mutex);
+=======
+	/* only for ciphers that can be PTK/GTK */
+	switch (key->cipher) {
+	default:
+		return;
+	case WLAN_CIPHER_SUITE_TKIP:
+	case WLAN_CIPHER_SUITE_CCMP:
+	case WLAN_CIPHER_SUITE_GCMP:
+	case WLAN_CIPHER_SUITE_GCMP_256:
+		break;
+	}
+
+	if (sta) {
+		rsc = data->rsc->ucast_rsc;
+	} else {
+		if (WARN_ON(data->gtks > ARRAY_SIZE(data->gtk_ids)))
+			return;
+		data->gtk_ids[data->gtks] = key->keyidx;
+		rsc = data->rsc->mcast_rsc[data->gtks % 2];
+		if (WARN_ON(key->keyidx >
+				ARRAY_SIZE(data->rsc->mcast_key_id_map)))
+			return;
+		data->rsc->mcast_key_id_map[key->keyidx] = data->gtks % 2;
+		if (data->gtks >= 2) {
+			int prev = data->gtks - 2;
+			int prev_idx = data->gtk_ids[prev];
+
+			data->rsc->mcast_key_id_map[prev_idx] =
+				IWL_MCAST_KEY_MAP_INVALID;
+		}
+		data->gtks++;
+	}
+
+	switch (key->cipher) {
+	default:
+		WARN_ON(1);
+		break;
+	case WLAN_CIPHER_SUITE_TKIP:
+
+		/*
+		 * For non-QoS this relies on the fact that both the uCode and
+		 * mac80211 use TID 0 (as they need to to avoid replay attacks)
+		 * for checking the IV in the frames.
+		 */
+		for (i = 0; i < IWL_MAX_TID_COUNT; i++) {
+			ieee80211_get_key_rx_seq(key, i, &seq);
+
+			rsc[i] = cpu_to_le64(((u64)seq.tkip.iv32 << 16) |
+					     seq.tkip.iv16);
+		}
+
+		data->have_rsc = true;
+		break;
+	case WLAN_CIPHER_SUITE_CCMP:
+	case WLAN_CIPHER_SUITE_GCMP:
+	case WLAN_CIPHER_SUITE_GCMP_256:
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		/*
 		 * The D3 firmware hardcodes the key offset 0 as the key it
 		 * uses to transmit packets to the AP, i.e. the PTK.

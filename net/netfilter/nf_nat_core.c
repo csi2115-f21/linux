@@ -190,12 +190,28 @@ static unsigned int
 hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
 {
 	unsigned int hash;
+<<<<<<< HEAD
+=======
+	struct {
+		struct nf_conntrack_man src;
+		u32 net_mix;
+		u32 protonum;
+	} __aligned(SIPHASH_ALIGNMENT) combined;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
 
 	/* Original src, to ensure we map it consistently if poss. */
+<<<<<<< HEAD
 	hash = jhash2((u32 *)&tuple->src, sizeof(tuple->src) / sizeof(u32),
 		      tuple->dst.protonum ^ nf_nat_hash_rnd ^ net_hash_mix(n));
+=======
+	combined.src = tuple->src;
+	combined.net_mix = net_hash_mix(n);
+	combined.protonum = tuple->dst.protonum;
+
+	hash = siphash(&combined, sizeof(combined), &nf_nat_hash_rnd);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	return reciprocal_scale(hash, nf_nat_htable_size);
 }

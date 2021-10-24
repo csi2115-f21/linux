@@ -680,6 +680,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec,
 	}
 
 	ret = msi_verify_entries(dev);
+<<<<<<< HEAD
 	if (ret) {
 		msi_mask_irq(entry, mask, ~mask);
 		free_msi_irqs(dev);
@@ -693,6 +694,17 @@ static int msi_capability_init(struct pci_dev *dev, int nvec,
 		return ret;
 	}
 
+=======
+	if (ret)
+		goto err;
+
+	dev->msi_irq_groups = msi_populate_sysfs(&dev->dev);
+	if (IS_ERR(dev->msi_irq_groups)) {
+		ret = PTR_ERR(dev->msi_irq_groups);
+		goto err;
+	}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	/* Set MSI enabled bits	*/
 	pci_intx_for_msi(dev, 0);
 	pci_msi_set_enable(dev, 1);
@@ -806,7 +818,12 @@ static void msix_program_entries(struct pci_dev *dev,
 static int msix_capability_init(struct pci_dev *dev, struct msix_entry *entries,
 				int nvec, struct irq_affinity *affd)
 {
+<<<<<<< HEAD
 	int ret;
+=======
+	void __iomem *base;
+	int ret, tsize;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	u16 control;
 	void __iomem *base;
 
@@ -840,12 +857,21 @@ static int msix_capability_init(struct pci_dev *dev, struct msix_entry *entries,
 	pci_msix_clear_and_set_ctrl(dev, 0,
 				PCI_MSIX_FLAGS_MASKALL | PCI_MSIX_FLAGS_ENABLE);
 
+<<<<<<< HEAD
 	msix_program_entries(dev, entries);
 
 	ret = populate_msi_sysfs(dev);
 	if (ret)
 		goto out_free;
 
+=======
+	dev->msi_irq_groups = msi_populate_sysfs(&dev->dev);
+	if (IS_ERR(dev->msi_irq_groups)) {
+		ret = PTR_ERR(dev->msi_irq_groups);
+		goto out_free;
+	}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	/* Set MSI-X enabled bits and unmask the function */
 	pci_intx_for_msi(dev, 0);
 	dev->msix_enabled = 1;

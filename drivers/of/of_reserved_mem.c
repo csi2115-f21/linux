@@ -21,6 +21,11 @@
 #include <linux/sort.h>
 #include <linux/slab.h>
 #include <linux/memblock.h>
+<<<<<<< HEAD
+=======
+
+#include "of_private.h"
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 #define MAX_RESERVED_REGIONS	64
 static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
@@ -39,6 +44,7 @@ static int __init early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
 		return -ENOMEM;
 
 	*res_base = base;
+<<<<<<< HEAD
 	if (nomap)
 <<<<<<< HEAD
 		return memblock_remove(base, size);
@@ -47,6 +53,15 @@ static int __init early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return memblock_reserve(base, size);
+=======
+	if (nomap) {
+		err = memblock_mark_nomap(base, size);
+		if (err)
+			memblock_free(base, size);
+	}
+
+	return err;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 /**

@@ -739,6 +739,7 @@ int ext4_write_inline_data_end(struct inode *inode, loff_t pos, unsigned len,
 			goto out;
 		}
 	}
+<<<<<<< HEAD
 
 	ret = ext4_get_inode_loc(inode, &iloc);
 	if (ret) {
@@ -757,6 +758,32 @@ int ext4_write_inline_data_end(struct inode *inode, loff_t pos, unsigned len,
 	/* clear page dirty so that writepages wouldn't work for us. */
 	ClearPageDirty(page);
 
+=======
+
+	ret = ext4_get_inode_loc(inode, &iloc);
+	if (ret) {
+		ext4_std_error(inode->i_sb, ret);
+		copied = 0;
+		goto out;
+	}
+
+	ext4_write_lock_xattr(inode, &no_expand);
+	BUG_ON(!ext4_has_inline_data(inode));
+
+	/*
+	 * ei->i_inline_off may have changed since ext4_write_begin()
+	 * called ext4_try_to_write_inline_data()
+	 */
+	(void) ext4_find_inline_data_nolock(inode);
+
+	kaddr = kmap_atomic(page);
+	ext4_write_inline_data(inode, &iloc, kaddr, pos, len);
+	kunmap_atomic(kaddr);
+	SetPageUptodate(page);
+	/* clear page dirty so that writepages wouldn't work for us. */
+	ClearPageDirty(page);
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	ext4_write_unlock_xattr(inode, &no_expand);
 	brelse(iloc.bh);
 	mark_inode_dirty(inode);

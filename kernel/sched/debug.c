@@ -188,10 +188,17 @@ static __init int sched_init_debug(void)
 
 	if (copy_from_user(&buf, ubuf, cnt))
 		return -EFAULT;
+<<<<<<< HEAD
 
 	if (kstrtouint(buf, 10, &sysctl_sched_tunable_scaling))
 		return -EINVAL;
 
+=======
+
+	if (kstrtouint(buf, 10, &sysctl_sched_tunable_scaling))
+		return -EINVAL;
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (sched_update_scaling())
 		return -EINVAL;
 

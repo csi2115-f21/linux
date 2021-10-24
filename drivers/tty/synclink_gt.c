@@ -473,9 +473,12 @@ static bool tx_load(struct slgt_info *info, const char *buf, unsigned int count)
 static void get_signals(struct slgt_info *info);
 static void set_signals(struct slgt_info *info);
 <<<<<<< HEAD
+<<<<<<< HEAD
 static void enable_loopback(struct slgt_info *info);
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 static void set_rate(struct slgt_info *info, u32 data_rate);
 
 static int  bh_action(struct slgt_info *info);

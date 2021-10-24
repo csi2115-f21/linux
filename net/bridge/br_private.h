@@ -79,7 +79,12 @@ struct bridge_mcast_other_query {
 /* selected querier */
 struct bridge_mcast_querier {
 	struct br_ip addr;
+<<<<<<< HEAD
 	struct net_bridge_port __rcu	*port;
+=======
+	int port_ifidx;
+	seqcount_t seq;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 };
 
 /* IGMP/MLD statistics */
@@ -1024,7 +1029,61 @@ static inline int br_multicast_igmp_type(const struct sk_buff *skb)
 	return BR_INPUT_SKB_CB(skb)->igmp;
 }
 
+<<<<<<< HEAD
 static inline unsigned long br_multicast_lmqt(const struct net_bridge *br)
+=======
+static inline unsigned long br_multicast_lmqt(const struct net_bridge_mcast *brmctx)
+{
+	return brmctx->multicast_last_member_interval *
+	       brmctx->multicast_last_member_count;
+}
+
+static inline unsigned long br_multicast_gmi(const struct net_bridge_mcast *brmctx)
+{
+	/* use the RFC default of 2 for QRV */
+	return 2 * brmctx->multicast_query_interval +
+	       brmctx->multicast_query_response_interval;
+}
+
+static inline bool
+br_multicast_ctx_is_vlan(const struct net_bridge_mcast *brmctx)
+{
+	return !!brmctx->vlan;
+}
+
+static inline bool
+br_multicast_port_ctx_is_vlan(const struct net_bridge_mcast_port *pmctx)
+{
+	return !!pmctx->vlan;
+}
+
+static inline struct net_bridge_mcast *
+br_multicast_port_ctx_get_global(const struct net_bridge_mcast_port *pmctx)
+{
+	if (!br_multicast_port_ctx_is_vlan(pmctx))
+		return &pmctx->port->br->multicast_ctx;
+	else
+		return &pmctx->vlan->brvlan->br_mcast_ctx;
+}
+
+static inline bool
+br_multicast_ctx_vlan_global_disabled(const struct net_bridge_mcast *brmctx)
+{
+	return br_opt_get(brmctx->br, BROPT_MCAST_VLAN_SNOOPING_ENABLED) &&
+	       br_multicast_ctx_is_vlan(brmctx) &&
+	       !(brmctx->vlan->priv_flags & BR_VLFLAG_GLOBAL_MCAST_ENABLED);
+}
+
+static inline bool
+br_multicast_ctx_vlan_disabled(const struct net_bridge_mcast *brmctx)
+{
+	return br_multicast_ctx_is_vlan(brmctx) &&
+	       !(brmctx->vlan->priv_flags & BR_VLFLAG_MCAST_ENABLED);
+}
+
+static inline bool
+br_multicast_port_ctx_vlan_disabled(const struct net_bridge_mcast_port *pmctx)
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 {
 	return br->multicast_last_member_interval *
 	       br->multicast_last_member_count;

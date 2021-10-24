@@ -166,6 +166,20 @@ static struct page *erofs_read_inode(struct inode *inode,
 		goto err_out;
 	}
 
+<<<<<<< HEAD
+=======
+	if (vi->datalayout == EROFS_INODE_CHUNK_BASED) {
+		if (!(vi->chunkformat & EROFS_CHUNK_FORMAT_ALL)) {
+			erofs_err(inode->i_sb,
+				  "unsupported chunk format %x of nid %llu",
+				  vi->chunkformat, vi->nid);
+			err = -EOPNOTSUPP;
+			goto err_out;
+		}
+		vi->chunkbits = LOG_BLOCK_SIZE +
+			(vi->chunkformat & EROFS_CHUNK_FORMAT_BLKBITS_MASK);
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	inode->i_mtime.tv_sec = inode->i_ctime.tv_sec;
 	inode->i_atime.tv_sec = inode->i_ctime.tv_sec;
 	inode->i_mtime.tv_nsec = inode->i_ctime.tv_nsec;

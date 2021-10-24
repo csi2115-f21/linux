@@ -290,12 +290,16 @@ size_t get_backing_src_pagesz(uint32_t i)
 	}
 }
 
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 void backing_src_help(void)
 {
 	int i;
 
 	printf("Available backing src types:\n");
+<<<<<<< HEAD
 <<<<<<< HEAD
 	for (i = 0; i < ARRAY_SIZE(backing_src_aliases); i++)
 		printf("\t%s\n", backing_src_aliases[i].name);
@@ -303,6 +307,10 @@ void backing_src_help(void)
 	for (i = 0; i < NUM_SRC_TYPES; i++)
 		printf("\t%s\n", vm_mem_backing_src_alias(i)->name);
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+	for (i = 0; i < NUM_SRC_TYPES; i++)
+		printf("\t%s\n", vm_mem_backing_src_alias(i)->name);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 enum vm_mem_backing_src_type parse_backing_src_type(const char *type_name)

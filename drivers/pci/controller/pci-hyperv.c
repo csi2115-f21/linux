@@ -3264,10 +3264,13 @@ static int hv_pci_bus_exit(struct hv_device *hdev, bool keep_devs)
 	if (!keep_devs) {
 		/* Delete any children which might still exist. */
 <<<<<<< HEAD
+<<<<<<< HEAD
 		dr = kzalloc(sizeof(*dr), GFP_KERNEL);
 		if (dr && hv_pci_start_relations_work(hbus, dr))
 			kfree(dr);
 =======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		spin_lock_irqsave(&hbus->device_list_lock, flags);
 		list_for_each_entry_safe(hpdev, tmp, &hbus->children, list_entry) {
 			list_del(&hpdev->list_entry);
@@ -3278,7 +3281,10 @@ static int hv_pci_bus_exit(struct hv_device *hdev, bool keep_devs)
 			put_pcichild(hpdev);
 		}
 		spin_unlock_irqrestore(&hbus->device_list_lock, flags);
+<<<<<<< HEAD
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	ret = hv_send_resources_released(hdev);

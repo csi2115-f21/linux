@@ -932,6 +932,7 @@ static void erratum_err050568(struct nxp_fspi *f)
 	/* Strap bits 6:2 define SYS_PLL_RAT i.e frequency multiplier ratio */
 	val = (val >> 2) & 0x1F;
 	WARN(val == 0, "Strapping is zero: Cannot determine ratio");
+<<<<<<< HEAD
 
 	/* Compute system clock frequency */
 	np = of_find_node_by_name(NULL, "clock-sysclk");
@@ -944,6 +945,20 @@ static void erratum_err050568(struct nxp_fspi *f)
 	sysclk = (sysclk * val) / 1000000; /* Convert sysclk to Mhz */
 	dev_dbg(f->dev, "val: 0x%08x, sysclk: %dMhz\n", val, sysclk);
 
+=======
+
+	/* Compute system clock frequency */
+	np = of_find_node_by_name(NULL, "clock-sysclk");
+	if (!np)
+		goto err;
+
+	if (of_property_read_u32(np, "clock-frequency", &sysclk))
+		goto err;
+
+	sysclk = (sysclk * val) / 1000000; /* Convert sysclk to Mhz */
+	dev_dbg(f->dev, "val: 0x%08x, sysclk: %dMhz\n", val, sysclk);
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	/* Use IP bus only if PLL is 300MHz */
 	if (sysclk == 300)
 		f->devtype_data->quirks |= FSPI_QUIRK_USE_IP_ONLY;

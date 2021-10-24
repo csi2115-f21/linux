@@ -299,11 +299,17 @@ static int read_sections(struct elf *elf)
 		}
 		sec->len = sec->sh.sh_size;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 		if (sec->sh.sh_flags & SHF_EXECINSTR)
 			elf->text_size += sec->len;
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+
+		if (sec->sh.sh_flags & SHF_EXECINSTR)
+			elf->text_size += sec->len;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		list_add_tail(&sec->list, &elf->sections);
 		elf_hash_add(elf->section_hash, &sec->hash, sec->idx);
@@ -1069,11 +1075,14 @@ int elf_rebuild_reloc_section(struct elf *elf, struct section *sec)
 	int nr;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	sec->changed = true;
 	elf->changed = true;
 
 =======
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	nr = 0;
 	list_for_each_entry(reloc, &sec->reloc_list, list)
 		nr++;

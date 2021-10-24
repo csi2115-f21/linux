@@ -369,6 +369,18 @@ static int vfio_ap_mdev_create(struct mdev_device *mdev)
 	mutex_unlock(&matrix_dev->lock);
 
 	return 0;
+<<<<<<< HEAD
+=======
+
+err_list:
+	mutex_lock(&matrix_dev->lock);
+	list_del(&matrix_mdev->node);
+	mutex_unlock(&matrix_dev->lock);
+	kfree(matrix_mdev);
+err_dec_available:
+	atomic_inc(&matrix_dev->available_instances);
+	return ret;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static int vfio_ap_mdev_remove(struct mdev_device *mdev)
@@ -385,11 +397,15 @@ static int vfio_ap_mdev_remove(struct mdev_device *mdev)
 	vfio_ap_mdev_reset_queues(mdev);
 	list_del(&matrix_mdev->node);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mutex_unlock(&matrix_dev->lock);
 
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	kfree(matrix_mdev);
 	mdev_set_drvdata(mdev, NULL);
 	atomic_inc(&matrix_dev->available_instances);
+<<<<<<< HEAD
 =======
 	kfree(matrix_mdev);
 	mdev_set_drvdata(mdev, NULL);
@@ -398,6 +414,9 @@ static int vfio_ap_mdev_remove(struct mdev_device *mdev)
 >>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
+=======
+	mutex_unlock(&matrix_dev->lock);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static ssize_t name_show(struct kobject *kobj, struct device *dev, char *buf)
