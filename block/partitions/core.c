@@ -433,6 +433,11 @@ out_del:
 	device_del(pdev);
 out_put:
 	put_device(pdev);
+<<<<<<< HEAD
+=======
+out_put_disk:
+	put_disk(disk);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	return ERR_PTR(err);
 }
 
