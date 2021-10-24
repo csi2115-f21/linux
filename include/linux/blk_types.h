@@ -304,6 +304,10 @@ enum {
 	BIO_CGROUP_ACCT,	/* has been accounted to a cgroup */
 	BIO_TRACKED,		/* set if bio goes through the rq_qos path */
 	BIO_REMAPPED,
+<<<<<<< HEAD
+=======
+	BIO_ZONE_WRITE_LOCKED,	/* Owns a zoned device zone write lock */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	BIO_FLAG_LAST
 };
 

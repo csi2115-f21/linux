@@ -74,7 +74,11 @@ struct ndis_80211_var_ie {
 /* Length is the 4 bytes multiples of the sum of
  * sizeof (NDIS_802_11_MAC_ADDRESS) + 2 +
  * sizeof (struct ndis_802_11_ssid) + sizeof (u32) +
+<<<<<<< HEAD
  * sizeof (long) + sizeof (enum NDIS_802_11_NETWORK_TYPE) +
+=======
+ * sizeof (long) + sizeof (enum ndis_802_11_network_type) +
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * sizeof (struct ndis_802_11_conf) + sizeof (NDIS_802_11_RATES_EX) + IELength
  *
  * Except for IELength, all other fields are fixed length. Therefore, we can
@@ -127,6 +131,7 @@ struct ndis_801_11_ai_resfi {
 	u16 AssociationId;
 };
 
+<<<<<<< HEAD
 typedef struct _NDIS_802_11_ASSOCIATION_INFORMATION {
 	u32                   Length;
 	u16                  AvailableRequestFixedIEs;
@@ -144,6 +149,8 @@ enum NDIS_802_11_RELOAD_DEFAULTS {
 };
 
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*  Key mapping keys require a BSSID */
 typedef struct _NDIS_802_11_KEY {
 	u32           Length;             /*  Length of this structure */
@@ -211,9 +218,15 @@ struct wlan_bssid_ex {
 	struct ndis_802_11_ssid  Ssid;
 	u32  Privacy;
 	long  Rssi;/* in dBM, raw data , get from PHY) */
+<<<<<<< HEAD
 	enum NDIS_802_11_NETWORK_TYPE  NetworkTypeInUse;
 	struct ndis_802_11_conf  Configuration;
 	enum NDIS_802_11_NETWORK_INFRASTRUCTURE  InfrastructureMode;
+=======
+	enum ndis_802_11_network_type  NetworkTypeInUse;
+	struct ndis_802_11_conf  Configuration;
+	enum ndis_802_11_network_infrastructure  InfrastructureMode;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	NDIS_802_11_RATES_EX  SupportedRates;
 	struct wlan_phy_info PhyInfo;
 	u32  IELength;

@@ -3,11 +3,55 @@
  * Copyright © 2019 Intel Corporation
  */
 
+<<<<<<< HEAD
+=======
+#include <linux/scatterlist.h>
+
+#include <drm/ttm/ttm_placement.h>
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "gem/i915_gem_region.h"
 #include "intel_memory_region.h"
 
 #include "mock_region.h"
 
+<<<<<<< HEAD
+=======
+static void mock_region_put_pages(struct drm_i915_gem_object *obj,
+				  struct sg_table *pages)
+{
+	intel_region_ttm_node_free(obj->mm.region, obj->mm.st_mm_node);
+	sg_free_table(pages);
+	kfree(pages);
+}
+
+static int mock_region_get_pages(struct drm_i915_gem_object *obj)
+{
+	unsigned int flags;
+	struct sg_table *pages;
+
+	flags = I915_ALLOC_MIN_PAGE_SIZE;
+	if (obj->flags & I915_BO_ALLOC_CONTIGUOUS)
+		flags |= I915_ALLOC_CONTIGUOUS;
+
+	obj->mm.st_mm_node = intel_region_ttm_node_alloc(obj->mm.region,
+							 obj->base.size,
+							 flags);
+	if (IS_ERR(obj->mm.st_mm_node))
+		return PTR_ERR(obj->mm.st_mm_node);
+
+	pages = intel_region_ttm_node_to_st(obj->mm.region, obj->mm.st_mm_node);
+	if (IS_ERR(pages)) {
+		intel_region_ttm_node_free(obj->mm.region, obj->mm.st_mm_node);
+		return PTR_ERR(pages);
+	}
+
+	__i915_gem_object_set_pages(obj, pages, i915_sg_dma_sizes(pages->sgl));
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct drm_i915_gem_object_ops mock_region_obj_ops = {
 	.name = "mock-region",
 	.get_pages = i915_gem_object_get_pages_buddy,

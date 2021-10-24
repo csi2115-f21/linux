@@ -411,8 +411,12 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch *esw,
 		}
 
 		/* Add re-inject rule to the PF/representor sqs */
+<<<<<<< HEAD
 		flow_rule = mlx5_eswitch_add_send_to_vport_rule(esw,
 								rep->vport,
+=======
+		flow_rule = mlx5_eswitch_add_send_to_vport_rule(esw, rep,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 								sqns_array[i]);
 		if (IS_ERR(flow_rule)) {
 			err = PTR_ERR(flow_rule);
@@ -750,6 +754,11 @@ static void mlx5e_build_rep_netdev(struct net_device *netdev,
 		netdev->features |= NETIF_F_VLAN_CHALLENGED;
 
 	netdev->features |= netdev->hw_features;
+<<<<<<< HEAD
+=======
+	netdev->features |= NETIF_F_VLAN_CHALLENGED;
+	netdev->features |= NETIF_F_NETNS_LOCAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int mlx5e_init_rep(struct mlx5_core_dev *mdev,
@@ -890,6 +899,10 @@ int mlx5e_rep_bond_update(struct mlx5e_priv *priv, bool cleanup)
 static int mlx5e_init_rep_rx(struct mlx5e_priv *priv)
 {
 	struct mlx5_core_dev *mdev = priv->mdev;
+<<<<<<< HEAD
+=======
+	u16 max_nch = priv->max_nch;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int err;
 
 	mlx5e_init_l2_addr(priv);
@@ -904,7 +917,11 @@ static int mlx5e_init_rep_rx(struct mlx5e_priv *priv)
 	if (err)
 		goto err_close_drop_rq;
 
+<<<<<<< HEAD
 	err = mlx5e_create_direct_rqts(priv, priv->direct_tir);
+=======
+	err = mlx5e_create_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_destroy_indirect_rqts;
 
@@ -912,7 +929,11 @@ static int mlx5e_init_rep_rx(struct mlx5e_priv *priv)
 	if (err)
 		goto err_destroy_direct_rqts;
 
+<<<<<<< HEAD
 	err = mlx5e_create_direct_tirs(priv, priv->direct_tir);
+=======
+	err = mlx5e_create_direct_tirs(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_destroy_indirect_tirs;
 
@@ -937,11 +958,19 @@ err_destroy_root_ft:
 err_destroy_ttc_table:
 	mlx5e_destroy_ttc_table(priv, &priv->fs.ttc);
 err_destroy_direct_tirs:
+<<<<<<< HEAD
 	mlx5e_destroy_direct_tirs(priv, priv->direct_tir);
 err_destroy_indirect_tirs:
 	mlx5e_destroy_indirect_tirs(priv);
 err_destroy_direct_rqts:
 	mlx5e_destroy_direct_rqts(priv, priv->direct_tir);
+=======
+	mlx5e_destroy_direct_tirs(priv, priv->direct_tir, max_nch);
+err_destroy_indirect_tirs:
+	mlx5e_destroy_indirect_tirs(priv);
+err_destroy_direct_rqts:
+	mlx5e_destroy_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_destroy_indirect_rqts:
 	mlx5e_destroy_rqt(priv, &priv->indir_rqt);
 err_close_drop_rq:
@@ -951,13 +980,21 @@ err_close_drop_rq:
 
 static void mlx5e_cleanup_rep_rx(struct mlx5e_priv *priv)
 {
+	u16 max_nch = priv->max_nch;
+
 	mlx5e_ethtool_cleanup_steering(priv);
 	rep_vport_rx_rule_destroy(priv);
 	mlx5e_destroy_rep_root_ft(priv);
 	mlx5e_destroy_ttc_table(priv, &priv->fs.ttc);
+<<<<<<< HEAD
 	mlx5e_destroy_direct_tirs(priv, priv->direct_tir);
 	mlx5e_destroy_indirect_tirs(priv);
 	mlx5e_destroy_direct_rqts(priv, priv->direct_tir);
+=======
+	mlx5e_destroy_direct_tirs(priv, priv->direct_tir, max_nch);
+	mlx5e_destroy_indirect_tirs(priv);
+	mlx5e_destroy_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mlx5e_destroy_rqt(priv, &priv->indir_rqt);
 	mlx5e_close_drop_rq(&priv->drop_rq);
 }

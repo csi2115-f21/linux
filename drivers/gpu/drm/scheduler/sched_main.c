@@ -844,16 +844,25 @@ static int drm_sched_main(void *param)
  * @hw_submission: number of hw submissions that can be in flight
  * @hang_limit: number of times to allow a job to hang before dropping it
  * @timeout: timeout value in jiffies for the scheduler
+<<<<<<< HEAD
+=======
+ * @score: optional score atomic shared with other schedulers
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @name: name used for debugging
  *
  * Return 0 on success, otherwise error code.
  */
 int drm_sched_init(struct drm_gpu_scheduler *sched,
 		   const struct drm_sched_backend_ops *ops,
+<<<<<<< HEAD
 		   unsigned hw_submission,
 		   unsigned hang_limit,
 		   long timeout,
 		   const char *name)
+=======
+		   unsigned hw_submission, unsigned hang_limit, long timeout,
+		   atomic_t *score, const char *name)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int i, ret;
 	sched->ops = ops;

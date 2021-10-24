@@ -2,6 +2,11 @@
 #ifndef _LINUX_TTY_FLIP_H
 #define _LINUX_TTY_FLIP_H
 
+<<<<<<< HEAD
+=======
+#include <linux/tty.h>
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern int tty_buffer_set_limit(struct tty_port *port, int limit);
 extern int tty_buffer_space_avail(struct tty_port *port);
 extern int tty_buffer_request_room(struct tty_port *port, size_t size);

@@ -772,7 +772,12 @@ int snd_card_register(struct snd_card *card)
 		card->registered = true;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_device_register_all(card)) < 0)
+=======
+	err = snd_device_register_all(card);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	mutex_lock(&snd_card_mutex);
 	if (snd_cards[card->number]) {

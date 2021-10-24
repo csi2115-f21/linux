@@ -297,8 +297,18 @@ static int meson_drv_bind_master(struct device *dev, bool has_components)
 		}
 	}
 
+<<<<<<< HEAD
 	/* Remove early framebuffers (ie. simplefb) */
 	meson_remove_framebuffers();
+=======
+	/*
+	 * Remove early framebuffers (ie. simplefb). The framebuffer can be
+	 * located anywhere in RAM
+	 */
+	ret = drm_aperture_remove_framebuffers(false, "meson-drm-fb");
+	if (ret)
+		goto free_drm;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = drmm_mode_config_init(drm);
 	if (ret)

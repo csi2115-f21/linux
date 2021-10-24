@@ -512,11 +512,17 @@ lpfc_nvme_info_show(struct device *dev, struct device_attribute *attr,
 				"6314 Catching potential buffer "
 				"overflow > PAGE_SIZE = %lu bytes\n",
 				PAGE_SIZE);
+<<<<<<< HEAD
 		strlcpy(buf + PAGE_SIZE - 1 -
 			strnlen(LPFC_NVME_INFO_MORE_STR, PAGE_SIZE - 1),
 			LPFC_NVME_INFO_MORE_STR,
 			strnlen(LPFC_NVME_INFO_MORE_STR, PAGE_SIZE - 1)
 			+ 1);
+=======
+		strlcpy(buf + PAGE_SIZE - 1 - sizeof(LPFC_NVME_INFO_MORE_STR),
+			LPFC_NVME_INFO_MORE_STR,
+			sizeof(LPFC_NVME_INFO_MORE_STR) + 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return len;
@@ -6268,6 +6274,13 @@ struct device_attribute *lpfc_hba_attrs[] = {
 	&dev_attr_lpfc_enable_bbcr,
 	&dev_attr_lpfc_enable_dpp,
 	&dev_attr_lpfc_enable_mi,
+<<<<<<< HEAD
+=======
+	&dev_attr_lpfc_max_vmid,
+	&dev_attr_lpfc_vmid_inactivity_timeout,
+	&dev_attr_lpfc_vmid_app_header,
+	&dev_attr_lpfc_vmid_priority_tagging,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	NULL,
 };
 

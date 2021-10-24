@@ -608,7 +608,11 @@ static struct sk_buff *end_dt_vrf_core(struct sk_buff *skb,
 
 	skb_dst_drop(skb);
 
+<<<<<<< HEAD
 	skb_set_transport_header(skb, info->hdrlen);
+=======
+	skb_set_transport_header(skb, hdrlen);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return end_dt_vrf_rcv(skb, info->family, vrf);
 
@@ -966,6 +970,32 @@ static struct seg6_action_desc *__get_action_desc(int action)
 	return NULL;
 }
 
+<<<<<<< HEAD
+=======
+static bool seg6_lwtunnel_counters_enabled(struct seg6_local_lwt *slwt)
+{
+	return slwt->parsed_optattrs & SEG6_F_LOCAL_COUNTERS;
+}
+
+static void seg6_local_update_counters(struct seg6_local_lwt *slwt,
+				       unsigned int len, int err)
+{
+	struct pcpu_seg6_local_counters *pcounters;
+
+	pcounters = this_cpu_ptr(slwt->pcpu_counters);
+	u64_stats_update_begin(&pcounters->syncp);
+
+	if (likely(!err)) {
+		u64_stats_inc(&pcounters->packets);
+		u64_stats_add(&pcounters->bytes, len);
+	} else {
+		u64_stats_inc(&pcounters->errors);
+	}
+
+	u64_stats_update_end(&pcounters->syncp);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int seg6_local_input(struct sk_buff *skb)
 {
 	struct dst_entry *orig_dst = skb_dst(skb);
@@ -980,7 +1010,18 @@ static int seg6_local_input(struct sk_buff *skb)
 	slwt = seg6_local_lwtunnel(orig_dst->lwtstate);
 	desc = slwt->desc;
 
+<<<<<<< HEAD
 	return desc->input(skb, slwt);
+=======
+	rc = desc->input(skb, slwt);
+
+	if (!seg6_lwtunnel_counters_enabled(slwt))
+		return rc;
+
+	seg6_local_update_counters(slwt, len, rc);
+
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct nla_policy seg6_local_policy[SEG6_LOCAL_MAX + 1] = {

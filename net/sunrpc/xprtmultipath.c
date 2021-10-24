@@ -109,6 +109,10 @@ struct rpc_xprt_switch *xprt_switch_alloc(struct rpc_xprt *xprt,
 		INIT_LIST_HEAD(&xps->xps_xprt_list);
 		xps->xps_iter_ops = &rpc_xprt_iter_singular;
 		xprt_switch_add_xprt_locked(xps, xprt);
+<<<<<<< HEAD
+=======
+		rpc_sysfs_xprt_setup(xps, xprt, gfp_flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return xps;

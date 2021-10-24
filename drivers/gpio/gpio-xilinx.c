@@ -504,6 +504,7 @@ static void xgpio_irqhandler(struct irq_desc *desc)
 	xgpio_writereg(chip->regs + XGPIO_IPISR_OFFSET, status);
 
 	chained_irq_enter(irqchip, desc);
+<<<<<<< HEAD
 	for (index = 0; index < num_channels; index++) {
 		if ((status & BIT(index))) {
 			unsigned long rising_events, falling_events, all_events;
@@ -536,6 +537,33 @@ static void xgpio_irqhandler(struct irq_desc *desc)
 			}
 		}
 		offset += chip->gpio_width[index];
+=======
+
+	spin_lock(&chip->gpio_lock);
+
+	xgpio_read_ch_all(chip, XGPIO_DATA_OFFSET, all);
+
+	bitmap_complement(rising, chip->last_irq_read, 64);
+	bitmap_and(rising, rising, all, 64);
+	bitmap_and(rising, rising, chip->enable, 64);
+	bitmap_and(rising, rising, chip->rising_edge, 64);
+
+	bitmap_complement(falling, all, 64);
+	bitmap_and(falling, falling, chip->last_irq_read, 64);
+	bitmap_and(falling, falling, chip->enable, 64);
+	bitmap_and(falling, falling, chip->falling_edge, 64);
+
+	bitmap_copy(chip->last_irq_read, all, 64);
+	bitmap_or(all, rising, falling, 64);
+
+	spin_unlock(&chip->gpio_lock);
+
+	dev_dbg(gc->parent, "IRQ rising %*pb falling %*pb\n", 64, rising, 64, falling);
+
+	for_each_set_bit(bit, all, 64) {
+		irq_offset = xgpio_from_bit(chip, bit);
+		generic_handle_irq(irq_find_mapping(gc->irq.domain, irq_offset));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	chained_irq_exit(irqchip, desc);

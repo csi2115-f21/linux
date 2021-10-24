@@ -3307,12 +3307,15 @@ static int snd_trident_tlb_alloc(struct snd_trident *trident)
 	}
 	trident->tlb.entries = (__le32 *)ALIGN((unsigned long)trident->tlb.buffer.area, SNDRV_TRIDENT_MAX_PAGES * 4);
 	trident->tlb.entries_dmaaddr = ALIGN(trident->tlb.buffer.addr, SNDRV_TRIDENT_MAX_PAGES * 4);
+<<<<<<< HEAD
 	/* allocate shadow TLB page table (virtual addresses) */
 	trident->tlb.shadow_entries =
 		vmalloc(array_size(SNDRV_TRIDENT_MAX_PAGES,
 				   sizeof(unsigned long)));
 	if (!trident->tlb.shadow_entries)
 		return -ENOMEM;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* allocate and setup silent page and initialise TLB entries */
 	if (snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, &trident->pci->dev,
@@ -3321,10 +3324,15 @@ static int snd_trident_tlb_alloc(struct snd_trident *trident)
 		return -ENOMEM;
 	}
 	memset(trident->tlb.silent_page.area, 0, SNDRV_TRIDENT_PAGE_SIZE);
+<<<<<<< HEAD
 	for (i = 0; i < SNDRV_TRIDENT_MAX_PAGES; i++) {
 		trident->tlb.entries[i] = cpu_to_le32(trident->tlb.silent_page.addr & ~(SNDRV_TRIDENT_PAGE_SIZE-1));
 		trident->tlb.shadow_entries[i] = (unsigned long)trident->tlb.silent_page.area;
 	}
+=======
+	for (i = 0; i < SNDRV_TRIDENT_MAX_PAGES; i++)
+		trident->tlb.entries[i] = cpu_to_le32(trident->tlb.silent_page.addr & ~(SNDRV_TRIDENT_PAGE_SIZE-1));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* use emu memory block manager code to manage tlb page allocation */
 	trident->tlb.memhdr = snd_util_memhdr_new(SNDRV_TRIDENT_PAGE_SIZE * SNDRV_TRIDENT_MAX_PAGES);
@@ -3494,7 +3502,12 @@ int snd_trident_create(struct snd_card *card,
 	*rtrident = NULL;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	/* check, if we can restrict PCI DMA transfers to 30 bits */
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(30))) {
@@ -3528,7 +3541,12 @@ int snd_trident_create(struct snd_card *card,
 	trident->midi_port = TRID_REG(trident, T4D_MPU401_BASE);
 	pci_set_master(pci);
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "Trident Audio")) < 0) {
+=======
+	err = pci_request_regions(pci, "Trident Audio");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(trident);
 		pci_disable_device(pci);
 		return err;
@@ -3548,7 +3566,12 @@ int snd_trident_create(struct snd_card *card,
 	trident->tlb.entries = NULL;
 	trident->tlb.buffer.area = NULL;
 	if (trident->device == TRIDENT_DEVICE_ID_NX) {
+<<<<<<< HEAD
 		if ((err = snd_trident_tlb_alloc(trident)) < 0) {
+=======
+		err = snd_trident_tlb_alloc(trident);
+		if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			snd_trident_free(trident);
 			return err;
 		}
@@ -3573,6 +3596,15 @@ int snd_trident_create(struct snd_card *card,
 	}
 	if (err < 0) {
 		snd_trident_free(trident);
+<<<<<<< HEAD
+=======
+		return err;
+	}
+
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, trident, &ops);
+	if (err < 0) {
+		snd_trident_free(trident);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	}
 
@@ -3635,7 +3667,10 @@ static int snd_trident_free(struct snd_trident *trident)
 		snd_util_memhdr_free(trident->tlb.memhdr);
 		if (trident->tlb.silent_page.area)
 			snd_dma_free_pages(&trident->tlb.silent_page);
+<<<<<<< HEAD
 		vfree(trident->tlb.shadow_entries);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_dma_free_pages(&trident->tlb.buffer);
 	}
 	pci_release_regions(trident->pci);

@@ -144,6 +144,38 @@ xchk_setup_fscounters(
 	return xchk_trans_alloc(sc, 0);
 }
 
+<<<<<<< HEAD
+=======
+/* Count free space btree blocks manually for pre-lazysbcount filesystems. */
+static int
+xchk_fscount_btreeblks(
+	struct xfs_scrub	*sc,
+	struct xchk_fscounters	*fsc,
+	xfs_agnumber_t		agno)
+{
+	xfs_extlen_t		blocks;
+	int			error;
+
+	error = xchk_ag_init(sc, agno, &sc->sa);
+	if (error)
+		return error;
+
+	error = xfs_btree_count_blocks(sc->sa.bno_cur, &blocks);
+	if (error)
+		goto out_free;
+	fsc->fdblocks += blocks - 1;
+
+	error = xfs_btree_count_blocks(sc->sa.cnt_cur, &blocks);
+	if (error)
+		goto out_free;
+	fsc->fdblocks += blocks - 1;
+
+out_free:
+	xchk_ag_free(sc, &sc->sa);
+	return error;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Calculate what the global in-core counters ought to be from the incore
  * per-AG structure.  Callers can compare this to the actual in-core counters
@@ -183,7 +215,17 @@ retry:
 		/* Add up the free/freelist/bnobt/cntbt blocks */
 		fsc->fdblocks += pag->pagf_freeblks;
 		fsc->fdblocks += pag->pagf_flcount;
+<<<<<<< HEAD
 		fsc->fdblocks += pag->pagf_btreeblks;
+=======
+		if (xfs_sb_version_haslazysbcount(&sc->mp->m_sb)) {
+			fsc->fdblocks += pag->pagf_btreeblks;
+		} else {
+			error = xchk_fscount_btreeblks(sc, fsc, agno);
+			if (error)
+				break;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/*
 		 * Per-AG reservations are taken out of the incore counters,

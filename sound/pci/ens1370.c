@@ -2046,7 +2046,12 @@ static int snd_ensoniq_create(struct snd_card *card,
 	};
 
 	*rensoniq = NULL;
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	ensoniq = kzalloc(sizeof(*ensoniq), GFP_KERNEL);
 	if (ensoniq == NULL) {
@@ -2058,7 +2063,12 @@ static int snd_ensoniq_create(struct snd_card *card,
 	ensoniq->card = card;
 	ensoniq->pci = pci;
 	ensoniq->irq = -1;
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "Ensoniq AudioPCI")) < 0) {
+=======
+	err = pci_request_regions(pci, "Ensoniq AudioPCI");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(ensoniq);
 		pci_disable_device(pci);
 		return err;
@@ -2103,7 +2113,12 @@ static int snd_ensoniq_create(struct snd_card *card,
 
 	snd_ensoniq_chip_init(ensoniq);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, ensoniq, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, ensoniq, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_ensoniq_free(ensoniq);
 		return err;
 	}
@@ -2365,24 +2380,40 @@ static int snd_audiopci_probe(struct pci_dev *pci,
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
 	if ((err = snd_ensoniq_create(card, pci, &ensoniq)) < 0) {
+=======
+	err = snd_ensoniq_create(card, pci, &ensoniq);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	card->private_data = ensoniq;
 
 #ifdef CHIP1370
+<<<<<<< HEAD
 	if ((err = snd_ensoniq_1370_mixer(ensoniq)) < 0) {
+=======
+	err = snd_ensoniq_1370_mixer(ensoniq);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 #endif
 #ifdef CHIP1371
+<<<<<<< HEAD
 	if ((err = snd_ensoniq_1371_mixer(ensoniq, spdif[dev], lineio[dev])) < 0) {
+=======
+	err = snd_ensoniq_1371_mixer(ensoniq, spdif[dev], lineio[dev]);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 #endif
+<<<<<<< HEAD
 	if ((err = snd_ensoniq_pcm(ensoniq, 0)) < 0) {
 		snd_card_free(card);
 		return err;
@@ -2392,6 +2423,20 @@ static int snd_audiopci_probe(struct pci_dev *pci,
 		return err;
 	}
 	if ((err = snd_ensoniq_midi(ensoniq, 0)) < 0) {
+=======
+	err = snd_ensoniq_pcm(ensoniq, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_ensoniq_pcm2(ensoniq, 1);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_ensoniq_midi(ensoniq, 0);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2407,7 +2452,12 @@ static int snd_audiopci_probe(struct pci_dev *pci,
 		ensoniq->port,
 		ensoniq->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

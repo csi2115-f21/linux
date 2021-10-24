@@ -63,6 +63,7 @@ int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
 	return ret;
 }
 
+<<<<<<< HEAD
 void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
 			  int rr)
 {
@@ -122,6 +123,16 @@ void hns_roce_bitmap_free_range(struct hns_roce_bitmap *bitmap,
 
 	if (!rr)
 		bitmap->last = min(bitmap->last, obj);
+=======
+void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj)
+{
+	obj &= bitmap->max + bitmap->reserved_top - 1;
+
+	spin_lock(&bitmap->lock);
+	clear_bit(obj, bitmap->table);
+
+	bitmap->last = min(bitmap->last, obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
 		       & bitmap->mask;
 	spin_unlock(&bitmap->lock);
@@ -308,7 +319,12 @@ void hns_roce_cleanup_bitmap(struct hns_roce_dev *hr_dev)
 		hns_roce_cleanup_srq_table(hr_dev);
 	hns_roce_cleanup_qp_table(hr_dev);
 	hns_roce_cleanup_cq_table(hr_dev);
+<<<<<<< HEAD
 	hns_roce_cleanup_mr_table(hr_dev);
 	hns_roce_cleanup_pd_table(hr_dev);
+=======
+	ida_destroy(&hr_dev->mr_table.mtpt_ida.ida);
+	ida_destroy(&hr_dev->pd_ida.ida);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hns_roce_cleanup_uar_table(hr_dev);
 }

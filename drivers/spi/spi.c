@@ -62,6 +62,10 @@ modalias_show(struct device *dev, struct device_attribute *a, char *buf)
 	const struct spi_device	*spi = to_spi_device(dev);
 	int len;
 
+	len = of_device_modalias(dev, buf, PAGE_SIZE);
+	if (len != -ENODEV)
+		return len;
+
 	len = acpi_device_modalias(dev, buf, PAGE_SIZE - 1);
 	if (len != -ENODEV)
 		return len;
@@ -367,6 +371,10 @@ static int spi_uevent(struct device *dev, struct kobj_uevent_env *env)
 	const struct spi_device		*spi = to_spi_device(dev);
 	int rc;
 
+	rc = of_device_uevent_modalias(dev, env);
+	if (rc != -ENODEV)
+		return rc;
+
 	rc = acpi_device_uevent_modalias(dev, env);
 	if (rc != -ENODEV)
 		return rc;
@@ -628,12 +636,71 @@ int spi_add_device(struct spi_device *spi)
 	else
 		dev_dbg(dev, "registered child %s\n", dev_name(&spi->dev));
 
+<<<<<<< HEAD
 done:
+=======
+	return status;
+}
+
+/**
+ * spi_add_device - Add spi_device allocated with spi_alloc_device
+ * @spi: spi_device to register
+ *
+ * Companion function to spi_alloc_device.  Devices allocated with
+ * spi_alloc_device can be added onto the spi bus with this function.
+ *
+ * Return: 0 on success; negative errno on failure
+ */
+int spi_add_device(struct spi_device *spi)
+{
+	struct spi_controller *ctlr = spi->controller;
+	struct device *dev = ctlr->dev.parent;
+	int status;
+
+	/* Chipselects are numbered 0..max; validate. */
+	if (spi->chip_select >= ctlr->num_chipselect) {
+		dev_err(dev, "cs%d >= max %d\n", spi->chip_select,
+			ctlr->num_chipselect);
+		return -EINVAL;
+	}
+
+	/* Set the bus ID string */
+	spi_dev_set_name(spi);
+
+	/* We need to make sure there's no other device with this
+	 * chipselect **BEFORE** we call setup(), else we'll trash
+	 * its configuration.  Lock against concurrent add() calls.
+	 */
+	mutex_lock(&spi_add_lock);
+	status = __spi_add_device(spi);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&spi_add_lock);
 	return status;
 }
 EXPORT_SYMBOL_GPL(spi_add_device);
 
+<<<<<<< HEAD
+=======
+static int spi_add_device_locked(struct spi_device *spi)
+{
+	struct spi_controller *ctlr = spi->controller;
+	struct device *dev = ctlr->dev.parent;
+
+	/* Chipselects are numbered 0..max; validate. */
+	if (spi->chip_select >= ctlr->num_chipselect) {
+		dev_err(dev, "cs%d >= max %d\n", spi->chip_select,
+			ctlr->num_chipselect);
+		return -EINVAL;
+	}
+
+	/* Set the bus ID string */
+	spi_dev_set_name(spi);
+
+	WARN_ON(!mutex_is_locked(&spi_add_lock));
+	return __spi_add_device(spi);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * spi_new_device - instantiate one new SPI device
  * @ctlr: Controller to which device is connected
@@ -812,7 +879,11 @@ static void spi_set_cs(struct spi_device *spi, bool enable)
 
 	if (spi->cs_gpiod || gpio_is_valid(spi->cs_gpio) ||
 	    !spi->controller->set_cs_timing) {
+<<<<<<< HEAD
 		if (enable1)
+=======
+		if (activate)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			spi_delay_exec(&spi->controller->cs_setup, NULL);
 		else
 			spi_delay_exec(&spi->controller->cs_hold, NULL);
@@ -844,7 +915,11 @@ static void spi_set_cs(struct spi_device *spi, bool enable)
 
 	if (spi->cs_gpiod || gpio_is_valid(spi->cs_gpio) ||
 	    !spi->controller->set_cs_timing) {
+<<<<<<< HEAD
 		if (!enable1)
+=======
+		if (!activate)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			spi_delay_exec(&spi->controller->cs_inactive, NULL);
 	}
 }

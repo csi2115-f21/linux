@@ -166,7 +166,11 @@ static int lpc_sch_probe(struct pci_dev *dev, const struct pci_device_id *id)
 		cells++;
 
 	ret = lpc_sch_populate_cell(dev, GPIOBASE, "sch_gpio",
+<<<<<<< HEAD
 				    info->io_size_gpio, info->irq_gpio,
+=======
+				    info->io_size_gpio,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				    id->device, &lpc_sch_cells[cells]);
 	if (ret < 0)
 		return ret;

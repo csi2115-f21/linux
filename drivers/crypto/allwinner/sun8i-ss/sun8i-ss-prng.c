@@ -167,6 +167,10 @@ err_iv:
 		memcpy(ctx->seed, d + dlen, ctx->slen);
 	}
 	memzero_explicit(d, todo);
+<<<<<<< HEAD
+=======
+err_free:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(d);
 
 	return err;

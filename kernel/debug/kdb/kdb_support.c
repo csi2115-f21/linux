@@ -654,6 +654,7 @@ unsigned long kdb_task_state(const struct task_struct *p, unsigned long mask)
 	return (mask & kdb_task_state_string(state)) != 0;
 }
 
+<<<<<<< HEAD
 /*
  * kdb_print_nameval - Print a name and its value, converting the
  *	value to a symbol lookup if possible.
@@ -672,6 +673,8 @@ void kdb_print_nameval(const char *name, unsigned long val)
 		kdb_printf("0x%lx\n", val);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Last ditch allocator for debugging, so we can still debug even when
  * the GFP_ATOMIC pool has been exhausted.  The algorithms are tuned
  * for space usage, not for speed.  One smallish memory pool, the free

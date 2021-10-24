@@ -28,11 +28,14 @@ struct netns_nf {
 #if IS_ENABLED(CONFIG_DECNET)
 	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
 #endif
+<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
 	bool			defrag_ipv4;
 #endif
 #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
 	bool			defrag_ipv6;
 #endif
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 #endif

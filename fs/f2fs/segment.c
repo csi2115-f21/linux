@@ -3499,7 +3499,17 @@ int f2fs_inplace_write_data(struct f2fs_io_info *fio)
 		set_sbi_flag(sbi, SBI_NEED_FSCK);
 		f2fs_warn(sbi, "%s: incorrect segment(%u) type, run fsck to fix.",
 			  __func__, segno);
+<<<<<<< HEAD
 		return -EFSCORRUPTED;
+=======
+		err = -EFSCORRUPTED;
+		goto drop_bio;
+	}
+
+	if (is_sbi_flag_set(sbi, SBI_NEED_FSCK) || f2fs_cp_error(sbi)) {
+		err = -EIO;
+		goto drop_bio;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	stat_inc_inplace_blocks(fio->sbi);

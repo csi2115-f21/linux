@@ -25,6 +25,16 @@ static int mock_phys_object(void *arg)
 		goto out;
 	}
 
+<<<<<<< HEAD
+=======
+	if (!i915_gem_object_has_struct_page(obj)) {
+		err = -EINVAL;
+		pr_err("shmem has no struct page\n");
+		goto out_obj;
+	}
+
+	i915_gem_object_lock(obj, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = i915_gem_object_attach_phys(obj, PAGE_SIZE);
 	if (err) {
 		pr_err("i915_gem_object_attach_phys failed, err=%d\n", err);

@@ -159,5 +159,10 @@ int main(void)
 	OFFSET(__KEXEC_SHA_REGION_START, kexec_sha_region, start);
 	OFFSET(__KEXEC_SHA_REGION_LEN, kexec_sha_region, len);
 	DEFINE(__KEXEC_SHA_REGION_SIZE, sizeof(struct kexec_sha_region));
+<<<<<<< HEAD
+=======
+	/* sizeof kernel parameter area */
+	DEFINE(__PARMAREA_SIZE, sizeof(struct parmarea));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }

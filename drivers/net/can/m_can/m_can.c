@@ -317,8 +317,13 @@ enum m_can_reg {
 
 /* Tx event FIFO Element */
 /* E1 */
+<<<<<<< HEAD
 #define TX_EVENT_MM_SHIFT	TX_BUF_MM_SHIFT
 #define TX_EVENT_MM_MASK	(0xff << TX_EVENT_MM_SHIFT)
+=======
+#define TX_EVENT_MM_MASK	GENMASK(31, 24)
+#define TX_EVENT_TXTS_MASK	GENMASK(15, 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline u32 m_can_read(struct m_can_classdev *cdev, enum m_can_reg reg)
 {
@@ -430,6 +435,31 @@ static void m_can_clean(struct net_device *net)
 	}
 }
 
+<<<<<<< HEAD
+=======
+/* For peripherals, pass skb to rx-offload, which will push skb from
+ * napi. For non-peripherals, RX is done in napi already, so push
+ * directly. timestamp is used to ensure good skb ordering in
+ * rx-offload and is ignored for non-peripherals.
+*/
+static void m_can_receive_skb(struct m_can_classdev *cdev,
+			      struct sk_buff *skb,
+			      u32 timestamp)
+{
+	if (cdev->is_peripheral) {
+		struct net_device_stats *stats = &cdev->net->stats;
+		int err;
+
+		err = can_rx_offload_queue_sorted(&cdev->offload, skb,
+						  timestamp);
+		if (err)
+			stats->rx_fifo_errors++;
+	} else {
+		netif_receive_skb(skb);
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void m_can_read_fifo(struct net_device *dev, u32 rxfs)
 {
 	struct net_device_stats *stats = &dev->stats;
@@ -437,10 +467,18 @@ static void m_can_read_fifo(struct net_device *dev, u32 rxfs)
 	struct canfd_frame *cf;
 	struct sk_buff *skb;
 	u32 id, fgi, dlc;
+<<<<<<< HEAD
 	int i;
 
 	/* calculate the fifo get index for where to read data */
 	fgi = (rxfs & RXFS_FGI_MASK) >> RXFS_FGI_SHIFT;
+=======
+	u32 timestamp = 0;
+	int i;
+
+	/* calculate the fifo get index for where to read data */
+	fgi = FIELD_GET(RXFS_FGI_MASK, rxfs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dlc = m_can_fifo_read(cdev, fgi, M_CAN_FIFO_DLC);
 	if (dlc & RX_BUF_FDF)
 		skb = alloc_canfd_skb(dev, &cf);
@@ -485,7 +523,13 @@ static void m_can_read_fifo(struct net_device *dev, u32 rxfs)
 	stats->rx_packets++;
 	stats->rx_bytes += cf->len;
 
+<<<<<<< HEAD
 	netif_receive_skb(skb);
+=======
+	timestamp = FIELD_GET(RX_BUF_RXTS_MASK, dlc);
+
+	m_can_receive_skb(cdev, skb, timestamp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int m_can_do_rx_poll(struct net_device *dev, int quota)
@@ -501,9 +545,12 @@ static int m_can_do_rx_poll(struct net_device *dev, int quota)
 	}
 
 	while ((rxfs & RXFS_FFL_MASK) && (quota > 0)) {
+<<<<<<< HEAD
 		if (rxfs & RXFS_RFL)
 			netdev_warn(dev, "Rx FIFO 0 Message Lost\n");
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		m_can_read_fifo(dev, rxfs);
 
 		quota--;
@@ -876,7 +923,11 @@ static int m_can_rx_peripheral(struct net_device *dev)
 {
 	struct m_can_classdev *cdev = netdev_priv(dev);
 
+<<<<<<< HEAD
 	m_can_rx_handler(dev, 1);
+=======
+	m_can_rx_handler(dev, M_CAN_NAPI_WEIGHT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	m_can_enable_all_interrupts(cdev);
 
@@ -898,6 +949,32 @@ static int m_can_poll(struct napi_struct *napi, int quota)
 	return work_done;
 }
 
+<<<<<<< HEAD
+=======
+/* Echo tx skb and update net stats. Peripherals use rx-offload for
+ * echo. timestamp is used for peripherals to ensure correct ordering
+ * by rx-offload, and is ignored for non-peripherals.
+*/
+static void m_can_tx_update_stats(struct m_can_classdev *cdev,
+				  unsigned int msg_mark,
+				  u32 timestamp)
+{
+	struct net_device *dev = cdev->net;
+	struct net_device_stats *stats = &dev->stats;
+
+	if (cdev->is_peripheral)
+		stats->tx_bytes +=
+			can_rx_offload_get_echo_skb(&cdev->offload,
+						    msg_mark,
+						    timestamp,
+						    NULL);
+	else
+		stats->tx_bytes += can_get_echo_skb(dev, msg_mark, NULL);
+
+	stats->tx_packets++;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void m_can_echo_tx_event(struct net_device *dev)
 {
 	u32 txe_count = 0;
@@ -917,13 +994,25 @@ static void m_can_echo_tx_event(struct net_device *dev)
 
 	/* Get and process all sent elements */
 	for (i = 0; i < txe_count; i++) {
+<<<<<<< HEAD
+=======
+		u32 txe, timestamp = 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* retrieve get index */
 		fgi = (m_can_read(cdev, M_CAN_TXEFS) & TXEFS_EFGI_MASK) >>
 			TXEFS_EFGI_SHIFT;
 
+<<<<<<< HEAD
 		/* get message marker */
 		msg_mark = (m_can_txe_fifo_read(cdev, fgi, 4) &
 			    TX_EVENT_MM_MASK) >> TX_EVENT_MM_SHIFT;
+=======
+		/* get message marker, timestamp */
+		txe = m_can_txe_fifo_read(cdev, fgi, 4);
+		msg_mark = FIELD_GET(TX_EVENT_MM_MASK, txe);
+		timestamp = FIELD_GET(TX_EVENT_TXTS_MASK, txe);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* ack txe element */
 		m_can_write(cdev, M_CAN_TXEFA, (TXEFA_EFAI_MASK &
@@ -1092,10 +1181,17 @@ static int m_can_set_bittiming(struct net_device *dev)
 				    tdco << TDCR_TDCO_SHIFT);
 		}
 
+<<<<<<< HEAD
 		reg_btp |= (brp << DBTP_DBRP_SHIFT) |
 			(sjw << DBTP_DSJW_SHIFT) |
 			(tseg1 << DBTP_DTSEG1_SHIFT) |
 			(tseg2 << DBTP_DTSEG2_SHIFT);
+=======
+		reg_btp = FIELD_PREP(NBTP_NBRP_MASK, brp) |
+			  FIELD_PREP(NBTP_NSJW_MASK, sjw) |
+			  FIELD_PREP(NBTP_NTSEG1_MASK, tseg1) |
+			  FIELD_PREP(NBTP_NTSEG2_MASK, tseg2);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		m_can_write(cdev, M_CAN_DBTP, reg_btp);
 	}
@@ -1222,6 +1318,13 @@ static void m_can_chip_config(struct net_device *dev)
 	/* set bittiming params */
 	m_can_set_bittiming(dev);
 
+<<<<<<< HEAD
+=======
+	/* enable internal timestamp generation, with a prescalar of 16. The
+	 * prescalar is applied to the nominal bit timing */
+	m_can_write(cdev, M_CAN_TSCC, FIELD_PREP(TSCC_TCP_MASK, 0xf));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	m_can_config_endisable(cdev, false);
 
 	if (cdev->ops->init)
@@ -1523,8 +1626,13 @@ static netdev_tx_t m_can_tx_handler(struct m_can_classdev *cdev)
 		}
 
 		/* get put index for frame */
+<<<<<<< HEAD
 		putidx = ((m_can_read(cdev, M_CAN_TXFQS) & TXFQS_TFQPI_MASK)
 			  >> TXFQS_TFQPI_SHIFT);
+=======
+		putidx = FIELD_GET(TXFQS_TFQPI_MASK,
+				   m_can_read(cdev, M_CAN_TXFQS));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* Write ID Field to FIFO Element */
 		m_can_fifo_write(cdev, putidx, M_CAN_FIFO_ID, id);
 
@@ -1542,9 +1650,15 @@ static netdev_tx_t m_can_tx_handler(struct m_can_classdev *cdev)
 		 * sending the correct echo frame
 		 */
 		m_can_fifo_write(cdev, putidx, M_CAN_FIFO_DLC,
+<<<<<<< HEAD
 				 ((putidx << TX_BUF_MM_SHIFT) &
 				  TX_BUF_MM_MASK) |
 				 (can_fd_len2dlc(cf->len) << 16) |
+=======
+				 FIELD_PREP(TX_BUF_MM_MASK, putidx) |
+				 FIELD_PREP(TX_BUF_DLC_MASK,
+					    can_fd_len2dlc(cf->len)) |
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				 fdflags | TX_BUF_EFC);
 
 		for (i = 0; i < cf->len; i += 4)

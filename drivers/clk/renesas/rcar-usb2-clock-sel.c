@@ -193,9 +193,21 @@ static int rcar_usb2_clock_sel_probe(struct platform_device *pdev)
 	init.num_parents = 0;
 	priv->hw.init = &init;
 
+<<<<<<< HEAD
 	clk = clk_register(NULL, &priv->hw);
 	if (IS_ERR(clk))
 		return PTR_ERR(clk);
+=======
+	ret = devm_clk_hw_register(NULL, &priv->hw);
+	if (ret)
+		goto pm_put;
+
+	ret = of_clk_add_hw_provider(np, of_clk_hw_simple_get, &priv->hw);
+	if (ret)
+		goto pm_put;
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return of_clk_add_hw_provider(np, of_clk_hw_simple_get, &priv->hw);
 }

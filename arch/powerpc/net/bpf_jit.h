@@ -26,6 +26,12 @@
 /* Long jump; (unconditional 'branch') */
 #define PPC_JMP(dest)		EMIT(PPC_INST_BRANCH |			      \
 				     (((dest) - (ctx->idx * 4)) & 0x03fffffc))
+<<<<<<< HEAD
+=======
+/* blr; (unconditional 'branch' with link) to absolute address */
+#define PPC_BL_ABS(dest)	EMIT(PPC_INST_BL |			      \
+				     (((dest) - (unsigned long)(image + ctx->idx)) & 0x03fffffc))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* "cond" here covers BO:BI fields. */
 #define PPC_BCC_SHORT(cond, dest)	EMIT(PPC_INST_BRANCH_COND |	      \
 					     (((cond) & 0x3ff) << 16) |	      \

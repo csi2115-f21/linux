@@ -836,7 +836,11 @@ static void xhci_giveback_invalidated_tds(struct xhci_virt_ep *ep)
 		ring = xhci_urb_to_transfer_ring(ep->xhci, td->urb);
 
 		if (td->cancel_status == TD_CLEARED)
+<<<<<<< HEAD
 			xhci_td_cleanup(ep->xhci, td, ring, 0);
+=======
+			xhci_td_cleanup(ep->xhci, td, ring, td->status);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (ep->xhci->xhc_state & XHCI_STATE_DYING)
 			return;
@@ -889,7 +893,11 @@ static void xhci_handle_halted_endpoint(struct xhci_hcd *xhci,
 
 	if (ep->ep_state & EP_HALTED) {
 		xhci_dbg(xhci, "Reset ep command already pending\n");
+<<<<<<< HEAD
 		return;
+=======
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	err = xhci_reset_halted_ep(xhci, slot_id, ep->ep_index, reset_type);
@@ -943,7 +951,13 @@ static int xhci_invalidate_cancelled_tds(struct xhci_virt_ep *ep)
 					 td->urb->stream_id);
 		hw_deq &= ~0xf;
 
+<<<<<<< HEAD
 		if (trb_in_td(xhci, td->start_seg, td->first_trb,
+=======
+		if (td->cancel_status == TD_HALTED) {
+			cached_td = td;
+		} else if (trb_in_td(xhci, td->start_seg, td->first_trb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			      td->last_trb, hw_deq, false)) {
 			switch (td->cancel_status) {
 			case TD_CLEARED: /* TD is already no-op */

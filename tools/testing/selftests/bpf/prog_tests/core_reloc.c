@@ -841,8 +841,12 @@ void test_core_reloc(void)
 		}
 
 		obj = bpf_object__open_file(test_case->bpf_obj_file, NULL);
+<<<<<<< HEAD
 		if (CHECK(IS_ERR(obj), "obj_open", "failed to open '%s': %ld\n",
 			  test_case->bpf_obj_file, PTR_ERR(obj)))
+=======
+		if (!ASSERT_OK_PTR(obj, "obj_open"))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			continue;
 
 		probe_name = "raw_tracepoint/sys_enter";
@@ -857,6 +861,16 @@ void test_core_reloc(void)
 			  "prog '%s' not found\n", probe_name))
 			goto cleanup;
 
+<<<<<<< HEAD
+=======
+
+		if (test_case->btf_src_file) {
+			err = access(test_case->btf_src_file, R_OK);
+			if (!ASSERT_OK(err, "btf_src_file"))
+				goto cleanup;
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		load_attr.obj = obj;
 		load_attr.log_level = 0;
 		load_attr.target_btf_path = test_case->btf_src_file;

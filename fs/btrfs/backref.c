@@ -1487,7 +1487,11 @@ static int btrfs_find_all_roots_safe(struct btrfs_trans_handle *trans,
 int btrfs_find_all_roots(struct btrfs_trans_handle *trans,
 			 struct btrfs_fs_info *fs_info, u64 bytenr,
 			 u64 time_seq, struct ulist **roots,
+<<<<<<< HEAD
 			 bool ignore_offset)
+=======
+			 bool ignore_offset, bool skip_commit_root_sem)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 
@@ -1495,7 +1499,11 @@ int btrfs_find_all_roots(struct btrfs_trans_handle *trans,
 		down_read(&fs_info->commit_root_sem);
 	ret = btrfs_find_all_roots_safe(trans, fs_info, bytenr,
 					time_seq, roots, ignore_offset);
+<<<<<<< HEAD
 	if (!trans)
+=======
+	if (!trans && !skip_commit_root_sem)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		up_read(&fs_info->commit_root_sem);
 	return ret;
 }

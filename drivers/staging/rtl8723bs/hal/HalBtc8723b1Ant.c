@@ -22,6 +22,15 @@ static const char *const GLBtInfoSrc8723b1Ant[] = {
 static u32 GLCoexVerDate8723b1Ant = 20140507;
 static u32 GLCoexVer8723b1Ant = 0x4e;
 
+static const char *const GLBtInfoSrc8723b1Ant[] = {
+	"BT Info[wifi fw]",
+	"BT Info[bt rsp]",
+	"BT Info[bt auto report]",
+};
+
+static u32 GLCoexVerDate8723b1Ant = 20140507;
+static u32 GLCoexVer8723b1Ant = 0x4e;
+
 /*  local function proto type if needed */
 /*  local function start with halbtc8723b1ant_ */
 static u8 halbtc8723b1ant_BtRssiState(
@@ -2720,11 +2729,19 @@ void EXhalbtc8723b1ant_InitCoexDm(PBTC_COEXIST pBtCoexist)
 	halbtc8723b1ant_QueryBtInfo(pBtCoexist);
 }
 
+<<<<<<< HEAD
 void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 {
 	PBTC_BOARD_INFO pBoardInfo = &pBtCoexist->boardInfo;
 	PBTC_STACK_INFO pStackInfo = &pBtCoexist->stackInfo;
 	PBTC_BT_LINK_INFO pBtLinkInfo = &pBtCoexist->btLinkInfo;
+=======
+void EXhalbtc8723b1ant_DisplayCoexInfo(struct btc_coexist *pBtCoexist)
+{
+	struct btc_board_info *pBoardInfo = &pBtCoexist->boardInfo;
+	struct btc_stack_info *pStackInfo = &pBtCoexist->stackInfo;
+	struct btc_bt_link_info *pBtLinkInfo = &pBtCoexist->btLinkInfo;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 *cliBuf = pBtCoexist->cliBuf;
 	u8 u1Tmp[4], i, btInfoExt, psTdmaCase = 0;
 	u16 u2Tmp[4];
@@ -2732,7 +2749,10 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	bool bRoam = false;
 	bool bScan = false;
 	bool bLink = false;
+<<<<<<< HEAD
 	bool bWifiUnder5G = false;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bool bWifiUnderBMode = false;
 	bool bBtHsOn = false;
 	bool bWifiBusy = false;
@@ -2780,7 +2800,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d/ %d", "Ant PG Num/ Ant Mech/ Ant Pos:", \
+=======
+		"\r\n %-35s = %d/ %d/ %d", "Ant PG Num/ Ant Mech/ Ant Pos:",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pBoardInfo->pgAntNum,
 		pBoardInfo->btdmAntNum,
 		pBoardInfo->btdmAntPos
@@ -2790,7 +2814,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %s / %d", "BT stack/ hci ext ver", \
+=======
+		"\r\n %-35s = %s / %d", "BT stack/ hci ext ver",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		((pStackInfo->bProfileNotified) ? "Yes" : "No"),
 		pStackInfo->hciVersion
 	);
@@ -2801,7 +2829,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d_%x/ 0x%x/ 0x%x(%d)", "CoexVer/ FwVer/ PatchVer", \
+=======
+		"\r\n %-35s = %d_%x/ 0x%x/ 0x%x(%d)", "CoexVer/ FwVer/ PatchVer",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		GLCoexVerDate8723b1Ant,
 		GLCoexVer8723b1Ant,
 		fwVer,
@@ -2816,7 +2848,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d / %d(%d)", "Dot11 channel / HsChnl(HsMode)", \
+=======
+		"\r\n %-35s = %d / %d(%d)", "Dot11 channel / HsChnl(HsMode)",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		wifiDot11Chnl,
 		wifiHsChnl,
 		bBtHsOn
@@ -2826,7 +2862,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %02x %02x %02x ", "H2C Wifi inform bt chnl Info", \
+=======
+		"\r\n %-35s = %02x %02x %02x ", "H2C Wifi inform bt chnl Info",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexDm->wifiChnlInfo[0],
 		pCoexDm->wifiChnlInfo[1],
 		pCoexDm->wifiChnlInfo[2]
@@ -2838,8 +2878,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d", "Wifi rssi/ HS rssi", \
 		wifiRssi-100, btHsRssi-100
+=======
+		"\r\n %-35s = %d/ %d", "Wifi rssi/ HS rssi",
+		wifiRssi - 100, btHsRssi - 100
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -2849,12 +2894,19 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d/ %d/ %s", "Wifi bLink/ bRoam/ bScan/ bHi-Pri", \
+=======
+		"\r\n %-35s = %d/ %d/ %d/ %s", "Wifi bLink/ bRoam/ bScan/ bHi-Pri",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bLink, bRoam, bScan, ((pCoexSta->bWiFiIsHighPriTask) ? "1" : "0")
 	);
 	CL_PRINTF(cliBuf);
 
+<<<<<<< HEAD
 	pBtCoexist->fBtcGet(pBtCoexist, BTC_GET_BL_WIFI_UNDER_5G, &bWifiUnder5G);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pBtCoexist->fBtcGet(pBtCoexist, BTC_GET_U4_WIFI_BW, &wifiBw);
 	pBtCoexist->fBtcGet(pBtCoexist, BTC_GET_BL_WIFI_BUSY, &bWifiBusy);
 	pBtCoexist->fBtcGet(
@@ -2867,10 +2919,17 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %s / %s/ %s/ AP =%d/ %s ", "Wifi status", \
 		(bWifiUnder5G ? "5G" : "2.4G"),
 		((bWifiUnderBMode) ? "11b" : ((BTC_WIFI_BW_LEGACY == wifiBw) ? "11bg" : (((BTC_WIFI_BW_HT40 == wifiBw) ? "HT40" : "HT20")))),
 		((!bWifiBusy) ? "idle" : ((BTC_WIFI_TRAFFIC_TX == wifiTrafficDir) ? "uplink" : "downlink")),
+=======
+		"\r\n %-35s = %s / %s/ %s/ AP =%d/ %s ", "Wifi status",
+		("2.4G"),
+		((bWifiUnderBMode) ? "11b" : ((wifiBw == BTC_WIFI_BW_LEGACY) ? "11bg" : (((wifiBw == BTC_WIFI_BW_HT40) ? "HT40" : "HT20")))),
+		((!bWifiBusy) ? "idle" : ((wifiTrafficDir == BTC_WIFI_TRAFFIC_TX) ? "uplink" : "downlink")),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->nScanAPNum,
 		(pCoexSta->bCCKLock) ? "Lock" : "noLock"
 	);
@@ -2882,12 +2941,21 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d/ %d/ %d/ %d", "sta/vwifi/hs/p2pGo/p2pGc", \
 		((wifiLinkStatus&WIFI_STA_CONNECTED) ? 1 : 0),
 		((wifiLinkStatus&WIFI_AP_CONNECTED) ? 1 : 0),
 		((wifiLinkStatus&WIFI_HS_CONNECTED) ? 1 : 0),
 		((wifiLinkStatus&WIFI_P2P_GO_CONNECTED) ? 1 : 0),
 		((wifiLinkStatus&WIFI_P2P_GC_CONNECTED) ? 1 : 0)
+=======
+		"\r\n %-35s = %d/ %d/ %d/ %d/ %d", "sta/vwifi/hs/p2pGo/p2pGc",
+		((wifiLinkStatus & WIFI_STA_CONNECTED) ? 1 : 0),
+		((wifiLinkStatus & WIFI_AP_CONNECTED) ? 1 : 0),
+		((wifiLinkStatus & WIFI_HS_CONNECTED) ? 1 : 0),
+		((wifiLinkStatus & WIFI_P2P_GO_CONNECTED) ? 1 : 0),
+		((wifiLinkStatus & WIFI_P2P_GC_CONNECTED) ? 1 : 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -2896,9 +2964,15 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = [%s/ %d/ %d/ %d] ", "BT [status/ rssi/ retryCnt/ popCnt]", \
 		((pBtCoexist->btInfo.bBtDisabled) ? ("disabled") : ((pCoexSta->bC2hBtInquiryPage) ? ("inquiry/page scan") : ((BT_8723B_1ANT_BT_STATUS_NON_CONNECTED_IDLE == pCoexDm->btStatus) ? "non-connected idle" :
 		((BT_8723B_1ANT_BT_STATUS_CONNECTED_IDLE == pCoexDm->btStatus) ? "connected-idle" : "busy")))),
+=======
+		"\r\n %-35s = [%s/ %d/ %d/ %d] ", "BT [status/ rssi/ retryCnt/ popCnt]",
+		((pBtCoexist->btInfo.bBtDisabled) ? ("disabled") : ((pCoexSta->bC2hBtInquiryPage) ? ("inquiry/page scan") : ((pCoexDm->btStatus == BT_8723B_1ANT_BT_STATUS_NON_CONNECTED_IDLE) ? "non-connected idle" :
+																					((pCoexDm->btStatus == BT_8723B_1ANT_BT_STATUS_CONNECTED_IDLE) ? "connected-idle" : "busy")))),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->btRssi, pCoexSta->btRetryCnt, pCoexSta->popEventCnt
 	);
 	CL_PRINTF(cliBuf);
@@ -2912,7 +2986,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d / %d / %d / %d", "SCO/HID/PAN/A2DP", \
+=======
+		"\r\n %-35s = %d / %d / %d / %d", "SCO/HID/PAN/A2DP",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pBtLinkInfo->bScoExist,
 		pBtLinkInfo->bHidExist,
 		pBtLinkInfo->bPanExist,
@@ -2923,8 +3001,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	if (pStackInfo->bProfileNotified) {
 		pBtCoexist->fBtcDispDbgMsg(pBtCoexist, BTC_DBG_DISP_BT_LINK_INFO);
 	} else {
+<<<<<<< HEAD
 		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %s", "BT Role", \
 		(pBtLinkInfo->bSlaveRole) ? "Slave" : "Master");
+=======
+		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %s", "BT Role",
+			   (pBtLinkInfo->bSlaveRole) ? "Slave" : "Master");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		CL_PRINTF(cliBuf);
 	}
 
@@ -2933,8 +3016,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %s", "BT Info A2DP rate", \
 		(btInfoExt&BIT0) ? "Basic rate" : "EDR rate"
+=======
+		"\r\n %-35s = %s", "BT Info A2DP rate",
+		(btInfoExt & BIT0) ? "Basic rate" : "EDR rate"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -2943,7 +3031,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 			CL_SPRINTF(
 				cliBuf,
 				BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 				"\r\n %-35s = %02x %02x %02x %02x %02x %02x %02x(%d)", GLBtInfoSrc8723b1Ant[i], \
+=======
+				"\r\n %-35s = %02x %02x %02x %02x %02x %02x %02x(%d)", GLBtInfoSrc8723b1Ant[i],
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				pCoexSta->btInfoC2h[i][0], pCoexSta->btInfoC2h[i][1],
 				pCoexSta->btInfoC2h[i][2], pCoexSta->btInfoC2h[i][3],
 				pCoexSta->btInfoC2h[i][4], pCoexSta->btInfoC2h[i][5],
@@ -2955,7 +3047,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %s/%s, (0x%x/0x%x)", "PS state, IPS/LPS, (lps/rpwm)", \
+=======
+		"\r\n %-35s = %s/%s, (0x%x/0x%x)", "PS state, IPS/LPS, (lps/rpwm)",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		(pCoexSta->bUnderIps ? "IPS ON" : "IPS OFF"),
 		(pCoexSta->bUnderLps ? "LPS ON" : "LPS OFF"),
 		pBtCoexist->btInfo.lpsVal,
@@ -2976,7 +3072,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 		CL_SPRINTF(
 			cliBuf,
 			BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 			"\r\n %-35s = %d", "SM[LowPenaltyRA]", \
+=======
+			"\r\n %-35s = %d", "SM[LowPenaltyRA]",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pCoexDm->bCurLowPenaltyRa
 		);
 		CL_PRINTF(cliBuf);
@@ -2984,7 +3084,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 		CL_SPRINTF(
 			cliBuf,
 			BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 			"\r\n %-35s = %s/ %s/ %d ", "DelBA/ BtCtrlAgg/ AggSize", \
+=======
+			"\r\n %-35s = %s/ %s/ %d ", "DelBA/ BtCtrlAgg/ AggSize",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			(pBtCoexist->btInfo.bRejectAggPkt ? "Yes" : "No"),
 			(pBtCoexist->btInfo.bBtCtrlAggBufSize ? "Yes" : "No"),
 			pBtCoexist->btInfo.aggBufSize
@@ -2993,7 +3097,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 		CL_SPRINTF(
 			cliBuf,
 			BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 			"\r\n %-35s = 0x%x ", "Rate Mask", \
+=======
+			"\r\n %-35s = 0x%x ", "Rate Mask",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pBtCoexist->btInfo.raMask
 		);
 		CL_PRINTF(cliBuf);
@@ -3003,6 +3111,7 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 		CL_PRINTF(cliBuf);
 
 		psTdmaCase = pCoexDm->curPsTdma;
+<<<<<<< HEAD
 		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %02x %02x %02x %02x %02x case-%d (auto:%d)", "PS TDMA", \
 			pCoexDm->psTdmaPara[0], pCoexDm->psTdmaPara[1],
 			pCoexDm->psTdmaPara[2], pCoexDm->psTdmaPara[3],
@@ -3022,22 +3131,47 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 			pCoexDm->errorCondition);
 		CL_PRINTF(cliBuf);
 		*/
+=======
+		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %02x %02x %02x %02x %02x case-%d (auto:%d)", "PS TDMA",
+			   pCoexDm->psTdmaPara[0], pCoexDm->psTdmaPara[1],
+			   pCoexDm->psTdmaPara[2], pCoexDm->psTdmaPara[3],
+			   pCoexDm->psTdmaPara[4], psTdmaCase, pCoexDm->bAutoTdmaAdjust);
+		CL_PRINTF(cliBuf);
+
+		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %d", "Coex Table Type",
+			   pCoexSta->nCoexTableType);
+		CL_PRINTF(cliBuf);
+
+		CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = %d", "IgnWlanAct",
+			   pCoexDm->bCurIgnoreWlanAct);
+		CL_PRINTF(cliBuf);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/*  Hw setting */
 	CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s", "============[Hw setting]============");
 	CL_PRINTF(cliBuf);
 
+<<<<<<< HEAD
 	CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = 0x%x/0x%x/0x%x/0x%x", "backup ARFR1/ARFR2/RL/AMaxTime", \
 		pCoexDm->backupArfrCnt1, pCoexDm->backupArfrCnt2, pCoexDm->backupRetryLimit, pCoexDm->backupAmpduMaxTime);
+=======
+	CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = 0x%x/0x%x/0x%x/0x%x", "backup ARFR1/ARFR2/RL/AMaxTime",
+		   pCoexDm->backupArfrCnt1, pCoexDm->backupArfrCnt2, pCoexDm->backupRetryLimit, pCoexDm->backupAmpduMaxTime);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	CL_PRINTF(cliBuf);
 
 	u4Tmp[0] = pBtCoexist->fBtcRead4Byte(pBtCoexist, 0x430);
 	u4Tmp[1] = pBtCoexist->fBtcRead4Byte(pBtCoexist, 0x434);
 	u2Tmp[0] = pBtCoexist->fBtcRead2Byte(pBtCoexist, 0x42a);
 	u1Tmp[0] = pBtCoexist->fBtcRead1Byte(pBtCoexist, 0x456);
+<<<<<<< HEAD
 	CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = 0x%x/0x%x/0x%x/0x%x", "0x430/0x434/0x42a/0x456", \
 		u4Tmp[0], u4Tmp[1], u2Tmp[0], u1Tmp[0]);
+=======
+	CL_SPRINTF(cliBuf, BT_TMP_BUF_SIZE, "\r\n %-35s = 0x%x/0x%x/0x%x/0x%x", "0x430/0x434/0x42a/0x456",
+		   u4Tmp[0], u4Tmp[1], u2Tmp[0], u1Tmp[0]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	CL_PRINTF(cliBuf);
 
 	u1Tmp[0] = pBtCoexist->fBtcRead1Byte(pBtCoexist, 0x778);
@@ -3045,8 +3179,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	u4Tmp[1] = pBtCoexist->fBtcRead4Byte(pBtCoexist, 0x880);
 	CL_SPRINTF(
 		cliBuf, BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x778/0x6cc/0x880[29:25]", \
 		u1Tmp[0], u4Tmp[0],  (u4Tmp[1]&0x3e000000) >> 25
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x778/0x6cc/0x880[29:25]",
+		u1Tmp[0], u4Tmp[0],  (u4Tmp[1] & 0x3e000000) >> 25
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3057,8 +3196,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x/ 0x%x", "0x948/ 0x67[5] / 0x764 / 0x76e", \
 		u4Tmp[0], ((u1Tmp[0]&0x20) >> 5), (u4Tmp[1] & 0xffff), u1Tmp[1]
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x/ 0x%x", "0x948/ 0x67[5] / 0x764 / 0x76e",
+		u4Tmp[0], ((u1Tmp[0] & 0x20) >> 5), (u4Tmp[1] & 0xffff), u1Tmp[1]
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3068,8 +3212,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x92c[1:0]/ 0x930[7:0]/0x944[1:0]", \
 		u4Tmp[0]&0x3, u4Tmp[1]&0xff, u4Tmp[2]&0x3
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x92c[1:0]/ 0x930[7:0]/0x944[1:0]",
+		u4Tmp[0] & 0x3, u4Tmp[1] & 0xff, u4Tmp[2] & 0x3
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3080,11 +3229,19 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x/ 0x%x", "0x38[11]/0x40/0x4c[24:23]/0x64[0]", \
 		((u1Tmp[0] & 0x8)>>3),
 		u1Tmp[1],
 		((u4Tmp[0]&0x01800000)>>23),
 		u1Tmp[2]&0x1
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x/ 0x%x", "0x38[11]/0x40/0x4c[24:23]/0x64[0]",
+		((u1Tmp[0] & 0x8) >> 3),
+		u1Tmp[1],
+		((u4Tmp[0] & 0x01800000) >> 23),
+		u1Tmp[2] & 0x1
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3093,7 +3250,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x", "0x550(bcn ctrl)/0x522", \
+=======
+		"\r\n %-35s = 0x%x/ 0x%x", "0x550(bcn ctrl)/0x522",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		u4Tmp[0], u1Tmp[0]
 	);
 	CL_PRINTF(cliBuf);
@@ -3103,8 +3264,13 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x", "0xc50(dig)/0x49c(null-drop)", \
 		u4Tmp[0]&0xff, u1Tmp[0]
+=======
+		"\r\n %-35s = 0x%x/ 0x%x", "0xc50(dig)/0x49c(null-drop)",
+		u4Tmp[0] & 0xff, u1Tmp[0]
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3117,17 +3283,29 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	u1Tmp[1] = pBtCoexist->fBtcRead1Byte(pBtCoexist, 0xa5c);
 
 	faOfdm =
+<<<<<<< HEAD
 		((u4Tmp[0]&0xffff0000) >> 16) +
 		((u4Tmp[1]&0xffff0000) >> 16) +
 		(u4Tmp[1] & 0xffff) +  (u4Tmp[2] & 0xffff) + \
 		((u4Tmp[3]&0xffff0000) >> 16) + (u4Tmp[3] & 0xffff);
+=======
+		((u4Tmp[0] & 0xffff0000) >> 16) +
+		((u4Tmp[1] & 0xffff0000) >> 16) +
+		(u4Tmp[1] & 0xffff) +  (u4Tmp[2] & 0xffff) +
+		((u4Tmp[3] & 0xffff0000) >> 16) + (u4Tmp[3] & 0xffff);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	faCck = (u1Tmp[0] << 8) + u1Tmp[1];
 
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "OFDM-CCA/OFDM-FA/CCK-FA", \
 		u4Tmp[0]&0xffff, faOfdm, faCck
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "OFDM-CCA/OFDM-FA/CCK-FA",
+		u4Tmp[0] & 0xffff, faOfdm, faCck
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	CL_PRINTF(cliBuf);
 
@@ -3135,7 +3313,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d/ %d/ %d", "CRC_OK CCK/11g/11n/11n-Agg", \
+=======
+		"\r\n %-35s = %d/ %d/ %d/ %d", "CRC_OK CCK/11g/11n/11n-Agg",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->nCRCOK_CCK,
 		pCoexSta->nCRCOK_11g,
 		pCoexSta->nCRCOK_11n,
@@ -3146,7 +3328,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d/ %d/ %d", "CRC_Err CCK/11g/11n/11n-Agg", \
+=======
+		"\r\n %-35s = %d/ %d/ %d/ %d", "CRC_Err CCK/11g/11n/11n-Agg",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->nCRCErr_CCK,
 		pCoexSta->nCRCErr_11g,
 		pCoexSta->nCRCErr_11n,
@@ -3160,21 +3346,33 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x6c0/0x6c4/0x6c8(coexTable)", \
+=======
+		"\r\n %-35s = 0x%x/ 0x%x/ 0x%x", "0x6c0/0x6c4/0x6c8(coexTable)",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		u4Tmp[0], u4Tmp[1], u4Tmp[2]);
 	CL_PRINTF(cliBuf);
 
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d", "0x770(high-pri rx/tx)", \
+=======
+		"\r\n %-35s = %d/ %d", "0x770(high-pri rx/tx)",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->highPriorityRx, pCoexSta->highPriorityTx
 	);
 	CL_PRINTF(cliBuf);
 	CL_SPRINTF(
 		cliBuf,
 		BT_TMP_BUF_SIZE,
+<<<<<<< HEAD
 		"\r\n %-35s = %d/ %d", "0x774(low-pri rx/tx)", \
+=======
+		"\r\n %-35s = %d/ %d", "0x774(low-pri rx/tx)",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pCoexSta->lowPriorityRx, pCoexSta->lowPriorityTx
 	);
 	CL_PRINTF(cliBuf);
@@ -3183,7 +3381,11 @@ void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist)
 }
 
 
+<<<<<<< HEAD
 void EXhalbtc8723b1ant_IpsNotify(PBTC_COEXIST pBtCoexist, u8 type)
+=======
+void EXhalbtc8723b1ant_IpsNotify(struct btc_coexist *pBtCoexist, u8 type)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (pBtCoexist->bManualControl ||	pBtCoexist->bStopCoexDm)
 		return;

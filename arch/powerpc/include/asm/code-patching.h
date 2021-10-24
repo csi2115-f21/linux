@@ -23,7 +23,11 @@
 #define BRANCH_ABSOLUTE	0x2
 
 bool is_offset_in_branch_range(long offset);
+<<<<<<< HEAD
 int create_branch(struct ppc_inst *instr, const struct ppc_inst *addr,
+=======
+int create_branch(struct ppc_inst *instr, const u32 *addr,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		  unsigned long target, int flags);
 int create_cond_branch(struct ppc_inst *instr, const struct ppc_inst *addr,
 		       unsigned long target, int flags);

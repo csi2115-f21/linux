@@ -24,7 +24,11 @@
 #include "ufs_bsg.h"
 #include "ufshcd-crypto.h"
 #include <asm/unaligned.h>
+<<<<<<< HEAD
 #include <linux/blkdev.h>
+=======
+#include "../sd.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/ufs.h>
@@ -368,13 +372,18 @@ static void ufshcd_add_uic_command_trace(struct ufs_hba *hba,
 static void ufshcd_add_command_trace(struct ufs_hba *hba, unsigned int tag,
 				     enum ufs_trace_str_t str_t)
 {
+<<<<<<< HEAD
 	sector_t lba = -1;
+=======
+	u64 lba = -1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 opcode = 0, group_id = 0;
 	u32 intr, doorbell;
 	struct ufshcd_lrb *lrbp = &hba->lrb[tag];
 	struct scsi_cmnd *cmd = lrbp->cmd;
 	int transfer_len = -1;
 
+<<<<<<< HEAD
 	if (!trace_ufshcd_command_enabled()) {
 		/* trace UPIU W/O tracing command */
 		if (cmd)
@@ -403,6 +412,35 @@ static void ufshcd_add_command_trace(struct ufs_hba *hba, unsigned int tag,
 				transfer_len = blk_rq_bytes(cmd->request);
 			}
 		}
+=======
+	if (!cmd)
+		return;
+
+	if (!trace_ufshcd_command_enabled()) {
+		/* trace UPIU W/O tracing command */
+		ufshcd_add_cmd_upiu_trace(hba, tag, str_t);
+		return;
+	}
+
+	/* trace UPIU also */
+	ufshcd_add_cmd_upiu_trace(hba, tag, str_t);
+	opcode = cmd->cmnd[0];
+	lba = sectors_to_logical(cmd->device, blk_rq_pos(cmd->request));
+
+	if (opcode == READ_10 || opcode == WRITE_10) {
+		/*
+		 * Currently we only fully trace read(10) and write(10) commands
+		 */
+		transfer_len =
+		       be32_to_cpu(lrbp->ucd_req_ptr->sc.exp_data_transfer_len);
+		if (opcode == WRITE_10)
+			group_id = lrbp->cmd->cmnd[6];
+	} else if (opcode == UNMAP) {
+		/*
+		 * The number of Bytes to be unmapped beginning with the lba.
+		 */
+		transfer_len = blk_rq_bytes(cmd->request);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	intr = ufshcd_readl(hba, REG_INTERRUPT_STATUS);
@@ -761,7 +799,11 @@ static inline void ufshcd_utmrl_clear(struct ufs_hba *hba, u32 pos)
  */
 static inline void ufshcd_outstanding_req_clear(struct ufs_hba *hba, int tag)
 {
+<<<<<<< HEAD
 	__clear_bit(tag, &hba->outstanding_reqs);
+=======
+	clear_bit(tag, &hba->outstanding_reqs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -2027,6 +2069,73 @@ static void ufshcd_clk_scaling_update_busy(struct ufs_hba *hba)
 		scaling->busy_start_t = 0;
 		scaling->is_busy_started = false;
 	}
+<<<<<<< HEAD
+=======
+	spin_unlock_irqrestore(hba->host->host_lock, flags);
+}
+
+static inline int ufshcd_monitor_opcode2dir(u8 opcode)
+{
+	if (opcode == READ_6 || opcode == READ_10 || opcode == READ_16)
+		return READ;
+	else if (opcode == WRITE_6 || opcode == WRITE_10 || opcode == WRITE_16)
+		return WRITE;
+	else
+		return -EINVAL;
+}
+
+static inline bool ufshcd_should_inform_monitor(struct ufs_hba *hba,
+						struct ufshcd_lrb *lrbp)
+{
+	struct ufs_hba_monitor *m = &hba->monitor;
+
+	return (m->enabled && lrbp && lrbp->cmd &&
+		(!m->chunk_size || m->chunk_size == lrbp->cmd->sdb.length) &&
+		ktime_before(hba->monitor.enabled_ts, lrbp->issue_time_stamp));
+}
+
+static void ufshcd_start_monitor(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
+{
+	int dir = ufshcd_monitor_opcode2dir(*lrbp->cmd->cmnd);
+	unsigned long flags;
+
+	spin_lock_irqsave(hba->host->host_lock, flags);
+	if (dir >= 0 && hba->monitor.nr_queued[dir]++ == 0)
+		hba->monitor.busy_start_ts[dir] = ktime_get();
+	spin_unlock_irqrestore(hba->host->host_lock, flags);
+}
+
+static void ufshcd_update_monitor(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
+{
+	int dir = ufshcd_monitor_opcode2dir(*lrbp->cmd->cmnd);
+	unsigned long flags;
+
+	spin_lock_irqsave(hba->host->host_lock, flags);
+	if (dir >= 0 && hba->monitor.nr_queued[dir] > 0) {
+		struct request *req = lrbp->cmd->request;
+		struct ufs_hba_monitor *m = &hba->monitor;
+		ktime_t now, inc, lat;
+
+		now = lrbp->compl_time_stamp;
+		inc = ktime_sub(now, m->busy_start_ts[dir]);
+		m->total_busy[dir] = ktime_add(m->total_busy[dir], inc);
+		m->nr_sec_rw[dir] += blk_rq_sectors(req);
+
+		/* Update latencies */
+		m->nr_req[dir]++;
+		lat = ktime_sub(now, lrbp->issue_time_stamp);
+		m->lat_sum[dir] += lat;
+		if (m->lat_max[dir] < lat || !m->lat_max[dir])
+			m->lat_max[dir] = lat;
+		if (m->lat_min[dir] > lat || !m->lat_min[dir])
+			m->lat_min[dir] = lat;
+
+		m->nr_queued[dir]--;
+		/* Push forward the busy start of monitor */
+		m->busy_start_ts[dir] = now;
+	}
+	spin_unlock_irqrestore(hba->host->host_lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 /**
  * ufshcd_send_command - Send SCSI or device management commands
@@ -2043,8 +2152,26 @@ void ufshcd_send_command(struct ufs_hba *hba, unsigned int task_tag)
 	ufshcd_vops_setup_xfer_req(hba, task_tag, (lrbp->cmd ? true : false));
 	ufshcd_add_command_trace(hba, task_tag, UFS_CMD_SEND);
 	ufshcd_clk_scaling_start_busy(hba);
+<<<<<<< HEAD
 	__set_bit(task_tag, &hba->outstanding_reqs);
 	ufshcd_writel(hba, 1 << task_tag, REG_UTP_TRANSFER_REQ_DOOR_BELL);
+=======
+	if (unlikely(ufshcd_should_inform_monitor(hba, lrbp)))
+		ufshcd_start_monitor(hba, lrbp);
+	if (ufshcd_has_utrlcnr(hba)) {
+		set_bit(task_tag, &hba->outstanding_reqs);
+		ufshcd_writel(hba, 1 << task_tag,
+			      REG_UTP_TRANSFER_REQ_DOOR_BELL);
+	} else {
+		unsigned long flags;
+
+		spin_lock_irqsave(hba->host->host_lock, flags);
+		set_bit(task_tag, &hba->outstanding_reqs);
+		ufshcd_writel(hba, 1 << task_tag,
+			      REG_UTP_TRANSFER_REQ_DOOR_BELL);
+		spin_unlock_irqrestore(hba->host->host_lock, flags);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Make sure that doorbell is committed immediately */
 	wmb();
 }
@@ -2606,7 +2733,10 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 {
 	struct ufshcd_lrb *lrbp;
 	struct ufs_hba *hba;
+<<<<<<< HEAD
 	unsigned long flags;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int tag;
 	int err = 0;
 
@@ -2623,6 +2753,46 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 	if (!down_read_trylock(&hba->clk_scaling_lock))
 		return SCSI_MLQUEUE_HOST_BUSY;
 
+<<<<<<< HEAD
+=======
+	switch (hba->ufshcd_state) {
+	case UFSHCD_STATE_OPERATIONAL:
+	case UFSHCD_STATE_EH_SCHEDULED_NON_FATAL:
+		break;
+	case UFSHCD_STATE_EH_SCHEDULED_FATAL:
+		/*
+		 * pm_runtime_get_sync() is used at error handling preparation
+		 * stage. If a scsi cmd, e.g. the SSU cmd, is sent from hba's
+		 * PM ops, it can never be finished if we let SCSI layer keep
+		 * retrying it, which gets err handler stuck forever. Neither
+		 * can we let the scsi cmd pass through, because UFS is in bad
+		 * state, the scsi cmd may eventually time out, which will get
+		 * err handler blocked for too long. So, just fail the scsi cmd
+		 * sent from PM ops, err handler can recover PM error anyways.
+		 */
+		if (hba->pm_op_in_progress) {
+			hba->force_reset = true;
+			set_host_byte(cmd, DID_BAD_TARGET);
+			cmd->scsi_done(cmd);
+			goto out;
+		}
+		fallthrough;
+	case UFSHCD_STATE_RESET:
+		err = SCSI_MLQUEUE_HOST_BUSY;
+		goto out;
+	case UFSHCD_STATE_ERROR:
+		set_host_byte(cmd, DID_ERROR);
+		cmd->scsi_done(cmd);
+		goto out;
+	default:
+		dev_WARN_ONCE(hba->dev, 1, "%s: invalid state %d\n",
+				__func__, hba->ufshcd_state);
+		set_host_byte(cmd, DID_BAD_TARGET);
+		cmd->scsi_done(cmd);
+		goto out;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hba->req_abort_count = 0;
 
 	err = ufshcd_hold(hba, true);
@@ -2632,6 +2802,15 @@ static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 	}
 	WARN_ON(ufshcd_is_clkgating_allowed(hba) &&
 		(hba->clk_gating.state != CLKS_ON));
+
+	if (unlikely(test_bit(tag, &hba->outstanding_reqs))) {
+		if (hba->pm_op_in_progress)
+			set_host_byte(cmd, DID_BAD_TARGET);
+		else
+			err = SCSI_MLQUEUE_HOST_BUSY;
+		ufshcd_release(hba);
+		goto out;
+	}
 
 	lrbp = &hba->lrb[tag];
 	if (unlikely(lrbp->in_use)) {
@@ -2865,7 +3044,10 @@ static int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 	int err;
 	int tag;
 	struct completion wait;
+<<<<<<< HEAD
 	unsigned long flags;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	down_read(&hba->clk_scaling_lock);
 
@@ -2881,7 +3063,19 @@ static int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 	}
 	tag = req->tag;
 	WARN_ON_ONCE(!ufshcd_valid_tag(hba, tag));
+<<<<<<< HEAD
 
+=======
+	/* Set the timeout such that the SCSI error handler is not activated. */
+	req->timeout = msecs_to_jiffies(2 * timeout);
+	blk_mq_start_request(req);
+
+	if (unlikely(test_bit(tag, &hba->outstanding_reqs))) {
+		err = -EBUSY;
+		goto out;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	init_completion(&wait);
 	lrbp = &hba->lrb[tag];
 	if (unlikely(lrbp->in_use)) {
@@ -2899,7 +3093,11 @@ static int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 	ufshcd_add_query_upiu_trace(hba, UFS_QUERY_SEND, lrbp->ucd_req_ptr);
 	/* Make sure descriptors are ready before ringing the doorbell */
 	wmb();
+<<<<<<< HEAD
 	spin_lock_irqsave(hba->host->host_lock, flags);
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ufshcd_send_command(hba, tag);
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
@@ -4987,6 +5185,7 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 			 * UFS device needs urgent BKOPs.
 			 */
 			if (!hba->pm_op_in_progress &&
+<<<<<<< HEAD
 			    ufshcd_is_exception_event(lrbp->ucd_rsp_ptr) &&
 			    schedule_work(&hba->eeh_work)) {
 				/*
@@ -4996,6 +5195,12 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 				 */
 				pm_runtime_get_noresume(hba->dev);
 			}
+=======
+			    !ufshcd_eh_in_progress(hba) &&
+			    ufshcd_is_exception_event(lrbp->ucd_rsp_ptr))
+				/* Flushed in suspend */
+				schedule_work(&hba->eeh_work);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case UPIU_TRANSACTION_REJECT_UPIU:
 			/* TODO: handle Reject UPIU Response */
@@ -5093,6 +5298,8 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 	bool update_scaling = false;
 
 	for_each_set_bit(index, &completed_reqs, hba->nutrs) {
+		if (!test_and_clear_bit(index, &hba->outstanding_reqs))
+			continue;
 		lrbp = &hba->lrb[index];
 		lrbp->in_use = false;
 		lrbp->compl_time_stamp = ktime_get();
@@ -5128,17 +5335,27 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 }
 
 /**
- * ufshcd_transfer_req_compl - handle SCSI and query command completion
+ * ufshcd_trc_handler - handle transfer requests completion
  * @hba: per adapter instance
+<<<<<<< HEAD
+=======
+ * @use_utrlcnr: get completed requests from UTRLCNR
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * Returns
  *  IRQ_HANDLED - If interrupt is valid
  *  IRQ_NONE    - If invalid interrupt
  */
+<<<<<<< HEAD
 static irqreturn_t ufshcd_transfer_req_compl(struct ufs_hba *hba)
 {
 	unsigned long completed_reqs;
 	u32 tr_doorbell;
+=======
+static irqreturn_t ufshcd_trc_handler(struct ufs_hba *hba, bool use_utrlcnr)
+{
+	unsigned long completed_reqs = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Resetting interrupt aggregation counters first and reading the
 	 * DOOR_BELL afterward allows us to handle all the completed requests.
@@ -5151,8 +5368,29 @@ static irqreturn_t ufshcd_transfer_req_compl(struct ufs_hba *hba)
 	    !(hba->quirks & UFSHCI_QUIRK_SKIP_RESET_INTR_AGGR))
 		ufshcd_reset_intr_aggr(hba);
 
+<<<<<<< HEAD
 	tr_doorbell = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
 	completed_reqs = tr_doorbell ^ hba->outstanding_reqs;
+=======
+	if (use_utrlcnr) {
+		u32 utrlcnr;
+
+		utrlcnr = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_LIST_COMPL);
+		if (utrlcnr) {
+			ufshcd_writel(hba, utrlcnr,
+				      REG_UTP_TRANSFER_REQ_LIST_COMPL);
+			completed_reqs = utrlcnr;
+		}
+	} else {
+		unsigned long flags;
+		u32 tr_doorbell;
+
+		spin_lock_irqsave(hba->host->host_lock, flags);
+		tr_doorbell = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
+		completed_reqs = tr_doorbell ^ hba->outstanding_reqs;
+		spin_unlock_irqrestore(hba->host->host_lock, flags);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (completed_reqs) {
 		__ufshcd_transfer_req_compl(hba, completed_reqs);
@@ -5639,7 +5877,11 @@ out:
 /* Complete requests that have door-bell cleared */
 static void ufshcd_complete_requests(struct ufs_hba *hba)
 {
+<<<<<<< HEAD
 	ufshcd_transfer_req_compl(hba);
+=======
+	ufshcd_trc_handler(hba, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ufshcd_tmc_handler(hba);
 }
 
@@ -5970,6 +6212,12 @@ static void ufshcd_err_handler(struct work_struct *work)
 	}
 
 lock_skip_pending_xfer_clear:
+<<<<<<< HEAD
+=======
+	/* Complete the requests that are cleared by s/w */
+	ufshcd_complete_requests(hba);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_irqsave(hba->host->host_lock, flags);
 
 	/* Complete the requests that are cleared by s/w */
@@ -6261,6 +6509,7 @@ static bool ufshcd_compl_tm(struct request *req, void *priv, bool reserved)
  */
 static irqreturn_t ufshcd_tmc_handler(struct ufs_hba *hba)
 {
+<<<<<<< HEAD
 	struct request_queue *q = hba->tmf_queue;
 	struct ctm_info ci = {
 		.hba	 = hba,
@@ -6268,6 +6517,19 @@ static irqreturn_t ufshcd_tmc_handler(struct ufs_hba *hba)
 	};
 
 	blk_mq_tagset_busy_iter(q->tag_set, ufshcd_compl_tm, &ci);
+=======
+	unsigned long flags;
+	struct request_queue *q = hba->tmf_queue;
+	struct ctm_info ci = {
+		.hba	 = hba,
+	};
+
+	spin_lock_irqsave(hba->host->host_lock, flags);
+	ci.pending = ufshcd_readl(hba, REG_UTP_TASK_REQ_DOOR_BELL);
+	blk_mq_tagset_busy_iter(q->tag_set, ufshcd_compl_tm, &ci);
+	spin_unlock_irqrestore(hba->host->host_lock, flags);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ci.ncpl ? IRQ_HANDLED : IRQ_NONE;
 }
 
@@ -6299,7 +6561,11 @@ static irqreturn_t ufshcd_sl_intr(struct ufs_hba *hba, u32 intr_status)
 		retval |= ufshcd_tmc_handler(hba);
 
 	if (intr_status & UTP_TRANSFER_REQ_COMPL)
+<<<<<<< HEAD
 		retval |= ufshcd_transfer_req_compl(hba);
+=======
+		retval |= ufshcd_trc_handler(hba, ufshcd_has_utrlcnr(hba));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return retval;
 }
@@ -6401,9 +6667,16 @@ static int __ufshcd_issue_tm_cmd(struct ufs_hba *hba,
 	ufshcd_hold(hba, false);
 
 	spin_lock_irqsave(host->host_lock, flags);
+<<<<<<< HEAD
 	task_tag = hba->nutrs + free_slot;
 
 	treq->req_header.dword_0 |= cpu_to_be32(task_tag);
+=======
+	blk_mq_start_request(req);
+
+	task_tag = req->tag;
+	treq->upiu_req.req_header.dword_0 |= cpu_to_be32(task_tag);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memcpy(hba->utmrdl_base_addr + free_slot, treq, sizeof(*treq));
 	ufshcd_vops_setup_task_mgmt(hba, free_slot, tm_function);
@@ -6414,7 +6687,11 @@ static int __ufshcd_issue_tm_cmd(struct ufs_hba *hba,
 	/* Make sure descriptors are ready before ringing the task doorbell */
 	wmb();
 
+<<<<<<< HEAD
 	ufshcd_writel(hba, 1 << free_slot, REG_UTP_TASK_REQ_DOOR_BELL);
+=======
+	ufshcd_writel(hba, 1 << task_tag, REG_UTP_TASK_REQ_DOOR_BELL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Make sure that doorbell is committed immediately */
 	wmb();
 
@@ -6446,7 +6723,11 @@ static int __ufshcd_issue_tm_cmd(struct ufs_hba *hba,
 	}
 
 	spin_lock_irqsave(hba->host->host_lock, flags);
+<<<<<<< HEAD
 	__clear_bit(free_slot, &hba->outstanding_tasks);
+=======
+	__clear_bit(task_tag, &hba->outstanding_tasks);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	blk_put_request(req);
@@ -6531,7 +6812,10 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
 	int err = 0;
 	int tag;
 	struct completion wait;
+<<<<<<< HEAD
 	unsigned long flags;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 upiu_flags;
 
 	down_read(&hba->clk_scaling_lock);
@@ -6551,6 +6835,11 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
 		goto out;
 	}
 
+<<<<<<< HEAD
+=======
+	init_completion(&wait);
+	lrbp = &hba->lrb[tag];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(lrbp->cmd);
 	lrbp->cmd = NULL;
 	lrbp->sense_bufflen = 0;
@@ -6591,9 +6880,16 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
 
 	hba->dev_cmd.complete = &wait;
 
+<<<<<<< HEAD
 	/* Make sure descriptors are ready before ringing the doorbell */
 	wmb();
 	spin_lock_irqsave(hba->host->host_lock, flags);
+=======
+	ufshcd_add_query_upiu_trace(hba, UFS_QUERY_SEND, lrbp->ucd_req_ptr);
+	/* Make sure descriptors are ready before ringing the doorbell */
+	wmb();
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ufshcd_send_command(hba, tag);
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
@@ -6734,6 +7030,10 @@ static int ufshcd_eh_device_reset_handler(struct scsi_cmnd *cmd)
 			err = ufshcd_clear_cmd(hba, pos);
 			if (err)
 				break;
+<<<<<<< HEAD
+=======
+			__ufshcd_transfer_req_compl(hba, pos);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 	spin_lock_irqsave(host->host_lock, flags);
@@ -6920,6 +7220,11 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
 	 */
 	if (lrbp->lun == UFS_UPIU_UFS_DEVICE_WLUN) {
 		ufshcd_update_evt_hist(hba, UFS_EVT_ABORT, lrbp->lun);
+<<<<<<< HEAD
+=======
+		__ufshcd_transfer_req_compl(hba, (1UL << tag));
+		set_bit(tag, &hba->outstanding_reqs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		spin_lock_irqsave(host->host_lock, flags);
 		if (lrbp->cmd) {
 			__ufshcd_transfer_req_compl(hba, (1UL << tag));
@@ -6941,9 +7246,13 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
 
 	if (!err) {
 cleanup:
+<<<<<<< HEAD
 		spin_lock_irqsave(host->host_lock, flags);
 		__ufshcd_transfer_req_compl(hba, (1UL << tag));
 		spin_unlock_irqrestore(host->host_lock, flags);
+=======
+		__ufshcd_transfer_req_compl(hba, (1UL << tag));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 		err = SUCCESS;
 	} else {
@@ -8828,10 +9137,19 @@ out:
 			msecs_to_jiffies(RPM_DEV_FLUSH_RECHECK_WORK_DELAY_MS));
 	}
 
+<<<<<<< HEAD
 	hba->pm_op_in_progress = 0;
 
 	if (ret)
 		ufshcd_update_evt_hist(hba, UFS_EVT_SUSPEND_ERR, (u32)ret);
+=======
+	if (ret) {
+		ufshcd_update_evt_hist(hba, UFS_EVT_WL_SUSP_ERR, (u32)ret);
+		hba->clk_gating.is_suspended = false;
+		ufshcd_release(hba);
+	}
+	hba->pm_op_in_progress = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -8931,11 +9249,16 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 		cancel_delayed_work(&hba->rpm_dev_flush_recheck_work);
 	}
 
+<<<<<<< HEAD
 	ufshcd_clear_ua_wluns(hba);
 
 	/* Schedule clock gating in case of no access to UFS device yet */
 	ufshcd_release(hba);
 
+=======
+	/* Enable Auto-Hibernate if configured */
+	ufshcd_auto_hibern8_enable(hba);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	goto out;
 
 set_old_link_state:
@@ -8950,6 +9273,46 @@ disable_irq_and_vops_clks:
 		trace_ufshcd_clk_gating(dev_name(hba->dev),
 					hba->clk_gating.state);
 	}
+<<<<<<< HEAD
+=======
+
+	ufshcd_vreg_set_lpm(hba);
+	/* Put the host controller in low power mode if possible */
+	ufshcd_hba_vreg_set_lpm(hba);
+	return ret;
+}
+
+/**
+ * ufshcd_resume - helper function for resume operations
+ * @hba: per adapter instance
+ *
+ * This function basically turns on the regulators, clocks and
+ * irqs of the hba.
+ *
+ * Returns 0 for success and non-zero for failure
+ */
+static int ufshcd_resume(struct ufs_hba *hba)
+{
+	int ret;
+
+	if (!hba->is_powered)
+		return 0;
+
+	ufshcd_hba_vreg_set_hpm(hba);
+	ret = ufshcd_vreg_set_hpm(hba);
+	if (ret)
+		goto out;
+
+	/* Make sure clocks are enabled before accessing controller */
+	ret = ufshcd_setup_clocks(hba, true);
+	if (ret)
+		goto disable_vreg;
+
+	/* enable the host irq as host controller would be active soon */
+	ufshcd_enable_irq(hba);
+	goto out;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 disable_vreg:
 	ufshcd_vreg_set_lpm(hba);
 out:
@@ -9065,7 +9428,11 @@ EXPORT_SYMBOL(ufshcd_system_resume);
  */
 int ufshcd_runtime_suspend(struct ufs_hba *hba)
 {
+<<<<<<< HEAD
 	int ret = 0;
+=======
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ktime_t start = ktime_get();
 
 	if (!hba)
@@ -9106,7 +9473,11 @@ EXPORT_SYMBOL(ufshcd_runtime_suspend);
  */
 int ufshcd_runtime_resume(struct ufs_hba *hba)
 {
+<<<<<<< HEAD
 	int ret = 0;
+=======
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ktime_t start = ktime_get();
 
 	if (!hba)

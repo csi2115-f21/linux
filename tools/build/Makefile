@@ -30,6 +30,13 @@ build     := -f $(srctree)/tools/build/Makefile.build dir=. obj
 
 all: $(OUTPUT)fixdep
 
+<<<<<<< HEAD
+=======
+# Make sure there's anything to clean,
+# feature contains check for existing OUTPUT
+TMP_O := $(if $(OUTPUT),$(OUTPUT)/feature,./)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 clean:
 	$(call QUIET_CLEAN, fixdep)
 	$(Q)find $(if $(OUTPUT),$(OUTPUT),.) -name '*.o' -delete -o -name '\.*.cmd' -delete -o -name '\.*.d' -delete

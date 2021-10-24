@@ -1847,8 +1847,11 @@ static __init int nozomi_init(void)
 {
 	int ret;
 
+<<<<<<< HEAD
 	printk(KERN_INFO "Initializing %s\n", VERSION_STRING);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ntty_driver = alloc_tty_driver(NTTY_TTY_MAXMINORS);
 	if (!ntty_driver)
 		return -ENOMEM;

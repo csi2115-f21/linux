@@ -75,7 +75,10 @@ properties:
 
   clock-names:
     minItems: 1
+<<<<<<< HEAD
     maxItems: 2
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
     items:
       - const: core
       - const: cd
@@ -107,7 +110,10 @@ properties:
 
   pinctrl-names:
     minItems: 1
+<<<<<<< HEAD
     maxItems: 2
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
     items:
       - const: default
       - const: state_uhs

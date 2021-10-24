@@ -198,7 +198,11 @@ static void gsi_irq_type_disable(struct gsi *gsi, enum gsi_irq_type_id type_id)
 	gsi_irq_type_update(gsi, gsi->type_enabled_bitmap & ~BIT(type_id));
 }
 
+<<<<<<< HEAD
 /* Turn off all GSI interrupts initially */
+=======
+/* Turn off all GSI interrupts initially; there is no gsi_irq_teardown() */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void gsi_irq_setup(struct gsi *gsi)
 {
 	/* Disable all interrupt types */
@@ -210,17 +214,76 @@ static void gsi_irq_setup(struct gsi *gsi)
 	iowrite32(0, gsi->virt + GSI_CNTXT_GLOB_IRQ_EN_OFFSET);
 	iowrite32(0, gsi->virt + GSI_CNTXT_SRC_IEOB_IRQ_MSK_OFFSET);
 
+<<<<<<< HEAD
 	/* The inter-EE registers are in the non-adjusted address range */
 	iowrite32(0, gsi->virt_raw + GSI_INTER_EE_SRC_CH_IRQ_OFFSET);
 	iowrite32(0, gsi->virt_raw + GSI_INTER_EE_SRC_EV_CH_IRQ_OFFSET);
+=======
+	/* The inter-EE interrupts are not supported for IPA v3.0-v3.1 */
+	if (gsi->version > IPA_VERSION_3_1) {
+		u32 offset;
+
+		/* These registers are in the non-adjusted address range */
+		offset = GSI_INTER_EE_SRC_CH_IRQ_MSK_OFFSET;
+		iowrite32(0, gsi->virt_raw + offset);
+		offset = GSI_INTER_EE_SRC_EV_CH_IRQ_MSK_OFFSET;
+		iowrite32(0, gsi->virt_raw + offset);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	iowrite32(0, gsi->virt + GSI_CNTXT_GSI_IRQ_EN_OFFSET);
 }
 
+<<<<<<< HEAD
 /* Turn off all GSI interrupts when we're all done */
 static void gsi_irq_teardown(struct gsi *gsi)
 {
 	/* Nothing to do */
+=======
+/* Get # supported channel and event rings; there is no gsi_ring_teardown() */
+static int gsi_ring_setup(struct gsi *gsi)
+{
+	struct device *dev = gsi->dev;
+	u32 count;
+	u32 val;
+
+	if (gsi->version < IPA_VERSION_3_5_1) {
+		/* No HW_PARAM_2 register prior to IPA v3.5.1, assume the max */
+		gsi->channel_count = GSI_CHANNEL_COUNT_MAX;
+		gsi->evt_ring_count = GSI_EVT_RING_COUNT_MAX;
+
+		return 0;
+	}
+
+	val = ioread32(gsi->virt + GSI_GSI_HW_PARAM_2_OFFSET);
+
+	count = u32_get_bits(val, NUM_CH_PER_EE_FMASK);
+	if (!count) {
+		dev_err(dev, "GSI reports zero channels supported\n");
+		return -EINVAL;
+	}
+	if (count > GSI_CHANNEL_COUNT_MAX) {
+		dev_warn(dev, "limiting to %u channels; hardware supports %u\n",
+			 GSI_CHANNEL_COUNT_MAX, count);
+		count = GSI_CHANNEL_COUNT_MAX;
+	}
+	gsi->channel_count = count;
+
+	count = u32_get_bits(val, NUM_EV_PER_EE_FMASK);
+	if (!count) {
+		dev_err(dev, "GSI reports zero event rings supported\n");
+		return -EINVAL;
+	}
+	if (count > GSI_EVT_RING_COUNT_MAX) {
+		dev_warn(dev,
+			 "limiting to %u event rings; hardware supports %u\n",
+			 GSI_EVT_RING_COUNT_MAX, count);
+		count = GSI_EVT_RING_COUNT_MAX;
+	}
+	gsi->evt_ring_count = count;
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* Event ring commands are performed one at a time.  Their completion
@@ -873,11 +936,14 @@ static void gsi_channel_program(struct gsi_channel *channel, bool doorbell)
 	/* All done! */
 }
 
+<<<<<<< HEAD
 static void gsi_channel_deprogram(struct gsi_channel *channel)
 {
 	/* Nothing to do */
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int __gsi_channel_start(struct gsi_channel *channel, bool start)
 {
 	struct gsi *gsi = channel->gsi;
@@ -1343,6 +1409,11 @@ static int gsi_irq_init(struct gsi *gsi, struct platform_device *pdev)
 	}
 	irq = ret;
 
+<<<<<<< HEAD
+=======
+	irq = ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = request_irq(irq, gsi_isr, 0, "gsi", gsi);
 	if (ret) {
 		dev_err(dev, "error %d requesting \"gsi\" IRQ\n", ret);
@@ -1856,13 +1927,17 @@ static void gsi_channel_teardown(struct gsi *gsi)
 /* Setup function for GSI.  GSI firmware must be loaded and initialized */
 int gsi_setup(struct gsi *gsi)
 {
+<<<<<<< HEAD
 	struct device *dev = gsi->dev;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 val;
 	int ret;
 
 	/* Here is where we first touch the GSI hardware */
 	val = ioread32(gsi->virt + GSI_GSI_STATUS_OFFSET);
 	if (!(val & ENABLED_FMASK)) {
+<<<<<<< HEAD
 		dev_err(dev, "GSI has not been enabled\n");
 		return -EIO;
 	}
@@ -1895,24 +1970,38 @@ int gsi_setup(struct gsi *gsi)
 		gsi->evt_ring_count = GSI_EVT_RING_COUNT_MAX;
 	}
 
+=======
+		dev_err(gsi->dev, "GSI has not been enabled\n");
+		return -EIO;
+	}
+
+	gsi_irq_setup(gsi);		/* No matching teardown required */
+
+	ret = gsi_ring_setup(gsi);	/* No matching teardown required */
+	if (ret)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Initialize the error log */
 	iowrite32(0, gsi->virt + GSI_ERROR_LOG_OFFSET);
 
 	/* Writing 1 indicates IRQ interrupts; 0 would be MSI */
 	iowrite32(1, gsi->virt + GSI_CNTXT_INTSET_OFFSET);
+<<<<<<< HEAD
 
 	ret = gsi_channel_setup(gsi);
 	if (ret)
 		gsi_irq_teardown(gsi);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
-	return ret;
+	return gsi_channel_setup(gsi);
 }
 
 /* Inverse of gsi_setup() */
 void gsi_teardown(struct gsi *gsi)
 {
 	gsi_channel_teardown(gsi);
-	gsi_irq_teardown(gsi);
 }
 
 /* Initialize a channel's event ring */

@@ -137,6 +137,15 @@ static void heartbeat(struct work_struct *wrk)
 		} else {
 			if (IS_ENABLED(CONFIG_DRM_I915_DEBUG_GEM))
 				show_heartbeat(rq, engine);
+<<<<<<< HEAD
+=======
+
+			intel_gt_handle_error(engine->gt, engine->mask,
+					      I915_ERROR_CAPTURE,
+					      "stopped heartbeat on %s",
+					      engine->name);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			intel_gt_handle_error(engine->gt, engine->mask,
 					      I915_ERROR_CAPTURE,

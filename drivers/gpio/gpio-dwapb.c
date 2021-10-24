@@ -15,9 +15,13 @@
 #include <linux/irq.h>
 #include <linux/module.h>
 #include <linux/of.h>
+<<<<<<< HEAD
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_irq.h>
+=======
+#include <linux/platform_data/gpio-dwapb.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/platform_device.h>
 #include <linux/property.h>
 #include <linux/reset.h>

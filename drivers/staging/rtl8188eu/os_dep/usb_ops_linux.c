@@ -10,14 +10,36 @@
 #include <recv_osdep.h>
 #include <rtw_sreset.h>
 
+<<<<<<< HEAD
+=======
+#define RTW_USB_CONTROL_MSG_TIMEOUT	500 /* ms */
+
+#define MAX_USBCTRL_VENDORREQ_TIMES	10
+
+#define ALIGNMENT_UNIT			16
+#define MAX_VENDOR_REQ_CMD_SIZE	254
+#define MAX_USB_IO_CTL_SIZE	(MAX_VENDOR_REQ_CMD_SIZE + ALIGNMENT_UNIT)
+
+#define REALTEK_USB_VENQT_READ	(USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE)
+#define REALTEK_USB_VENQT_WRITE	(USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE)
+
+#define REALTEK_USB_VENQT_CMD_REQ	0x05
+#define REALTEK_USB_VENQT_CMD_IDX	0x00
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void interrupt_handler_8188eu(struct adapter *adapt, u16 pkt_len, u8 *pbuf)
 {
 	struct hal_data_8188e *haldata = adapt->HalData;
 
+<<<<<<< HEAD
 	if (pkt_len != INTERRUPT_MSG_FORMAT_LEN) {
 		DBG_88E("%s Invalid interrupt content length (%d)!\n", __func__, pkt_len);
 		return;
 	}
+=======
+	if (pkt_len != INTERRUPT_MSG_FORMAT_LEN)
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*  HISR */
 	memcpy(&haldata->IntArray[0], &pbuf[USB_INTR_CONTENT_HISR_OFFSET], 4);
@@ -52,6 +74,7 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 	pkt_cnt = (le32_to_cpu(prxstat->rxdw2) >> 16) & 0xff;
 
 	do {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_recv_c_, _drv_info_,
 			 ("%s: rxdesc=offsset 0:0x%08x, 4:0x%08x, 8:0x%08x, C:0x%08x\n",
 			  __func__, prxstat->rxdw0, prxstat->rxdw1,
@@ -66,6 +89,13 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 			DBG_88E("%s()-%d: rtw_alloc_recvframe() failed! RX Drop!\n", __func__, __LINE__);
 			goto _exit_recvbuf2recvframe;
 		}
+=======
+		prxstat = (struct recv_stat *)pbuf;
+
+		precvframe = rtw_alloc_recvframe(pfree_recv_queue);
+		if (!precvframe)
+			goto _exit_recvbuf2recvframe;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		INIT_LIST_HEAD(&precvframe->list);
 
@@ -74,8 +104,11 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 		pattrib = &precvframe->attrib;
 
 		if ((pattrib->crc_err) || (pattrib->icv_err)) {
+<<<<<<< HEAD
 			DBG_88E("%s: RX Warning! crc_err=%d icv_err=%d, skip!\n", __func__, pattrib->crc_err, pattrib->icv_err);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rtw_free_recvframe(precvframe, pfree_recv_queue);
 			goto _exit_recvbuf2recvframe;
 		}
@@ -86,9 +119,12 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 		pkt_offset = RXDESC_SIZE + pattrib->drvinfo_sz + pattrib->shift_sz + pattrib->pkt_len;
 
 		if ((pattrib->pkt_len <= 0) || (pkt_offset > transfer_len)) {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_recv_c_, _drv_info_,
 				 ("%s: pkt_len<=0\n", __func__));
 			DBG_88E("%s()-%d: RX Warning!,pkt_len<=0 or pkt_offset> transfer_len\n", __func__, __LINE__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rtw_free_recvframe(precvframe, pfree_recv_queue);
 			goto _exit_recvbuf2recvframe;
 		}
@@ -124,8 +160,11 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 			skb_reserve(pkt_copy, shift_sz);/* force ip_hdr at 8-byte alignment address according to shift_sz. */
 			skb_put_data(pkt_copy, (pbuf + pattrib->drvinfo_sz + RXDESC_SIZE), skb_len);
 		} else {
+<<<<<<< HEAD
 			DBG_88E("%s: alloc_skb fail , drop frag frame\n",
 				__func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rtw_free_recvframe(precvframe, pfree_recv_queue);
 			goto _exit_recvbuf2recvframe;
 		}
@@ -145,11 +184,15 @@ static int recvbuf2recvframe(struct adapter *adapt, struct sk_buff *pskb)
 		if (pattrib->pkt_rpt_type == NORMAL_RX) { /* Normal rx packet */
 			if (pattrib->physt)
 				update_recvframe_phyinfo_88e(precvframe, pphy_status);
+<<<<<<< HEAD
 			if (rtw_recv_entry(precvframe) != _SUCCESS) {
 				RT_TRACE(_module_rtl871x_recv_c_, _drv_err_,
 					 ("%s: rtw_recv_entry(precvframe) != _SUCCESS\n",
 					 __func__));
 			}
+=======
+			rtw_recv_entry(precvframe);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else if (pattrib->pkt_rpt_type == TX_REPORT1) {
 			/* CCX-TXRPT ack for xmit mgmt frames. */
 			handle_txrpt_ccx_88e(adapt, precvframe->pkt->data);
@@ -181,7 +224,11 @@ _exit_recvbuf2recvframe:
 	return _SUCCESS;
 }
 
+<<<<<<< HEAD
 unsigned int ffaddr2pipehdl(struct dvobj_priv *pdvobj, u32 addr)
+=======
+static unsigned int ffaddr2pipehdl(struct dvobj_priv *pdvobj, u32 addr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned int pipe = 0, ep_num = 0;
 	struct usb_device *pusbd = pdvobj->pusbdev;
@@ -198,26 +245,40 @@ unsigned int ffaddr2pipehdl(struct dvobj_priv *pdvobj, u32 addr)
 	return pipe;
 }
 
+<<<<<<< HEAD
 static int usbctrl_vendorreq(struct adapter *adapt, u8 request, u16 value, u16 index, void *pdata, u16 len, u8 requesttype)
+=======
+static int
+usbctrl_vendorreq(struct adapter *adapt, u16 value, void *pdata, u16 len, u8 reqtype)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct dvobj_priv *dvobjpriv = adapter_to_dvobj(adapt);
 	struct usb_device *udev = dvobjpriv->pusbdev;
 	unsigned int pipe;
 	int status = 0;
+<<<<<<< HEAD
 	u8 reqtype;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 *pIo_buf;
 	int vendorreq_times = 0;
 
 	if ((adapt->bSurpriseRemoved) || (adapt->pwrctrlpriv.pnp_bstop_trx)) {
+<<<<<<< HEAD
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 			 ("%s:(adapt->bSurpriseRemoved ||adapter->pwrctrlpriv.pnp_bstop_trx)!!!\n",
 			  __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = -EPERM;
 		goto exit;
 	}
 
 	if (len > MAX_VENDOR_REQ_CMD_SIZE) {
+<<<<<<< HEAD
 		DBG_88E("[%s] Buffer len error ,vendor request failed\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = -EINVAL;
 		goto exit;
 	}
@@ -235,6 +296,7 @@ static int usbctrl_vendorreq(struct adapter *adapt, u8 request, u16 value, u16 i
 		goto release_mutex;
 	}
 
+<<<<<<< HEAD
 	while (++vendorreq_times <= MAX_USBCTRL_VENDORREQ_TIMES) {
 		memset(pIo_buf, 0, len);
 
@@ -259,12 +321,43 @@ static int usbctrl_vendorreq(struct adapter *adapt, u8 request, u16 value, u16 i
 
 			if (status < 0) {
 				if (status == (-ESHUTDOWN) || status == -ENODEV)
+=======
+	if (reqtype == REALTEK_USB_VENQT_READ) {
+		pipe = usb_rcvctrlpipe(udev, 0);
+	} else if (reqtype == REALTEK_USB_VENQT_WRITE) {
+		pipe = usb_sndctrlpipe(udev, 0);
+	} else {
+		status = -EINVAL;
+		goto free_buf;
+	}
+
+	while (++vendorreq_times <= MAX_USBCTRL_VENDORREQ_TIMES) {
+		if (reqtype == REALTEK_USB_VENQT_READ)
+			memset(pIo_buf, 0, len);
+		else
+			memcpy(pIo_buf, pdata, len);
+
+		status = usb_control_msg(udev, pipe, REALTEK_USB_VENQT_CMD_REQ,
+					 reqtype, value, REALTEK_USB_VENQT_CMD_IDX,
+					 pIo_buf, len, RTW_USB_CONTROL_MSG_TIMEOUT);
+
+		if (status == len) {   /*  Success this control transfer. */
+			if (reqtype == REALTEK_USB_VENQT_READ)
+				memcpy(pdata, pIo_buf,  len);
+		} else { /*  error cases */
+			if (status < 0) {
+				if (status == -ESHUTDOWN || status == -ENODEV)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					adapt->bSurpriseRemoved = true;
 				else
 					adapt->HalData->srestpriv.wifi_error_status = USB_VEN_REQ_CMD_FAIL;
 			} else { /*  status != len && status >= 0 */
 				if (status > 0) {
+<<<<<<< HEAD
 					if (requesttype == 0x01) {
+=======
+					if (reqtype == REALTEK_USB_VENQT_READ) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						/*  For Control read transfer, we have to copy the read data from pIo_buf to pdata. */
 						memcpy(pdata, pIo_buf,  len);
 					}
@@ -276,8 +369,14 @@ static int usbctrl_vendorreq(struct adapter *adapt, u8 request, u16 value, u16 i
 		if ((value >= FW_8188E_START_ADDRESS && value <= FW_8188E_END_ADDRESS) || status == len)
 			break;
 	}
+<<<<<<< HEAD
 	kfree(pIo_buf);
 
+=======
+
+free_buf:
+	kfree(pIo_buf);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 release_mutex:
 	mutex_unlock(&dvobjpriv->usb_vendor_req_mutex);
 exit:
@@ -286,6 +385,7 @@ exit:
 
 u8 usb_read8(struct adapter *adapter, u32 addr)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -301,12 +401,19 @@ u8 usb_read8(struct adapter *adapter, u32 addr)
 	len = 1;
 
 	usbctrl_vendorreq(adapter, request, wvalue, index, &data, len, requesttype);
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	u8 data;
+
+	usbctrl_vendorreq(adapter, wvalue, &data, 1, REALTEK_USB_VENQT_READ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return data;
 }
 
 u16 usb_read16(struct adapter *adapter, u32 addr)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -320,12 +427,19 @@ u16 usb_read16(struct adapter *adapter, u32 addr)
 	wvalue = (u16)(addr & 0x0000ffff);
 	len = 2;
 	usbctrl_vendorreq(adapter, request, wvalue, index, &data, len, requesttype);
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	__le32 data;
+
+	usbctrl_vendorreq(adapter, wvalue, &data, 2, REALTEK_USB_VENQT_READ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return (u16)(le32_to_cpu(data) & 0xffff);
 }
 
 u32 usb_read32(struct adapter *adapter, u32 addr)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -341,16 +455,27 @@ u32 usb_read32(struct adapter *adapter, u32 addr)
 	len = 4;
 
 	usbctrl_vendorreq(adapter, request, wvalue, index, &data, len, requesttype);
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	__le32 data;
+
+	usbctrl_vendorreq(adapter, wvalue, &data, 4, REALTEK_USB_VENQT_READ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return le32_to_cpu(data);
 }
 
+<<<<<<< HEAD
 static void usb_read_port_complete(struct urb *purb, struct pt_regs *regs)
+=======
+static void usb_read_port_complete(struct urb *purb)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct recv_buf *precvbuf = (struct recv_buf *)purb->context;
 	struct adapter *adapt = (struct adapter *)precvbuf->adapter;
 	struct recv_priv *precvpriv = &adapt->recvpriv;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_ops_os_c_, _drv_err_, ("%s!!!\n", __func__));
 
 	if (adapt->bSurpriseRemoved || adapt->bDriverStopped || adapt->bReadPortCancel) {
@@ -363,17 +488,26 @@ static void usb_read_port_complete(struct urb *purb, struct pt_regs *regs)
 		DBG_88E("%s() RX Warning! bDriverStopped(%d) OR bSurpriseRemoved(%d) bReadPortCancel(%d)\n",
 			__func__, adapt->bDriverStopped,
 			adapt->bSurpriseRemoved, adapt->bReadPortCancel);
+=======
+	if (adapt->bSurpriseRemoved || adapt->bDriverStopped || adapt->bReadPortCancel) {
+		precvbuf->reuse = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
 	if (purb->status == 0) { /* SUCCESS */
 		if ((purb->actual_length > MAX_RECVBUF_SZ) || (purb->actual_length < RXDESC_SIZE)) {
+<<<<<<< HEAD
 			RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 				 ("%s: (purb->actual_length > MAX_RECVBUF_SZ) || (purb->actual_length < RXDESC_SIZE)\n",
 				 __func__));
 			precvbuf->reuse = true;
 			usb_read_port(adapt, RECV_BULK_IN_ADDR, precvbuf);
 			DBG_88E("%s()-%d: RX Warning!\n", __func__, __LINE__);
+=======
+			precvbuf->reuse = true;
+			usb_read_port(adapt, RECV_BULK_IN_ADDR, precvbuf);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			skb_put(precvbuf->pskb, purb->actual_length);
 			skb_queue_tail(&precvpriv->rx_skb_queue, precvbuf->pskb);
@@ -386,11 +520,14 @@ static void usb_read_port_complete(struct urb *purb, struct pt_regs *regs)
 			usb_read_port(adapt, RECV_BULK_IN_ADDR, precvbuf);
 		}
 	} else {
+<<<<<<< HEAD
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 			 ("%s : purb->status(%d) != 0\n",
 			  __func__, purb->status));
 
 		DBG_88E("###=> %s => urb status(%d)\n", __func__, purb->status);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		skb_put(precvbuf->pskb, purb->actual_length);
 		precvbuf->pskb = NULL;
 
@@ -403,8 +540,11 @@ static void usb_read_port_complete(struct urb *purb, struct pt_regs *regs)
 			fallthrough;
 		case -ENOENT:
 			adapt->bDriverStopped = true;
+<<<<<<< HEAD
 			RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 				 ("%s:bDriverStopped=true\n", __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case -EPROTO:
 		case -EOVERFLOW:
@@ -413,7 +553,10 @@ static void usb_read_port_complete(struct urb *purb, struct pt_regs *regs)
 			usb_read_port(adapt, RECV_BULK_IN_ADDR, precvbuf);
 			break;
 		case -EINPROGRESS:
+<<<<<<< HEAD
 			DBG_88E("ERROR: URB IS IN PROGRESS!\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		default:
 			break;
@@ -429,6 +572,7 @@ u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf)
 	struct usb_device *pusbd = pdvobj->pusbdev;
 	int err;
 	unsigned int pipe;
+<<<<<<< HEAD
 	u32 ret = _SUCCESS;
 
 	if (adapter->bDriverStopped || adapter->bSurpriseRemoved ||
@@ -444,6 +588,16 @@ u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf)
 			 ("%s:precvbuf==NULL\n", __func__));
 		return _FAIL;
 	}
+=======
+
+	if (adapter->bDriverStopped || adapter->bSurpriseRemoved ||
+	    adapter->pwrctrlpriv.pnp_bstop_trx) {
+		return _FAIL;
+	}
+
+	if (!precvbuf)
+		return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!precvbuf->reuse || !precvbuf->pskb) {
 		precvbuf->pskb = skb_dequeue(&precvpriv->free_recv_skb_queue);
@@ -454,11 +608,16 @@ u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf)
 	/* re-assign for linux based on skb */
 	if (!precvbuf->reuse || !precvbuf->pskb) {
 		precvbuf->pskb = netdev_alloc_skb(adapter->pnetdev, MAX_RECVBUF_SZ);
+<<<<<<< HEAD
 		if (!precvbuf->pskb) {
 			RT_TRACE(_module_hci_ops_os_c_, _drv_err_, ("init_recvbuf(): alloc_skb fail!\n"));
 			DBG_88E("#### %s() alloc_skb fail!#####\n", __func__);
 			return _FAIL;
 		}
+=======
+		if (!precvbuf->pskb)
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else { /* reuse skb */
 		precvbuf->reuse = false;
 	}
@@ -475,6 +634,7 @@ u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf)
 			  precvbuf);/* context is precvbuf */
 
 	err = usb_submit_urb(purb, GFP_ATOMIC);
+<<<<<<< HEAD
 	if ((err) && (err != (-EPERM))) {
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 			 ("cannot submit rx in-token(err=0x%.8x), URB_STATUS =0x%.8x",
@@ -485,6 +645,12 @@ u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf)
 	}
 
 	return ret;
+=======
+	if (err)
+		return _FAIL;
+
+	return _SUCCESS;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_hal_inirp_deinit(struct adapter *padapter)
@@ -494,8 +660,11 @@ void rtw_hal_inirp_deinit(struct adapter *padapter)
 
 	precvbuf = padapter->recvpriv.precv_buf;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	padapter->bReadPortCancel = true;
 
 	for (i = 0; i < NR_RECVBUFF; i++) {
@@ -508,6 +677,7 @@ void rtw_hal_inirp_deinit(struct adapter *padapter)
 
 int usb_write8(struct adapter *adapter, u32 addr, u8 val)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -523,10 +693,17 @@ int usb_write8(struct adapter *adapter, u32 addr, u8 val)
 	data = val;
 	return usbctrl_vendorreq(adapter, request, wvalue,
 				 index, &data, len, requesttype);
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	u8 data = val;
+
+	return usbctrl_vendorreq(adapter, wvalue, &data, 1, REALTEK_USB_VENQT_WRITE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int usb_write16(struct adapter *adapter, u32 addr, u16 val)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -545,10 +722,17 @@ int usb_write16(struct adapter *adapter, u32 addr, u16 val)
 
 	return usbctrl_vendorreq(adapter, request, wvalue,
 				 index, &data, len, requesttype);
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	__le32 data = cpu_to_le32(val & 0xffff);
+
+	return usbctrl_vendorreq(adapter, wvalue, &data, 2, REALTEK_USB_VENQT_WRITE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int usb_write32(struct adapter *adapter, u32 addr, u32 val)
 {
+<<<<<<< HEAD
 	u8 request;
 	u8 requesttype;
 	u16 wvalue;
@@ -569,6 +753,15 @@ int usb_write32(struct adapter *adapter, u32 addr, u32 val)
 }
 
 static void usb_write_port_complete(struct urb *purb, struct pt_regs *regs)
+=======
+	u16 wvalue = (u16)(addr & 0xffff);
+	__le32 data = cpu_to_le32(val);
+
+	return usbctrl_vendorreq(adapter, wvalue, &data, 4, REALTEK_USB_VENQT_WRITE);
+}
+
+static void usb_write_port_complete(struct urb *purb)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct xmit_buf *pxmitbuf = (struct xmit_buf *)purb->context;
 	struct adapter *padapter = pxmitbuf->padapter;
@@ -596,6 +789,7 @@ static void usb_write_port_complete(struct urb *purb, struct pt_regs *regs)
 		break;
 	}
 
+<<<<<<< HEAD
 	if (padapter->bSurpriseRemoved || padapter->bDriverStopped ||
 	    padapter->bWritePortCancel) {
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
@@ -639,6 +833,25 @@ static void usb_write_port_complete(struct urb *purb, struct pt_regs *regs)
 			DBG_88E("bSurpriseRemoved = true\n");
 			RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 				 ("%s:bSurpriseRemoved = true\n", __func__));
+=======
+	if (padapter->bSurpriseRemoved || padapter->bDriverStopped || padapter->bWritePortCancel)
+		goto check_completion;
+
+	if (purb->status) {
+		if ((purb->status == -EPIPE) || (purb->status == -EPROTO)) {
+			sreset_set_wifi_error_status(padapter, USB_WRITE_PORT_FAIL);
+		} else if (purb->status == -EINPROGRESS) {
+			goto check_completion;
+		} else if (purb->status == -ENOENT) {
+			goto check_completion;
+		} else if (purb->status == -ECONNRESET) {
+			goto check_completion;
+		} else if (purb->status == -ESHUTDOWN) {
+			padapter->bDriverStopped = true;
+			goto check_completion;
+		} else {
+			padapter->bSurpriseRemoved = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto check_completion;
 		}
 	}
@@ -665,6 +878,7 @@ u32 usb_write_port(struct adapter *padapter, u32 addr, u32 cnt, struct xmit_buf 
 	struct xmit_frame *pxmitframe = (struct xmit_frame *)xmitbuf->priv_data;
 	struct usb_device *pusbd = pdvobj->pusbdev;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_ops_os_c_, _drv_err_, ("+%s\n", __func__));
 
 	if ((padapter->bDriverStopped) || (padapter->bSurpriseRemoved) ||
@@ -672,6 +886,10 @@ u32 usb_write_port(struct adapter *padapter, u32 addr, u32 cnt, struct xmit_buf 
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 			 ("%s:( padapter->bDriverStopped ||padapter->bSurpriseRemoved ||adapter->pwrctrlpriv.pnp_bstop_trx)!!!\n",
 			  __func__));
+=======
+	if ((padapter->bDriverStopped) || (padapter->bSurpriseRemoved) ||
+	    (padapter->pwrctrlpriv.pnp_bstop_trx)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rtw_sctx_done_err(&xmitbuf->sctx, RTW_SCTX_DONE_TX_DENY);
 		goto exit;
 	}
@@ -719,6 +937,7 @@ u32 usb_write_port(struct adapter *padapter, u32 addr, u32 cnt, struct xmit_buf 
 	status = usb_submit_urb(purb, GFP_ATOMIC);
 	if (status) {
 		rtw_sctx_done_err(&xmitbuf->sctx, RTW_SCTX_DONE_WRITE_PORT_ERR);
+<<<<<<< HEAD
 		DBG_88E("%s, status =%d\n", __func__, status);
 		RT_TRACE(_module_hci_ops_os_c_, _drv_err_,
 			 ("%s(): usb_submit_urb, status =%x\n",
@@ -731,15 +950,23 @@ u32 usb_write_port(struct adapter *padapter, u32 addr, u32 cnt, struct xmit_buf 
 		default:
 			break;
 		}
+=======
+		if (status == -ENODEV)
+			padapter->bDriverStopped = true;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto exit;
 	}
 
 	ret = _SUCCESS;
 
+<<<<<<< HEAD
 /*    We add the URB_ZERO_PACKET flag to urb so that the host will send the zero packet automatically. */
 
 	RT_TRACE(_module_hci_ops_os_c_, _drv_err_, ("-%s\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 exit:
 	if (ret != _SUCCESS)
 		rtw_free_xmitbuf(pxmitpriv, xmitbuf);
@@ -751,8 +978,11 @@ void usb_write_port_cancel(struct adapter *padapter)
 	int i, j;
 	struct xmit_buf *pxmitbuf = (struct xmit_buf *)padapter->xmitpriv.pxmitbuf;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	padapter->bWritePortCancel = true;
 
 	for (i = 0; i < NR_XMITBUFF; i++) {
@@ -781,7 +1011,10 @@ void rtl8188eu_recv_tasklet(struct tasklet_struct *t)
 
 	while (NULL != (pskb = skb_dequeue(&precvpriv->rx_skb_queue))) {
 		if ((adapt->bDriverStopped) || (adapt->bSurpriseRemoved)) {
+<<<<<<< HEAD
 			DBG_88E("recv_tasklet => bDriverStopped or bSurpriseRemoved\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			dev_kfree_skb_any(pskb);
 			break;
 		}
@@ -801,12 +1034,17 @@ void rtl8188eu_xmit_tasklet(struct tasklet_struct *t)
 		return;
 
 	while (1) {
+<<<<<<< HEAD
 		if ((adapt->bDriverStopped) ||
 		    (adapt->bSurpriseRemoved) ||
 		    (adapt->bWritePortCancel)) {
 			DBG_88E("xmit_tasklet => bDriverStopped or bSurpriseRemoved or bWritePortCancel\n");
 			break;
 		}
+=======
+		if ((adapt->bDriverStopped) || (adapt->bSurpriseRemoved) || (adapt->bWritePortCancel))
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (!rtl8188eu_xmitframe_complete(adapt, pxmitpriv))
 			break;

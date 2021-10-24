@@ -1189,12 +1189,20 @@ static void hci_cc_le_set_adv_set_random_addr(struct hci_dev *hdev,
 
 	hci_dev_lock(hdev);
 
+<<<<<<< HEAD
 	if (!hdev->cur_adv_instance) {
 		/* Store in hdev for instance 0 (Set adv and Directed advs) */
 		bacpy(&hdev->random_addr, &cp->bdaddr);
 	} else {
 		adv_instance = hci_find_adv_instance(hdev,
 						     hdev->cur_adv_instance);
+=======
+	if (!cp->handle) {
+		/* Store in hdev for instance 0 (Set adv and Directed advs) */
+		bacpy(&hdev->random_addr, &cp->bdaddr);
+	} else {
+		adv_instance = hci_find_adv_instance(hdev, cp->handle);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (adv_instance)
 			bacpy(&adv_instance->random_addr, &cp->bdaddr);
 	}
@@ -3247,6 +3255,26 @@ unlock:
 	hci_dev_unlock(hdev);
 }
 
+<<<<<<< HEAD
+=======
+static inline void handle_cmd_cnt_and_timer(struct hci_dev *hdev,
+					    u16 opcode, u8 ncmd)
+{
+	if (opcode != HCI_OP_NOP)
+		cancel_delayed_work(&hdev->cmd_timer);
+
+	if (!test_bit(HCI_RESET, &hdev->flags)) {
+		if (ncmd) {
+			cancel_delayed_work(&hdev->ncmd_timer);
+			atomic_set(&hdev->cmd_cnt, 1);
+		} else {
+			schedule_delayed_work(&hdev->ncmd_timer,
+					      HCI_NCMD_TIMEOUT);
+		}
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void hci_cmd_complete_evt(struct hci_dev *hdev, struct sk_buff *skb,
 				 u16 *opcode, u8 *status,
 				 hci_req_complete_t *req_complete,
@@ -3605,11 +3633,15 @@ static void hci_cmd_complete_evt(struct hci_dev *hdev, struct sk_buff *skb,
 		break;
 	}
 
+<<<<<<< HEAD
 	if (*opcode != HCI_OP_NOP)
 		cancel_delayed_work(&hdev->cmd_timer);
 
 	if (ev->ncmd && !test_bit(HCI_RESET, &hdev->flags))
 		atomic_set(&hdev->cmd_cnt, 1);
+=======
+	handle_cmd_cnt_and_timer(hdev, *opcode, ev->ncmd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	hci_req_cmd_complete(hdev, *opcode, *status, req_complete,
 			     req_complete_skb);
@@ -3710,11 +3742,15 @@ static void hci_cmd_status_evt(struct hci_dev *hdev, struct sk_buff *skb,
 		break;
 	}
 
+<<<<<<< HEAD
 	if (*opcode != HCI_OP_NOP)
 		cancel_delayed_work(&hdev->cmd_timer);
 
 	if (ev->ncmd && !test_bit(HCI_RESET, &hdev->flags))
 		atomic_set(&hdev->cmd_cnt, 1);
+=======
+	handle_cmd_cnt_and_timer(hdev, *opcode, ev->ncmd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Indicate request completion if the command failed. Also, if
 	 * we're not waiting for a special event and we get a success
@@ -5270,8 +5306,24 @@ static void hci_le_ext_adv_term_evt(struct hci_dev *hdev, struct sk_buff *skb)
 
 	BT_DBG("%s status 0x%2.2x", hdev->name, ev->status);
 
+<<<<<<< HEAD
 	if (ev->status)
 		return;
+=======
+	if (ev->status) {
+		struct adv_info *adv;
+
+		adv = hci_find_adv_instance(hdev, ev->handle);
+		if (!adv)
+			return;
+
+		/* Remove advertising as it has been terminated */
+		hci_remove_adv_instance(hdev, ev->handle);
+		mgmt_advertising_removed(NULL, hdev, ev->handle);
+
+		return;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	conn = hci_conn_hash_lookup_handle(hdev, __le16_to_cpu(ev->conn_handle));
 	if (conn) {
@@ -5285,7 +5337,11 @@ static void hci_le_ext_adv_term_evt(struct hci_dev *hdev, struct sk_buff *skb)
 			return;
 		}
 
+<<<<<<< HEAD
 		adv_instance = hci_find_adv_instance(hdev, hdev->cur_adv_instance);
+=======
+		adv_instance = hci_find_adv_instance(hdev, ev->handle);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (adv_instance)
 			bacpy(&conn->resp_addr, &adv_instance->random_addr);
 	}

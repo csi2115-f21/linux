@@ -593,9 +593,15 @@ void intel_sseu_info_init(struct intel_gt *gt)
 		bdw_sseu_info_init(gt);
 	else if (IS_GEN(i915, 9))
 		gen9_sseu_info_init(gt);
+<<<<<<< HEAD
 	else if (IS_GEN(i915, 10))
 		gen10_sseu_info_init(gt);
 	else if (IS_GEN(i915, 11))
+=======
+	else if (GRAPHICS_VER(i915) == 10)
+		gen10_sseu_info_init(gt);
+	else if (GRAPHICS_VER(i915) == 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		gen11_sseu_info_init(gt);
 	else if (INTEL_GEN(i915) >= 12)
 		gen12_sseu_info_init(gt);

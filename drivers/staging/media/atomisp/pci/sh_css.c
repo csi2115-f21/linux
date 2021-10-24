@@ -5316,7 +5316,11 @@ sh_css_pipe_get_grid_info(struct ia_css_pipe *pipe,
 		err = ia_css_binary_3a_grid_info(binary, info, pipe);
 		if (err)
 			goto ERR;
+<<<<<<< HEAD
 	} else
+=======
+	} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memset(&info->s3a_grid, 0, sizeof(info->s3a_grid));
 
 	binary = ia_css_pipe_get_sdis_binary(pipe);
@@ -5325,8 +5329,12 @@ sh_css_pipe_get_grid_info(struct ia_css_pipe *pipe,
 	{
 		ia_css_binary_dvs_grid_info(binary, info, pipe);
 		ia_css_binary_dvs_stat_grid_info(binary, info, pipe);
+<<<<<<< HEAD
 	} else
 	{
+=======
+	} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memset(&info->dvs_grid.dvs_grid_info, 0,
 		       sizeof(info->dvs_grid.dvs_grid_info));
 		memset(&info->dvs_grid.dvs_stat_grid_info, 0,
@@ -7122,7 +7130,12 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe) {
 		mycs->num_output = cas_scaler_descr.num_output_stage;
 		mycs->num_yuv_scaler = cas_scaler_descr.num_stage;
 		mycs->yuv_scaler_binary = kzalloc(cas_scaler_descr.num_stage *
+<<<<<<< HEAD
 						    sizeof(struct ia_css_binary), GFP_KERNEL);
+=======
+						  sizeof(struct ia_css_binary),
+						  GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!mycs->yuv_scaler_binary) {
 			err = -ENOMEM;
 			goto ERR;
@@ -7234,10 +7247,17 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe) {
 		}
 		mycs->num_vf_pp = 1;
 	}
+<<<<<<< HEAD
 	mycs->vf_pp_binary = kzalloc(mycs->num_vf_pp * sizeof(struct ia_css_binary),
 					GFP_KERNEL);
 	if (!mycs->vf_pp_binary)
 	{
+=======
+	mycs->vf_pp_binary = kzalloc(mycs->num_vf_pp *
+				     sizeof(struct ia_css_binary),
+				     GFP_KERNEL);
+	if (!mycs->vf_pp_binary) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = -ENOMEM;
 		goto ERR;
 	}

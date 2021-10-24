@@ -239,6 +239,11 @@ struct rvu_pfvf {
 	u8	nix_blkaddr; /* BLKADDR_NIX0/1 assigned to this PF */
 	u8	nix_rx_intf; /* NIX0_RX/NIX1_RX interface to NPC */
 	u8	nix_tx_intf; /* NIX0_TX/NIX1_TX interface to NPC */
+<<<<<<< HEAD
+=======
+	u64     lmt_base_addr; /* Preseving the pcifunc's lmtst base addr*/
+	unsigned long flags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct nix_txsch {
@@ -291,6 +296,10 @@ struct nix_hw {
 	struct nix_mark_format mark_format;
 	struct nix_lso lso;
 	struct nix_txvlan txvlan;
+<<<<<<< HEAD
+=======
+	struct nix_ipolicer *ipolicer;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* RVU block's capabilities or functionality,
@@ -630,6 +639,18 @@ int nix_update_bcast_mce_list(struct rvu *rvu, u16 pcifunc, bool add);
 struct nix_hw *get_nix_hw(struct rvu_hwinfo *hw, int blkaddr);
 int rvu_get_next_nix_blkaddr(struct rvu *rvu, int blkaddr);
 void rvu_nix_reset_mac(struct rvu_pfvf *pfvf, int pcifunc);
+<<<<<<< HEAD
+=======
+int nix_get_struct_ptrs(struct rvu *rvu, u16 pcifunc,
+			struct nix_hw **nix_hw, int *blkaddr);
+int rvu_nix_setup_ratelimit_aggr(struct rvu *rvu, u16 pcifunc,
+				 u16 rq_idx, u16 match_id);
+int nix_aq_context_read(struct rvu *rvu, struct nix_hw *nix_hw,
+			struct nix_cn10k_aq_enq_req *aq_req,
+			struct nix_cn10k_aq_enq_rsp *aq_rsp,
+			u16 pcifunc, u8 ctype, u32 qidx);
+int rvu_get_nix_blkaddr(struct rvu *rvu, u16 pcifunc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* NPC APIs */
 int rvu_npc_init(struct rvu *rvu);

@@ -373,7 +373,11 @@ static struct brd_device *brd_alloc(int i)
 
 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
 	if (!brd)
+<<<<<<< HEAD
 		goto out;
+=======
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	brd->brd_number		= i;
 	spin_lock_init(&brd->brd_lock);
 	INIT_RADIX_TREE(&brd->brd_pages, GFP_ATOMIC);
@@ -401,8 +405,15 @@ static struct brd_device *brd_alloc(int i)
 	set_capacity(disk, rd_size * 2);
 
 	/* Tell the block layer that this is not a rotational device */
+<<<<<<< HEAD
 	blk_queue_flag_set(QUEUE_FLAG_NONROT, brd->brd_queue);
 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, brd->brd_queue);
+=======
+	blk_queue_flag_set(QUEUE_FLAG_NONROT, disk->queue);
+	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, disk->queue);
+	add_disk(disk);
+	list_add_tail(&brd->brd_list, &brd_devices);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return brd;
 
@@ -424,8 +435,13 @@ static void brd_free(struct brd_device *brd)
 
 static void brd_probe(dev_t dev)
 {
+<<<<<<< HEAD
 	struct brd_device *brd;
 	int i = MINOR(dev) / max_part;
+=======
+	int i = MINOR(dev) / max_part;
+	struct brd_device *brd;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&brd_devices_mutex);
 	list_for_each_entry(brd, &brd_devices, brd_list) {
@@ -433,6 +449,7 @@ static void brd_probe(dev_t dev)
 			goto out_unlock;
 	}
 
+<<<<<<< HEAD
 	brd = brd_alloc(i);
 	if (brd) {
 		brd->brd_disk->queue = brd->brd_queue;
@@ -440,6 +457,9 @@ static void brd_probe(dev_t dev)
 		list_add_tail(&brd->brd_list, &brd_devices);
 	}
 
+=======
+	brd_alloc(i);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_unlock:
 	mutex_unlock(&brd_devices_mutex);
 }
@@ -448,7 +468,13 @@ static void brd_del_one(struct brd_device *brd)
 {
 	list_del(&brd->brd_list);
 	del_gendisk(brd->brd_disk);
+<<<<<<< HEAD
 	brd_free(brd);
+=======
+	blk_cleanup_disk(brd->brd_disk);
+	brd_free_pages(brd);
+	kfree(brd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline void brd_check_and_reset_par(void)
@@ -495,6 +521,11 @@ static int __init brd_init(void)
 
 	brd_check_and_reset_par();
 
+<<<<<<< HEAD
+=======
+	brd_debugfs_dir = debugfs_create_dir("ramdisk_pages", NULL);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_lock(&brd_devices_mutex);
 	for (i = 0; i < rd_nr; i++) {
 		brd = brd_alloc(i);
@@ -503,6 +534,7 @@ static int __init brd_init(void)
 		list_add_tail(&brd->brd_list, &brd_devices);
 	}
 
+<<<<<<< HEAD
 	/* point of no return */
 
 	list_for_each_entry(brd, &brd_devices, brd_list) {
@@ -513,16 +545,25 @@ static int __init brd_init(void)
 		brd->brd_disk->queue = brd->brd_queue;
 		add_disk(brd->brd_disk);
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&brd_devices_mutex);
 
 	pr_info("brd: module loaded\n");
 	return 0;
 
 out_free:
+<<<<<<< HEAD
 	list_for_each_entry_safe(brd, next, &brd_devices, brd_list) {
 		list_del(&brd->brd_list);
 		brd_free(brd);
 	}
+=======
+	debugfs_remove_recursive(brd_debugfs_dir);
+
+	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
+		brd_del_one(brd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&brd_devices_mutex);
 	unregister_blkdev(RAMDISK_MAJOR, "ramdisk");
 
@@ -534,6 +575,11 @@ static void __exit brd_exit(void)
 {
 	struct brd_device *brd, *next;
 
+<<<<<<< HEAD
+=======
+	debugfs_remove_recursive(brd_debugfs_dir);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
 		brd_del_one(brd);
 

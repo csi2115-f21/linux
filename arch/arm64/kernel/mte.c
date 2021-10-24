@@ -23,6 +23,11 @@
 #include <asm/sysreg.h>
 
 u64 gcr_kernel_excl __ro_after_init;
+<<<<<<< HEAD
+=======
+
+static bool report_fault_once = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static bool report_fault_once = true;
 
@@ -107,7 +112,11 @@ void mte_init_tags(u64 max_tag)
 	write_sysreg_s(SYS_GCR_EL1_RRND | gcr_kernel_excl, SYS_GCR_EL1);
 }
 
+<<<<<<< HEAD
 void mte_enable_kernel(void)
+=======
+static inline void __mte_enable_kernel(const char *mode, unsigned long tcf)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	/* Enable MTE Sync Mode for EL1. */
 	sysreg_clear_set(sctlr_el1, SCTLR_ELx_TCF_MASK, SCTLR_ELx_TCF_SYNC);
@@ -144,8 +153,30 @@ static void set_sctlr_el1_tcf0(u64 tcf0)
 	preempt_enable();
 }
 
+<<<<<<< HEAD
 static void update_gcr_el1_excl(u64 excl)
 {
+=======
+void mte_set_report_once(bool state)
+{
+	WRITE_ONCE(report_fault_once, state);
+}
+
+bool mte_report_once(void)
+{
+	return READ_ONCE(report_fault_once);
+}
+
+#ifdef CONFIG_KASAN_HW_TAGS
+void mte_check_tfsr_el1(void)
+{
+	u64 tfsr_el1;
+
+	if (!system_supports_mte())
+		return;
+
+	tfsr_el1 = read_sysreg_s(SYS_TFSR_EL1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Note that the mask controlled by the user via prctl() is an
@@ -176,19 +207,36 @@ void flush_mte_state(void)
 	write_sysreg_s(0, SYS_TFSRE0_EL1);
 	clear_thread_flag(TIF_MTE_ASYNC_FAULT);
 	/* disable tag checking */
+<<<<<<< HEAD
 	set_sctlr_el1_tcf0(SCTLR_EL1_TCF0_NONE);
+=======
+	set_task_sctlr_el1((current->thread.sctlr_user & ~SCTLR_EL1_TCF0_MASK) |
+			   SCTLR_EL1_TCF0_NONE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* reset tag generation mask */
 	set_gcr_el1_excl(SYS_GCR_EL1_EXCL_MASK);
 }
 
 void mte_thread_switch(struct task_struct *next)
 {
+<<<<<<< HEAD
 	if (!system_supports_mte())
 		return;
 
 	/* avoid expensive SCTLR_EL1 accesses if no change */
 	if (current->thread.sctlr_tcf0 != next->thread.sctlr_tcf0)
 		update_sctlr_el1_tcf0(next->thread.sctlr_tcf0);
+=======
+	/*
+	 * Check if an async tag exception occurred at EL1.
+	 *
+	 * Note: On the context switch path we rely on the dsb() present
+	 * in __switch_to() to guarantee that the indirect writes to TFSR_EL1
+	 * are synchronized before this point.
+	 */
+	isb();
+	mte_check_tfsr_el1();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void mte_suspend_exit(void)
@@ -199,9 +247,22 @@ void mte_suspend_exit(void)
 	update_gcr_el1_excl(gcr_kernel_excl);
 }
 
+void mte_suspend_exit(void)
+{
+	if (!system_supports_mte())
+		return;
+
+	sysreg_clear_set_s(SYS_GCR_EL1, SYS_GCR_EL1_EXCL_MASK, gcr_kernel_excl);
+	isb();
+}
+
 long set_mte_ctrl(struct task_struct *task, unsigned long arg)
 {
+<<<<<<< HEAD
 	u64 tcf0;
+=======
+	u64 sctlr = task->thread.sctlr_user & ~SCTLR_EL1_TCF0_MASK;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u64 gcr_excl = ~((arg & PR_MTE_TAG_MASK) >> PR_MTE_TAG_SHIFT) &
 		       SYS_GCR_EL1_EXCL_MASK;
 
@@ -210,6 +271,7 @@ long set_mte_ctrl(struct task_struct *task, unsigned long arg)
 
 	switch (arg & PR_MTE_TCF_MASK) {
 	case PR_MTE_TCF_NONE:
+<<<<<<< HEAD
 		tcf0 = SCTLR_EL1_TCF0_NONE;
 		break;
 	case PR_MTE_TCF_SYNC:
@@ -217,16 +279,32 @@ long set_mte_ctrl(struct task_struct *task, unsigned long arg)
 		break;
 	case PR_MTE_TCF_ASYNC:
 		tcf0 = SCTLR_EL1_TCF0_ASYNC;
+=======
+		sctlr |= SCTLR_EL1_TCF0_NONE;
+		break;
+	case PR_MTE_TCF_SYNC:
+		sctlr |= SCTLR_EL1_TCF0_SYNC;
+		break;
+	case PR_MTE_TCF_ASYNC:
+		sctlr |= SCTLR_EL1_TCF0_ASYNC;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		return -EINVAL;
 	}
 
 	if (task != current) {
+<<<<<<< HEAD
 		task->thread.sctlr_tcf0 = tcf0;
 		task->thread.gcr_user_excl = gcr_excl;
 	} else {
 		set_sctlr_el1_tcf0(tcf0);
+=======
+		task->thread.sctlr_user = sctlr;
+		task->thread.gcr_user_excl = gcr_excl;
+	} else {
+		set_task_sctlr_el1(sctlr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		set_gcr_el1_excl(gcr_excl);
 	}
 
@@ -243,7 +321,11 @@ long get_mte_ctrl(struct task_struct *task)
 
 	ret = incl << PR_MTE_TAG_SHIFT;
 
+<<<<<<< HEAD
 	switch (task->thread.sctlr_tcf0) {
+=======
+	switch (task->thread.sctlr_user & SCTLR_EL1_TCF0_MASK) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case SCTLR_EL1_TCF0_NONE:
 		ret |= PR_MTE_TCF_NONE;
 		break;

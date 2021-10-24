@@ -196,7 +196,13 @@ static int flow_offload_eth_src(struct net *net,
 	memcpy(&val, dev->dev_addr + 2, 4);
 	flow_offload_mangle(entry1, FLOW_ACT_MANGLE_HDR_TYPE_ETH, 8,
 			    &val, &mask);
+<<<<<<< HEAD
 	dev_put(dev);
+=======
+
+	if (dev)
+		dev_put(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

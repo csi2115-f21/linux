@@ -3066,6 +3066,22 @@ xfs_alloc_read_agf(
 		pag->pagf_refcount_level = be32_to_cpu(agf->agf_refcount_level);
 		pag->pagf_init = 1;
 		pag->pagf_agflreset = xfs_agfl_needs_reset(mp, agf);
+<<<<<<< HEAD
+=======
+
+		/*
+		 * Update the in-core allocbt counter. Filter out the rmapbt
+		 * subset of the btreeblks counter because the rmapbt is managed
+		 * by perag reservation. Subtract one for the rmapbt root block
+		 * because the rmap counter includes it while the btreeblks
+		 * counter only tracks non-root blocks.
+		 */
+		allocbt_blks = pag->pagf_btreeblks;
+		if (xfs_sb_version_hasrmapbt(&mp->m_sb))
+			allocbt_blks -= be32_to_cpu(agf->agf_rmap_blocks) - 1;
+		if (allocbt_blks > 0)
+			atomic64_add(allocbt_blks, &mp->m_allocbt_blks);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 #ifdef DEBUG
 	else if (!XFS_FORCED_SHUTDOWN(mp)) {

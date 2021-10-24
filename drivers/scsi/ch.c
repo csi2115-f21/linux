@@ -858,9 +858,60 @@ static long ch_ioctl(struct file *file,
 
 	default:
 		return scsi_ioctl(ch->device, cmd, argp);
+<<<<<<< HEAD
 
 	}
 }
+
+#ifdef CONFIG_COMPAT
+
+struct changer_element_status32 {
+	int		ces_type;
+	compat_uptr_t	ces_data;
+};
+#define CHIOGSTATUS32  _IOW('c', 8,struct changer_element_status32)
+
+static long ch_ioctl_compat(struct file * file,
+			    unsigned int cmd, unsigned long arg)
+{
+	scsi_changer *ch = file->private_data;
+	int retval = scsi_ioctl_block_when_processing_errors(ch->device, cmd,
+							file->f_flags & O_NDELAY);
+	if (retval)
+		return retval;
+
+	switch (cmd) {
+	case CHIOGPARAMS:
+	case CHIOGVPARAMS:
+	case CHIOPOSITION:
+	case CHIOMOVE:
+	case CHIOEXCHANGE:
+	case CHIOGELEM:
+	case CHIOINITELEM:
+	case CHIOSVOLTAG:
+		/* compatible */
+		return ch_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
+	case CHIOGSTATUS32:
+	{
+		struct changer_element_status32 ces32;
+		unsigned char __user *data;
+
+		if (copy_from_user(&ces32, (void __user *)arg, sizeof (ces32)))
+			return -EFAULT;
+		if (ces32.ces_type < 0 || ces32.ces_type >= CH_TYPES)
+			return -EINVAL;
+
+		data = compat_ptr(ces32.ces_data);
+		return ch_gstatus(ch, ces32.ces_type, data);
+	}
+	default:
+		return scsi_compat_ioctl(ch->device, cmd, compat_ptr(arg));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	}
+}
+#endif
 
 #ifdef CONFIG_COMPAT
 

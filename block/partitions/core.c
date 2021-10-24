@@ -138,7 +138,11 @@ static struct parsed_partitions *check_partition(struct gendisk *hd,
 	}
 	state->pp_buf[0] = '\0';
 
+<<<<<<< HEAD
 	state->bdev = bdev;
+=======
+	state->bdev = hd->part0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	disk_name(hd, 0, state->name);
 	snprintf(state->pp_buf, PAGE_SIZE, " %s:", state->name);
 	if (isdigit(state->name[strlen(state->name)-1]))
@@ -262,7 +266,12 @@ static const struct attribute_group *part_attr_groups[] = {
 
 static void part_release(struct device *dev)
 {
+<<<<<<< HEAD
 	blk_free_devt(dev->devt);
+=======
+	if (MAJOR(dev->devt) == BLOCK_EXT_MAJOR)
+		blk_free_ext_minor(MINOR(dev->devt));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bdput(dev_to_bdev(dev));
 }
 
@@ -284,11 +293,22 @@ struct device_type part_type = {
 };
 
 /*
+<<<<<<< HEAD
  * Must be called either with bd_mutex held, before a disk can be opened or
  * after all disk users are gone.
  */
 void delete_partition(struct block_device *part)
 {
+=======
+ * Must be called either with open_mutex held, before a disk can be opened or
+ * after all disk users are gone.
+ */
+static void delete_partition(struct block_device *part)
+{
+	fsync_bdev(part);
+	__invalidate_device(part, true);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	xa_erase(&part->bd_disk->part_tbl, part->bd_partno);
 	kobject_put(part->bd_holder_dir);
 	device_del(&part->bd_device);
@@ -441,6 +461,17 @@ int bdev_add_partition(struct block_device *bdev, int partno,
 		sector_t start, sector_t length)
 {
 	struct block_device *part;
+<<<<<<< HEAD
+=======
+	struct gendisk *disk = bdev->bd_disk;
+	int ret;
+
+	mutex_lock(&disk->open_mutex);
+	if (!(disk->flags & GENHD_FL_UP)) {
+		ret = -ENXIO;
+		goto out;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&bdev->bd_mutex);
 	if (partition_overlaps(bdev->bd_disk, start, length, -1)) {
@@ -459,7 +490,12 @@ int bdev_del_partition(struct block_device *bdev, int partno)
 	struct block_device *part;
 	int ret;
 
+<<<<<<< HEAD
 	part = bdget_disk(bdev->bd_disk, partno);
+=======
+	mutex_lock(&bdev->bd_disk->open_mutex);
+	part = xa_load(&bdev->bd_disk->part_tbl, partno);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!part)
 		return -ENXIO;
 
@@ -476,9 +512,13 @@ int bdev_del_partition(struct block_device *bdev, int partno)
 	delete_partition(part);
 	ret = 0;
 out_unlock:
+<<<<<<< HEAD
 	mutex_unlock(&bdev->bd_mutex);
 	mutex_unlock(&part->bd_mutex);
 	bdput(part);
+=======
+	mutex_unlock(&bdev->bd_disk->open_mutex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -488,7 +528,12 @@ int bdev_resize_partition(struct block_device *bdev, int partno,
 	struct block_device *part;
 	int ret = 0;
 
+<<<<<<< HEAD
 	part = bdget_disk(bdev->bd_disk, partno);
+=======
+	mutex_lock(&bdev->bd_disk->open_mutex);
+	part = xa_load(&bdev->bd_disk->part_tbl, partno);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!part)
 		return -ENXIO;
 
@@ -506,9 +551,13 @@ int bdev_resize_partition(struct block_device *bdev, int partno,
 
 	ret = 0;
 out_unlock:
+<<<<<<< HEAD
 	mutex_unlock(&part->bd_mutex);
 	mutex_unlock(&bdev->bd_mutex);
 	bdput(part);
+=======
+	mutex_unlock(&bdev->bd_disk->open_mutex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -662,6 +711,61 @@ out_free_state:
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+int bdev_disk_changed(struct gendisk *disk, bool invalidate)
+{
+	int ret = 0;
+
+	lockdep_assert_held(&disk->open_mutex);
+
+	if (!(disk->flags & GENHD_FL_UP))
+		return -ENXIO;
+
+rescan:
+	if (disk->open_partitions)
+		return -EBUSY;
+	sync_blockdev(disk->part0);
+	invalidate_bdev(disk->part0);
+	blk_drop_partitions(disk);
+
+	clear_bit(GD_NEED_PART_SCAN, &disk->state);
+
+	/*
+	 * Historically we only set the capacity to zero for devices that
+	 * support partitions (independ of actually having partitions created).
+	 * Doing that is rather inconsistent, but changing it broke legacy
+	 * udisks polling for legacy ide-cdrom devices.  Use the crude check
+	 * below to get the sane behavior for most device while not breaking
+	 * userspace for this particular setup.
+	 */
+	if (invalidate) {
+		if (disk_part_scan_enabled(disk) ||
+		    !(disk->flags & GENHD_FL_REMOVABLE))
+			set_capacity(disk, 0);
+	}
+
+	if (get_capacity(disk)) {
+		ret = blk_add_partitions(disk);
+		if (ret == -EAGAIN)
+			goto rescan;
+	} else if (invalidate) {
+		/*
+		 * Tell userspace that the media / partition table may have
+		 * changed.
+		 */
+		kobject_uevent(&disk_to_dev(disk)->kobj, KOBJ_CHANGE);
+	}
+
+	return ret;
+}
+/*
+ * Only exported for loop and dasd for historic reasons.  Don't use in new
+ * code!
+ */
+EXPORT_SYMBOL_GPL(bdev_disk_changed);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void *read_part_sector(struct parsed_partitions *state, sector_t n, Sector *p)
 {
 	struct address_space *mapping = state->bdev->bd_inode->i_mapping;

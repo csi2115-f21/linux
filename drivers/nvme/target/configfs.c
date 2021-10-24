@@ -1035,7 +1035,41 @@ static ssize_t nvmet_subsys_attr_serial_show(struct config_item *item,
 {
 	struct nvmet_subsys *subsys = to_subsys(item);
 
+<<<<<<< HEAD
 	return snprintf(page, PAGE_SIZE, "%llx\n", subsys->serial);
+=======
+	return snprintf(page, PAGE_SIZE, "%s\n", subsys->serial);
+}
+
+static ssize_t
+nvmet_subsys_attr_serial_store_locked(struct nvmet_subsys *subsys,
+		const char *page, size_t count)
+{
+	int pos, len = strcspn(page, "\n");
+
+	if (subsys->subsys_discovered) {
+		pr_err("Can't set serial number. %s is already assigned\n",
+		       subsys->serial);
+		return -EINVAL;
+	}
+
+	if (!len || len > NVMET_SN_MAX_SIZE) {
+		pr_err("Serial Number can not be empty or exceed %d Bytes\n",
+		       NVMET_SN_MAX_SIZE);
+		return -EINVAL;
+	}
+
+	for (pos = 0; pos < len; pos++) {
+		if (!nvmet_is_ascii(page[pos])) {
+			pr_err("Serial Number must contain only ASCII strings\n");
+			return -EINVAL;
+		}
+	}
+
+	memcpy_and_pad(subsys->serial, NVMET_SN_MAX_SIZE, page, len, ' ');
+
+	return count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t nvmet_subsys_attr_serial_store(struct config_item *item,

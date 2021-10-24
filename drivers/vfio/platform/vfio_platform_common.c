@@ -218,12 +218,22 @@ static int vfio_platform_call_reset(struct vfio_platform_device *vdev,
 	return -EINVAL;
 }
 
+<<<<<<< HEAD
 static void vfio_platform_release(void *device_data)
 {
 	struct vfio_platform_device *vdev = device_data;
 
 	mutex_lock(&driver_lock);
 
+=======
+static void vfio_platform_release(struct vfio_device *core_vdev)
+{
+	struct vfio_platform_device *vdev =
+		container_of(core_vdev, struct vfio_platform_device, vdev);
+
+	mutex_lock(&driver_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!(--vdev->refcnt)) {
 		const char *extra_dbg = NULL;
 		int ret;
@@ -240,6 +250,7 @@ static void vfio_platform_release(void *device_data)
 	}
 
 	mutex_unlock(&driver_lock);
+<<<<<<< HEAD
 
 	module_put(vdev->parent_module);
 }
@@ -261,6 +272,25 @@ static int vfio_platform_open(void *device_data)
 		if (ret)
 			goto err_reg;
 
+=======
+}
+
+static int vfio_platform_open(struct vfio_device *core_vdev)
+{
+	struct vfio_platform_device *vdev =
+		container_of(core_vdev, struct vfio_platform_device, vdev);
+	int ret;
+
+	mutex_lock(&driver_lock);
+
+	if (!vdev->refcnt) {
+		const char *extra_dbg = NULL;
+
+		ret = vfio_platform_regions_init(vdev);
+		if (ret)
+			goto err_reg;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = vfio_platform_irq_init(vdev);
 		if (ret)
 			goto err_irq;
@@ -289,7 +319,10 @@ err_irq:
 	vfio_platform_regions_cleanup(vdev);
 err_reg:
 	mutex_unlock(&driver_lock);
+<<<<<<< HEAD
 	module_put(THIS_MODULE);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -706,6 +739,7 @@ struct vfio_platform_device *vfio_platform_remove_common(struct device *dev)
 {
 	struct vfio_platform_device *vdev;
 
+<<<<<<< HEAD
 	vdev = vfio_del_group_dev(dev);
 
 	if (vdev) {
@@ -715,6 +749,11 @@ struct vfio_platform_device *vfio_platform_remove_common(struct device *dev)
 	}
 
 	return vdev;
+=======
+	pm_runtime_disable(vdev->device);
+	vfio_platform_put_reset(vdev);
+	vfio_iommu_group_put(vdev->vdev.dev->iommu_group, vdev->vdev.dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(vfio_platform_remove_common);
 

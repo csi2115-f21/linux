@@ -33,6 +33,11 @@ Required properties:
 	- #address-cells: specifies the number of cells needed to encode an
 		address. The value must be 0.
 
+<<<<<<< HEAD
+=======
+Optional properties:
+- dma-coherent: present if DMA operations are coherent
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 Example:
 ++++++++

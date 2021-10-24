@@ -359,7 +359,11 @@ static void virtio_vsock_reset_sock(struct sock *sk)
 	lock_sock(sk);
 	sk->sk_state = TCP_CLOSE;
 	sk->sk_err = ECONNRESET;
+<<<<<<< HEAD
 	sk->sk_error_report(sk);
+=======
+	sk_error_report(sk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	release_sock(sk);
 }
 

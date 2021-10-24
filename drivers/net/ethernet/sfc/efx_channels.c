@@ -169,6 +169,11 @@ static int efx_allocate_msix_channels(struct efx_nic *efx,
 		netif_err(efx, drv, efx->net_dev,
 			  "Insufficient resources for %d XDP event queues (%d other channels, max %d)\n",
 			  n_xdp_ev, n_channels, max_channels);
+<<<<<<< HEAD
+=======
+		netif_err(efx, drv, efx->net_dev,
+			  "XDP_TX and XDP_REDIRECT will not work on this interface");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		efx->n_xdp_channels = 0;
 		efx->xdp_tx_per_channel = 0;
 		efx->xdp_tx_queue_count = 0;
@@ -176,6 +181,11 @@ static int efx_allocate_msix_channels(struct efx_nic *efx,
 		netif_err(efx, drv, efx->net_dev,
 			  "Insufficient resources for %d XDP TX queues (%d other channels, max VIs %d)\n",
 			  n_xdp_tx, n_channels, efx->max_vis);
+<<<<<<< HEAD
+=======
+		netif_err(efx, drv, efx->net_dev,
+			  "XDP_TX and XDP_REDIRECT will not work on this interface");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		efx->n_xdp_channels = 0;
 		efx->xdp_tx_per_channel = 0;
 		efx->xdp_tx_queue_count = 0;
@@ -891,18 +901,32 @@ int efx_set_channels(struct efx_nic *efx)
 			if (efx_channel_is_xdp_tx(channel)) {
 				efx_for_each_channel_tx_queue(tx_queue, channel) {
 					tx_queue->queue = next_queue++;
+<<<<<<< HEAD
 					netif_dbg(efx, drv, efx->net_dev, "Channel %u TXQ %u is XDP %u, HW %u\n",
 						  channel->channel, tx_queue->label,
 						  xdp_queue_number, tx_queue->queue);
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					/* We may have a few left-over XDP TX
 					 * queues owing to xdp_tx_queue_count
 					 * not dividing evenly by EFX_MAX_TXQ_PER_CHANNEL.
 					 * We still allocate and probe those
 					 * TXQs, but never use them.
 					 */
+<<<<<<< HEAD
 					if (xdp_queue_number < efx->xdp_tx_queue_count)
 						efx->xdp_tx_queues[xdp_queue_number] = tx_queue;
 					xdp_queue_number++;
+=======
+					if (xdp_queue_number < efx->xdp_tx_queue_count) {
+						netif_dbg(efx, drv, efx->net_dev, "Channel %u TXQ %u is XDP %u, HW %u\n",
+							  channel->channel, tx_queue->label,
+							  xdp_queue_number, tx_queue->queue);
+						efx->xdp_tx_queues[xdp_queue_number] = tx_queue;
+						xdp_queue_number++;
+					}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				}
 			} else {
 				efx_for_each_channel_tx_queue(tx_queue, channel) {
@@ -914,6 +938,10 @@ int efx_set_channels(struct efx_nic *efx)
 			}
 		}
 	}
+<<<<<<< HEAD
+=======
+	WARN_ON(xdp_queue_number != efx->xdp_tx_queue_count);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rc = netif_set_real_num_tx_queues(efx->net_dev, efx->n_tx_channels);
 	if (rc)

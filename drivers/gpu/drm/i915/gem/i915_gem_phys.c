@@ -76,6 +76,11 @@ static int i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
 
 	intel_gt_chipset_flush(&to_i915(obj->base.dev)->gt);
 
+<<<<<<< HEAD
+=======
+	/* We're no longer struct page backed */
+	obj->flags &= ~I915_BO_ALLOC_STRUCT_PAGE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__i915_gem_object_set_pages(obj, st, sg->length);
 
 	return 0;

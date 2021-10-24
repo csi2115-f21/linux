@@ -100,7 +100,11 @@ int panfrost_devfreq_init(struct panfrost_device *pfdev)
 		/* Continue if the optional regulator is missing */
 		if (ret != -ENODEV) {
 			DRM_DEV_ERROR(dev, "Couldn't set OPP regulators\n");
+<<<<<<< HEAD
 			goto err_fini;
+=======
+			return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	} else {
 		pfdevfreq->regulators_opp_table = opp_table;

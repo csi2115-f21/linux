@@ -567,8 +567,13 @@ u8 PHY_GetTxPowerIndex(
 	s8 txPower = 0, powerDiffByRate = 0, limit = 0;
 	bool bIn24G = false;
 
+<<<<<<< HEAD
 	txPower = (s8) PHY_GetTxPowerIndexBase(padapter, RFPath, Rate, BandWidth, Channel, &bIn24G);
 	powerDiffByRate = PHY_GetTxPowerByRate(padapter, BAND_ON_2_4G, ODM_RF_PATH_A, RF_1TX, Rate);
+=======
+	txPower = (s8) PHY_GetTxPowerIndexBase(padapter, RFPath, Rate, BandWidth, Channel);
+	powerDiffByRate = PHY_GetTxPowerByRate(padapter, ODM_RF_PATH_A, RF_1TX, Rate);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	limit = phy_get_tx_pwr_lmt(
 		padapter,
@@ -594,8 +599,13 @@ u8 PHY_GetTxPowerIndex(
 void PHY_SetTxPowerLevel8723B(struct adapter *Adapter, u8 Channel)
 {
 	struct hal_com_data *pHalData = GET_HAL_DATA(Adapter);
+<<<<<<< HEAD
 	PDM_ODM_T pDM_Odm = &pHalData->odmpriv;
 	pFAT_T pDM_FatTable = &pDM_Odm->DM_FatTable;
+=======
+	struct dm_odm_t *pDM_Odm = &pHalData->odmpriv;
+	struct fat_t *pDM_FatTable = &pDM_Odm->DM_FatTable;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 RFPath = ODM_RF_PATH_A;
 
 	if (pHalData->AntDivCfg) {/*  antenna diversity Enable */
@@ -768,8 +778,11 @@ static void phy_SwChnl8723B(struct adapter *padapter)
 	pHalData->RfRegChnlVal[0] = ((pHalData->RfRegChnlVal[0] & 0xfffff00) | channelToSW);
 	PHY_SetRFReg(padapter, ODM_RF_PATH_A, RF_CHNLBW, 0x3FF, pHalData->RfRegChnlVal[0]);
 	PHY_SetRFReg(padapter, ODM_RF_PATH_B, RF_CHNLBW, 0x3FF, pHalData->RfRegChnlVal[0]);
+<<<<<<< HEAD
 
 	DBG_8192C("===>phy_SwChnl8723B: Channel = %d\n", channelToSW);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void phy_SwChnlAndSetBwMode8723B(struct adapter *Adapter)

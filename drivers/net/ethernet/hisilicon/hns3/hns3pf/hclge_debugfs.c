@@ -468,6 +468,7 @@ static void hclge_dbg_dump_tc(struct hclge_dev *hdev)
 		hclge_print_tc_info(hdev, ets_weight->tc_weight[i], i);
 }
 
+<<<<<<< HEAD
 static void hclge_dbg_dump_tm_pg(struct hclge_dev *hdev)
 {
 	struct hclge_port_shapping_cmd *port_shap_cfg_cmd;
@@ -482,6 +483,20 @@ static void hclge_dbg_dump_tm_pg(struct hclge_dev *hdev)
 	ret = hclge_cmd_send(&hdev->hw, &desc, 1);
 	if (ret)
 		goto err_tm_pg_cmd_send;
+=======
+static int hclge_dbg_dump_tm_pg(struct hclge_dev *hdev, char *buf, int len)
+{
+	char data_str[ARRAY_SIZE(tm_pg_items)][HCLGE_DBG_DATA_STR_LEN];
+	struct hclge_tm_shaper_para c_shaper_para, p_shaper_para;
+	char *result[ARRAY_SIZE(tm_pg_items)], *sch_mode_str;
+	u8 pg_id, sch_mode, weight, pri_bit_map, i, j;
+	char content[HCLGE_DBG_TM_INFO_LEN];
+	int pos = 0;
+	int ret;
+
+	for (i = 0; i < ARRAY_SIZE(tm_pg_items); i++)
+		result[i] = &data_str[i][0];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pg_shap_cfg_cmd = (struct hclge_pg_shapping_cmd *)desc.data;
 	dev_info(&hdev->pdev->dev, "PG_C pg_id: %u\n", pg_shap_cfg_cmd->pg_id);
@@ -539,6 +554,7 @@ static void hclge_dbg_dump_tm_pg(struct hclge_dev *hdev)
 	if (ret)
 		goto err_tm_pg_cmd_send;
 
+<<<<<<< HEAD
 	dev_info(&hdev->pdev->dev, "QS_SCH qs_id: %u\n",
 		 le32_to_cpu(desc.data[0]));
 
@@ -629,6 +645,13 @@ static void hclge_dbg_dump_tm(struct hclge_dev *hdev)
 	pg_weight = (struct hclge_pg_weight_cmd *)desc.data;
 	dev_info(&hdev->pdev->dev, "PG pg_id: %u\n", pg_weight->pg_id);
 	dev_info(&hdev->pdev->dev, "PG dwrr: %u\n", pg_weight->dwrr);
+=======
+static int hclge_dbg_dump_tm_port(struct hclge_dev *hdev,  char *buf, int len)
+{
+	struct hclge_tm_shaper_para shaper_para;
+	int pos = 0;
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	cmd = HCLGE_OPC_TM_QS_WEIGHT;
 	hclge_cmd_setup_basic_desc(&desc, cmd, true);
@@ -833,8 +856,13 @@ static int hclge_dbg_dump_tm_nodes(struct hclge_dev *hdev, char *buf, int len)
 
 static int hclge_dbg_dump_tm_pri(struct hclge_dev *hdev, char *buf, int len)
 {
+<<<<<<< HEAD
 	struct hclge_pri_shaper_para c_shaper_para;
 	struct hclge_pri_shaper_para p_shaper_para;
+=======
+	struct hclge_tm_shaper_para c_shaper_para;
+	struct hclge_tm_shaper_para p_shaper_para;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 pri_num, sch_mode, weight;
 	char *sch_mode_str;
 	int pos = 0;

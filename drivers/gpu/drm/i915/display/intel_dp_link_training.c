@@ -172,7 +172,42 @@ int intel_dp_lttpr_init(struct intel_dp *intel_dp)
 
 	return lttpr_count;
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL(intel_dp_lttpr_init);
+=======
+
+/**
+ * intel_dp_init_lttpr_and_dprx_caps - detect LTTPR and DPRX caps, init the LTTPR link training mode
+ * @intel_dp: Intel DP struct
+ *
+ * Read the LTTPR common and DPRX capabilities and switch to non-transparent
+ * link training mode if any is detected and read the PHY capabilities for all
+ * detected LTTPRs. In case of an LTTPR detection error or if the number of
+ * LTTPRs is more than is supported (8), fall back to the no-LTTPR,
+ * transparent mode link training mode.
+ *
+ * Returns:
+ *   >0  if LTTPRs were detected and the non-transparent LT mode was set. The
+ *       DPRX capabilities are read out.
+ *    0  if no LTTPRs or more than 8 LTTPRs were detected or in case of a
+ *       detection failure and the transparent LT mode was set. The DPRX
+ *       capabilities are read out.
+ *   <0  Reading out the DPRX capabilities failed.
+ */
+int intel_dp_init_lttpr_and_dprx_caps(struct intel_dp *intel_dp)
+{
+	int lttpr_count = intel_dp_init_lttpr(intel_dp);
+
+	/* The DPTX shall read the DPRX caps after LTTPR detection. */
+	if (drm_dp_read_dpcd_caps(&intel_dp->aux, intel_dp->dpcd)) {
+		intel_dp_reset_lttpr_common_caps(intel_dp);
+		return -EIO;
+	}
+
+	return lttpr_count;
+}
+EXPORT_SYMBOL(intel_dp_init_lttpr_and_dprx_caps);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static u8 dp_voltage_max(u8 preemph)
 {

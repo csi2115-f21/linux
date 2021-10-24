@@ -512,9 +512,12 @@ st_gyro_device_register_error:
 		st_sensors_deallocate_trigger(indio_dev);
 st_gyro_probe_trigger_error:
 	st_gyro_deallocate_ring(indio_dev);
+<<<<<<< HEAD
 st_gyro_power_off:
 	st_sensors_power_disable(indio_dev);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return err;
 }
 EXPORT_SYMBOL(st_gyro_common_probe);

@@ -68,6 +68,10 @@ def raw_output(kernel_output) -> None:
 	for line in kernel_output:
 		print(line.rstrip())
 
+def raw_output(kernel_output) -> None:
+	for line in kernel_output:
+		print(line.rstrip())
+
 DIVIDER = '=' * 60
 
 RESET = '\033[0;0m'

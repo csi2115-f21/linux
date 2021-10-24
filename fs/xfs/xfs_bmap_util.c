@@ -645,6 +645,7 @@ xfs_free_eofblocks(
 	struct xfs_bmbt_irec	imap;
 	struct xfs_mount	*mp = ip->i_mount;
 
+<<<<<<< HEAD
 	/*
 	 * Figure out if there are any blocks beyond the end
 	 * of the file.  If not, then there is nothing to do.
@@ -654,6 +655,21 @@ xfs_free_eofblocks(
 	if (last_fsb <= end_fsb)
 		return 0;
 	map_len = last_fsb - end_fsb;
+=======
+	/* Attach the dquots to the inode up front. */
+	error = xfs_qm_dqattach(ip);
+	if (error)
+		return error;
+
+	/* Wait on dio to ensure i_size has settled. */
+	inode_dio_wait(VFS_I(ip));
+
+	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_itruncate, 0, 0, 0, &tp);
+	if (error) {
+		ASSERT(XFS_FORCED_SHUTDOWN(mp));
+		return error;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	nimaps = 1;
 	xfs_ilock(ip, XFS_ILOCK_SHARED);

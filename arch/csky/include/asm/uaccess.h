@@ -387,6 +387,7 @@ unsigned long raw_copy_to_user(void *to, const void *from, unsigned long n);
 unsigned long clear_user(void *to, unsigned long n);
 unsigned long __clear_user(void __user *to, unsigned long n);
 
+<<<<<<< HEAD
 long strncpy_from_user(char *dst, const char *src, long count);
 long __strncpy_from_user(char *dst, const char *src, long count);
 
@@ -405,5 +406,15 @@ struct exception_table_entry {
 };
 
 extern int fixup_exception(struct pt_regs *regs);
+=======
+long __strncpy_from_user(char *dst, const char *src, long count);
+#define __strncpy_from_user __strncpy_from_user
+
+long __strnlen_user(const char *s, long n);
+#define __strnlen_user __strnlen_user
+
+#include <asm/segment.h>
+#include <asm-generic/uaccess.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* __ASM_CSKY_UACCESS_H */

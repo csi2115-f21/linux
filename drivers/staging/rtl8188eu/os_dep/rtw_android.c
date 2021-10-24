@@ -10,7 +10,10 @@
 
 #include <rtw_android.h>
 #include <osdep_service.h>
+<<<<<<< HEAD
 #include <rtw_debug.h>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <rtw_ioctl_set.h>
 
 static const char *android_wifi_cmd_str[ANDROID_WIFI_CMD_MAX] = {
@@ -52,6 +55,7 @@ struct android_wifi_priv_cmd {
 	int total_len;
 };
 
+<<<<<<< HEAD
 /**
  * Local (static) functions and variables
  */
@@ -63,6 +67,9 @@ struct android_wifi_priv_cmd {
 static int g_wifi_on = true;
 
 int rtw_android_cmdstr_to_num(char *cmdstr)
+=======
+static int rtw_android_cmdstr_to_num(char *cmdstr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int cmd_num;
 
@@ -76,7 +83,11 @@ int rtw_android_cmdstr_to_num(char *cmdstr)
 static int rtw_android_get_rssi(struct net_device *net, char *command,
 				int total_len)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(net);
+=======
+	struct adapter *padapter = netdev_priv(net);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct	mlme_priv	*pmlmepriv = &padapter->mlmepriv;
 	struct	wlan_network	*pcur_network = &pmlmepriv->cur_network;
 	int bytes_written = 0;
@@ -93,7 +104,11 @@ static int rtw_android_get_rssi(struct net_device *net, char *command,
 static int rtw_android_get_link_speed(struct net_device *net, char *command,
 				      int total_len)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(net);
+=======
+	struct adapter *padapter = netdev_priv(net);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u16 link_speed;
 
 	link_speed = rtw_get_cur_max_rate(padapter) / 10;
@@ -111,7 +126,11 @@ static int rtw_android_get_macaddr(struct net_device *net, char *command,
 static int android_set_cntry(struct net_device *net, char *command,
 			     int total_len)
 {
+<<<<<<< HEAD
 	struct adapter *adapter = rtw_netdev_priv(net);
+=======
+	struct adapter *adapter = netdev_priv(net);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	char *country_code = command + strlen(android_wifi_cmd_str[ANDROID_WIFI_CMD_COUNTRY]) + 1;
 	int ret;
 
@@ -145,8 +164,11 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	if (IS_ERR(command))
 		return PTR_ERR(command);
 	command[priv_cmd.total_len - 1] = 0;
+<<<<<<< HEAD
 	DBG_88E("%s: Android private cmd \"%s\" on %s\n",
 		__func__, command, ifr->ifr_name);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cmd_num = rtw_android_cmdstr_to_num(command);
 	switch (cmd_num) {
 	case ANDROID_WIFI_CMD_START:
@@ -154,12 +176,15 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	case ANDROID_WIFI_CMD_SETFWPATH:
 		goto response;
 	}
+<<<<<<< HEAD
 	if (!g_wifi_on) {
 		DBG_88E("%s: Ignore private cmd \"%s\" - iface %s is down\n",
 			__func__, command, ifr->ifr_name);
 		ret = 0;
 		goto free;
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	switch (cmd_num) {
 	case ANDROID_WIFI_CMD_STOP:
 		break;
@@ -218,7 +243,10 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	case ANDROID_WIFI_CMD_P2P_SET_PS:
 		break;
 	default:
+<<<<<<< HEAD
 		DBG_88E("Unknown PRIVATE command %s - ignored\n", command);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snprintf(command, 3, "OK");
 		bytes_written = strlen("OK");
 	}
@@ -227,6 +255,7 @@ response:
 	if (bytes_written >= 0) {
 		if ((bytes_written == 0) && (priv_cmd.total_len > 0))
 			command[0] = '\0';
+<<<<<<< HEAD
 		if (bytes_written >= priv_cmd.total_len) {
 			DBG_88E("%s: bytes_written = %d\n", __func__,
 				bytes_written);
@@ -245,6 +274,19 @@ response:
 		ret = bytes_written;
 	}
 free:
+=======
+		if (bytes_written >= priv_cmd.total_len)
+			bytes_written = priv_cmd.total_len;
+		else
+			bytes_written++;
+		priv_cmd.used_len = bytes_written;
+		if (copy_to_user((char __user *)priv_cmd.buf, command,
+				 bytes_written))
+			ret = -EFAULT;
+	} else {
+		ret = bytes_written;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(command);
 	return ret;
 }

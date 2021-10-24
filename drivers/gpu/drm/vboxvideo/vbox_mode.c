@@ -379,11 +379,22 @@ static void vbox_cursor_atomic_update(struct drm_plane *plane,
 {
 	struct vbox_private *vbox =
 		container_of(plane->dev, struct vbox_private, ddev);
+<<<<<<< HEAD
 	struct vbox_crtc *vbox_crtc = to_vbox_crtc(plane->state->crtc);
 	struct drm_framebuffer *fb = plane->state->fb;
 	struct drm_gem_vram_object *gbo = drm_gem_vram_of_gem(fb->obj[0]);
 	u32 width = plane->state->crtc_w;
 	u32 height = plane->state->crtc_h;
+=======
+	struct vbox_crtc *vbox_crtc = to_vbox_crtc(new_state->crtc);
+	struct drm_framebuffer *fb = new_state->fb;
+	u32 width = new_state->crtc_w;
+	u32 height = new_state->crtc_h;
+	struct drm_shadow_plane_state *shadow_plane_state =
+		to_drm_shadow_plane_state(new_state);
+	struct dma_buf_map map = shadow_plane_state->map[0];
+	u8 *src = map.vaddr; /* TODO: Use mapping abstraction properly */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	size_t data_size, mask_size;
 	u32 flags;
 	struct dma_buf_map map;

@@ -472,6 +472,13 @@ static const struct v4l2_file_operations hantro_fops = {
 
 static const struct of_device_id of_hantro_match[] = {
 #ifdef CONFIG_VIDEO_HANTRO_ROCKCHIP
+<<<<<<< HEAD
+=======
+	{ .compatible = "rockchip,rk3036-vpu", .data = &rk3036_vpu_variant, },
+	{ .compatible = "rockchip,rk3066-vpu", .data = &rk3066_vpu_variant, },
+	{ .compatible = "rockchip,rk3288-vpu", .data = &rk3288_vpu_variant, },
+	{ .compatible = "rockchip,rk3328-vpu", .data = &rk3328_vpu_variant, },
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{ .compatible = "rockchip,rk3399-vpu", .data = &rk3399_vpu_variant, },
 	{ .compatible = "rockchip,rk3328-vpu", .data = &rk3328_vpu_variant, },
 	{ .compatible = "rockchip,rk3288-vpu", .data = &rk3288_vpu_variant, },
@@ -791,7 +798,21 @@ static int hantro_probe(struct platform_device *pdev)
 		if (!vpu->variant->irqs[i].handler)
 			continue;
 
+<<<<<<< HEAD
 		irq = platform_get_irq_byname(vpu->pdev, irq_name);
+=======
+		if (vpu->variant->num_clocks > 1) {
+			irq_name = vpu->variant->irqs[i].name;
+			irq = platform_get_irq_byname(vpu->pdev, irq_name);
+		} else {
+			/*
+			 * If the driver has a single IRQ, chances are there
+			 * will be no actual name in the DT bindings.
+			 */
+			irq_name = "default";
+			irq = platform_get_irq(vpu->pdev, 0);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (irq <= 0)
 			return -ENXIO;
 

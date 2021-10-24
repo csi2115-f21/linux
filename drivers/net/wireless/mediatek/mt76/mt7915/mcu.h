@@ -1023,6 +1023,7 @@ enum {
 	STA_REC_MAX_NUM
 };
 
+<<<<<<< HEAD
 enum mt7915_cipher_type {
 	MT_CIPHER_NONE,
 	MT_CIPHER_WEP40,
@@ -1035,6 +1036,19 @@ enum mt7915_cipher_type {
 	MT_CIPHER_GCMP_256,
 	MT_CIPHER_WAPI,
 	MT_CIPHER_BIP_CMAC_128,
+=======
+enum mcu_cipher_type {
+	MCU_CIPHER_WEP40 = 1,
+	MCU_CIPHER_WEP104,
+	MCU_CIPHER_WEP128,
+	MCU_CIPHER_TKIP,
+	MCU_CIPHER_AES_CCMP,
+	MCU_CIPHER_CCMP_256,
+	MCU_CIPHER_GCMP,
+	MCU_CIPHER_GCMP_256,
+	MCU_CIPHER_WAPI,
+	MCU_CIPHER_BIP_CMAC_128,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum {

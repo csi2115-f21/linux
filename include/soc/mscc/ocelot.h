@@ -692,6 +692,15 @@ struct ocelot_policer {
 	u32 burst; /* bytes */
 };
 
+struct ocelot_skb_cb {
+	struct sk_buff *clone;
+	u8 ptp_cmd;
+	u8 ts_id;
+};
+
+#define OCELOT_SKB_CB(skb) \
+	((struct ocelot_skb_cb *)((skb)->cb))
+
 #define ocelot_read_ix(ocelot, reg, gi, ri) __ocelot_read_ix(ocelot, reg, reg##_GSZ * (gi) + reg##_RSZ * (ri))
 #define ocelot_read_gix(ocelot, reg, gi) __ocelot_read_ix(ocelot, reg, reg##_GSZ * (gi))
 #define ocelot_read_rix(ocelot, reg, ri) __ocelot_read_ix(ocelot, reg, reg##_RSZ * (ri))
@@ -743,6 +752,8 @@ u32 __ocelot_target_read_ix(struct ocelot *ocelot, enum ocelot_target target,
 void __ocelot_target_write_ix(struct ocelot *ocelot, enum ocelot_target target,
 			      u32 val, u32 reg, u32 offset);
 
+#if IS_ENABLED(CONFIG_MSCC_OCELOT_SWITCH_LIB)
+
 /* Packet I/O */
 #if IS_ENABLED(CONFIG_MSCC_OCELOT_SWITCH_LIB)
 
@@ -752,6 +763,10 @@ void ocelot_port_inject_frame(struct ocelot *ocelot, int port, int grp,
 int ocelot_xtr_poll_frame(struct ocelot *ocelot, int grp, struct sk_buff **skb);
 void ocelot_drain_cpu_queue(struct ocelot *ocelot, int grp);
 
+<<<<<<< HEAD
+=======
+u32 ocelot_ptp_rew_op(struct sk_buff *skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 
 static inline bool ocelot_can_inject(struct ocelot *ocelot, int grp)
@@ -775,6 +790,13 @@ static inline void ocelot_drain_cpu_queue(struct ocelot *ocelot, int grp)
 {
 }
 
+<<<<<<< HEAD
+=======
+static inline u32 ocelot_ptp_rew_op(struct sk_buff *skb)
+{
+	return 0;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 /* Hardware initialization */

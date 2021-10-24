@@ -71,6 +71,18 @@ struct msm_gpu_funcs {
 	uint32_t (*get_rptr)(struct msm_gpu *gpu, struct msm_ringbuffer *ring);
 };
 
+<<<<<<< HEAD
+=======
+/* Additional state for iommu faults: */
+struct msm_gpu_fault_info {
+	u64 ttbr0;
+	unsigned long iova;
+	int flags;
+	const char *type;
+	const char *block;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct msm_gpu {
 	const char *name;
 	struct drm_device *dev;
@@ -151,6 +163,11 @@ struct msm_gpu {
 		u64 busy_cycles;
 		ktime_t time;
 	} devfreq;
+<<<<<<< HEAD
+=======
+
+	uint32_t suspend_count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	struct msm_gpu_state *crashstate;
 	/* True if the hardware supports expanded apriv (a650 and newer) */

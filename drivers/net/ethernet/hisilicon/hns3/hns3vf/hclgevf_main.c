@@ -2433,6 +2433,13 @@ static int hclgevf_configure(struct hclgevf_dev *hdev)
 {
 	int ret;
 
+<<<<<<< HEAD
+=======
+	ret = hclgevf_get_basic_info(hdev);
+	if (ret)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* get current port based vlan state from PF */
 	ret = hclgevf_get_port_base_vlan_filter_state(hdev);
 	if (ret)

@@ -598,7 +598,11 @@ static int ttm_bo_evict(struct ttm_buffer_object *bo,
 		goto out;
 	}
 
+<<<<<<< HEAD
 	ret = ttm_bo_handle_move_mem(bo, &evict_mem, true, ctx, &hop);
+=======
+	ret = ttm_bo_handle_move_mem(bo, evict_mem, true, ctx, &hop);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(ret)) {
 		WARN(ret == -EMULTIHOP, "Unexpected multihop in eviction - likely driver bug\n");
 		if (ret != -ERESTARTSYS)
@@ -938,17 +942,26 @@ error:
 EXPORT_SYMBOL(ttm_bo_mem_space);
 
 static int ttm_bo_bounce_temp_buffer(struct ttm_buffer_object *bo,
+<<<<<<< HEAD
 				     struct ttm_resource *mem,
+=======
+				     struct ttm_resource **mem,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				     struct ttm_operation_ctx *ctx,
 				     struct ttm_place *hop)
 {
 	struct ttm_placement hop_placement;
+<<<<<<< HEAD
 	int ret;
 	struct ttm_resource hop_mem = *mem;
 
 	hop_mem.mm_node = NULL;
 	hop_mem.mem_type = TTM_PL_SYSTEM;
 	hop_mem.placement = 0;
+=======
+	struct ttm_resource *hop_mem;
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	hop_placement.num_placement = hop_placement.num_busy_placement = 1;
 	hop_placement.placement = hop_placement.busy_placement = hop;
@@ -958,7 +971,11 @@ static int ttm_bo_bounce_temp_buffer(struct ttm_buffer_object *bo,
 	if (ret)
 		return ret;
 	/* move to the bounce domain */
+<<<<<<< HEAD
 	ret = ttm_bo_handle_move_mem(bo, &hop_mem, false, ctx, NULL);
+=======
+	ret = ttm_bo_handle_move_mem(bo, hop_mem, false, ctx, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		ttm_resource_free(bo, &hop_mem);
 		return ret;
@@ -1451,9 +1468,13 @@ int ttm_bo_swapout(struct ttm_operation_ctx *ctx)
 	}
 
 	if (bo->deleted) {
-		ret = ttm_bo_cleanup_refs(bo, false, false, locked);
+		ttm_bo_cleanup_refs(bo, false, false, locked);
 		ttm_bo_put(bo);
+<<<<<<< HEAD
 		return ret;
+=======
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ttm_bo_del_from_lru(bo);

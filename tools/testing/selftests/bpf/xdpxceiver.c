@@ -98,14 +98,26 @@ typedef __u16 __sum16;
 
 static void __exit_with_error(int error, const char *file, const char *func, int line)
 {
+<<<<<<< HEAD
 	ksft_test_result_fail
 	    ("[%s:%s:%i]: ERROR: %d/\"%s\"\n", file, func, line, error, strerror(error));
 	ksft_exit_xfail();
+=======
+	if (configured_mode == TEST_MODE_UNCONFIGURED) {
+		ksft_exit_fail_msg
+		("[%s:%s:%i]: ERROR: %d/\"%s\"\n", file, func, line, error, strerror(error));
+	} else {
+		ksft_test_result_fail
+		("[%s:%s:%i]: ERROR: %d/\"%s\"\n", file, func, line, error, strerror(error));
+		ksft_exit_xfail();
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #define exit_with_error(error) __exit_with_error(error, __FILE__, __func__, __LINE__)
 
 #define print_ksft_result(void)\
+<<<<<<< HEAD
 	(ksft_test_result_pass("PASS: %s %s %s%s\n", uut ? "DRV" : "SKB", opt_poll ? "POLL" :\
 			       "NOPOLL", opt_teardown ? "Socket Teardown" : "",\
 			       opt_bidi ? "Bi-directional Sockets" : ""))
@@ -125,6 +137,14 @@ static void pthread_destroy_mutex(void)
 	pthread_cond_destroy(&signal_rx_condition);
 	pthread_cond_destroy(&signal_tx_condition);
 }
+=======
+	(ksft_test_result_pass("PASS: %s %s %s%s%s%s\n", configured_mode ? "DRV" : "SKB",\
+			       test_type == TEST_TYPE_POLL ? "POLL" : "NOPOLL",\
+			       test_type == TEST_TYPE_TEARDOWN ? "Socket Teardown" : "",\
+			       test_type == TEST_TYPE_BIDI ? "Bi-directional Sockets" : "",\
+			       test_type == TEST_TYPE_STATS ? "Stats" : "",\
+			       test_type == TEST_TYPE_BPF_RES ? "BPF RES" : ""))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static void *memset32_htonl(void *dest, u32 val, u32 size)
 {
@@ -140,6 +160,7 @@ static void *memset32_htonl(void *dest, u32 val, u32 size)
 		((char *)dest)[i] = ((char *)&val)[i & 3];
 
 	return dest;
+<<<<<<< HEAD
 }
 
 /*
@@ -153,6 +174,8 @@ static inline unsigned short from32to16(unsigned int x)
 	/* add up carry.. */
 	x = (x & 0xffff) + (x >> 16);
 	return x;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -267,8 +290,22 @@ static void gen_eth_frame(struct xsk_umem_info *umem, u64 addr)
 	memcpy(xsk_umem__get_data(umem->buffer, addr), pkt_data, PKT_SIZE);
 }
 
+<<<<<<< HEAD
 static void xsk_configure_umem(struct ifobject *data, void *buffer, u64 size)
 {
+=======
+static void xsk_configure_umem(struct ifobject *data, void *buffer, int idx)
+{
+	struct xsk_umem_config cfg = {
+		.fill_size = XSK_RING_PROD__DEFAULT_NUM_DESCS,
+		.comp_size = XSK_RING_CONS__DEFAULT_NUM_DESCS,
+		.frame_size = XSK_UMEM__DEFAULT_FRAME_SIZE,
+		.frame_headroom = frame_headroom,
+		.flags = XSK_UMEM__DEFAULT_FLAGS
+	};
+	int size = num_frames * XSK_UMEM__DEFAULT_FRAME_SIZE;
+	struct xsk_umem_info *umem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	data->umem = calloc(1, sizeof(struct xsk_umem_info));
@@ -334,6 +371,7 @@ static int xsk_configure_socket(struct ifobject *ifobject)
 static struct option long_options[] = {
 	{"interface", required_argument, 0, 'i'},
 	{"queue", optional_argument, 0, 'q'},
+<<<<<<< HEAD
 	{"poll", no_argument, 0, 'p'},
 	{"xdp-skb", no_argument, 0, 'S'},
 	{"xdp-native", no_argument, 0, 'N'},
@@ -341,6 +379,10 @@ static struct option long_options[] = {
 	{"tear-down", no_argument, 0, 'T'},
 	{"bidi", optional_argument, 0, 'B'},
 	{"debug", optional_argument, 0, 'D'},
+=======
+	{"dump-pkts", optional_argument, 0, 'D'},
+	{"verbose", no_argument, 0, 'v'},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{"tx-pkt-count", optional_argument, 0, 'C'},
 	{0, 0, 0, 0}
 };
@@ -352,6 +394,7 @@ static void usage(const char *prog)
 	    "  Options:\n"
 	    "  -i, --interface      Use interface\n"
 	    "  -q, --queue=n        Use queue n (default 0)\n"
+<<<<<<< HEAD
 	    "  -p, --poll           Use poll syscall\n"
 	    "  -S, --xdp-skb=n      Use XDP SKB mode\n"
 	    "  -N, --xdp-native=n   Enforce XDP DRV (native) mode\n"
@@ -359,6 +402,10 @@ static void usage(const char *prog)
 	    "  -T, --tear-down      Tear down sockets by repeatedly recreating them\n"
 	    "  -B, --bidi           Bi-directional sockets test\n"
 	    "  -D, --debug          Debug mode - dump packets L2 - L5\n"
+=======
+	    "  -D, --dump-pkts      Dump packets L2 - L5\n"
+	    "  -v, --verbose        Verbose output\n"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	    "  -C, --tx-pkt-count=n Number of packets to send\n";
 	ksft_print_msg(str, prog);
 }
@@ -446,7 +493,11 @@ static void parse_command_line(int argc, char **argv)
 	opterr = 0;
 
 	for (;;) {
+<<<<<<< HEAD
 		c = getopt_long(argc, argv, "i:q:pSNcTBDC:", long_options, &option_index);
+=======
+		c = getopt_long(argc, argv, "i:DC:v", long_options, &option_index);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (c == -1)
 			break;
@@ -493,14 +544,28 @@ static void parse_command_line(int argc, char **argv)
 			break;
 		case 'D':
 			debug_pkt_dump = 1;
+<<<<<<< HEAD
 			break;
 		case 'C':
 			opt_pkt_count = atoi(optarg);
+=======
+			break;
+		case 'C':
+			opt_pkt_count = atoi(optarg);
+			break;
+		case 'v':
+			opt_verbose = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		default:
 			usage(basename(argv[0]));
 			ksft_exit_xfail();
 		}
+	}
+
+	if (!opt_pkt_count) {
+		print_verbose("No tx-pkt-count specified, using default %u\n", DEFAULT_PKT_CNT);
+		opt_pkt_count = DEFAULT_PKT_CNT;
 	}
 
 	if (!validate_interfaces()) {
@@ -519,7 +584,11 @@ static void kick_tx(struct xsk_socket_info *xsk)
 	exit_with_error(errno);
 }
 
+<<<<<<< HEAD
 static inline void complete_tx_only(struct xsk_socket_info *xsk, int batch_size)
+=======
+static void complete_tx_only(struct xsk_socket_info *xsk, int batch_size)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned int rcvd;
 	u32 idx;
@@ -581,10 +650,17 @@ static void rx_pkt(struct xsk_socket_info *xsk, struct pollfd *fds)
 		pkt_node_rx->pkt_frame = malloc(PKT_SIZE);
 		if (!pkt_node_rx->pkt_frame)
 			exit_with_error(errno);
+<<<<<<< HEAD
 
 		memcpy(pkt_node_rx->pkt_frame, xsk_umem__get_data(xsk->umem->buffer, addr),
 		       PKT_SIZE);
 
+=======
+
+		memcpy(pkt_node_rx->pkt_frame, xsk_umem__get_data(xsk->umem->buffer, addr),
+		       PKT_SIZE);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		TAILQ_INSERT_HEAD(&head, pkt_node_rx, pkt_nodes);
 
 		*xsk_ring_prod__fill_addr(&xsk->umem->fq, idx_fq++) = orig;
@@ -597,8 +673,15 @@ static void rx_pkt(struct xsk_socket_info *xsk, struct pollfd *fds)
 
 static void tx_only(struct xsk_socket_info *xsk, u32 *frameptr, int batch_size)
 {
+<<<<<<< HEAD
 	u32 idx;
 	unsigned int i;
+=======
+	u32 idx = 0;
+	unsigned int i;
+	bool tx_invalid_test = stat_test_type == STAT_TEST_TX_INVALID;
+	u32 len = tx_invalid_test ? XSK_UMEM__DEFAULT_FRAME_SIZE + 1 : PKT_SIZE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	while (xsk_ring_prod__reserve(&xsk->tx, batch_size, &idx) < batch_size)
 		complete_tx_only(xsk, batch_size);
@@ -607,16 +690,29 @@ static void tx_only(struct xsk_socket_info *xsk, u32 *frameptr, int batch_size)
 		struct xdp_desc *tx_desc = xsk_ring_prod__tx_desc(&xsk->tx, idx + i);
 
 		tx_desc->addr = (*frameptr + i) << XSK_UMEM__DEFAULT_FRAME_SHIFT;
+<<<<<<< HEAD
 		tx_desc->len = PKT_SIZE;
 	}
 
 	xsk_ring_prod__submit(&xsk->tx, batch_size);
 	xsk->outstanding_tx += batch_size;
+=======
+		tx_desc->len = len;
+	}
+
+	xsk_ring_prod__submit(&xsk->tx, batch_size);
+	if (!tx_invalid_test) {
+		xsk->outstanding_tx += batch_size;
+	} else if (xsk_ring_prod__needs_wakeup(&xsk->tx)) {
+		kick_tx(xsk);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	*frameptr += batch_size;
 	*frameptr %= num_frames;
 	complete_tx_only(xsk, batch_size);
 }
 
+<<<<<<< HEAD
 static inline int get_batch_size(int pkt_cnt)
 {
 	if (!opt_pkt_count)
@@ -625,6 +721,16 @@ static inline int get_batch_size(int pkt_cnt)
 	if (pkt_cnt + BATCH_SIZE <= opt_pkt_count)
 		return BATCH_SIZE;
 
+=======
+static int get_batch_size(int pkt_cnt)
+{
+	if (!opt_pkt_count)
+		return BATCH_SIZE;
+
+	if (pkt_cnt + BATCH_SIZE <= opt_pkt_count)
+		return BATCH_SIZE;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return opt_pkt_count - pkt_cnt;
 }
 
@@ -654,7 +760,11 @@ static void tx_only_all(struct ifobject *ifobject)
 	while ((opt_pkt_count && pkt_cnt < opt_pkt_count) || !opt_pkt_count) {
 		int batch_size = get_batch_size(pkt_cnt);
 
+<<<<<<< HEAD
 		if (opt_poll) {
+=======
+		if (test_type == TEST_TYPE_POLL) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			ret = poll(fds, 1, POLL_TMOUT);
 			if (ret <= 0)
 				continue;
@@ -672,6 +782,7 @@ static void tx_only_all(struct ifobject *ifobject)
 }
 
 static void worker_pkt_dump(void)
+<<<<<<< HEAD
 {
 	struct in_addr ipaddr;
 
@@ -720,6 +831,93 @@ static void worker_pkt_dump(void)
 		}
 		fprintf(stdout, "DEBUG>> L5: payload: %d\n", payload);
 		fprintf(stdout, "---------------------------------------\n");
+=======
+{
+	struct ethhdr *ethhdr;
+	struct iphdr *iphdr;
+	struct udphdr *udphdr;
+	char s[128];
+	int payload;
+	void *ptr;
+
+	fprintf(stdout, "---------------------------------------\n");
+	for (int iter = 0; iter < num_frames - 1; iter++) {
+		ptr = pkt_buf[iter]->payload;
+		ethhdr = ptr;
+		iphdr = ptr + sizeof(*ethhdr);
+		udphdr = ptr + sizeof(*ethhdr) + sizeof(*iphdr);
+
+		/*extract L2 frame */
+		fprintf(stdout, "DEBUG>> L2: dst mac: ");
+		for (int i = 0; i < ETH_ALEN; i++)
+			fprintf(stdout, "%02X", ethhdr->h_dest[i]);
+
+		fprintf(stdout, "\nDEBUG>> L2: src mac: ");
+		for (int i = 0; i < ETH_ALEN; i++)
+			fprintf(stdout, "%02X", ethhdr->h_source[i]);
+
+		/*extract L3 frame */
+		fprintf(stdout, "\nDEBUG>> L3: ip_hdr->ihl: %02X\n", iphdr->ihl);
+		fprintf(stdout, "DEBUG>> L3: ip_hdr->saddr: %s\n",
+			inet_ntop(AF_INET, &iphdr->saddr, s, sizeof(s)));
+		fprintf(stdout, "DEBUG>> L3: ip_hdr->daddr: %s\n",
+			inet_ntop(AF_INET, &iphdr->daddr, s, sizeof(s)));
+		/*extract L4 frame */
+		fprintf(stdout, "DEBUG>> L4: udp_hdr->src: %d\n", ntohs(udphdr->source));
+		fprintf(stdout, "DEBUG>> L4: udp_hdr->dst: %d\n", ntohs(udphdr->dest));
+		/*extract L5 frame */
+		payload = *((uint32_t *)(ptr + PKT_HDR_SIZE));
+
+		if (payload == EOT) {
+			print_verbose("End-of-transmission frame received\n");
+			fprintf(stdout, "---------------------------------------\n");
+			break;
+		}
+		fprintf(stdout, "DEBUG>> L5: payload: %d\n", payload);
+		fprintf(stdout, "---------------------------------------\n");
+	}
+}
+
+static void worker_stats_validate(struct ifobject *ifobject)
+{
+	struct xdp_statistics stats;
+	socklen_t optlen;
+	int err;
+	struct xsk_socket *xsk = stat_test_type == STAT_TEST_TX_INVALID ?
+							ifdict[!ifobject->ifdict_index]->xsk->xsk :
+							ifobject->xsk->xsk;
+	int fd = xsk_socket__fd(xsk);
+	unsigned long xsk_stat = 0, expected_stat = opt_pkt_count;
+
+	sigvar = 0;
+
+	optlen = sizeof(stats);
+	err = getsockopt(fd, SOL_XDP, XDP_STATISTICS, &stats, &optlen);
+	if (err)
+		return;
+
+	if (optlen == sizeof(struct xdp_statistics)) {
+		switch (stat_test_type) {
+		case STAT_TEST_RX_DROPPED:
+			xsk_stat = stats.rx_dropped;
+			break;
+		case STAT_TEST_TX_INVALID:
+			xsk_stat = stats.tx_invalid_descs;
+			break;
+		case STAT_TEST_RX_FULL:
+			xsk_stat = stats.rx_ring_full;
+			expected_stat -= RX_FULL_RXQSIZE;
+			break;
+		case STAT_TEST_RX_FILL_EMPTY:
+			xsk_stat = stats.rx_fill_ring_empty_descs;
+			break;
+		default:
+			break;
+		}
+
+		if (xsk_stat == expected_stat)
+			sigvar = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -727,6 +925,7 @@ static void worker_pkt_validate(void)
 {
 	u32 payloadseqnum = -2;
 	struct iphdr *iphdr;
+<<<<<<< HEAD
 
 	while (1) {
 		pkt_node_rx_q = TAILQ_LAST(&head, head_s);
@@ -747,6 +946,30 @@ static void worker_pkt_validate(void)
 
 			if (payloadseqnum == EOT) {
 				ksft_print_msg("End-of-transmission frame received: PASS\n");
+				sigvar = 1;
+				break;
+			}
+=======
+
+	while (1) {
+		pkt_node_rx_q = TAILQ_LAST(&head, head_s);
+		if (!pkt_node_rx_q)
+			break;
+
+		iphdr = (struct iphdr *)(pkt_node_rx_q->pkt_frame + sizeof(struct ethhdr));
+
+		/*do not increment pktcounter if !(tos=0x9 and ipv4) */
+		if (iphdr->version == IP_PKT_VER && iphdr->tos == IP_PKT_TOS) {
+			payloadseqnum = *((uint32_t *)(pkt_node_rx_q->pkt_frame + PKT_HDR_SIZE));
+			if (debug_pkt_dump && payloadseqnum != EOT) {
+				pkt_obj = malloc(sizeof(*pkt_obj));
+				pkt_obj->payload = malloc(PKT_SIZE);
+				memcpy(pkt_obj->payload, pkt_node_rx_q->pkt_frame, PKT_SIZE);
+				pkt_buf[payloadseqnum] = pkt_obj;
+			}
+
+			if (payloadseqnum == EOT) {
+				print_verbose("End-of-transmission frame received: PASS\n");
 				sigvar = 1;
 				break;
 			}
@@ -773,9 +996,76 @@ static void worker_pkt_validate(void)
 	}
 }
 
+static void thread_common_ops(struct ifobject *ifobject, void *bufs)
+{
+	int umem_sz = num_frames * XSK_UMEM__DEFAULT_FRAME_SIZE;
+	int ctr = 0;
+	int ret;
+
+	ifobject->ns_fd = switch_namespace(ifobject->nsname);
+
+	if (test_type == TEST_TYPE_BPF_RES)
+		umem_sz *= 2;
+
+	bufs = mmap(NULL, umem_sz,
+		    PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (bufs == MAP_FAILED)
+		exit_with_error(errno);
+
+	xsk_configure_umem(ifobject, bufs, 0);
+	ifobject->umem = ifobject->umem_arr[0];
+	ret = xsk_configure_socket(ifobject, 0);
+
+	/* Retry Create Socket if it fails as xsk_socket__create()
+	 * is asynchronous
+	 */
+	while (ret && ctr < SOCK_RECONF_CTR) {
+		xsk_configure_umem(ifobject, bufs, 0);
+		ifobject->umem = ifobject->umem_arr[0];
+		ret = xsk_configure_socket(ifobject, 0);
+		usleep(USLEEP_MAX);
+		ctr++;
+	}
+
+	if (ctr >= SOCK_RECONF_CTR)
+		exit_with_error(ret);
+
+	ifobject->umem = ifobject->umem_arr[0];
+	ifobject->xsk = ifobject->xsk_arr[0];
+
+	if (test_type == TEST_TYPE_BPF_RES) {
+		xsk_configure_umem(ifobject, (u8 *)bufs + (umem_sz / 2), 1);
+		ifobject->umem = ifobject->umem_arr[1];
+		ret = xsk_configure_socket(ifobject, 1);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+			if (prev_pkt + 1 != payloadseqnum) {
+				ksft_test_result_fail
+				    ("ERROR: [%s] prev_pkt [%d], payloadseqnum [%d]\n",
+				     __func__, prev_pkt, payloadseqnum);
+				ksft_exit_xfail();
+			}
+
+			prev_pkt = payloadseqnum;
+			pkt_counter++;
+		} else {
+			ksft_print_msg("Invalid frame received: ");
+			ksft_print_msg("[IP_PKT_VER: %02X], [IP_PKT_TOS: %02X]\n", iphdr->version,
+				       iphdr->tos);
+		}
+
+		TAILQ_REMOVE(&head, pkt_node_rx_q, pkt_nodes);
+		free(pkt_node_rx_q->pkt_frame);
+		free(pkt_node_rx_q);
+		pkt_node_rx_q = NULL;
+	}
+}
+
 static void thread_common_ops(struct ifobject *ifobject, void *bufs, pthread_mutex_t *mutexptr,
 			      atomic_int *spinningptr)
 {
+<<<<<<< HEAD
 	int ctr = 0;
 	int ret;
 
@@ -798,6 +1088,35 @@ static void thread_common_ops(struct ifobject *ifobject, void *bufs, pthread_mut
 	}
 	atomic_store(spinningptr, 0);
 	pthread_mutex_unlock(mutexptr);
+=======
+	struct udphdr *udp_hdr =
+	    (struct udphdr *)(pkt_data + sizeof(struct ethhdr) + sizeof(struct iphdr));
+	struct iphdr *ip_hdr = (struct iphdr *)(pkt_data + sizeof(struct ethhdr));
+	struct ethhdr *eth_hdr = (struct ethhdr *)pkt_data;
+	struct ifobject *ifobject = (struct ifobject *)arg;
+	struct generic_data data;
+	void *bufs = NULL;
+
+	if (!second_step)
+		thread_common_ops(ifobject, bufs);
+
+	for (int i = 0; i < num_frames; i++) {
+		/*send EOT frame */
+		if (i == (num_frames - 1))
+			data.seqnum = -1;
+		else
+			data.seqnum = i;
+		gen_udp_hdr(&data, ifobject, udp_hdr);
+		gen_ip_hdr(ifobject, ip_hdr);
+		gen_udp_csum(udp_hdr, ip_hdr);
+		gen_eth_hdr(ifobject, eth_hdr);
+		gen_eth_frame(ifobject->umem, i * XSK_UMEM__DEFAULT_FRAME_SIZE);
+	}
+
+	print_verbose("Sending %d packets on interface %s\n",
+		      (opt_pkt_count - 1), ifobject->ifname);
+	tx_only_all(ifobject);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (ctr >= SOCK_RECONF_CTR)
 		exit_with_error(ret);
@@ -821,15 +1140,43 @@ static void *worker_testapp_validate(void *arg)
 		if (bufs == MAP_FAILED)
 			exit_with_error(errno);
 
+<<<<<<< HEAD
 		if (strcmp(ifobject->nsname, ""))
 			switch_namespace(ifobject->ifdict_index);
 	}
+=======
+	TAILQ_INIT(&head);
+	if (debug_pkt_dump) {
+		pkt_buf = calloc(num_frames, sizeof(*pkt_buf));
+		if (!pkt_buf)
+			exit_with_error(errno);
+	}
+
+	fds[0].fd = xsk_socket__fd(ifobject->xsk->xsk);
+	fds[0].events = POLLIN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (ifobject->fv.vector == tx) {
 		int spinningrxctr = 0;
 
+<<<<<<< HEAD
 		if (!bidi_pass)
 			thread_common_ops(ifobject, bufs, &sync_mutex_tx, &spinning_tx);
+=======
+	while (1) {
+		if (test_type != TEST_TYPE_STATS) {
+			rx_pkt(ifobject->xsk, fds);
+			worker_pkt_validate();
+		} else {
+			worker_stats_validate(ifobject);
+		}
+		if (sigvar)
+			break;
+	}
+
+	print_verbose("Received %d packets on interface %s\n",
+		      pkt_counter, ifobject->ifname);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		while (atomic_load(&spinning_rx) && spinningrxctr < SOCK_RECONF_CTR) {
 			spinningrxctr++;
@@ -850,16 +1197,24 @@ static void *worker_testapp_validate(void *arg)
 			gen_eth_frame(ifobject->umem, i * XSK_UMEM__DEFAULT_FRAME_SIZE);
 		}
 
+<<<<<<< HEAD
 		ksft_print_msg("Sending %d packets on interface %s\n",
 			       (opt_pkt_count - 1), ifobject->ifname);
 		tx_only_all(ifobject);
 	} else if (ifobject->fv.vector == rx) {
 		struct pollfd fds[MAX_SOCKS] = { };
 		int ret;
+=======
+static void testapp_validate(void)
+{
+	bool bidi = test_type == TEST_TYPE_BIDI;
+	bool bpf = test_type == TEST_TYPE_BPF_RES;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (!bidi_pass)
 			thread_common_ops(ifobject, bufs, &sync_mutex_tx, &spinning_rx);
 
+<<<<<<< HEAD
 		ksft_print_msg("Interface [%s] vector [Rx]\n", ifobject->ifname);
 		xsk_populate_fill_ring(ifobject->umem);
 
@@ -869,6 +1224,10 @@ static void *worker_testapp_validate(void *arg)
 			if (!pkt_buf)
 				exit_with_error(errno);
 		}
+=======
+	/*Spawn RX thread */
+	pthread_create(&t0, NULL, ifdict_rx->func_ptr, ifdict_rx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		fds[0].fd = xsk_socket__fd(ifobject->xsk->xsk);
 		fds[0].events = POLLIN;
@@ -886,15 +1245,39 @@ static void *worker_testapp_validate(void *arg)
 			rx_pkt(ifobject->xsk, fds);
 			worker_pkt_validate();
 
+<<<<<<< HEAD
 			if (sigvar)
 				break;
 		}
+=======
+	if (debug_pkt_dump && test_type != TEST_TYPE_STATS) {
+		worker_pkt_dump();
+		for (int iter = 0; iter < num_frames - 1; iter++) {
+			free(pkt_buf[iter]->payload);
+			free(pkt_buf[iter]);
+		}
+		free(pkt_buf);
+	}
+
+	if (!(test_type == TEST_TYPE_TEARDOWN) && !bidi && !bpf && !(test_type == TEST_TYPE_STATS))
+		print_ksft_result();
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		ksft_print_msg("Received %d packets on interface %s\n",
 			       pkt_counter, ifobject->ifname);
 
+<<<<<<< HEAD
 		if (opt_teardown)
 			ksft_print_msg("Destroying socket\n");
+=======
+	for (i = 0; i < MAX_TEARDOWN_ITER; i++) {
+		pkt_counter = 0;
+		prev_pkt = -1;
+		sigvar = 0;
+		print_verbose("Creating socket\n");
+		testapp_validate();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (!opt_bidi || bidi_pass) {
@@ -911,16 +1294,31 @@ static void testapp_validate(void)
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, THREAD_STACK);
 
+<<<<<<< HEAD
 	if (opt_bidi && bidi_pass) {
 		pthread_init_mutex();
 		if (!switching_notify) {
 			ksft_print_msg("Switching Tx/Rx vectors\n");
 			switching_notify++;
+=======
+static void testapp_bidi(void)
+{
+	for (int i = 0; i < MAX_BIDI_ITER; i++) {
+		pkt_counter = 0;
+		prev_pkt = -1;
+		sigvar = 0;
+		print_verbose("Creating socket\n");
+		testapp_validate();
+		if (!second_step) {
+			print_verbose("Switching Tx/Rx vectors\n");
+			swap_vectors(ifdict[1], ifdict[0]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
 	pthread_mutex_lock(&sync_mutex);
 
+<<<<<<< HEAD
 	/*Spawn RX thread */
 	if (!opt_bidi || !bidi_pass) {
 		if (pthread_create(&t0, &attr, worker_testapp_validate, ifdict[1]))
@@ -930,6 +1328,17 @@ static void testapp_validate(void)
 		ifdict[0]->fv.vector = rx;
 		if (pthread_create(&t0, &attr, worker_testapp_validate, ifdict[0]))
 			exit_with_error(errno);
+=======
+	for (i = 0; i < MAX_BPF_ITER; i++) {
+		pkt_counter = 0;
+		prev_pkt = -1;
+		sigvar = 0;
+		print_verbose("Creating socket\n");
+		testapp_validate();
+		if (!second_step)
+			swap_xsk_res();
+		second_step = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (clock_gettime(CLOCK_REALTIME, &max_wait))
@@ -941,6 +1350,7 @@ static void testapp_validate(void)
 
 	pthread_mutex_unlock(&sync_mutex);
 
+<<<<<<< HEAD
 	/*Spawn TX thread */
 	if (!opt_bidi || !bidi_pass) {
 		if (pthread_create(&t1, &attr, worker_testapp_validate, ifdict[0]))
@@ -950,6 +1360,20 @@ static void testapp_validate(void)
 		ifdict[1]->fv.vector = tx;
 		if (pthread_create(&t1, &attr, worker_testapp_validate, ifdict[1]))
 			exit_with_error(errno);
+=======
+		switch (stat_test_type) {
+		case STAT_TEST_RX_DROPPED:
+			frame_headroom = XSK_UMEM__DEFAULT_FRAME_SIZE -
+						XDP_PACKET_HEADROOM - 1;
+			break;
+		case STAT_TEST_RX_FULL:
+			rxqsize = RX_FULL_RXQSIZE;
+			break;
+		default:
+			break;
+		}
+		testapp_validate();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	pthread_join(t1, NULL);
@@ -970,14 +1394,57 @@ static void testapp_validate(void)
 
 static void testapp_sockets(void)
 {
+<<<<<<< HEAD
 	for (int i = 0; i < (opt_teardown ? MAX_TEARDOWN_ITER : MAX_BIDI_ITER); i++) {
 		pkt_counter = 0;
 		prev_pkt = -1;
 		sigvar = 0;
 		ksft_print_msg("Creating socket\n");
+=======
+	test_type = type;
+
+	/* reset defaults after potential previous test */
+	xdp_flags = XDP_FLAGS_UPDATE_IF_NOEXIST;
+	pkt_counter = 0;
+	second_step = 0;
+	prev_pkt = -1;
+	sigvar = 0;
+	stat_test_type = -1;
+	rxqsize = XSK_RING_CONS__DEFAULT_NUM_DESCS;
+	frame_headroom = XSK_UMEM__DEFAULT_FRAME_HEADROOM;
+
+	configured_mode = mode;
+
+	switch (mode) {
+	case (TEST_MODE_SKB):
+		xdp_flags |= XDP_FLAGS_SKB_MODE;
+		break;
+	case (TEST_MODE_DRV):
+		xdp_flags |= XDP_FLAGS_DRV_MODE;
+		break;
+	default:
+		break;
+	}
+
+	switch (test_type) {
+	case TEST_TYPE_STATS:
+		testapp_stats();
+		break;
+	case TEST_TYPE_TEARDOWN:
+		testapp_teardown();
+		break;
+	case TEST_TYPE_BIDI:
+		testapp_bidi();
+		break;
+	case TEST_TYPE_BPF_RES:
+		testapp_bpf_res();
+		break;
+	default:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		testapp_validate();
 		opt_bidi ? bidi_pass++ : bidi_pass;
 	}
+<<<<<<< HEAD
 
 	print_ksft_result();
 }
@@ -1001,15 +1468,23 @@ static void init_iface_config(struct ifaceconfigobj *ifaceconfig)
 	ifdict[1]->src_ip = ifaceconfig->dst_ip.s_addr;
 	ifdict[1]->dst_port = ifaceconfig->src_port;
 	ifdict[1]->src_port = ifaceconfig->dst_port;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int main(int argc, char **argv)
 {
 	struct rlimit _rlim = { RLIM_INFINITY, RLIM_INFINITY };
+<<<<<<< HEAD
+=======
+	bool failure = false;
+	int i, j;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (setrlimit(RLIMIT_MEMLOCK, &_rlim))
 		exit_with_error(errno);
 
+<<<<<<< HEAD
 	const char *MAC1 = "\x00\x0A\x56\x9E\xEE\x62";
 	const char *MAC2 = "\x00\x0A\x56\x9E\xEE\x61";
 	const char *IP1 = "192.168.100.162";
@@ -1025,12 +1500,27 @@ int main(int argc, char **argv)
 	ifaceconfig->dst_port = UDP_DST_PORT;
 	ifaceconfig->src_port = UDP_SRC_PORT;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (int i = 0; i < MAX_INTERFACES; i++) {
 		ifdict[i] = malloc(sizeof(struct ifobject));
 		if (!ifdict[i])
 			exit_with_error(errno);
 
 		ifdict[i]->ifdict_index = i;
+<<<<<<< HEAD
+=======
+		ifdict[i]->xsk_arr = calloc(2, sizeof(struct xsk_socket_info *));
+		if (!ifdict[i]->xsk_arr) {
+			failure = true;
+			goto cleanup;
+		}
+		ifdict[i]->umem_arr = calloc(2, sizeof(struct xsk_umem_info *));
+		if (!ifdict[i]->umem_arr) {
+			failure = true;
+			goto cleanup;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	setlocale(LC_ALL, "");
@@ -1038,9 +1528,16 @@ int main(int argc, char **argv)
 	parse_command_line(argc, argv);
 
 	num_frames = ++opt_pkt_count;
+<<<<<<< HEAD
+=======
+
+	init_iface(ifdict[0], MAC1, MAC2, IP1, IP2, UDP_PORT1, UDP_PORT2, tx);
+	init_iface(ifdict[1], MAC2, MAC1, IP2, IP1, UDP_PORT2, UDP_PORT1, rx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	init_iface_config(ifaceconfig);
 
+<<<<<<< HEAD
 	pthread_init_mutex();
 
 	ksft_set_plan(1);
@@ -1058,6 +1555,24 @@ int main(int argc, char **argv)
 		free(ifdict[i]);
 
 	pthread_destroy_mutex();
+=======
+	for (i = 0; i < TEST_MODE_MAX; i++) {
+		for (j = 0; j < TEST_TYPE_MAX; j++)
+			run_pkt_test(i, j);
+	}
+
+cleanup:
+	for (int i = 0; i < MAX_INTERFACES; i++) {
+		if (ifdict[i]->ns_fd != -1)
+			close(ifdict[i]->ns_fd);
+		free(ifdict[i]->xsk_arr);
+		free(ifdict[i]->umem_arr);
+		free(ifdict[i]);
+	}
+
+	if (failure)
+		exit_with_error(errno);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ksft_exit_pass();
 

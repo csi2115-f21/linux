@@ -14,7 +14,10 @@
 
 #include "drm_crtc_internal.h"
 #include "drm_internal.h"
+<<<<<<< HEAD
 #include "drm_legacy.h"
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define drm_for_each_lessee(lessee, lessor) \
 	list_for_each_entry((lessee), &(lessor)->lessees, lessee_list)

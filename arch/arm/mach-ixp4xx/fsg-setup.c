@@ -28,6 +28,10 @@
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
 #include <asm/mach/flash.h>
+<<<<<<< HEAD
+=======
+#include <mach/hardware.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include "irqs.h"
 

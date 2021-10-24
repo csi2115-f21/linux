@@ -561,8 +561,12 @@ int dm_mq_init_request_queue(struct mapped_device *md, struct dm_table *t)
 	if (IS_ERR(q)) {
 		err = PTR_ERR(q);
 		goto out_tag_set;
+<<<<<<< HEAD
 	}
 
+=======
+	elevator_init_mq(md->queue);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 out_tag_set:

@@ -161,8 +161,24 @@ static void ssusb_set_mailbox(struct otg_switch_mtk *otg_sx,
 	dev_dbg(ssusb->dev, "mailbox %s\n", mailbox_state_string(status));
 	mtu3_dbg_trace(ssusb->dev, "mailbox %s", mailbox_state_string(status));
 
+<<<<<<< HEAD
 	switch (status) {
 	case MTU3_ID_GROUND:
+=======
+	if (desired_role == USB_ROLE_NONE)
+		desired_role = USB_ROLE_HOST;
+
+	if (current_role == desired_role)
+		return;
+
+	dev_dbg(ssusb->dev, "set role : %s\n", usb_role_string(desired_role));
+	mtu3_dbg_trace(ssusb->dev, "set role : %s", usb_role_string(desired_role));
+
+	switch (desired_role) {
+	case USB_ROLE_HOST:
+		ssusb_set_force_mode(ssusb, MTU3_DR_FORCE_HOST);
+		mtu3_stop(mtu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		switch_port_to_host(ssusb);
 		ssusb_set_vbus(otg_sx, 1);
 		ssusb->is_host = true;
@@ -347,8 +363,12 @@ static enum usb_role ssusb_role_sw_get(struct usb_role_switch *sw)
 static int ssusb_role_sw_register(struct otg_switch_mtk *otg_sx)
 {
 	struct usb_role_switch_desc role_sx_desc = { 0 };
+<<<<<<< HEAD
 	struct ssusb_mtk *ssusb =
 		container_of(otg_sx, struct ssusb_mtk, otg_switch);
+=======
+	struct ssusb_mtk *ssusb = otg_sx_to_ssusb(otg_sx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!otg_sx->role_sw_used)
 		return 0;

@@ -122,14 +122,18 @@ static struct thread_groups_list tgl[NR_CPUS] __initdata;
  * On big-cores system, thread_group_l1_cache_map for each CPU corresponds to
  * the set its siblings that share the L1-cache.
  */
-DEFINE_PER_CPU(cpumask_var_t, thread_group_l1_cache_map);
+static DEFINE_PER_CPU(cpumask_var_t, thread_group_l1_cache_map);
 
 /*
  * On some big-cores system, thread_group_l2_cache_map for each CPU
  * corresponds to the set its siblings within the core that share the
  * L2-cache.
  */
+<<<<<<< HEAD
 DEFINE_PER_CPU(cpumask_var_t, thread_group_l2_cache_map);
+=======
+static DEFINE_PER_CPU(cpumask_var_t, thread_group_l2_cache_map);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* SMP operations for this machine */
 struct smp_ops_t *smp_ops;
@@ -1078,6 +1082,23 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 				cpu_smallcore_mask(boot_cpuid));
 	}
 
+<<<<<<< HEAD
+=======
+	if (cpu_to_chip_id(boot_cpuid) != -1) {
+		int idx = num_possible_cpus() / threads_per_core;
+
+		/*
+		 * All threads of a core will all belong to the same core,
+		 * chip_id_lookup_table will have one entry per core.
+		 * Assumption: if boot_cpuid doesn't have a chip-id, then no
+		 * other CPUs, will also not have chip-id.
+		 */
+		chip_id_lookup_table = kcalloc(idx, sizeof(int), GFP_KERNEL);
+		if (chip_id_lookup_table)
+			memset(chip_id_lookup_table, -1, sizeof(int) * idx);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (smp_ops && smp_ops->probe)
 		smp_ops->probe();
 }
@@ -1491,6 +1512,36 @@ static void add_cpu_to_masks(int cpu)
 	if (has_coregroup_support())
 		update_coregroup_mask(cpu, &mask);
 
+<<<<<<< HEAD
+=======
+	if (chip_id_lookup_table && ret)
+		chip_id = cpu_to_chip_id(cpu);
+
+	if (chip_id == -1) {
+		cpumask_copy(per_cpu(cpu_core_map, cpu), cpu_cpu_mask(cpu));
+		goto out;
+	}
+
+	if (shared_caches)
+		submask_fn = cpu_l2_cache_mask;
+
+	/* Update core_mask with all the CPUs that are part of submask */
+	or_cpumasks_related(cpu, cpu, submask_fn, cpu_core_mask);
+
+	/* Skip all CPUs already part of current CPU core mask */
+	cpumask_andnot(mask, cpu_online_mask, cpu_core_mask(cpu));
+
+	for_each_cpu(i, mask) {
+		if (chip_id == cpu_to_chip_id(i)) {
+			or_cpumasks_related(cpu, i, submask_fn, cpu_core_mask);
+			cpumask_andnot(mask, mask, submask_fn(i));
+		} else {
+			cpumask_andnot(mask, mask, cpu_core_mask(i));
+		}
+	}
+
+out:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	free_cpumask_var(mask);
 }
 

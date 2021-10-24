@@ -565,10 +565,17 @@ static enum mod_hdcp_status authenticated(struct mod_hdcp *hdcp,
 		goto out;
 	}
 
+<<<<<<< HEAD
 	if (!process_rxstatus(hdcp, event_ctx, input, &status))
 		goto out;
 	if (event_ctx->rx_id_list_ready)
 		goto out;
+=======
+	process_rxstatus(hdcp, event_ctx, input, &status);
+
+	if (status != MOD_HDCP_STATUS_SUCCESS)
+		mod_hdcp_save_current_encryption_states(hdcp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	return status;
 }

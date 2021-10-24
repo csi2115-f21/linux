@@ -1344,6 +1344,7 @@ static int __init ehci_hcd_init(void)
 	retval = platform_driver_register(&XILINX_OF_PLATFORM_DRIVER);
 	if (retval < 0)
 		goto clean4;
+<<<<<<< HEAD
 #endif
 	return retval;
 
@@ -1355,6 +1356,19 @@ clean4:
 	platform_driver_unregister(&OF_PLATFORM_DRIVER);
 clean3:
 #endif
+=======
+#endif
+	return retval;
+
+#ifdef XILINX_OF_PLATFORM_DRIVER
+	/* platform_driver_unregister(&XILINX_OF_PLATFORM_DRIVER); */
+clean4:
+#endif
+#ifdef OF_PLATFORM_DRIVER
+	platform_driver_unregister(&OF_PLATFORM_DRIVER);
+clean3:
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef PS3_SYSTEM_BUS_DRIVER
 	ps3_ehci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
 clean2:

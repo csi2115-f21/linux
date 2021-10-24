@@ -324,6 +324,22 @@ static int b53_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static const struct of_device_id b53_spi_of_match[] = {
+	{ .compatible = "brcm,bcm5325" },
+	{ .compatible = "brcm,bcm5365" },
+	{ .compatible = "brcm,bcm5395" },
+	{ .compatible = "brcm,bcm5397" },
+	{ .compatible = "brcm,bcm5398" },
+	{ .compatible = "brcm,bcm53115" },
+	{ .compatible = "brcm,bcm53125" },
+	{ .compatible = "brcm,bcm53128" },
+	{ /* sentinel */ }
+};
+MODULE_DEVICE_TABLE(of, b53_spi_of_match);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct spi_driver b53_spi_driver = {
 	.driver = {
 		.name	= "b53-switch",

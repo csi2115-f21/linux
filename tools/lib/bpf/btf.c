@@ -1383,17 +1383,33 @@ exit_free:
 int btf__get_from_id(__u32 id, struct btf **btf)
 {
 	struct btf *res;
+<<<<<<< HEAD
 	int btf_fd;
+=======
+	int err, btf_fd;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	*btf = NULL;
 	btf_fd = bpf_btf_get_fd_by_id(id);
 	if (btf_fd < 0)
+<<<<<<< HEAD
 		return -errno;
 
 	res = btf_get_from_fd(btf_fd, NULL);
 	close(btf_fd);
 	if (IS_ERR(res))
 		return PTR_ERR(res);
+=======
+		return libbpf_err(-errno);
+
+	res = btf_get_from_fd(btf_fd, NULL);
+	err = libbpf_get_error(res);
+
+	close(btf_fd);
+
+	if (err)
+		return libbpf_err(err);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	*btf = res;
 	return 0;
@@ -4476,6 +4492,81 @@ static int btf_dedup_remap_type(struct btf_dedup *d, __u32 type_id)
 	struct btf_type *t = btf_type_by_id(d->btf, type_id);
 	int i, r;
 
+<<<<<<< HEAD
+=======
+	for (i = 0; i < d->btf->nr_types; i++) {
+		struct btf_type *t = btf_type_by_id(d->btf, d->btf->start_id + i);
+
+		r = btf_type_visit_type_ids(t, btf_dedup_remap_type_id, d);
+		if (r)
+			return r;
+	}
+
+	if (!d->btf_ext)
+		return 0;
+
+	r = btf_ext_visit_type_ids(d->btf_ext, btf_dedup_remap_type_id, d);
+	if (r)
+		return r;
+
+	return 0;
+}
+
+/*
+ * Probe few well-known locations for vmlinux kernel image and try to load BTF
+ * data out of it to use for target BTF.
+ */
+struct btf *libbpf_find_kernel_btf(void)
+{
+	struct {
+		const char *path_fmt;
+		bool raw_btf;
+	} locations[] = {
+		/* try canonical vmlinux BTF through sysfs first */
+		{ "/sys/kernel/btf/vmlinux", true /* raw BTF */ },
+		/* fall back to trying to find vmlinux ELF on disk otherwise */
+		{ "/boot/vmlinux-%1$s" },
+		{ "/lib/modules/%1$s/vmlinux-%1$s" },
+		{ "/lib/modules/%1$s/build/vmlinux" },
+		{ "/usr/lib/modules/%1$s/kernel/vmlinux" },
+		{ "/usr/lib/debug/boot/vmlinux-%1$s" },
+		{ "/usr/lib/debug/boot/vmlinux-%1$s.debug" },
+		{ "/usr/lib/debug/lib/modules/%1$s/vmlinux" },
+	};
+	char path[PATH_MAX + 1];
+	struct utsname buf;
+	struct btf *btf;
+	int i, err;
+
+	uname(&buf);
+
+	for (i = 0; i < ARRAY_SIZE(locations); i++) {
+		snprintf(path, PATH_MAX, locations[i].path_fmt, buf.release);
+
+		if (access(path, R_OK))
+			continue;
+
+		if (locations[i].raw_btf)
+			btf = btf__parse_raw(path);
+		else
+			btf = btf__parse_elf(path, NULL);
+		err = libbpf_get_error(btf);
+		pr_debug("loading kernel BTF '%s': %d\n", path, err);
+		if (err)
+			continue;
+
+		return btf;
+	}
+
+	pr_warn("failed to find valid kernel BTF\n");
+	return libbpf_err_ptr(-ESRCH);
+}
+
+int btf_type_visit_type_ids(struct btf_type *t, type_id_visit_fn visit, void *ctx)
+{
+	int i, n, err;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	switch (btf_kind(t)) {
 	case BTF_KIND_INT:
 	case BTF_KIND_ENUM:

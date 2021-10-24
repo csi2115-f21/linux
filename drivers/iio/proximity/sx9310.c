@@ -1213,12 +1213,21 @@ static int sx9310_init_compensation(struct iio_dev *indio_dev)
 }
 
 static const struct sx9310_reg_default *
+<<<<<<< HEAD
 sx9310_get_default_reg(struct sx9310_data *data, int i,
 		       struct sx9310_reg_default *reg_def)
 {
 	int ret;
 	const struct device_node *np = data->client->dev.of_node;
 	u32 combined[SX9310_NUM_CHANNELS] = { 4, 4, 4, 4 };
+=======
+sx9310_get_default_reg(struct sx9310_data *data, int idx,
+		       struct sx9310_reg_default *reg_def)
+{
+	const struct device_node *np = data->client->dev.of_node;
+	u32 combined[SX9310_NUM_CHANNELS];
+	u32 start = 0, raw = 0, pos = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long comb_mask = 0;
 	const char *res;
 	u32 start = 0, raw = 0, pos = 0;
@@ -1227,6 +1236,13 @@ sx9310_get_default_reg(struct sx9310_data *data, int i,
 	if (!np)
 		return reg_def;
 
+<<<<<<< HEAD
+=======
+	memcpy(reg_def, &sx9310_default_regs[idx], sizeof(*reg_def));
+	if (!np)
+		return reg_def;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	switch (reg_def->reg) {
 	case SX9310_REG_PROX_CTRL2:
 		if (of_property_read_bool(np, "semtech,cs0-ground")) {
@@ -1234,6 +1250,33 @@ sx9310_get_default_reg(struct sx9310_data *data, int i,
 			reg_def->def |= SX9310_REG_PROX_CTRL2_SHIELDEN_GROUND;
 		}
 
+<<<<<<< HEAD
+=======
+		count = of_property_count_elems_of_size(np, "semtech,combined-sensors",
+							sizeof(u32));
+		if (count > 0 && count <= ARRAY_SIZE(combined)) {
+			ret = of_property_read_u32_array(np, "semtech,combined-sensors",
+							 combined, count);
+			if (ret)
+				break;
+		} else {
+			/*
+			 * Either the property does not exist in the DT or the
+			 * number of entries is incorrect.
+			 */
+			break;
+		}
+		for (i = 0; i < count; i++) {
+			if (combined[i] >= SX9310_NUM_CHANNELS) {
+				/* Invalid sensor (invalid DT). */
+				break;
+			}
+			comb_mask |= BIT(combined[i]);
+		}
+		if (i < count)
+			break;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		reg_def->def &= ~SX9310_REG_PROX_CTRL2_COMBMODE_MASK;
 		of_property_read_u32_array(np, "semtech,combined-sensors",
 					   combined, ARRAY_SIZE(combined));

@@ -780,7 +780,11 @@ static const struct drm_plane_helper_funcs ingenic_drm_plane_helper_funcs = {
 	.atomic_update		= ingenic_drm_plane_atomic_update,
 	.atomic_check		= ingenic_drm_plane_atomic_check,
 	.atomic_disable		= ingenic_drm_plane_atomic_disable,
+<<<<<<< HEAD
 	.prepare_fb		= drm_gem_fb_prepare_fb,
+=======
+	.prepare_fb		= drm_gem_plane_helper_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct drm_crtc_helper_funcs ingenic_drm_crtc_helper_funcs = {
@@ -939,6 +943,11 @@ static int ingenic_drm_bind(struct device *dev, bool has_components)
 
 	if (soc_info->has_osd)
 		priv->ipu_plane = drm_plane_from_index(drm, 0);
+<<<<<<< HEAD
+=======
+
+	primary = priv->soc_info->has_osd ? &priv->f1 : &priv->f0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	drm_plane_helper_add(&priv->f1, &ingenic_drm_plane_helper_funcs);
 

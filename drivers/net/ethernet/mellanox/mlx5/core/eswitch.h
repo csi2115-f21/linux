@@ -46,6 +46,27 @@
 #include "lib/fs_chains.h"
 #include "sf/sf.h"
 #include "en/tc_ct.h"
+<<<<<<< HEAD
+=======
+#include "esw/sample.h"
+
+enum mlx5_mapped_obj_type {
+	MLX5_MAPPED_OBJ_CHAIN,
+	MLX5_MAPPED_OBJ_SAMPLE,
+};
+
+struct mlx5_mapped_obj {
+	enum mlx5_mapped_obj_type type;
+	union {
+		u32 chain;
+		struct {
+			u32 group_id;
+			u32 rate;
+			u32 trunc_size;
+		} sample;
+	};
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_MLX5_ESWITCH
 
@@ -134,6 +155,8 @@ enum mlx5_eswitch_vport_event {
 	MLX5_VPORT_PROMISC_CHANGE = BIT(3),
 };
 
+struct mlx5_esw_bridge;
+
 struct mlx5_vport {
 	struct mlx5_core_dev    *dev;
 	int                     vport;
@@ -154,11 +177,17 @@ struct mlx5_vport {
 		bool            enabled;
 		u32             esw_tsar_ix;
 		u32             bw_share;
+<<<<<<< HEAD
+=======
+		u32 min_rate;
+		u32 max_rate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} qos;
 
 	bool                    enabled;
 	enum mlx5_eswitch_vport_event enabled_events;
 	struct devlink_port *dl_port;
+	struct mlx5_esw_bridge *bridge;
 };
 
 struct mlx5_esw_indir_table;
@@ -427,6 +456,7 @@ struct mlx5_esw_flow_attr {
 	} dests[MLX5_MAX_FLOW_FWD_VPORTS];
 	struct mlx5_rx_tun_attr *rx_tun_attr;
 	struct mlx5_pkt_reformat *decap_pkt_reformat;
+	struct mlx5_sample_attr *sample;
 };
 
 int mlx5_devlink_eswitch_mode_set(struct devlink *devlink, u16 mode,
@@ -761,6 +791,21 @@ struct mlx5_esw_event_info {
 
 int mlx5_esw_event_notifier_register(struct mlx5_eswitch *esw, struct notifier_block *n);
 void mlx5_esw_event_notifier_unregister(struct mlx5_eswitch *esw, struct notifier_block *n);
+<<<<<<< HEAD
+=======
+
+bool mlx5_esw_hold(struct mlx5_core_dev *dev);
+void mlx5_esw_release(struct mlx5_core_dev *dev);
+void mlx5_esw_get(struct mlx5_core_dev *dev);
+void mlx5_esw_put(struct mlx5_core_dev *dev);
+int mlx5_esw_try_lock(struct mlx5_eswitch *esw);
+void mlx5_esw_unlock(struct mlx5_eswitch *esw);
+
+void esw_vport_change_handle_locked(struct mlx5_vport *vport);
+
+bool mlx5_esw_offloads_controller_valid(const struct mlx5_eswitch *esw, u32 controller);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else  /* CONFIG_MLX5_ESWITCH */
 /* eswitch API stubs */
 static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
@@ -781,6 +826,16 @@ esw_add_restore_rule(struct mlx5_eswitch *esw, u32 tag)
 {
 	return ERR_PTR(-EOPNOTSUPP);
 }
+<<<<<<< HEAD
+=======
+
+static inline unsigned int
+mlx5_esw_vport_to_devlink_port_index(const struct mlx5_core_dev *dev,
+				     u16 vport_num)
+{
+	return vport_num;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* CONFIG_MLX5_ESWITCH */
 
 #endif /* __MLX5_ESWITCH_H__ */

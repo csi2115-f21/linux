@@ -1580,7 +1580,12 @@ static bool ovl_lower_uuid_ok(struct ovl_fs *ofs, const uuid_t *uuid)
 	 * user opted-in to one of the new features that require following the
 	 * lower inode of non-dir upper.
 	 */
+<<<<<<< HEAD
 	if (!ofs->config.index && !ofs->config.metacopy && !ofs->config.xino &&
+=======
+	if (!ofs->config.index && !ofs->config.metacopy &&
+	    ofs->config.xino != OVL_XINO_ON &&
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	    uuid_is_null(uuid))
 		return false;
 

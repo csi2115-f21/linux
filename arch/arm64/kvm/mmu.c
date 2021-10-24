@@ -192,6 +192,14 @@ static int __create_hyp_mappings(unsigned long start, unsigned long size,
 {
 	int err;
 
+<<<<<<< HEAD
+=======
+	if (!kvm_host_owns_hyp_mappings()) {
+		return kvm_call_hyp_nvhe(__pkvm_create_mappings,
+					 start, size, phys, prot);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_lock(&kvm_hyp_pgd_mutex);
 	err = kvm_pgtable_hyp_map(hyp_pgtable, start, size, phys, prot);
 	mutex_unlock(&kvm_hyp_pgd_mutex);
@@ -351,6 +359,22 @@ int create_hyp_exec_mappings(phys_addr_t phys_addr, size_t size,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static struct kvm_pgtable_mm_ops kvm_s2_mm_ops = {
+	.zalloc_page		= stage2_memcache_zalloc_page,
+	.zalloc_pages_exact	= kvm_host_zalloc_pages_exact,
+	.free_pages_exact	= free_pages_exact,
+	.get_page		= kvm_host_get_page,
+	.put_page		= kvm_host_put_page,
+	.page_count		= kvm_host_page_count,
+	.phys_to_virt		= kvm_host_va,
+	.virt_to_phys		= kvm_host_pa,
+	.dcache_clean_inval_poc	= clean_dcache_guest_page,
+	.icache_inval_pou	= invalidate_icache_guest_page,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * kvm_init_stage2_mmu - Initialise a S2 MMU strucrure
  * @kvm:	The pointer to the KVM structure
@@ -876,9 +900,26 @@ static int user_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t fault_ipa,
 	 * If we are not forced to use page mapping, check if we are
 	 * backed by a THP and thus use block mapping if possible.
 	 */
+<<<<<<< HEAD
 	if (vma_pagesize == PAGE_SIZE && !force_pte)
 		vma_pagesize = transparent_hugepage_adjust(memslot, hva,
 							   &pfn, &fault_ipa);
+=======
+	if (vma_pagesize == PAGE_SIZE && !(force_pte || device))
+		vma_pagesize = transparent_hugepage_adjust(memslot, hva,
+							   &pfn, &fault_ipa);
+
+	if (fault_status != FSC_PERM && !device && kvm_has_mte(kvm)) {
+		/* Check the VMM hasn't introduced a new VM_SHARED VMA */
+		if (!shared)
+			ret = sanitise_mte_tags(kvm, pfn, vma_pagesize);
+		else
+			ret = -EFAULT;
+		if (ret)
+			goto out_unlock;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (writable)
 		prot |= KVM_PGTABLE_PROT_W;
 
@@ -1339,8 +1380,13 @@ int kvm_arch_prepare_memory_region(struct kvm *kvm,
 		/*
 		 * Take the intersection of this VMA with the memory region
 		 */
+<<<<<<< HEAD
 		vm_start = max(hva, vma->vm_start);
 		vm_end = min(reg_end, vma->vm_end);
+=======
+		if (kvm_has_mte(kvm) && vma->vm_flags & VM_SHARED)
+			return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (vma->vm_flags & VM_PFNMAP) {
 			gpa_t gpa = mem->guest_phys_addr +

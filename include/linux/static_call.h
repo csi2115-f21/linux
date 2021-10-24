@@ -20,6 +20,10 @@
  *   static_call(name)(args...);
  *   static_call_cond(name)(args...);
  *   static_call_update(name, func);
+<<<<<<< HEAD
+=======
+ *   static_call_query(name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * Usage example:
  *
@@ -91,6 +95,13 @@
  *
  *   which will include the required value tests to avoid NULL-pointer
  *   dereferences.
+<<<<<<< HEAD
+=======
+ *
+ *   To query which function is currently set to be called, use:
+ *
+ *   func = static_call_query(name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 
 #include <linux/types.h>

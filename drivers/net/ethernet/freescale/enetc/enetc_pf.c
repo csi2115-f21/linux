@@ -499,10 +499,22 @@ static void enetc_configure_port_mac(struct enetc_hw *hw)
 
 static void enetc_mac_config(struct enetc_hw *hw, phy_interface_t phy_mode)
 {
+<<<<<<< HEAD
 	/* set auto-speed for RGMII */
 	if (enetc_port_rd(hw, ENETC_PM0_IF_MODE) & ENETC_PMO_IFM_RG ||
 	    phy_interface_mode_is_rgmii(phy_mode))
 		enetc_port_wr(hw, ENETC_PM0_IF_MODE, ENETC_PM0_IFM_RGAUTO);
+=======
+	u32 val;
+
+	if (phy_interface_mode_is_rgmii(phy_mode)) {
+		val = enetc_port_rd(hw, ENETC_PM0_IF_MODE);
+		val &= ~ENETC_PM0_IFM_EN_AUTO;
+		val &= ENETC_PM0_IFM_IFMODE_MASK;
+		val |= ENETC_PM0_IFM_IFMODE_GMII | ENETC_PM0_IFM_RG;
+		enetc_port_wr(hw, ENETC_PM0_IF_MODE, val);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (phy_mode == PHY_INTERFACE_MODE_USXGMII)
 		enetc_port_wr(hw, ENETC_PM0_IF_MODE, ENETC_PM0_IFM_XGMII);

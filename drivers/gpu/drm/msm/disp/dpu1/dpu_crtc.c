@@ -71,7 +71,10 @@ static void _dpu_crtc_setup_blend_cfg(struct dpu_crtc_mixer *mixer,
 {
 	struct dpu_hw_mixer *lm = mixer->hw_lm;
 	uint32_t blend_op;
+<<<<<<< HEAD
 	struct drm_format_name_buf format_name;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* default to opaque blending */
 	blend_op = DPU_BLEND_FG_ALPHA_FG_CONST |

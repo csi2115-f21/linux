@@ -660,13 +660,24 @@ static int cal_async_notifier_complete(struct v4l2_async_notifier *notifier)
 {
 	struct cal_dev *cal = container_of(notifier, struct cal_dev, notifier);
 	unsigned int i;
+<<<<<<< HEAD
+=======
+	int ret = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	for (i = 0; i < ARRAY_SIZE(cal->ctx); ++i) {
 		if (cal->ctx[i])
 			cal_ctx_v4l2_register(cal->ctx[i]);
 	}
 
+<<<<<<< HEAD
 	return 0;
+=======
+	if (cal_mc_api)
+		ret = v4l2_device_register_subdev_nodes(&cal->v4l2_dev);
+
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct v4l2_async_notifier_operations cal_async_notifier_ops = {
@@ -1101,7 +1112,12 @@ static int cal_remove(struct platform_device *pdev)
 	for (i = 0; i < cal->data->num_csi2_phy; i++)
 		cal_camerarx_destroy(cal->phy[i]);
 
+<<<<<<< HEAD
 	pm_runtime_put_sync(&pdev->dev);
+=======
+	if (ret >= 0)
+		pm_runtime_put_sync(&pdev->dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pm_runtime_disable(&pdev->dev);
 
 	return 0;

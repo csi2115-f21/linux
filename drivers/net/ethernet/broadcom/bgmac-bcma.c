@@ -128,8 +128,12 @@ static int bgmac_probe(struct bcma_device *core)
 
 	bcma_set_drvdata(core, bgmac);
 
+<<<<<<< HEAD
 	if (bgmac->dev->of_node)
 		mac = of_get_mac_address(bgmac->dev->of_node);
+=======
+	err = of_get_mac_address(bgmac->dev->of_node, bgmac->net_dev->dev_addr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* If no MAC address assigned via device tree, check SPROM */
 	if (IS_ERR_OR_NULL(mac)) {

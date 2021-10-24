@@ -73,6 +73,23 @@ void zpci_event_error(void *data)
 		__zpci_event_error(data);
 }
 
+<<<<<<< HEAD
+=======
+static void zpci_event_hard_deconfigured(struct zpci_dev *zdev, u32 fh)
+{
+	zdev->fh = fh;
+	/* Give the driver a hint that the function is
+	 * already unusable.
+	 */
+	zpci_bus_remove_device(zdev, true);
+	/* Even though the device is already gone we still
+	 * need to free zPCI resources as part of the disable.
+	 */
+	zpci_disable_device(zdev);
+	zdev->state = ZPCI_FN_STATE_STANDBY;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __zpci_event_availability(struct zpci_ccdf_avail *ccdf)
 {
 	struct zpci_dev *zdev = get_zdev_by_fid(ccdf->fid);
@@ -138,6 +155,7 @@ static void __zpci_event_availability(struct zpci_ccdf_avail *ccdf)
 
 		break;
 	case 0x0304: /* Configured -> Standby|Reserved */
+<<<<<<< HEAD
 		if (!zdev)
 			break;
 		if (pdev) {
@@ -153,6 +171,19 @@ static void __zpci_event_availability(struct zpci_ccdf_avail *ccdf)
 		if (!clp_get_state(ccdf->fid, &state) &&
 		    state == ZPCI_FN_STATE_RESERVED) {
 			zpci_zdev_put(zdev);
+=======
+		if (zdev) {
+			/* The event may have been queued before we confirgured
+			 * the device.:
+			 */
+			if (zdev->state == ZPCI_FN_STATE_CONFIGURED)
+				zpci_event_hard_deconfigured(zdev, ccdf->fh);
+			/* The 0x0304 event may immediately reserve the device */
+			if (!clp_get_state(zdev->fid, &state) &&
+			    state == ZPCI_FN_STATE_RESERVED) {
+				zpci_zdev_put(zdev);
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		break;
 	case 0x0306: /* 0x308 or 0x302 for multiple devices */

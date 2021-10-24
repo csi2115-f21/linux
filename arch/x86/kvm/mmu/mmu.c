@@ -178,6 +178,74 @@ kvm_mmu_calc_root_page_role(struct kvm_vcpu *vcpu);
 #define CREATE_TRACE_POINTS
 #include "mmutrace.h"
 
+<<<<<<< HEAD
+=======
+/*
+ * Yes, lot's of underscores.  They're a hint that you probably shouldn't be
+ * reading from the role_regs.  Once the mmu_role is constructed, it becomes
+ * the single source of truth for the MMU's state.
+ */
+#define BUILD_MMU_ROLE_REGS_ACCESSOR(reg, name, flag)			\
+static inline bool ____is_##reg##_##name(struct kvm_mmu_role_regs *regs)\
+{									\
+	return !!(regs->reg & flag);					\
+}
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr0, pg, X86_CR0_PG);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr0, wp, X86_CR0_WP);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, pse, X86_CR4_PSE);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, pae, X86_CR4_PAE);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, smep, X86_CR4_SMEP);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, smap, X86_CR4_SMAP);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, pke, X86_CR4_PKE);
+BUILD_MMU_ROLE_REGS_ACCESSOR(cr4, la57, X86_CR4_LA57);
+BUILD_MMU_ROLE_REGS_ACCESSOR(efer, nx, EFER_NX);
+BUILD_MMU_ROLE_REGS_ACCESSOR(efer, lma, EFER_LMA);
+
+/*
+ * The MMU itself (with a valid role) is the single source of truth for the
+ * MMU.  Do not use the regs used to build the MMU/role, nor the vCPU.  The
+ * regs don't account for dependencies, e.g. clearing CR4 bits if CR0.PG=1,
+ * and the vCPU may be incorrect/irrelevant.
+ */
+#define BUILD_MMU_ROLE_ACCESSOR(base_or_ext, reg, name)		\
+static inline bool is_##reg##_##name(struct kvm_mmu *mmu)	\
+{								\
+	return !!(mmu->mmu_role. base_or_ext . reg##_##name);	\
+}
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr0, pg);
+BUILD_MMU_ROLE_ACCESSOR(base, cr0, wp);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, pse);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, pae);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, smep);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, smap);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, pke);
+BUILD_MMU_ROLE_ACCESSOR(ext,  cr4, la57);
+BUILD_MMU_ROLE_ACCESSOR(base, efer, nx);
+
+static struct kvm_mmu_role_regs vcpu_to_role_regs(struct kvm_vcpu *vcpu)
+{
+	struct kvm_mmu_role_regs regs = {
+		.cr0 = kvm_read_cr0_bits(vcpu, KVM_MMU_CR0_ROLE_BITS),
+		.cr4 = kvm_read_cr4_bits(vcpu, KVM_MMU_CR4_ROLE_BITS),
+		.efer = vcpu->arch.efer,
+	};
+
+	return regs;
+}
+
+static int role_regs_to_root_level(struct kvm_mmu_role_regs *regs)
+{
+	if (!____is_cr0_pg(regs))
+		return 0;
+	else if (____is_efer_lma(regs))
+		return ____is_cr4_la57(regs) ? PT64_ROOT_5LEVEL :
+					       PT64_ROOT_4LEVEL;
+	else if (____is_cr4_pae(regs))
+		return PT32E_ROOT_LEVEL;
+	else
+		return PT32_ROOT_LEVEL;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline bool kvm_available_flush_tlb_with_range(void)
 {
@@ -1271,9 +1339,17 @@ bool kvm_mmu_slot_gfn_write_protect(struct kvm *kvm,
 	int i;
 	bool write_protected = false;
 
+<<<<<<< HEAD
 	for (i = PG_LEVEL_4K; i <= KVM_MAX_HUGEPAGE_LEVEL; ++i) {
 		rmap_head = __gfn_to_rmap(gfn, i, slot);
 		write_protected |= __rmap_write_protect(kvm, rmap_head, true);
+=======
+	if (kvm_memslots_have_rmaps(kvm)) {
+		for (i = min_level; i <= KVM_MAX_HUGEPAGE_LEVEL; ++i) {
+			rmap_head = __gfn_to_rmap(gfn, i, slot);
+			write_protected |= __rmap_write_protect(kvm, rmap_head, true);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (is_tdp_mmu_enabled(kvm))
@@ -1336,7 +1412,11 @@ restart:
 
 		need_flush = 1;
 
+<<<<<<< HEAD
 		if (pte_write(*ptep)) {
+=======
+		if (pte_write(pte)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pte_list_remove(rmap_head, sptep);
 			goto restart;
 		} else {
@@ -1544,6 +1624,11 @@ static void rmap_recycle(struct kvm_vcpu *vcpu, u64 *spte, gfn_t gfn)
 	struct kvm_mmu_page *sp;
 
 	sp = sptep_to_sp(spte);
+<<<<<<< HEAD
+=======
+
+	rmap_head = gfn_to_rmap(vcpu->kvm, gfn, sp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rmap_head = gfn_to_rmap(vcpu->kvm, gfn, sp);
 
@@ -3060,6 +3145,12 @@ static int fast_page_fault(struct kvm_vcpu *vcpu, gpa_t cr2_or_gpa,
 		for_each_shadow_entry_lockless(vcpu, cr2_or_gpa, iterator, spte)
 			if (!is_shadow_present_pte(spte))
 				break;
+<<<<<<< HEAD
+=======
+
+		if (!is_shadow_present_pte(spte))
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		sp = sptep_to_sp(iterator.sptep);
 		if (!is_last_spte(spte, sp->role.level))
@@ -3311,10 +3402,25 @@ static int mmu_alloc_shadow_roots(struct kvm_vcpu *vcpu)
 	 * or a PAE 3-level page table. In either case we need to be aware that
 	 * the shadow page table may be a PAE or a long mode page table.
 	 */
+<<<<<<< HEAD
 	pm_mask = PT_PRESENT_MASK;
 	if (vcpu->arch.mmu->shadow_root_level == PT64_ROOT_4LEVEL)
 		pm_mask |= PT_ACCESSED_MASK | PT_WRITABLE_MASK | PT_USER_MASK;
 
+=======
+	pm_mask = PT_PRESENT_MASK | shadow_me_mask;
+	if (mmu->shadow_root_level == PT64_ROOT_4LEVEL) {
+		pm_mask |= PT_ACCESSED_MASK | PT_WRITABLE_MASK | PT_USER_MASK;
+
+		if (WARN_ON_ONCE(!mmu->pml4_root)) {
+			r = -EIO;
+			goto out_unlock;
+		}
+
+		mmu->pml4_root[0] = __pa(mmu->pae_root) | pm_mask;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0; i < 4; ++i) {
 		MMU_WARN_ON(VALID_PAGE(vcpu->arch.mmu->pae_root[i]));
 		if (vcpu->arch.mmu->root_level == PT32E_ROOT_LEVEL) {
@@ -3334,7 +3440,28 @@ static int mmu_alloc_shadow_roots(struct kvm_vcpu *vcpu)
 			return -ENOSPC;
 		vcpu->arch.mmu->pae_root[i] = root | pm_mask;
 	}
+<<<<<<< HEAD
 	vcpu->arch.mmu->root_hpa = __pa(vcpu->arch.mmu->pae_root);
+=======
+
+	if (mmu->shadow_root_level == PT64_ROOT_4LEVEL)
+		mmu->root_hpa = __pa(mmu->pml4_root);
+	else
+		mmu->root_hpa = __pa(mmu->pae_root);
+
+set_root_pgd:
+	mmu->root_pgd = root_pgd;
+out_unlock:
+	write_unlock(&vcpu->kvm->mmu_lock);
+
+	return 0;
+}
+
+static int mmu_alloc_special_roots(struct kvm_vcpu *vcpu)
+{
+	struct kvm_mmu *mmu = vcpu->arch.mmu;
+	u64 *pml4_root, *pae_root;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If we shadow a 32 bit page table with a long mode page
@@ -3347,14 +3474,34 @@ static int mmu_alloc_shadow_roots(struct kvm_vcpu *vcpu)
 			 * allocated on demand.
 			 */
 
+<<<<<<< HEAD
 			u64 *lm_root;
 
 			lm_root = (void*)get_zeroed_page(GFP_KERNEL_ACCOUNT);
 			if (lm_root == NULL)
 				return 1;
+=======
+	/*
+	 * This mess only works with 4-level paging and needs to be updated to
+	 * work with 5-level paging.
+	 */
+	if (WARN_ON_ONCE(mmu->shadow_root_level != PT64_ROOT_4LEVEL))
+		return -EIO;
+
+	if (mmu->pae_root && mmu->pml4_root)
+		return 0;
+
+	/*
+	 * The special roots should always be allocated in concert.  Yell and
+	 * bail if KVM ends up in a state where only one of the roots is valid.
+	 */
+	if (WARN_ON_ONCE(!tdp_enabled || mmu->pae_root || mmu->pml4_root))
+		return -EIO;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			lm_root[0] = __pa(vcpu->arch.mmu->pae_root) | pm_mask;
 
+<<<<<<< HEAD
 			vcpu->arch.mmu->lm_root = lm_root;
 		}
 
@@ -3373,6 +3520,18 @@ static int mmu_alloc_roots(struct kvm_vcpu *vcpu)
 		return mmu_alloc_direct_roots(vcpu);
 	else
 		return mmu_alloc_shadow_roots(vcpu);
+=======
+	pml4_root = (void *)get_zeroed_page(GFP_KERNEL_ACCOUNT);
+	if (!pml4_root) {
+		free_page((unsigned long)pae_root);
+		return -ENOMEM;
+	}
+
+	mmu->pae_root = pae_root;
+	mmu->pml4_root = pml4_root;
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void kvm_mmu_sync_roots(struct kvm_vcpu *vcpu)
@@ -3516,12 +3675,16 @@ static bool get_mmio_spte(struct kvm_vcpu *vcpu, u64 addr, u64 *sptep)
 	int root, leaf, level;
 	bool reserved = false;
 
+<<<<<<< HEAD
 	if (!VALID_PAGE(vcpu->arch.mmu->root_hpa)) {
 		*sptep = 0ull;
 		return reserved;
 	}
 
 	if (is_tdp_mmu_root(vcpu->kvm, vcpu->arch.mmu->root_hpa))
+=======
+	if (is_tdp_mmu(vcpu->arch.mmu))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		leaf = kvm_tdp_mmu_get_walk(vcpu, addr, sptes, &root);
 	else
 		leaf = get_walk(vcpu, addr, sptes, &root);
@@ -3653,6 +3816,17 @@ static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
 	struct kvm_memory_slot *slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
 	bool async;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Retry the page fault if the gfn hit a memslot that is being deleted
+	 * or moved.  This ensures any existing SPTEs for the old memslot will
+	 * be zapped before KVM inserts a new MMIO SPTE for the gfn.
+	 */
+	if (slot && (slot->flags & KVM_MEMSLOT_INVALID))
+		return true;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Don't expose private memslots to L2. */
 	if (is_guest_mode(vcpu) && !kvm_is_visible_memslot(slot)) {
 		*pfn = KVM_PFN_NOSLOT;
@@ -3696,7 +3870,11 @@ static int direct_page_fault(struct kvm_vcpu *vcpu, gpa_t gpa, u32 error_code,
 	if (page_fault_handle_page_track(vcpu, error_code, gfn))
 		return RET_PF_EMULATE;
 
+<<<<<<< HEAD
 	if (!is_tdp_mmu_root(vcpu->kvm, vcpu->arch.mmu->root_hpa)) {
+=======
+	if (!is_tdp_mmu_fault) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		r = fast_page_fault(vcpu, gpa, error_code);
 		if (r != RET_PF_INVALID)
 			return r;
@@ -5212,7 +5390,11 @@ slot_handle_level(struct kvm *kvm, struct kvm_memory_slot *memslot,
 
 static __always_inline bool
 slot_handle_leaf(struct kvm *kvm, struct kvm_memory_slot *memslot,
+<<<<<<< HEAD
 		 slot_level_handler fn, bool lock_flush_tlb)
+=======
+		 slot_level_handler fn, bool flush_on_yield)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return slot_handle_level(kvm, memslot, fn, PG_LEVEL_4K,
 				 PG_LEVEL_4K, lock_flush_tlb);
@@ -5221,7 +5403,11 @@ slot_handle_leaf(struct kvm *kvm, struct kvm_memory_slot *memslot,
 static void free_mmu_pages(struct kvm_mmu *mmu)
 {
 	free_page((unsigned long)mmu->pae_root);
+<<<<<<< HEAD
 	free_page((unsigned long)mmu->lm_root);
+=======
+	free_page((unsigned long)mmu->pml4_root);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int __kvm_mmu_create(struct kvm_vcpu *vcpu, struct kvm_mmu *mmu)
@@ -5399,7 +5585,17 @@ void kvm_mmu_init_vm(struct kvm *kvm)
 {
 	struct kvm_page_track_notifier_node *node = &kvm->arch.mmu_sp_tracker;
 
+<<<<<<< HEAD
 	kvm_mmu_init_tdp_mmu(kvm);
+=======
+	if (!kvm_mmu_init_tdp_mmu(kvm))
+		/*
+		 * No smp_load/store wrappers needed here as we are in
+		 * VM init and there cannot be any memslots / other threads
+		 * accessing this struct kvm yet.
+		 */
+		kvm->arch.memslots_have_rmaps = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	node->track_write = kvm_mmu_pte_write;
 	node->track_flush_slot = kvm_mmu_invalidate_zap_pages_in_memslot;
@@ -5422,6 +5618,7 @@ void kvm_zap_gfn_range(struct kvm *kvm, gfn_t gfn_start, gfn_t gfn_end)
 	int i;
 	bool flush;
 
+<<<<<<< HEAD
 	write_lock(&kvm->mmu_lock);
 	for (i = 0; i < KVM_ADDRESS_SPACE_NUM; i++) {
 		slots = __kvm_memslots(kvm, i);
@@ -5447,6 +5644,44 @@ void kvm_zap_gfn_range(struct kvm *kvm, gfn_t gfn_start, gfn_t gfn_end)
 	}
 
 	write_unlock(&kvm->mmu_lock);
+=======
+	if (kvm_memslots_have_rmaps(kvm)) {
+		write_lock(&kvm->mmu_lock);
+		for (i = 0; i < KVM_ADDRESS_SPACE_NUM; i++) {
+			slots = __kvm_memslots(kvm, i);
+			kvm_for_each_memslot(memslot, slots) {
+				gfn_t start, end;
+
+				start = max(gfn_start, memslot->base_gfn);
+				end = min(gfn_end, memslot->base_gfn + memslot->npages);
+				if (start >= end)
+					continue;
+
+				flush = slot_handle_level_range(kvm, memslot,
+						kvm_zap_rmapp, PG_LEVEL_4K,
+						KVM_MAX_HUGEPAGE_LEVEL, start,
+						end - 1, true, flush);
+			}
+		}
+		if (flush)
+			kvm_flush_remote_tlbs_with_address(kvm, gfn_start, gfn_end);
+		write_unlock(&kvm->mmu_lock);
+	}
+
+	if (is_tdp_mmu_enabled(kvm)) {
+		flush = false;
+
+		read_lock(&kvm->mmu_lock);
+		for (i = 0; i < KVM_ADDRESS_SPACE_NUM; i++)
+			flush = kvm_tdp_mmu_zap_gfn_range(kvm, i, gfn_start,
+							  gfn_end, flush, true);
+		if (flush)
+			kvm_flush_remote_tlbs_with_address(kvm, gfn_start,
+							   gfn_end);
+
+		read_unlock(&kvm->mmu_lock);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool slot_rmap_write_protect(struct kvm *kvm,
@@ -5529,6 +5764,10 @@ void kvm_mmu_zap_collapsible_sptes(struct kvm *kvm,
 {
 	/* FIXME: const-ify all uses of struct kvm_memory_slot.  */
 	struct kvm_memory_slot *slot = (struct kvm_memory_slot *)memslot;
+<<<<<<< HEAD
+=======
+	bool flush = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	write_lock(&kvm->mmu_lock);
 	slot_handle_leaf(kvm, slot, kvm_mmu_zap_collapsible_spte, true);

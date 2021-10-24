@@ -17,6 +17,10 @@
 #include <linux/libata.h>
 #include <linux/irq.h>
 #include <linux/platform_device.h>
+<<<<<<< HEAD
+=======
+#include <linux/platform_data/pata_ixp4xx_cf.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <scsi/scsi_host.h>
 
 #define DRV_NAME	"pata_ixp4xx_cf"
@@ -135,7 +139,10 @@ static void ixp4xx_setup_port(struct ata_port *ap,
 
 static int ixp4xx_pata_probe(struct platform_device *pdev)
 {
+<<<<<<< HEAD
 	unsigned int irq;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct resource *cs0, *cs1;
 	struct ata_host *host;
 	struct ata_port *ap;

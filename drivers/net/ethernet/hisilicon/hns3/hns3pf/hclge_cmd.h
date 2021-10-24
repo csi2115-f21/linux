@@ -303,6 +303,13 @@ enum hclge_opcode_type {
 	HCLGE_PPP_CMD1_INT_CMD		= 0x2101,
 	HCLGE_MAC_ETHERTYPE_IDX_RD      = 0x2105,
 	HCLGE_NCSI_INT_EN		= 0x2401,
+<<<<<<< HEAD
+=======
+
+	/* PHY command */
+	HCLGE_OPC_PHY_LINK_KSETTING	= 0x7025,
+	HCLGE_OPC_PHY_REG		= 0x7026,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define HCLGE_TQP_REG_OFFSET		0x80000
@@ -1137,6 +1144,39 @@ struct hclge_dev_specs_1_cmd {
 	u8 rsv1[18];
 };
 
+<<<<<<< HEAD
+=======
+#define HCLGE_PHY_LINK_SETTING_BD_NUM		2
+
+struct hclge_phy_link_ksetting_0_cmd {
+	__le32 speed;
+	u8 duplex;
+	u8 autoneg;
+	u8 eth_tp_mdix;
+	u8 eth_tp_mdix_ctrl;
+	u8 port;
+	u8 transceiver;
+	u8 phy_address;
+	u8 rsv;
+	__le32 supported;
+	__le32 advertising;
+	__le32 lp_advertising;
+};
+
+struct hclge_phy_link_ksetting_1_cmd {
+	u8 master_slave_cfg;
+	u8 master_slave_state;
+	u8 rsv[22];
+};
+
+struct hclge_phy_reg_cmd {
+	__le16 reg_addr;
+	u8 rsv0[2];
+	__le16 reg_val;
+	u8 rsv1[18];
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int hclge_cmd_init(struct hclge_dev *hdev);
 static inline void hclge_write_reg(void __iomem *base, u32 reg, u32 value)
 {

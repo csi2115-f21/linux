@@ -654,8 +654,16 @@ xlog_cil_push_work(
 	struct xfs_trans_header thdr;
 	struct xfs_log_iovec	lhdr;
 	struct xfs_log_vec	lvhdr = { NULL };
+<<<<<<< HEAD
 	xfs_lsn_t		commit_lsn;
 	xfs_lsn_t		push_seq;
+=======
+	xfs_lsn_t		preflush_tail_lsn;
+	xfs_lsn_t		commit_lsn;
+	xfs_csn_t		push_seq;
+	struct bio		bio;
+	DECLARE_COMPLETION_ONSTACK(bdev_flush);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	new_ctx = kmem_zalloc(sizeof(*new_ctx), KM_NOFS);
 	new_ctx->ticket = xlog_cil_ticket_alloc(log);
@@ -806,7 +814,44 @@ xlog_cil_push_work(
 	lvhdr.lv_iovecp = &lhdr;
 	lvhdr.lv_next = ctx->lv_chain;
 
+<<<<<<< HEAD
 	error = xlog_write(log, &lvhdr, tic, &ctx->start_lsn, NULL, 0, true);
+	if (error)
+		goto out_abort_free_ticket;
+
+	/*
+	 * now that we've written the checkpoint into the log, strictly
+	 * order the commit records so replay will get them in the right order.
+	 */
+restart:
+	spin_lock(&cil->xc_push_lock);
+	list_for_each_entry(new_ctx, &cil->xc_committing, committing) {
+		/*
+		 * Avoid getting stuck in this loop because we were woken by the
+		 * shutdown, but then went back to sleep once already in the
+		 * shutdown state.
+		 */
+		if (XLOG_FORCED_SHUTDOWN(log)) {
+			spin_unlock(&cil->xc_push_lock);
+			goto out_abort_free_ticket;
+		}
+
+		/*
+		 * Higher sequences will wait for this one so skip them.
+		 * Don't wait for our own sequence, either.
+		 */
+		if (new_ctx->sequence >= ctx->sequence)
+			continue;
+		if (!new_ctx->commit_lsn) {
+=======
+	/*
+	 * Before we format and submit the first iclog, we have to ensure that
+	 * the metadata writeback ordering cache flush is complete.
+	 */
+	wait_for_completion(&bdev_flush);
+
+	error = xlog_write(log, &lvhdr, tic, &ctx->start_lsn, NULL,
+				XLOG_START_TRANS);
 	if (error)
 		goto out_abort_free_ticket;
 
@@ -850,15 +895,21 @@ restart:
 
 	xfs_log_ticket_ungrant(log, tic);
 
-	spin_lock(&commit_iclog->ic_callback_lock);
+	/*
+	 * Once we attach the ctx to the iclog, a shutdown can process the
+	 * iclog, run the callbacks and free the ctx. The only thing preventing
+	 * this potential UAF situation here is that we are holding the
+	 * icloglock. Hence we cannot access the ctx once we have attached the
+	 * callbacks and dropped the icloglock.
+	 */
+	spin_lock(&log->l_icloglock);
 	if (commit_iclog->ic_state == XLOG_STATE_IOERROR) {
-		spin_unlock(&commit_iclog->ic_callback_lock);
+		spin_unlock(&log->l_icloglock);
 		goto out_abort;
 	}
 	ASSERT_ALWAYS(commit_iclog->ic_state == XLOG_STATE_ACTIVE ||
 		      commit_iclog->ic_state == XLOG_STATE_WANT_SYNC);
 	list_add_tail(&ctx->iclog_entry, &commit_iclog->ic_callbacks);
-	spin_unlock(&commit_iclog->ic_callback_lock);
 
 	/*
 	 * now the checkpoint commit is complete and we've attached the
@@ -870,8 +921,88 @@ restart:
 	wake_up_all(&cil->xc_commit_wait);
 	spin_unlock(&cil->xc_push_lock);
 
+	/*
+	 * If the checkpoint spans multiple iclogs, wait for all previous iclogs
+	 * to complete before we submit the commit_iclog. We can't use state
+	 * checks for this - ACTIVE can be either a past completed iclog or a
+	 * future iclog being filled, while WANT_SYNC through SYNC_DONE can be a
+	 * past or future iclog awaiting IO or ordered IO completion to be run.
+	 * In the latter case, if it's a future iclog and we wait on it, the we
+	 * will hang because it won't get processed through to ic_force_wait
+	 * wakeup until this commit_iclog is written to disk.  Hence we use the
+	 * iclog header lsn and compare it to the commit lsn to determine if we
+	 * need to wait on iclogs or not.
+	 *
+	 * NOTE: It is not safe to reference the ctx after this check as we drop
+	 * the icloglock if we have to wait for completion of other iclogs.
+	 */
+	if (ctx->start_lsn != commit_lsn) {
+		xfs_lsn_t	plsn;
+
+		plsn = be64_to_cpu(commit_iclog->ic_prev->ic_header.h_lsn);
+		if (plsn && XFS_LSN_CMP(plsn, commit_lsn) < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+			/*
+			 * It is still being pushed! Wait for the push to
+			 * complete, then start again from the beginning.
+			 */
+<<<<<<< HEAD
+			xlog_wait(&cil->xc_commit_wait, &cil->xc_push_lock);
+			goto restart;
+=======
+			xlog_wait_on_iclog(commit_iclog->ic_prev);
+			spin_lock(&log->l_icloglock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+		}
+	}
+	spin_unlock(&cil->xc_push_lock);
+
+<<<<<<< HEAD
+	error = xlog_commit_record(log, tic, &commit_iclog, &commit_lsn);
+	if (error)
+		goto out_abort_free_ticket;
+
+	xfs_log_ticket_ungrant(log, tic);
+
+	spin_lock(&commit_iclog->ic_callback_lock);
+	if (commit_iclog->ic_state == XLOG_STATE_IOERROR) {
+		spin_unlock(&commit_iclog->ic_callback_lock);
+		goto out_abort;
+=======
+		/*
+		 * We need to issue a pre-flush so that the ordering for this
+		 * checkpoint is correctly preserved down to stable storage.
+		 */
+		commit_iclog->ic_flags |= XLOG_ICL_NEED_FLUSH;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+	ASSERT_ALWAYS(commit_iclog->ic_state == XLOG_STATE_ACTIVE ||
+		      commit_iclog->ic_state == XLOG_STATE_WANT_SYNC);
+	list_add_tail(&ctx->iclog_entry, &commit_iclog->ic_callbacks);
+	spin_unlock(&commit_iclog->ic_callback_lock);
+
+	/*
+<<<<<<< HEAD
+	 * now the checkpoint commit is complete and we've attached the
+	 * callbacks to the iclog we can assign the commit LSN to the context
+	 * and wake up anyone who is waiting for the commit to complete.
+	 */
+	spin_lock(&cil->xc_push_lock);
+	ctx->commit_lsn = commit_lsn;
+	wake_up_all(&cil->xc_commit_wait);
+	spin_unlock(&cil->xc_push_lock);
+
 	/* release the hounds! */
 	xfs_log_release_iclog(commit_iclog);
+=======
+	 * The commit iclog must be written to stable storage to guarantee
+	 * journal IO vs metadata writeback IO is correctly ordered on stable
+	 * storage.
+	 */
+	commit_iclog->ic_flags |= XLOG_ICL_NEED_FUA;
+	xlog_state_release_iclog(log, commit_iclog, preflush_tail_lsn);
+	spin_unlock(&log->l_icloglock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return;
 
 out_skip:
@@ -1031,10 +1162,13 @@ xfs_log_commit_cil(
 
 	xlog_cil_insert_items(log, tp);
 
+<<<<<<< HEAD
 	xc_commit_lsn = cil->xc_ctx->sequence;
 	if (commit_lsn)
 		*commit_lsn = xc_commit_lsn;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (regrant && !XLOG_FORCED_SHUTDOWN(log))
 		xfs_log_ticket_regrant(log, tp->t_ticket);
 	else

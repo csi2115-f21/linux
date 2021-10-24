@@ -1538,10 +1538,13 @@ vmw_gb_surface_define_internal(struct drm_device *dev,
 	user_srf = container_of(srf, struct vmw_user_surface, srf);
 	if (drm_is_primary_client(file_priv))
 		user_srf->master = drm_master_get(file_priv->master);
+<<<<<<< HEAD
 
 	ret = ttm_read_lock(&dev_priv->reservation_sem, true);
 	if (unlikely(ret != 0))
 		return ret;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	res = &user_srf->srf.res;
 

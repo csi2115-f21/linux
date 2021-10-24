@@ -904,6 +904,12 @@ static void usb_audio_disconnect(struct usb_interface *intf)
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if (chip->quirk_type == QUIRK_SETUP_DISABLE_AUTOSUSPEND)
+		usb_enable_autosuspend(interface_to_usbdev(intf));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	chip->num_interfaces--;
 	if (chip->num_interfaces <= 0) {
 		usb_chip[chip->index] = NULL;

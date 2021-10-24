@@ -55,6 +55,7 @@ enum RT_AMPDU_BURST {
 
 /*  Tx Power Limit Table Size */
 #define MAX_REGULATION_NUM			4
+<<<<<<< HEAD
 #define MAX_RF_PATH_NUM_IN_POWER_LIMIT_TABLE	4
 #define MAX_2_4G_BANDWIDTH_NUM			4
 #define MAX_RATE_SECTION_NUM			10
@@ -63,6 +64,12 @@ enum RT_AMPDU_BURST {
 #define MAX_BASE_NUM_IN_PHY_REG_PG_2_4G		10 /*   CCK:1, OFDM:1, HT:4, VHT:4 */
 #define MAX_BASE_NUM_IN_PHY_REG_PG_5G		9 /*  OFDM:1, HT:4, VHT:4 */
 
+=======
+#define MAX_2_4G_BANDWIDTH_NUM			4
+#define MAX_RATE_SECTION_NUM			10
+
+#define MAX_BASE_NUM_IN_PHY_REG_PG_2_4G		10 /*   CCK:1, OFDM:1, HT:4, VHT:4 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*  duplicate code, will move to ODM ######### */
 /* define IQK_MAC_REG_NUM		4 */
@@ -260,15 +267,24 @@ struct hal_com_data {
 	/*  TX power by rate table at most 4RF path. */
 	/*  The register is */
 	/*  VHT TX power by rate off setArray = */
+<<<<<<< HEAD
 	/*  Band:-2G&5G = 0 / 1 */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*  RF: at most 4*4 = ABCD = 0/1/2/3 */
 	/*  CCK = 0 OFDM = 1/2 HT-MCS 0-15 =3/4/56 VHT =7/8/9/10/11 */
 	u8 TxPwrByRateTable;
 	u8 TxPwrByRateBand;
+<<<<<<< HEAD
 	s8	TxPwrByRateOffset[TX_PWR_BY_RATE_NUM_BAND]
 						 [TX_PWR_BY_RATE_NUM_RF]
 						 [TX_PWR_BY_RATE_NUM_RF]
 						 [TX_PWR_BY_RATE_NUM_RATE];
+=======
+	s8 TxPwrByRateOffset[TX_PWR_BY_RATE_NUM_RF]
+			    [TX_PWR_BY_RATE_NUM_RF]
+			    [TX_PWR_BY_RATE_NUM_RATE];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*  */
 
 	/* 2 Power Limit Table */
@@ -297,9 +313,12 @@ struct hal_com_data {
 	u8 TxPwrByRateBase2_4G[TX_PWR_BY_RATE_NUM_RF]
 						[TX_PWR_BY_RATE_NUM_RF]
 						[MAX_BASE_NUM_IN_PHY_REG_PG_2_4G];
+<<<<<<< HEAD
 	u8 TxPwrByRateBase5G[TX_PWR_BY_RATE_NUM_RF]
 						[TX_PWR_BY_RATE_NUM_RF]
 						[MAX_BASE_NUM_IN_PHY_REG_PG_5G];
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*  For power group */
 	u8 PwrGroupHT20[RF_PATH_MAX_92C_88E][CHANNEL_MAX_NUMBER];

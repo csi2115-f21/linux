@@ -76,6 +76,17 @@ static const struct fpga_bridge_ops xlnx_pr_decoupler_br_ops = {
 	.enable_show = xlnx_pr_decoupler_enable_show,
 };
 
+<<<<<<< HEAD
+=======
+static const struct xlnx_config_data decoupler_config = {
+	.name = "Xilinx PR Decoupler",
+};
+
+static const struct xlnx_config_data shutdown_config = {
+	.name = "Xilinx DFX AXI Shutdown Manager",
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct of_device_id xlnx_pr_decoupler_of_match[] = {
 	{ .compatible = "xlnx,pr-decoupler-1.00", },
 	{ .compatible = "xlnx,pr-decoupler", },

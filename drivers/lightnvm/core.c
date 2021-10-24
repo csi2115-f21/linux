@@ -305,7 +305,10 @@ static int __nvm_config_extended(struct nvm_dev *dev,
 static int nvm_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 {
 	struct nvm_ioctl_create_extended e;
+<<<<<<< HEAD
 	struct request_queue *tqueue;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct gendisk *tdisk;
 	struct nvm_tgt_type *tt;
 	struct nvm_target *t;
@@ -370,12 +373,17 @@ static int nvm_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 		goto err_t;
 	}
 
+<<<<<<< HEAD
 	tdisk = alloc_disk(0);
+=======
+	tdisk = blk_alloc_disk(dev->q->node);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!tdisk) {
 		ret = -ENOMEM;
 		goto err_dev;
 	}
 
+<<<<<<< HEAD
 	tqueue = blk_alloc_queue(dev->q->node);
 	if (!tqueue) {
 		ret = -ENOMEM;
@@ -388,6 +396,12 @@ static int nvm_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 	tdisk->first_minor = 0;
 	tdisk->fops = tt->bops;
 	tdisk->queue = tqueue;
+=======
+	strlcpy(tdisk->disk_name, create->tgtname, sizeof(tdisk->disk_name));
+	tdisk->major = 0;
+	tdisk->first_minor = 0;
+	tdisk->fops = tt->bops;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	targetdata = tt->init(tgt_dev, tdisk, create->flags);
 	if (IS_ERR(targetdata)) {
@@ -396,14 +410,22 @@ static int nvm_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 	}
 
 	tdisk->private_data = targetdata;
+<<<<<<< HEAD
 	tqueue->queuedata = targetdata;
+=======
+	tdisk->queue->queuedata = targetdata;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mdts = (dev->geo.csecs >> 9) * NVM_MAX_VLBA;
 	if (dev->geo.mdts) {
 		mdts = min_t(u32, dev->geo.mdts,
 				(dev->geo.csecs >> 9) * NVM_MAX_VLBA);
 	}
+<<<<<<< HEAD
 	blk_queue_max_hw_sectors(tqueue, mdts);
+=======
+	blk_queue_max_hw_sectors(tdisk->queue, mdts);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	set_capacity(tdisk, tt->capacity(targetdata));
 	add_disk(tdisk);
@@ -428,10 +450,14 @@ err_sysfs:
 	if (tt->exit)
 		tt->exit(targetdata, true);
 err_init:
+<<<<<<< HEAD
 	blk_cleanup_queue(tqueue);
 	tdisk->queue = NULL;
 err_disk:
 	put_disk(tdisk);
+=======
+	blk_cleanup_disk(tdisk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_dev:
 	nvm_remove_tgt_dev(tgt_dev, 0);
 err_t:
@@ -445,10 +471,15 @@ static void __nvm_remove_target(struct nvm_target *t, bool graceful)
 {
 	struct nvm_tgt_type *tt = t->type;
 	struct gendisk *tdisk = t->disk;
+<<<<<<< HEAD
 	struct request_queue *q = tdisk->queue;
 
 	del_gendisk(tdisk);
 	blk_cleanup_queue(q);
+=======
+
+	del_gendisk(tdisk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (tt->sysfs_exit)
 		tt->sysfs_exit(tdisk);
@@ -457,7 +488,11 @@ static void __nvm_remove_target(struct nvm_target *t, bool graceful)
 		tt->exit(tdisk->private_data, graceful);
 
 	nvm_remove_tgt_dev(t->dev, 1);
+<<<<<<< HEAD
 	put_disk(tdisk);
+=======
+	blk_cleanup_disk(tdisk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	module_put(t->type->owner);
 
 	list_del(&t->list);
@@ -1174,6 +1209,11 @@ int nvm_register(struct nvm_dev *dev)
 {
 	int ret, exp_pool_size;
 
+<<<<<<< HEAD
+=======
+	pr_warn_once("lightnvm support is deprecated and will be removed in Linux 5.15.\n");
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!dev->q || !dev->ops) {
 		kref_put(&dev->ref, nvm_free);
 		return -EINVAL;
@@ -1257,7 +1297,11 @@ static long nvm_ioctl_info(struct file *file, void __user *arg)
 
 	info = memdup_user(arg, sizeof(struct nvm_ioctl_info));
 	if (IS_ERR(info))
+<<<<<<< HEAD
 		return -EFAULT;
+=======
+		return PTR_ERR(info);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	info->version[0] = NVM_VERSION_MAJOR;
 	info->version[1] = NVM_VERSION_MINOR;

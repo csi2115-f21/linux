@@ -40,13 +40,29 @@ static inline struct netdev_queue *q_to_ndq(struct ionic_queue *q)
 	return netdev_get_tx_queue(q->lif->netdev, q->index);
 }
 
+<<<<<<< HEAD
 static struct sk_buff *ionic_rx_skb_alloc(struct ionic_queue *q,
 					  unsigned int len, bool frags)
+=======
+static void ionic_rx_buf_reset(struct ionic_buf_info *buf_info)
+{
+	buf_info->page = NULL;
+	buf_info->page_offset = 0;
+	buf_info->dma_addr = 0;
+}
+
+static int ionic_rx_page_alloc(struct ionic_queue *q,
+			       struct ionic_buf_info *buf_info)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct ionic_lif *lif = q->lif;
 	struct ionic_rx_stats *stats;
+<<<<<<< HEAD
 	struct net_device *netdev;
 	struct sk_buff *skb;
+=======
+	struct device *dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	netdev = lif->netdev;
 	stats = &q->lif->rxqstats[q->index];
@@ -56,6 +72,7 @@ static struct sk_buff *ionic_rx_skb_alloc(struct ionic_queue *q,
 	else
 		skb = netdev_alloc_skb_ip_align(netdev, len);
 
+<<<<<<< HEAD
 	if (unlikely(!skb)) {
 		net_warn_ratelimited("%s: SKB alloc failed on %s!\n",
 				     netdev->name, q->name);
@@ -64,6 +81,72 @@ static struct sk_buff *ionic_rx_skb_alloc(struct ionic_queue *q,
 	}
 
 	return skb;
+=======
+	buf_info->page = alloc_pages(IONIC_PAGE_GFP_MASK, 0);
+	if (unlikely(!buf_info->page)) {
+		net_err_ratelimited("%s: %s page alloc failed\n",
+				    netdev->name, q->name);
+		stats->alloc_err++;
+		return -ENOMEM;
+	}
+	buf_info->page_offset = 0;
+
+	buf_info->dma_addr = dma_map_page(dev, buf_info->page, buf_info->page_offset,
+					  IONIC_PAGE_SIZE, DMA_FROM_DEVICE);
+	if (unlikely(dma_mapping_error(dev, buf_info->dma_addr))) {
+		__free_pages(buf_info->page, 0);
+		ionic_rx_buf_reset(buf_info);
+		net_err_ratelimited("%s: %s dma map failed\n",
+				    netdev->name, q->name);
+		stats->dma_map_err++;
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static void ionic_rx_page_free(struct ionic_queue *q,
+			       struct ionic_buf_info *buf_info)
+{
+	struct net_device *netdev = q->lif->netdev;
+	struct device *dev = q->dev;
+
+	if (unlikely(!buf_info)) {
+		net_err_ratelimited("%s: %s invalid buf_info in free\n",
+				    netdev->name, q->name);
+		return;
+	}
+
+	if (!buf_info->page)
+		return;
+
+	dma_unmap_page(dev, buf_info->dma_addr, IONIC_PAGE_SIZE, DMA_FROM_DEVICE);
+	__free_pages(buf_info->page, 0);
+	ionic_rx_buf_reset(buf_info);
+}
+
+static bool ionic_rx_buf_recycle(struct ionic_queue *q,
+				 struct ionic_buf_info *buf_info, u32 used)
+{
+	u32 size;
+
+	/* don't re-use pages allocated in low-mem condition */
+	if (page_is_pfmemalloc(buf_info->page))
+		return false;
+
+	/* don't re-use buffers from non-local numa nodes */
+	if (page_to_nid(buf_info->page) != numa_mem_id())
+		return false;
+
+	size = ALIGN(used, IONIC_PAGE_SPLIT_SZ);
+	buf_info->page_offset += size;
+	if (buf_info->page_offset >= IONIC_PAGE_SIZE)
+		return false;
+
+	get_page(buf_info->page);
+
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct sk_buff *ionic_rx_frags(struct ionic_queue *q,
@@ -81,7 +164,11 @@ static struct sk_buff *ionic_rx_frags(struct ionic_queue *q,
 	page_info = &desc_info->pages[0];
 	len = le16_to_cpu(comp->len);
 
+<<<<<<< HEAD
 	prefetch(page_address(page_info->page) + NET_IP_ALIGN);
+=======
+	prefetch(buf_info->page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	skb = ionic_rx_skb_alloc(q, len, true);
 	if (unlikely(!skb))
@@ -103,9 +190,23 @@ static struct sk_buff *ionic_rx_frags(struct ionic_queue *q,
 		dma_unmap_page(dev, dma_unmap_addr(page_info, dma_addr),
 			       PAGE_SIZE, DMA_FROM_DEVICE);
 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
+<<<<<<< HEAD
 				page_info->page, 0, frag_len, PAGE_SIZE);
 		page_info->page = NULL;
 		page_info++;
+=======
+				buf_info->page, buf_info->page_offset, frag_len,
+				IONIC_PAGE_SIZE);
+
+		if (!ionic_rx_buf_recycle(q, buf_info, frag_len)) {
+			dma_unmap_page(dev, buf_info->dma_addr,
+				       IONIC_PAGE_SIZE, DMA_FROM_DEVICE);
+			ionic_rx_buf_reset(buf_info);
+		}
+
+		buf_info++;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		i--;
 	} while (i > 0);
 

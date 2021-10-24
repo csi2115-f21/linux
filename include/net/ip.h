@@ -445,10 +445,17 @@ static inline unsigned int ip_dst_mtu_maybe_forward(const struct dst_entry *dst,
 
 	/* 'forwarding = true' case should always honour route mtu */
 	mtu = dst_metric_raw(dst, RTAX_MTU);
+<<<<<<< HEAD
 	if (mtu)
 		return mtu;
 
 	return min(READ_ONCE(dst->dev->mtu), IP_MAX_MTU);
+=======
+	if (!mtu)
+		mtu = min(READ_ONCE(dst->dev->mtu), IP_MAX_MTU);
+
+	return mtu - lwtunnel_headroom(dst->lwtstate, mtu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline unsigned int ip_skb_dst_mtu(struct sock *sk,

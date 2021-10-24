@@ -1864,7 +1864,19 @@ struct hns_roce_cmq_desc {
 	__le16 flag;
 	__le16 retval;
 	__le16 rsv;
+<<<<<<< HEAD
 	__le32 data[6];
+=======
+	union {
+		__le32 data[6];
+		struct {
+			__le32 own_func_num;
+			__le32 own_mac_id;
+			__le32 rsv[4];
+		} func_info;
+	};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define HNS_ROCE_V2_GO_BIT_TIMEOUT_MSECS	10000
@@ -1917,6 +1929,7 @@ struct hns_roce_v2_priv {
 	struct hns_roce_link_table tpq;
 };
 
+<<<<<<< HEAD
 struct hns_roce_eq_context {
 	__le32	byte_4;
 	__le32	byte_8;
@@ -1930,6 +1943,12 @@ struct hns_roce_eq_context {
 	__le32	byte_40;
 	__le32	byte_44;
 	__le32	rsv[5];
+=======
+struct hns_roce_dip {
+	u8 dgid[GID_LEN_V2];
+	u8 dip_idx;
+	struct list_head node;	/* all dips are on a list */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define HNS_ROCE_AEQ_DEFAULT_BURST_NUM	0x0

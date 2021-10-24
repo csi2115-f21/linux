@@ -3826,6 +3826,7 @@ static char *ffs_prepare_buffer(const char __user *buf, size_t len)
 	if (!len)
 		return NULL;
 
+<<<<<<< HEAD
 	data = kmalloc(len, GFP_KERNEL);
 	if (!data)
 		return ERR_PTR(-ENOMEM);
@@ -3834,6 +3835,11 @@ static char *ffs_prepare_buffer(const char __user *buf, size_t len)
 		kfree(data);
 		return ERR_PTR(-EFAULT);
 	}
+=======
+	data = memdup_user(buf, len);
+	if (IS_ERR(data))
+		return ERR_PTR(PTR_ERR(data));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pr_vdebug("Buffer from user space:\n");
 	ffs_dump_mem("", data, len);

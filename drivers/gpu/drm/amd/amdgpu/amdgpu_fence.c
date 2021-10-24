@@ -485,6 +485,7 @@ int amdgpu_fence_driver_init_ring(struct amdgpu_ring *ring,
 			break;
 		}
 
+<<<<<<< HEAD
 		r = drm_sched_init(&ring->sched, &amdgpu_sched_ops,
 				   num_hw_submission, amdgpu_job_hang_limit,
 				   timeout, ring->name);
@@ -493,6 +494,15 @@ int amdgpu_fence_driver_init_ring(struct amdgpu_ring *ring,
 				  ring->name);
 			return r;
 		}
+=======
+	r = drm_sched_init(&ring->sched, &amdgpu_sched_ops,
+			   num_hw_submission, amdgpu_job_hang_limit,
+			   timeout, sched_score, ring->name);
+	if (r) {
+		DRM_ERROR("Failed to create scheduler on ring %s.\n",
+			  ring->name);
+		return r;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return 0;
@@ -523,7 +533,11 @@ int amdgpu_fence_driver_init(struct amdgpu_device *adev)
  *
  * Tear down the fence driver for all possible rings (all asics).
  */
+<<<<<<< HEAD
 void amdgpu_fence_driver_fini(struct amdgpu_device *adev)
+=======
+void amdgpu_fence_driver_fini_hw(struct amdgpu_device *adev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned i, j;
 	int r;
@@ -533,9 +547,21 @@ void amdgpu_fence_driver_fini(struct amdgpu_device *adev)
 
 		if (!ring || !ring->fence_drv.initialized)
 			continue;
+<<<<<<< HEAD
 		r = amdgpu_fence_wait_empty(ring);
 		if (r) {
 			/* no need to trigger GPU reset as we are unloading */
+=======
+		if (!ring->no_scheduler)
+			drm_sched_fini(&ring->sched);
+		/* You can't wait for HW to signal if it's gone */
+		if (!drm_dev_is_unplugged(&adev->ddev))
+			r = amdgpu_fence_wait_empty(ring);
+		else
+			r = -ENODEV;
+		/* no need to trigger GPU reset as we are unloading */
+		if (r)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			amdgpu_fence_driver_force_completion(ring);
 		}
 		if (ring->fence_drv.irq_src)
@@ -552,7 +578,52 @@ void amdgpu_fence_driver_fini(struct amdgpu_device *adev)
 	}
 }
 
+<<<<<<< HEAD
 /**
+ * amdgpu_fence_driver_suspend - suspend the fence driver
+ * for all possible rings.
+ *
+ * @adev: amdgpu device pointer
+ *
+ * Suspend the fence driver for all possible rings (all asics).
+ */
+void amdgpu_fence_driver_suspend(struct amdgpu_device *adev)
+=======
+void amdgpu_fence_driver_fini_sw(struct amdgpu_device *adev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+{
+	int i, r;
+
+	for (i = 0; i < AMDGPU_MAX_RINGS; i++) {
+		struct amdgpu_ring *ring = adev->rings[i];
+		if (!ring || !ring->fence_drv.initialized)
+			continue;
+
+<<<<<<< HEAD
+		/* wait for gpu to finish processing current batch */
+		r = amdgpu_fence_wait_empty(ring);
+		if (r) {
+			/* delay GPU reset to resume */
+			amdgpu_fence_driver_force_completion(ring);
+		}
+
+		/* disable the interrupt */
+		if (ring->fence_drv.irq_src)
+			amdgpu_irq_put(adev, ring->fence_drv.irq_src,
+				       ring->fence_drv.irq_type);
+=======
+		for (j = 0; j <= ring->fence_drv.num_fences_mask; ++j)
+			dma_fence_put(ring->fence_drv.fences[j]);
+		kfree(ring->fence_drv.fences);
+		ring->fence_drv.fences = NULL;
+		ring->fence_drv.initialized = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+}
+
+/**
+<<<<<<< HEAD
+=======
  * amdgpu_fence_driver_suspend - suspend the fence driver
  * for all possible rings.
  *
@@ -584,6 +655,7 @@ void amdgpu_fence_driver_suspend(struct amdgpu_device *adev)
 }
 
 /**
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * amdgpu_fence_driver_resume - resume the fence driver
  * for all possible rings.
  *

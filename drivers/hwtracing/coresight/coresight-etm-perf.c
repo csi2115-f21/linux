@@ -249,7 +249,11 @@ static void *etm_setup_aux(struct perf_event *event, void **pages,
 	/* First get the selected sink from user space. */
 	if (event->attr.config2) {
 		id = (u32)event->attr.config2;
+<<<<<<< HEAD
 		sink = coresight_get_sink_by_id(id);
+=======
+		sink = user_sink = coresight_get_sink_by_id(id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	mask = &event_data->mask;

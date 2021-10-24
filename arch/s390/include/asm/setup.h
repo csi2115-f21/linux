@@ -158,6 +158,11 @@ static inline unsigned long kaslr_offset(void)
 	return __kaslr_offset;
 }
 
+<<<<<<< HEAD
+=======
+extern int is_full_image;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline u32 gen_lpswe(unsigned long addr)
 {
 	BUILD_BUG_ON(addr > 0xfff);

@@ -10,12 +10,27 @@
 
 static int prepend(char **buffer, int *buflen, const char *str, int namelen)
 {
+<<<<<<< HEAD
 	*buflen -= namelen;
 	if (*buflen < 0)
 		return -ENAMETOOLONG;
 	*buffer -= namelen;
 	memcpy(*buffer, str, namelen);
 	return 0;
+=======
+	if (likely(p->len >= 0))
+		return p->buf;
+	return ERR_PTR(-ENAMETOOLONG);
+}
+
+static void prepend(struct prepend_buffer *p, const char *str, int namelen)
+{
+	p->len -= namelen;
+	if (likely(p->len >= 0)) {
+		p->buf -= namelen;
+		memcpy(p->buf, str, namelen);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -39,6 +54,7 @@ static int prepend_name(char **buffer, int *buflen, const struct qstr *name)
 {
 	const char *dname = smp_load_acquire(&name->name); /* ^^^ */
 	u32 dlen = READ_ONCE(name->len);
+<<<<<<< HEAD
 	char *p;
 
 	*buflen -= dlen + 1;
@@ -49,6 +65,54 @@ static int prepend_name(char **buffer, int *buflen, const struct qstr *name)
 	while (dlen--) {
 		char c = *dname++;
 		if (!c)
+=======
+	char *s;
+
+	p->len -= dlen + 1;
+	if (unlikely(p->len < 0))
+		return false;
+	s = p->buf -= dlen + 1;
+	*s++ = '/';
+	while (dlen--) {
+		char c = *dname++;
+		if (!c)
+			break;
+		*s++ = c;
+	}
+	return true;
+}
+
+static int __prepend_path(const struct dentry *dentry, const struct mount *mnt,
+			  const struct path *root, struct prepend_buffer *p)
+{
+	while (dentry != root->dentry || &mnt->mnt != root->mnt) {
+		const struct dentry *parent = READ_ONCE(dentry->d_parent);
+
+		if (dentry == mnt->mnt.mnt_root) {
+			struct mount *m = READ_ONCE(mnt->mnt_parent);
+			struct mnt_namespace *mnt_ns;
+
+			if (likely(mnt != m)) {
+				dentry = READ_ONCE(mnt->mnt_mountpoint);
+				mnt = m;
+				continue;
+			}
+			/* Global root */
+			mnt_ns = READ_ONCE(mnt->mnt_ns);
+			/* open-coded is_mounted() to use local mnt_ns */
+			if (!IS_ERR_OR_NULL(mnt_ns) && !is_anon_ns(mnt_ns))
+				return 1;	// absolute root
+			else
+				return 2;	// detached or not attached yet
+		}
+
+		if (unlikely(dentry == parent))
+			/* Escaped? */
+			return 3;
+
+		prefetch(parent);
+		if (!prepend_name(p, &dentry->d_name))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		*p++ = c;
 	}
@@ -150,6 +214,7 @@ restart:
 	}
 	done_seqretry(&mount_lock, m_seq);
 
+<<<<<<< HEAD
 	if (error >= 0 && bptr == *buffer) {
 		if (--blen < 0)
 			error = -ENAMETOOLONG;
@@ -158,6 +223,15 @@ restart:
 	}
 	*buffer = bptr;
 	*buflen = blen;
+=======
+	if (unlikely(error == 3))
+		b = *p;
+
+	if (b.len == p->len)
+		prepend(&b, "/", 1);
+
+	*p = b;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return error;
 }
 
@@ -187,9 +261,14 @@ char *__d_path(const struct path *path,
 	prepend(&res, &buflen, "\0", 1);
 	error = prepend_path(path, root, &res, &buflen);
 
+<<<<<<< HEAD
 	if (error < 0)
 		return ERR_PTR(error);
 	if (error > 0)
+=======
+	prepend(&b, "", 1);
+	if (unlikely(prepend_path(path, root, &b) > 0))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return NULL;
 	return res;
 }
@@ -228,9 +307,16 @@ static int path_with_deleted(const struct path *path,
 	return prepend_path(path, root, buf, buflen);
 }
 
+<<<<<<< HEAD
 static int prepend_unreachable(char **buffer, int *buflen)
 {
 	return prepend(buffer, buflen, "(unreachable)", 13);
+=======
+	prepend(&b, "", 1);
+	if (unlikely(prepend_path(path, &root, &b) > 1))
+		return ERR_PTR(-EINVAL);
+	return extract_string(&b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void get_fs_root_rcu(struct fs_struct *fs, struct path *root)
@@ -282,7 +368,15 @@ char *d_path(const struct path *path, char *buf, int buflen)
 
 	rcu_read_lock();
 	get_fs_root_rcu(current->fs, &root);
+<<<<<<< HEAD
 	error = path_with_deleted(path, &root, &res, &buflen);
+=======
+	if (unlikely(d_unlinked(path->dentry)))
+		prepend(&b, " (deleted)", 11);
+	else
+		prepend(&b, "", 1);
+	prepend_path(path, &root, &b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rcu_read_unlock();
 
 	if (error < 0)
@@ -316,11 +410,18 @@ char *simple_dname(struct dentry *dentry, char *buffer, int buflen)
 {
 	char *end = buffer + buflen;
 	/* these dentries are never renamed, so d_lock is not needed */
+<<<<<<< HEAD
 	if (prepend(&end, &buflen, " (deleted)", 11) ||
 	    prepend(&end, &buflen, dentry->d_name.name, dentry->d_name.len) ||
 	    prepend(&end, &buflen, "/", 1))  
 		end = ERR_PTR(-ENAMETOOLONG);
 	return end;
+=======
+	prepend(&b, " (deleted)", 11);
+	prepend(&b, dentry->d_name.name, dentry->d_name.len);
+	prepend(&b, "/", 1);
+	return extract_string(&b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -364,21 +465,35 @@ restart:
 		goto restart;
 	}
 	done_seqretry(&rename_lock, seq);
+<<<<<<< HEAD
 	if (error)
 		goto Elong;
 	return retval;
 Elong:
 	return ERR_PTR(-ENAMETOOLONG);
+=======
+	if (b.len == p->len)
+		prepend(&b, "/", 1);
+	return extract_string(&b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 char *dentry_path_raw(struct dentry *dentry, char *buf, int buflen)
 {
+<<<<<<< HEAD
 	return __dentry_path(dentry, buf, buflen);
+=======
+	DECLARE_BUFFER(b, buf, buflen);
+
+	prepend(&b, "", 1);
+	return __dentry_path(dentry, &b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL(dentry_path_raw);
 
 char *dentry_path(struct dentry *dentry, char *buf, int buflen)
 {
+<<<<<<< HEAD
 	char *p = NULL;
 	char *retval;
 
@@ -394,6 +509,15 @@ char *dentry_path(struct dentry *dentry, char *buf, int buflen)
 	return retval;
 Elong:
 	return ERR_PTR(-ENAMETOOLONG);
+=======
+	DECLARE_BUFFER(b, buf, buflen);
+
+	if (unlikely(d_unlinked(dentry)))
+		prepend(&b, "//deleted", 10);
+	else
+		prepend(&b, "", 1);
+	return __dentry_path(dentry, &b);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void get_fs_root_and_pwd_rcu(struct fs_struct *fs, struct path *root,
@@ -444,8 +568,14 @@ SYSCALL_DEFINE2(getcwd, char __user *, buf, unsigned long, size)
 		char *cwd = page + PATH_MAX;
 		int buflen = PATH_MAX;
 
+<<<<<<< HEAD
 		prepend(&cwd, &buflen, "\0", 1);
 		error = prepend_path(&pwd, &root, &cwd, &buflen);
+=======
+		prepend(&b, "", 1);
+		if (unlikely(prepend_path(&pwd, &root, &b) > 0))
+			prepend(&b, "(unreachable)", 13);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rcu_read_unlock();
 
 		if (error < 0)

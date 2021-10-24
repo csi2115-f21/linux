@@ -13,6 +13,7 @@
 #include <soc/mscc/ocelot_ptp.h>
 #include "dsa_priv.h"
 
+<<<<<<< HEAD
 static struct sk_buff *ocelot_xmit_ptp(struct dsa_port *dp,
 				       struct sk_buff *skb,
 				       struct sk_buff *clone)
@@ -39,6 +40,8 @@ static struct sk_buff *ocelot_xmit_ptp(struct dsa_port *dp,
 	return NULL;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct sk_buff *ocelot_xmit(struct sk_buff *skb,
 				   struct net_device *netdev)
 {
@@ -46,11 +49,26 @@ static struct sk_buff *ocelot_xmit(struct sk_buff *skb,
 	u16 tx_vid = dsa_8021q_tx_vid(dp->ds, dp->index);
 	u16 queue_mapping = skb_get_queue_mapping(skb);
 	u8 pcp = netdev_txq_to_tc(netdev, queue_mapping);
+<<<<<<< HEAD
 	struct sk_buff *clone = DSA_SKB_CB(skb)->clone;
 
 	/* TX timestamping was requested, so inject through MMIO */
 	if (clone)
 		return ocelot_xmit_ptp(dp, skb, clone);
+=======
+	struct ocelot *ocelot = dp->ds->priv;
+	int port = dp->index;
+	u32 rew_op = 0;
+
+	rew_op = ocelot_ptp_rew_op(skb);
+	if (rew_op) {
+		if (!ocelot_can_inject(ocelot, 0))
+			return NULL;
+
+		ocelot_port_inject_frame(ocelot, port, 0, rew_op, skb);
+		return NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return dsa_8021q_xmit(skb, netdev, ETH_P_8021Q,
 			      ((pcp << VLAN_PRIO_SHIFT) | tx_vid));
@@ -60,6 +78,7 @@ static struct sk_buff *ocelot_rcv(struct sk_buff *skb,
 				  struct net_device *netdev,
 				  struct packet_type *pt)
 {
+<<<<<<< HEAD
 	int src_port, switch_id, qos_class;
 	u16 vid, tci;
 
@@ -76,13 +95,21 @@ static struct sk_buff *ocelot_rcv(struct sk_buff *skb,
 	src_port = dsa_8021q_rx_source_port(vid);
 	switch_id = dsa_8021q_rx_switch_id(vid);
 	qos_class = (tci & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT;
+=======
+	int src_port, switch_id, subvlan;
+
+	dsa_8021q_rcv(skb, &src_port, &switch_id, &subvlan);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	skb->dev = dsa_master_find_slave(netdev, switch_id, src_port);
 	if (!skb->dev)
 		return NULL;
 
 	skb->offload_fwd_mark = 1;
+<<<<<<< HEAD
 	skb->priority = qos_class;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return skb;
 }

@@ -284,8 +284,12 @@ config DEBUG_INFO_DWARF4
 
 config DEBUG_INFO_DWARF5
 	bool "Generate DWARF Version 5 debuginfo"
+<<<<<<< HEAD
 	depends on GCC_VERSION >= 50000 || CC_IS_CLANG
 	depends on CC_IS_GCC || $(success,$(srctree)/scripts/test_dwarf5_support.sh $(CC) $(CLANG_FLAGS))
+=======
+	depends on GCC_VERSION >= 50000 || (CC_IS_CLANG && (AS_IS_LLVM || (AS_IS_GNU && AS_VERSION >= 23502)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	depends on !DEBUG_INFO_BTF
 	help
 	  Generate DWARF v5 debug info. Requires binutils 2.35.2, gcc 5.0+ (gcc
@@ -2020,6 +2024,18 @@ config TEST_MIN_HEAP
 
 config TEST_SORT
 	tristate "Array-based sort test"
+<<<<<<< HEAD
+=======
+	depends on DEBUG_KERNEL || m
+	help
+	  This option enables the self-test function of 'sort()' at boot,
+	  or at module load time.
+
+	  If unsure, say N.
+
+config TEST_DIV64
+	tristate "64bit/32bit division and modulo test"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	depends on DEBUG_KERNEL || m
 	help
 	  This option enables the self-test function of 'sort()' at boot,
@@ -2371,6 +2387,33 @@ config BITS_TEST
 
 	  If unsure, say N.
 
+<<<<<<< HEAD
+=======
+config SLUB_KUNIT_TEST
+	tristate "KUnit test for SLUB cache error detection" if !KUNIT_ALL_TESTS
+	depends on SLUB_DEBUG && KUNIT
+	default KUNIT_ALL_TESTS
+	help
+	  This builds SLUB allocator unit test.
+	  Tests SLUB cache debugging functionality.
+	  For more information on KUnit and unit tests in general please refer
+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
+
+	  If unsure, say N.
+
+config RATIONAL_KUNIT_TEST
+	tristate "KUnit test for rational.c" if !KUNIT_ALL_TESTS
+	depends on KUNIT
+	select RATIONAL
+	default KUNIT_ALL_TESTS
+	help
+	  This builds the rational math unit test.
+	  For more information on KUnit and unit tests in general please refer
+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
+
+	  If unsure, say N.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 config TEST_UDELAY
 	tristate "udelay test driver"
 	help

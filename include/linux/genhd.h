@@ -153,6 +153,14 @@ struct gendisk {
 	unsigned long state;
 #define GD_NEED_PART_SCAN		0
 #define GD_READ_ONLY			1
+<<<<<<< HEAD
+=======
+#define GD_QUEUE_REF			2
+
+	struct mutex open_mutex;	/* open/close mutex */
+	unsigned open_partitions;	/* number of open partitions */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct kobject *slave_dir;
 
 	struct timer_rand_state *random;
@@ -227,6 +235,7 @@ extern void disk_part_iter_exit(struct disk_part_iter *piter);
 extern void device_add_disk(struct device *parent, struct gendisk *disk,
 			    const struct attribute_group **groups);
 static inline void add_disk(struct gendisk *disk)
+<<<<<<< HEAD
 {
 	device_add_disk(NULL, disk, NULL);
 }
@@ -235,6 +244,16 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
 {
 	device_add_disk_no_queue_reg(NULL, disk);
 }
+=======
+{
+	device_add_disk(NULL, disk, NULL);
+}
+extern void device_add_disk_no_queue_reg(struct device *parent, struct gendisk *disk);
+static inline void add_disk_no_queue_reg(struct gendisk *disk)
+{
+	device_add_disk_no_queue_reg(NULL, disk);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 extern void del_gendisk(struct gendisk *gp);
 extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
@@ -277,6 +296,8 @@ int blk_drop_partitions(struct block_device *bdev);
 
 extern struct gendisk *__alloc_disk_node(int minors, int node_id);
 extern void put_disk(struct gendisk *disk);
+<<<<<<< HEAD
+=======
 
 #define alloc_disk_node(minors, node_id)				\
 ({									\
@@ -295,6 +316,36 @@ extern void put_disk(struct gendisk *disk);
 })
 
 #define alloc_disk(minors) alloc_disk_node(minors, NUMA_NO_NODE)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+#define alloc_disk_node(minors, node_id)				\
+({									\
+	struct gendisk *__disk = __blk_alloc_disk(node_id);		\
+	static struct lock_class_key __key;				\
+	const char *__name;						\
+	struct gendisk *__disk;						\
+									\
+	__name = "(gendisk_completion)"#minors"("#node_id")";		\
+									\
+<<<<<<< HEAD
+	__disk = __alloc_disk_node(minors, node_id);			\
+									\
+	if (__disk)							\
+		lockdep_init_map(&__disk->lockdep_map, __name, &__key, 0); \
+									\
+	__disk;								\
+})
+
+#define alloc_disk(minors) alloc_disk_node(minors, NUMA_NO_NODE)
+=======
+	if (__disk)							\
+		lockdep_init_map(&__disk->lockdep_map,			\
+			"(bio completion)", &__key, 0);			\
+	__disk;								\
+})
+struct gendisk *__blk_alloc_disk(int node);
+void blk_cleanup_disk(struct gendisk *disk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int __register_blkdev(unsigned int major, const char *name,
 		void (*probe)(dev_t devt));
@@ -324,9 +375,14 @@ static inline void bd_unlink_disk_holder(struct block_device *bdev,
 {
 }
 #endif /* CONFIG_SYSFS */
+<<<<<<< HEAD
 
 extern struct rw_semaphore bdev_lookup_sem;
 
+=======
+
+dev_t part_devt(struct gendisk *disk, u8 partno);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 dev_t blk_lookup_devt(const char *name, int partno);
 void blk_request_module(dev_t devt);
 #ifdef CONFIG_BLOCK

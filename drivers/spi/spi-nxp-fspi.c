@@ -311,6 +311,14 @@
 #define NXP_FSPI_MAX_CHIPSELECT		4
 #define NXP_FSPI_MIN_IOMAP	SZ_4M
 
+<<<<<<< HEAD
+=======
+#define DCFG_RCWSR1		0x100
+
+/* Access flash memory using IP bus only */
+#define FSPI_QUIRK_USE_IP_ONLY	BIT(0)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct nxp_fspi_devtype_data {
 	unsigned int rxfifo;
 	unsigned int txfifo;
@@ -891,6 +899,62 @@ static int nxp_fspi_adjust_op_size(struct spi_mem *mem, struct spi_mem_op *op)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void erratum_err050568(struct nxp_fspi *f)
+{
+	const struct soc_device_attribute ls1028a_soc_attr[] = {
+		{ .family = "QorIQ LS1028A" },
+		{ /* sentinel */ }
+	};
+	struct device_node *np;
+	struct regmap *map;
+	u32 val = 0, sysclk = 0;
+	int ret;
+
+	/* Check for LS1028A family */
+	if (!soc_device_match(ls1028a_soc_attr)) {
+		dev_dbg(f->dev, "Errata applicable only for LS1028A\n");
+		return;
+	}
+
+	/* Compute system clock frequency multiplier ratio */
+	map = syscon_regmap_lookup_by_compatible("fsl,ls1028a-dcfg");
+	if (IS_ERR(map)) {
+		dev_err(f->dev, "No syscon regmap\n");
+		goto err;
+	}
+
+	ret = regmap_read(map, DCFG_RCWSR1, &val);
+	if (ret < 0)
+		goto err;
+
+	/* Strap bits 6:2 define SYS_PLL_RAT i.e frequency multiplier ratio */
+	val = (val >> 2) & 0x1F;
+	WARN(val == 0, "Strapping is zero: Cannot determine ratio");
+
+	/* Compute system clock frequency */
+	np = of_find_node_by_name(NULL, "clock-sysclk");
+	if (!np)
+		goto err;
+
+	if (of_property_read_u32(np, "clock-frequency", &sysclk))
+		goto err;
+
+	sysclk = (sysclk * val) / 1000000; /* Convert sysclk to Mhz */
+	dev_dbg(f->dev, "val: 0x%08x, sysclk: %dMhz\n", val, sysclk);
+
+	/* Use IP bus only if PLL is 300MHz */
+	if (sysclk == 300)
+		f->devtype_data->quirks |= FSPI_QUIRK_USE_IP_ONLY;
+
+	return;
+
+err:
+	dev_err(f->dev, "Errata cannot be executed. Read via IP bus may not work\n");
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int nxp_fspi_default_setup(struct nxp_fspi *f)
 {
 	void __iomem *base = f->iobase;

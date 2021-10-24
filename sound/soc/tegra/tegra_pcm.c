@@ -213,19 +213,31 @@ snd_pcm_uframes_t tegra_pcm_pointer(struct snd_soc_component *component,
 }
 EXPORT_SYMBOL_GPL(tegra_pcm_pointer);
 
+<<<<<<< HEAD
 static int tegra_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
+=======
+static int tegra_pcm_preallocate_dma_buffer(struct device *dev, struct snd_pcm *pcm, int stream,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					    size_t size)
 {
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 
+<<<<<<< HEAD
 	buf->area = dma_alloc_wc(pcm->card->dev, size, &buf->addr, GFP_KERNEL);
+=======
+	buf->area = dma_alloc_wc(dev, size, &buf->addr, GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!buf->area)
 		return -ENOMEM;
 
 	buf->private_data = NULL;
 	buf->dev.type = SNDRV_DMA_TYPE_DEV;
+<<<<<<< HEAD
 	buf->dev.dev = pcm->card->dev;
+=======
+	buf->dev.dev = dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	buf->bytes = size;
 
 	return 0;
@@ -244,11 +256,19 @@ static void tegra_pcm_deallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	if (!buf->area)
 		return;
 
+<<<<<<< HEAD
 	dma_free_wc(pcm->card->dev, buf->bytes, buf->area, buf->addr);
 	buf->area = NULL;
 }
 
 static int tegra_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
+=======
+	dma_free_wc(buf->dev.dev, buf->bytes, buf->area, buf->addr);
+	buf->area = NULL;
+}
+
+static int tegra_pcm_dma_allocate(struct device *dev, struct snd_soc_pcm_runtime *rtd,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				  size_t size)
 {
 	struct snd_card *card = rtd->card->snd_card;
@@ -260,15 +280,23 @@ static int tegra_pcm_dma_allocate(struct snd_soc_pcm_runtime *rtd,
 		return ret;
 
 	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
+<<<<<<< HEAD
 		ret = tegra_pcm_preallocate_dma_buffer(pcm,
 			SNDRV_PCM_STREAM_PLAYBACK, size);
+=======
+		ret = tegra_pcm_preallocate_dma_buffer(dev, pcm, SNDRV_PCM_STREAM_PLAYBACK, size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret)
 			goto err;
 	}
 
 	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream) {
+<<<<<<< HEAD
 		ret = tegra_pcm_preallocate_dma_buffer(pcm,
 			SNDRV_PCM_STREAM_CAPTURE, size);
+=======
+		ret = tegra_pcm_preallocate_dma_buffer(dev, pcm, SNDRV_PCM_STREAM_CAPTURE, size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret)
 			goto err_free_play;
 	}

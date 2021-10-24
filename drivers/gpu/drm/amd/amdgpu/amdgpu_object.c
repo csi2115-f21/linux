@@ -729,6 +729,25 @@ retry:
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * amdgpu_bo_add_to_shadow_list - add a BO to the shadow list
+ *
+ * @bo: BO that will be inserted into the shadow list
+ *
+ * Insert a BO to the shadow list.
+ */
+void amdgpu_bo_add_to_shadow_list(struct amdgpu_bo_vm *vmbo)
+{
+	struct amdgpu_device *adev = amdgpu_ttm_adev(vmbo->bo.tbo.bdev);
+
+	mutex_lock(&adev->shadow_list_lock);
+	list_add_tail(&vmbo->shadow_list, &adev->shadow_list);
+	mutex_unlock(&adev->shadow_list_lock);
+}
+
+/**
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * amdgpu_bo_restore_shadow - restore an &amdgpu_bo shadow
  *
  * @shadow: &amdgpu_bo shadow to be restored

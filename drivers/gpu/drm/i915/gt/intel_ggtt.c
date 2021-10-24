@@ -806,7 +806,11 @@ static int ggtt_probe_common(struct i915_ggtt *ggtt, u64 size)
 	 * resort to an uncached mapping. The WC issue is easily caught by the
 	 * readback check when writing GTT PTE entries.
 	 */
+<<<<<<< HEAD
 	if (IS_GEN9_LP(i915) || INTEL_GEN(i915) >= 10)
+=======
+	if (IS_GEN9_LP(i915) || GRAPHICS_VER(i915) >= 10)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ggtt->gsm = ioremap(phys_addr, size);
 	else
 		ggtt->gsm = ioremap_wc(phys_addr, size);
@@ -1420,7 +1424,7 @@ intel_partial_pages(const struct i915_ggtt_view *view,
 	if (ret)
 		goto err_sg_alloc;
 
-	iter = i915_gem_object_get_sg_dma(obj, view->partial.offset, &offset);
+	iter = i915_gem_object_get_sg_dma(obj, view->partial.offset, &offset, true);
 	GEM_BUG_ON(!iter);
 
 	sg = st->sgl;

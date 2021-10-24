@@ -176,6 +176,66 @@ void mlxsw_sp_nve_inc_parsing_depth_put(struct mlxsw_sp *mlxsw_sp)
 	__mlxsw_sp_nve_inc_parsing_depth_put(mlxsw_sp, udp_dport);
 }
 
+static int __mlxsw_sp_nve_parsing_set(struct mlxsw_sp *mlxsw_sp,
+				      unsigned int parsing_depth,
+				      __be16 udp_dport)
+{
+	char mprs_pl[MLXSW_REG_MPRS_LEN];
+
+	mlxsw_reg_mprs_pack(mprs_pl, parsing_depth, be16_to_cpu(udp_dport));
+	return mlxsw_reg_write(mlxsw_sp->core, MLXSW_REG(mprs), mprs_pl);
+}
+
+static int mlxsw_sp_nve_parsing_set(struct mlxsw_sp *mlxsw_sp,
+				    __be16 udp_dport)
+{
+	int parsing_depth = mlxsw_sp->nve->inc_parsing_depth_refs ?
+				MLXSW_SP_NVE_VXLAN_PARSING_DEPTH :
+				MLXSW_SP_NVE_DEFAULT_PARSING_DEPTH;
+
+	return __mlxsw_sp_nve_parsing_set(mlxsw_sp, parsing_depth, udp_dport);
+}
+
+static int
+__mlxsw_sp_nve_inc_parsing_depth_get(struct mlxsw_sp *mlxsw_sp,
+				     __be16 udp_dport)
+{
+	int err;
+
+	mlxsw_sp->nve->inc_parsing_depth_refs++;
+
+	err = mlxsw_sp_nve_parsing_set(mlxsw_sp, udp_dport);
+	if (err)
+		goto err_nve_parsing_set;
+	return 0;
+
+err_nve_parsing_set:
+	mlxsw_sp->nve->inc_parsing_depth_refs--;
+	return err;
+}
+
+static void
+__mlxsw_sp_nve_inc_parsing_depth_put(struct mlxsw_sp *mlxsw_sp,
+				     __be16 udp_dport)
+{
+	mlxsw_sp->nve->inc_parsing_depth_refs--;
+	mlxsw_sp_nve_parsing_set(mlxsw_sp, udp_dport);
+}
+
+int mlxsw_sp_nve_inc_parsing_depth_get(struct mlxsw_sp *mlxsw_sp)
+{
+	__be16 udp_dport = mlxsw_sp->nve->config.udp_dport;
+
+	return __mlxsw_sp_nve_inc_parsing_depth_get(mlxsw_sp, udp_dport);
+}
+
+void mlxsw_sp_nve_inc_parsing_depth_put(struct mlxsw_sp *mlxsw_sp)
+{
+	__be16 udp_dport = mlxsw_sp->nve->config.udp_dport;
+
+	__mlxsw_sp_nve_inc_parsing_depth_put(mlxsw_sp, udp_dport);
+}
+
 static void
 mlxsw_sp_nve_vxlan_config_prepare(char *tngcr_pl,
 				  const struct mlxsw_sp_nve_config *config)

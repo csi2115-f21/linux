@@ -1482,6 +1482,10 @@ static void hclge_init_kdump_kernel_config(struct hclge_dev *hdev)
 
 static int hclge_configure(struct hclge_dev *hdev)
 {
+<<<<<<< HEAD
+=======
+	struct hnae3_ae_dev *ae_dev = pci_get_drvdata(hdev->pdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct hclge_cfg cfg;
 	unsigned int i;
 	int ret;
@@ -1504,6 +1508,12 @@ static int hclge_configure(struct hclge_dev *hdev)
 	hdev->tc_max = cfg.tc_num;
 	hdev->tm_info.hw_pfc_map = 0;
 	hdev->wanted_umv_size = cfg.umv_space;
+<<<<<<< HEAD
+=======
+	hdev->tx_spare_buf_size = cfg.tx_spare_buf_size;
+	if (cfg.vlan_fliter_cap == HCLGE_VLAN_FLTR_CAN_MDF)
+		set_bit(HNAE3_DEV_SUPPORT_VLAN_FLTR_MDF_B, ae_dev->caps);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (hnae3_dev_fd_supported(hdev)) {
 		hdev->fd_en = true;
@@ -2874,6 +2884,7 @@ static void hclge_update_link_status(struct hclge_dev *hdev)
 	}
 
 	if (state != hdev->hw.mac.link) {
+<<<<<<< HEAD
 		for (i = 0; i < hdev->num_vmdq_vport + 1; i++) {
 			handle = &hdev->vport[i].nic;
 			client->ops->link_status_change(handle, state);
@@ -2884,6 +2895,15 @@ static void hclge_update_link_status(struct hclge_dev *hdev)
 								 state);
 		}
 		hdev->hw.mac.link = state;
+=======
+		client->ops->link_status_change(handle, state);
+		hclge_config_mac_tnl_int(hdev, state);
+		if (rclient && rclient->ops->link_status_change)
+			rclient->ops->link_status_change(rhandle, state);
+
+		hdev->hw.mac.link = state;
+		hclge_push_link_status(hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	clear_bit(HCLGE_STATE_LINK_UPDATING, &hdev->state);
@@ -5980,6 +6000,45 @@ static bool hclge_is_cls_flower_active(struct hnae3_handle *handle)
 	return hdev->fd_active_type == HCLGE_FD_TC_FLOWER_ACTIVE;
 }
 
+<<<<<<< HEAD
+=======
+static int hclge_fd_parse_ring_cookie(struct hclge_dev *hdev, u64 ring_cookie,
+				      u16 *vport_id, u8 *action, u16 *queue_id)
+{
+	struct hclge_vport *vport = hdev->vport;
+
+	if (ring_cookie == RX_CLS_FLOW_DISC) {
+		*action = HCLGE_FD_ACTION_DROP_PACKET;
+	} else {
+		u32 ring = ethtool_get_flow_spec_ring(ring_cookie);
+		u8 vf = ethtool_get_flow_spec_ring_vf(ring_cookie);
+		u16 tqps;
+
+		if (vf > hdev->num_req_vfs) {
+			dev_err(&hdev->pdev->dev,
+				"Error: vf id (%u) > max vf num (%u)\n",
+				vf, hdev->num_req_vfs);
+			return -EINVAL;
+		}
+
+		*vport_id = vf ? hdev->vport[vf].vport_id : vport->vport_id;
+		tqps = hdev->vport[vf].nic.kinfo.num_tqps;
+
+		if (ring >= tqps) {
+			dev_err(&hdev->pdev->dev,
+				"Error: queue id (%u) > max tqp num (%u)\n",
+				ring, tqps - 1);
+			return -EINVAL;
+		}
+
+		*action = HCLGE_FD_ACTION_SELECT_QUEUE;
+		*queue_id = ring;
+	}
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hclge_add_fd_entry(struct hnae3_handle *handle,
 			      struct ethtool_rxnfc *cmd)
 {
@@ -8991,8 +9050,12 @@ static int hclge_set_vlan_filter_hw(struct hclge_dev *hdev, __be16 proto,
 	if (is_kill && !vlan_id)
 		return 0;
 
+<<<<<<< HEAD
 	ret = hclge_set_vf_vlan_common(hdev, vport_id, is_kill, vlan_id,
 				       proto);
+=======
+	ret = hclge_set_vf_vlan_common(hdev, vport_id, is_kill, vlan_id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		dev_err(&hdev->pdev->dev,
 			"Set %u vport vlan filter config fail, ret =%d.\n",
@@ -9858,13 +9921,18 @@ int hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
 {
 	struct hclge_vport *vport = hclge_get_vport(handle);
 	struct hclge_dev *hdev = vport->back;
+<<<<<<< HEAD
 	int reset_try_times = 0;
+=======
+	u16 reset_try_times = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int reset_status;
 	u16 queue_gid;
 	int ret;
 
 	queue_gid = hclge_covert_handle_qid_global(handle, queue_id);
 
+<<<<<<< HEAD
 	ret = hclge_tqp_enable(hdev, queue_id, 0, false);
 	if (ret) {
 		dev_err(&hdev->pdev->dev, "Disable tqp fail, ret = %d\n", ret);
@@ -9877,6 +9945,12 @@ int hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
 			"Send reset tqp cmd fail, ret = %d\n", ret);
 		return ret;
 	}
+=======
+		while (reset_try_times++ < HCLGE_TQP_RESET_TRY_TIMES) {
+			reset_status = hclge_get_reset_status(hdev, queue_gid);
+			if (reset_status)
+				break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	while (reset_try_times++ < HCLGE_TQP_RESET_TRY_TIMES) {
 		reset_status = hclge_get_reset_status(hdev, queue_gid);
@@ -10561,6 +10635,21 @@ static void hclge_clear_resetting_state(struct hclge_dev *hdev)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void hclge_init_rxd_adv_layout(struct hclge_dev *hdev)
+{
+	if (hnae3_ae_dev_rxd_adv_layout_supported(hdev->ae_dev))
+		hclge_write_dev(&hdev->hw, HCLGE_RXD_ADV_LAYOUT_EN_REG, 1);
+}
+
+static void hclge_uninit_rxd_adv_layout(struct hclge_dev *hdev)
+{
+	if (hnae3_ae_dev_rxd_adv_layout_supported(hdev->ae_dev))
+		hclge_write_dev(&hdev->hw, HCLGE_RXD_ADV_LAYOUT_EN_REG, 0);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
 {
 	struct pci_dev *pdev = ae_dev->pdev;
@@ -11768,9 +11857,42 @@ static void hclge_sync_promisc_mode(struct hclge_dev *hdev)
 		ret = hclge_set_promisc_mode(handle, tmp_flags & HNAE3_UPE,
 					     tmp_flags & HNAE3_MPE);
 		if (!ret) {
+<<<<<<< HEAD
 			clear_bit(HCLGE_STATE_PROMISC_CHANGED, &hdev->state);
 			hclge_enable_vlan_filter(handle,
 						 tmp_flags & HNAE3_VLAN_FLTR);
+=======
+			clear_bit(HCLGE_VPORT_STATE_PROMISC_CHANGE,
+				  &vport->state);
+			set_bit(HCLGE_VPORT_STATE_VLAN_FLTR_CHANGE,
+				&vport->state);
+		}
+	}
+
+	for (i = 1; i < hdev->num_alloc_vport; i++) {
+		bool uc_en = false;
+		bool mc_en = false;
+		bool bc_en;
+
+		vport = &hdev->vport[i];
+
+		if (!test_and_clear_bit(HCLGE_VPORT_STATE_PROMISC_CHANGE,
+					&vport->state))
+			continue;
+
+		if (vport->vf_info.trusted) {
+			uc_en = vport->vf_info.request_uc_en > 0;
+			mc_en = vport->vf_info.request_mc_en > 0;
+		}
+		bc_en = vport->vf_info.request_bc_en > 0;
+
+		ret = hclge_cmd_set_promisc_mode(hdev, vport->vport_id, uc_en,
+						 mc_en, bc_en);
+		if (ret) {
+			set_bit(HCLGE_VPORT_STATE_PROMISC_CHANGE,
+				&vport->state);
+			return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 }
@@ -11973,6 +12095,14 @@ static const struct hnae3_ae_ops hclge_ops = {
 	.add_cls_flower = hclge_add_cls_flower,
 	.del_cls_flower = hclge_del_cls_flower,
 	.cls_flower_active = hclge_is_cls_flower_active,
+<<<<<<< HEAD
+=======
+	.get_phy_link_ksettings = hclge_get_phy_link_ksettings,
+	.set_phy_link_ksettings = hclge_set_phy_link_ksettings,
+	.set_tx_hwts_info = hclge_ptp_set_tx_info,
+	.get_rx_hwts = hclge_ptp_get_rx_hwts,
+	.get_ts_info = hclge_ptp_get_ts_info,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static struct hnae3_ae_algo ae_algo = {

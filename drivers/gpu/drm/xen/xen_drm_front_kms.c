@@ -301,7 +301,11 @@ static const struct drm_simple_display_pipe_funcs display_funcs = {
 	.mode_valid = display_mode_valid,
 	.enable = display_enable,
 	.disable = display_disable,
+<<<<<<< HEAD
 	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
+=======
+	.prepare_fb = drm_gem_simple_display_pipe_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.check = display_check,
 	.update = display_update,
 };

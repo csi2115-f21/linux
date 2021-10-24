@@ -1470,7 +1470,11 @@ static int kfd_ioctl_map_memory_to_gpu(struct file *filep,
 			goto get_mem_obj_from_handle_failed;
 		}
 		err = amdgpu_amdkfd_gpuvm_map_memory_to_gpu(
+<<<<<<< HEAD
 			peer->kgd, (struct kgd_mem *)mem, peer_pdd->vm);
+=======
+			peer->kgd, (struct kgd_mem *)mem, peer_pdd->drm_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (err) {
 			pr_err("Failed to map to gpu %d/%d\n",
 			       i, args->n_devices);
@@ -1495,7 +1499,11 @@ static int kfd_ioctl_map_memory_to_gpu(struct file *filep,
 		peer_pdd = kfd_get_process_device_data(peer, p);
 		if (WARN_ON_ONCE(!peer_pdd))
 			continue;
+<<<<<<< HEAD
 		kfd_flush_tlb(peer_pdd);
+=======
+		kfd_flush_tlb(peer_pdd, TLB_FLUSH_LEGACY);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	kfree(devices_arr);

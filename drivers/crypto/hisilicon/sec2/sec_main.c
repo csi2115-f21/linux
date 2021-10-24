@@ -54,12 +54,22 @@
 #define SEC_RAS_NFE_REG			0x301058
 #define SEC_RAS_CE_ENB_MSK		0x88
 #define SEC_RAS_FE_ENB_MSK		0x0
+<<<<<<< HEAD
 #define SEC_RAS_NFE_ENB_MSK		0x177
 #define SEC_RAS_DISABLE			0x0
 #define SEC_MEM_START_INIT_REG		0x0100
 #define SEC_MEM_INIT_DONE_REG		0x0104
 
 #define SEC_CONTROL_REG			0x0200
+=======
+#define SEC_RAS_NFE_ENB_MSK		0x7c177
+#define SEC_OOO_SHUTDOWN_SEL		0x301014
+#define SEC_RAS_DISABLE		0x0
+#define SEC_MEM_START_INIT_REG	0x301100
+#define SEC_MEM_INIT_DONE_REG		0x301104
+
+#define SEC_CONTROL_REG		0x301200
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define SEC_TRNG_EN_SHIFT		8
 #define SEC_CLK_GATE_ENABLE		BIT(3)
 #define SEC_CLK_GATE_DISABLE		(~BIT(3))
@@ -277,9 +287,13 @@ static u8 sec_get_endian(struct hisi_qm *qm)
 				    "cannot access a register in VF!\n");
 		return SEC_LE;
 	}
+<<<<<<< HEAD
 	reg = readl_relaxed(qm->io_base + SEC_ENGINE_PF_CFG_OFF +
 			    SEC_ACC_COMMON_REG_OFF + SEC_CONTROL_REG);
 
+=======
+	reg = readl_relaxed(qm->io_base + SEC_CONTROL_REG);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* BD little endian mode */
 	if (!(reg & BIT(0)))
 		return SEC_LE;
@@ -293,15 +307,63 @@ static u8 sec_get_endian(struct hisi_qm *qm)
 		return SEC_64BE;
 }
 
+<<<<<<< HEAD
+=======
+static void sec_open_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	/* Enable prefetch */
+	val = readl_relaxed(qm->io_base + SEC_PREFETCH_CFG);
+	val &= SEC_PREFETCH_ENABLE;
+	writel(val, qm->io_base + SEC_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + SEC_PREFETCH_CFG,
+					 val, !(val & SEC_PREFETCH_DISABLE),
+					 SEC_DELAY_10_US, SEC_POLL_TIMEOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to open sva prefetch\n");
+}
+
+static void sec_close_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	val = readl_relaxed(qm->io_base + SEC_PREFETCH_CFG);
+	val |= SEC_PREFETCH_DISABLE;
+	writel(val, qm->io_base + SEC_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + SEC_SVA_TRANS,
+					 val, !(val & SEC_SVA_DISABLE_READY),
+					 SEC_DELAY_10_US, SEC_POLL_TIMEOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to close sva prefetch\n");
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int sec_engine_init(struct hisi_qm *qm)
 {
 	int ret;
 	u32 reg;
 
 	/* disable clock gate control */
+<<<<<<< HEAD
 	reg = readl_relaxed(SEC_ADDR(qm, SEC_CONTROL_REG));
 	reg &= SEC_CLK_GATE_DISABLE;
 	writel_relaxed(reg, SEC_ADDR(qm, SEC_CONTROL_REG));
+=======
+	reg = readl_relaxed(qm->io_base + SEC_CONTROL_REG);
+	reg &= SEC_CLK_GATE_DISABLE;
+	writel_relaxed(reg, qm->io_base + SEC_CONTROL_REG);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	writel_relaxed(0x1, SEC_ADDR(qm, SEC_MEM_START_INIT_REG));
 
@@ -344,9 +406,15 @@ static int sec_engine_init(struct hisi_qm *qm)
 		       SEC_ADDR(qm, SEC_BD_ERR_CHK_EN_REG3));
 
 	/* config endian */
+<<<<<<< HEAD
 	reg = readl_relaxed(SEC_ADDR(qm, SEC_CONTROL_REG));
 	reg |= sec_get_endian(qm);
 	writel_relaxed(reg, SEC_ADDR(qm, SEC_CONTROL_REG));
+=======
+	reg = readl_relaxed(qm->io_base + SEC_CONTROL_REG);
+	reg |= sec_get_endian(qm);
+	writel_relaxed(reg, qm->io_base + SEC_CONTROL_REG);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -445,6 +513,7 @@ static void sec_hw_error_disable(struct hisi_qm *qm)
 	writel(val, SEC_ADDR(qm, SEC_CONTROL_REG));
 }
 
+<<<<<<< HEAD
 static u32 sec_current_qm_read(struct sec_debug_file *file)
 {
 	struct hisi_qm *qm = file->qm;
@@ -493,6 +562,12 @@ static u32 sec_clear_enable_read(struct sec_debug_file *file)
 {
 	struct hisi_qm *qm = file->qm;
 
+=======
+static u32 sec_clear_enable_read(struct sec_debug_file *file)
+{
+	struct hisi_qm *qm = file->qm;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return readl(qm->io_base + SEC_CTRL_CNT_CLR_CE) &
 			SEC_CTRL_CNT_CLR_CE_BIT;
 }

@@ -29,7 +29,11 @@ static const u8 ionic_qtype_versions[IONIC_QTYPE_MAX] = {
 				      */
 };
 
+<<<<<<< HEAD
 static void ionic_lif_rx_mode(struct ionic_lif *lif, unsigned int rx_mode);
+=======
+static void ionic_lif_rx_mode(struct ionic_lif *lif);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int ionic_lif_addr_add(struct ionic_lif *lif, const u8 *addr);
 static int ionic_lif_addr_del(struct ionic_lif *lif, const u8 *addr);
 static void ionic_link_status_check(struct ionic_lif *lif);
@@ -78,6 +82,12 @@ static void ionic_lif_deferred_work(struct work_struct *work)
 		switch (w->type) {
 		case IONIC_DW_TYPE_RX_MODE:
 			ionic_lif_rx_mode(lif, w->rx_mode);
+			break;
+		case IONIC_DW_TYPE_RX_ADDR_ADD:
+			ionic_lif_addr_add(lif, w->addr);
+			break;
+		case IONIC_DW_TYPE_RX_ADDR_DEL:
+			ionic_lif_addr_del(lif, w->addr);
 			break;
 		case IONIC_DW_TYPE_RX_ADDR_ADD:
 			ionic_lif_addr_add(lif, w->addr);
@@ -810,6 +820,257 @@ static int ionic_lif_rxq_init(struct ionic_lif *lif, struct ionic_qcq *qcq)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+int ionic_lif_create_hwstamp_txq(struct ionic_lif *lif)
+{
+	unsigned int num_desc, desc_sz, comp_sz, sg_desc_sz;
+	unsigned int txq_i, flags;
+	struct ionic_qcq *txq;
+	u64 features;
+	int err;
+
+	mutex_lock(&lif->queue_lock);
+
+	if (lif->hwstamp_txq)
+		goto out;
+
+	features = IONIC_Q_F_2X_CQ_DESC | IONIC_TXQ_F_HWSTAMP;
+
+	num_desc = IONIC_MIN_TXRX_DESC;
+	desc_sz = sizeof(struct ionic_txq_desc);
+	comp_sz = 2 * sizeof(struct ionic_txq_comp);
+
+	if (lif->qtype_info[IONIC_QTYPE_TXQ].version >= 1 &&
+	    lif->qtype_info[IONIC_QTYPE_TXQ].sg_desc_sz == sizeof(struct ionic_txq_sg_desc_v1))
+		sg_desc_sz = sizeof(struct ionic_txq_sg_desc_v1);
+	else
+		sg_desc_sz = sizeof(struct ionic_txq_sg_desc);
+
+	txq_i = lif->ionic->ntxqs_per_lif;
+	flags = IONIC_QCQ_F_TX_STATS | IONIC_QCQ_F_SG;
+
+	err = ionic_qcq_alloc(lif, IONIC_QTYPE_TXQ, txq_i, "hwstamp_tx", flags,
+			      num_desc, desc_sz, comp_sz, sg_desc_sz,
+			      lif->kern_pid, &txq);
+	if (err)
+		goto err_qcq_alloc;
+
+	txq->q.features = features;
+
+	ionic_link_qcq_interrupts(lif->adminqcq, txq);
+	ionic_debugfs_add_qcq(lif, txq);
+
+	lif->hwstamp_txq = txq;
+
+	if (netif_running(lif->netdev)) {
+		err = ionic_lif_txq_init(lif, txq);
+		if (err)
+			goto err_qcq_init;
+
+		if (test_bit(IONIC_LIF_F_UP, lif->state)) {
+			err = ionic_qcq_enable(txq);
+			if (err)
+				goto err_qcq_enable;
+		}
+	}
+
+out:
+	mutex_unlock(&lif->queue_lock);
+
+	return 0;
+
+err_qcq_enable:
+	ionic_lif_qcq_deinit(lif, txq);
+err_qcq_init:
+	lif->hwstamp_txq = NULL;
+	ionic_debugfs_del_qcq(txq);
+	ionic_qcq_free(lif, txq);
+	devm_kfree(lif->ionic->dev, txq);
+err_qcq_alloc:
+	mutex_unlock(&lif->queue_lock);
+	return err;
+}
+
+int ionic_lif_create_hwstamp_rxq(struct ionic_lif *lif)
+{
+	unsigned int num_desc, desc_sz, comp_sz, sg_desc_sz;
+	unsigned int rxq_i, flags;
+	struct ionic_qcq *rxq;
+	u64 features;
+	int err;
+
+	mutex_lock(&lif->queue_lock);
+
+	if (lif->hwstamp_rxq)
+		goto out;
+
+	features = IONIC_Q_F_2X_CQ_DESC | IONIC_RXQ_F_HWSTAMP;
+
+	num_desc = IONIC_MIN_TXRX_DESC;
+	desc_sz = sizeof(struct ionic_rxq_desc);
+	comp_sz = 2 * sizeof(struct ionic_rxq_comp);
+	sg_desc_sz = sizeof(struct ionic_rxq_sg_desc);
+
+	rxq_i = lif->ionic->nrxqs_per_lif;
+	flags = IONIC_QCQ_F_RX_STATS | IONIC_QCQ_F_SG;
+
+	err = ionic_qcq_alloc(lif, IONIC_QTYPE_RXQ, rxq_i, "hwstamp_rx", flags,
+			      num_desc, desc_sz, comp_sz, sg_desc_sz,
+			      lif->kern_pid, &rxq);
+	if (err)
+		goto err_qcq_alloc;
+
+	rxq->q.features = features;
+
+	ionic_link_qcq_interrupts(lif->adminqcq, rxq);
+	ionic_debugfs_add_qcq(lif, rxq);
+
+	lif->hwstamp_rxq = rxq;
+
+	if (netif_running(lif->netdev)) {
+		err = ionic_lif_rxq_init(lif, rxq);
+		if (err)
+			goto err_qcq_init;
+
+		if (test_bit(IONIC_LIF_F_UP, lif->state)) {
+			ionic_rx_fill(&rxq->q);
+			err = ionic_qcq_enable(rxq);
+			if (err)
+				goto err_qcq_enable;
+		}
+	}
+
+out:
+	mutex_unlock(&lif->queue_lock);
+
+	return 0;
+
+err_qcq_enable:
+	ionic_lif_qcq_deinit(lif, rxq);
+err_qcq_init:
+	lif->hwstamp_rxq = NULL;
+	ionic_debugfs_del_qcq(rxq);
+	ionic_qcq_free(lif, rxq);
+	devm_kfree(lif->ionic->dev, rxq);
+err_qcq_alloc:
+	mutex_unlock(&lif->queue_lock);
+	return err;
+}
+
+int ionic_lif_config_hwstamp_rxq_all(struct ionic_lif *lif, bool rx_all)
+{
+	struct ionic_queue_params qparam;
+
+	ionic_init_queue_params(lif, &qparam);
+
+	if (rx_all)
+		qparam.rxq_features = IONIC_Q_F_2X_CQ_DESC | IONIC_RXQ_F_HWSTAMP;
+	else
+		qparam.rxq_features = 0;
+
+	/* if we're not running, just set the values and return */
+	if (!netif_running(lif->netdev)) {
+		lif->rxq_features = qparam.rxq_features;
+		return 0;
+	}
+
+	return ionic_reconfigure_queues(lif, &qparam);
+}
+
+int ionic_lif_set_hwstamp_txmode(struct ionic_lif *lif, u16 txstamp_mode)
+{
+	struct ionic_admin_ctx ctx = {
+		.work = COMPLETION_INITIALIZER_ONSTACK(ctx.work),
+		.cmd.lif_setattr = {
+			.opcode = IONIC_CMD_LIF_SETATTR,
+			.index = cpu_to_le16(lif->index),
+			.attr = IONIC_LIF_ATTR_TXSTAMP,
+			.txstamp_mode = cpu_to_le16(txstamp_mode),
+		},
+	};
+
+	return ionic_adminq_post_wait(lif, &ctx);
+}
+
+static void ionic_lif_del_hwstamp_rxfilt(struct ionic_lif *lif)
+{
+	struct ionic_admin_ctx ctx = {
+		.work = COMPLETION_INITIALIZER_ONSTACK(ctx.work),
+		.cmd.rx_filter_del = {
+			.opcode = IONIC_CMD_RX_FILTER_DEL,
+			.lif_index = cpu_to_le16(lif->index),
+		},
+	};
+	struct ionic_rx_filter *f;
+	u32 filter_id;
+	int err;
+
+	spin_lock_bh(&lif->rx_filters.lock);
+
+	f = ionic_rx_filter_rxsteer(lif);
+	if (!f) {
+		spin_unlock_bh(&lif->rx_filters.lock);
+		return;
+	}
+
+	filter_id = f->filter_id;
+	ionic_rx_filter_free(lif, f);
+
+	spin_unlock_bh(&lif->rx_filters.lock);
+
+	netdev_dbg(lif->netdev, "rx_filter del RXSTEER (id %d)\n", filter_id);
+
+	ctx.cmd.rx_filter_del.filter_id = cpu_to_le32(filter_id);
+
+	err = ionic_adminq_post_wait(lif, &ctx);
+	if (err && err != -EEXIST)
+		netdev_dbg(lif->netdev, "failed to delete rx_filter RXSTEER (id %d)\n", filter_id);
+}
+
+static int ionic_lif_add_hwstamp_rxfilt(struct ionic_lif *lif, u64 pkt_class)
+{
+	struct ionic_admin_ctx ctx = {
+		.work = COMPLETION_INITIALIZER_ONSTACK(ctx.work),
+		.cmd.rx_filter_add = {
+			.opcode = IONIC_CMD_RX_FILTER_ADD,
+			.lif_index = cpu_to_le16(lif->index),
+			.match = cpu_to_le16(IONIC_RX_FILTER_STEER_PKTCLASS),
+			.pkt_class = cpu_to_le64(pkt_class),
+		},
+	};
+	u8 qtype;
+	u32 qid;
+	int err;
+
+	if (!lif->hwstamp_rxq)
+		return -EINVAL;
+
+	qtype = lif->hwstamp_rxq->q.type;
+	ctx.cmd.rx_filter_add.qtype = qtype;
+
+	qid = lif->hwstamp_rxq->q.index;
+	ctx.cmd.rx_filter_add.qid = cpu_to_le32(qid);
+
+	netdev_dbg(lif->netdev, "rx_filter add RXSTEER\n");
+	err = ionic_adminq_post_wait(lif, &ctx);
+	if (err && err != -EEXIST)
+		return err;
+
+	return ionic_rx_filter_save(lif, 0, qid, 0, &ctx);
+}
+
+int ionic_lif_set_hwstamp_rxfilt(struct ionic_lif *lif, u64 pkt_class)
+{
+	ionic_lif_del_hwstamp_rxfilt(lif);
+
+	if (!pkt_class)
+		return 0;
+
+	return ionic_lif_add_hwstamp_rxfilt(lif, pkt_class);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool ionic_notifyq_service(struct ionic_cq *cq,
 				  struct ionic_cq_info *cq_info)
 {
@@ -1020,10 +1281,15 @@ static int ionic_lif_addr_del(struct ionic_lif *lif, const u8 *addr)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int ionic_lif_addr(struct ionic_lif *lif, const u8 *addr, bool add,
 			  bool can_sleep)
 {
 	struct ionic_deferred_work *work;
+=======
+static int ionic_lif_addr(struct ionic_lif *lif, const u8 *addr, bool add)
+{
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int nmfilters;
 	unsigned int nufilters;
 
@@ -1047,6 +1313,7 @@ static int ionic_lif_addr(struct ionic_lif *lif, const u8 *addr, bool add,
 			lif->nmcast--;
 		else if (!is_multicast_ether_addr(addr) && lif->nucast)
 			lif->nucast--;
+<<<<<<< HEAD
 	}
 
 	if (!can_sleep) {
@@ -1066,23 +1333,37 @@ static int ionic_lif_addr(struct ionic_lif *lif, const u8 *addr, bool add,
 			return ionic_lif_addr_add(lif, addr);
 		else
 			return ionic_lif_addr_del(lif, addr);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
+
+	netdev_dbg(lif->netdev, "rx_filter %s %pM\n",
+		   add ? "add" : "del", addr);
+	if (add)
+		return ionic_lif_addr_add(lif, addr);
+	else
+		return ionic_lif_addr_del(lif, addr);
 
 	return 0;
 }
 
 static int ionic_addr_add(struct net_device *netdev, const u8 *addr)
 {
+<<<<<<< HEAD
 	return ionic_lif_addr(netdev_priv(netdev), addr, ADD_ADDR, CAN_SLEEP);
 }
 
 static int ionic_ndo_addr_add(struct net_device *netdev, const u8 *addr)
 {
 	return ionic_lif_addr(netdev_priv(netdev), addr, ADD_ADDR, CAN_NOT_SLEEP);
+=======
+	return ionic_lif_addr(netdev_priv(netdev), addr, ADD_ADDR);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int ionic_addr_del(struct net_device *netdev, const u8 *addr)
 {
+<<<<<<< HEAD
 	return ionic_lif_addr(netdev_priv(netdev), addr, DEL_ADDR, CAN_SLEEP);
 }
 
@@ -1092,6 +1373,12 @@ static int ionic_ndo_addr_del(struct net_device *netdev, const u8 *addr)
 }
 
 static void ionic_lif_rx_mode(struct ionic_lif *lif, unsigned int rx_mode)
+=======
+	return ionic_lif_addr(netdev_priv(netdev), addr, DEL_ADDR);
+}
+
+static void ionic_lif_rx_mode(struct ionic_lif *lif)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct ionic_admin_ctx ctx = {
 		.work = COMPLETION_INITIALIZER_ONSTACK(ctx.work),
@@ -1135,12 +1422,15 @@ static void ionic_set_rx_mode(struct net_device *netdev, bool can_sleep)
 	unsigned int nfilters;
 	unsigned int rx_mode;
 
+<<<<<<< HEAD
 	rx_mode = IONIC_RX_MODE_F_UNICAST;
 	rx_mode |= (netdev->flags & IFF_MULTICAST) ? IONIC_RX_MODE_F_MULTICAST : 0;
 	rx_mode |= (netdev->flags & IFF_BROADCAST) ? IONIC_RX_MODE_F_BROADCAST : 0;
 	rx_mode |= (netdev->flags & IFF_PROMISC) ? IONIC_RX_MODE_F_PROMISC : 0;
 	rx_mode |= (netdev->flags & IFF_ALLMULTI) ? IONIC_RX_MODE_F_ALLMULTI : 0;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* sync unicast addresses
 	 * next check to see if we're in an overflow state
 	 *    if so, we track that we overflowed and enable NIC PROMISC
@@ -1148,18 +1438,39 @@ static void ionic_set_rx_mode(struct net_device *netdev, bool can_sleep)
 	 *       we remove our overflow flag and check the netdev flags
 	 *       to see if we can disable NIC PROMISC
 	 */
+<<<<<<< HEAD
 	if (can_sleep)
 		__dev_uc_sync(netdev, ionic_addr_add, ionic_addr_del);
 	else
 		__dev_uc_sync(netdev, ionic_ndo_addr_add, ionic_ndo_addr_del);
+=======
+	__dev_uc_sync(netdev, ionic_addr_add, ionic_addr_del);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	nfilters = le32_to_cpu(lif->identity->eth.max_ucast_filters);
 	if (netdev_uc_count(netdev) + 1 > nfilters) {
 		rx_mode |= IONIC_RX_MODE_F_PROMISC;
 		lif->uc_overflow = true;
 	} else if (lif->uc_overflow) {
 		lif->uc_overflow = false;
+<<<<<<< HEAD
 		if (!(netdev->flags & IFF_PROMISC))
 			rx_mode &= ~IONIC_RX_MODE_F_PROMISC;
+=======
+		if (!(nd_flags & IFF_PROMISC))
+			rx_mode &= ~IONIC_RX_MODE_F_PROMISC;
+	}
+
+	/* same for multicast */
+	__dev_mc_sync(netdev, ionic_addr_add, ionic_addr_del);
+	nfilters = le32_to_cpu(lif->identity->eth.max_mcast_filters);
+	if (netdev_mc_count(netdev) > nfilters) {
+		rx_mode |= IONIC_RX_MODE_F_ALLMULTI;
+		lif->mc_overflow = true;
+	} else if (lif->mc_overflow) {
+		lif->mc_overflow = false;
+		if (!(nd_flags & IFF_ALLMULTI))
+			rx_mode &= ~IONIC_RX_MODE_F_ALLMULTI;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* same for multicast */
@@ -1194,8 +1505,30 @@ static void ionic_set_rx_mode(struct net_device *netdev, bool can_sleep)
 	}
 }
 
+static void ionic_set_rx_mode(struct net_device *netdev, bool can_sleep)
+{
+<<<<<<< HEAD
+=======
+	struct ionic_lif *lif = netdev_priv(netdev);
+	struct ionic_deferred_work *work;
+
+	if (!can_sleep) {
+		work = kzalloc(sizeof(*work), GFP_ATOMIC);
+		if (!work) {
+			netdev_err(lif->netdev, "rxmode change dropped\n");
+			return;
+		}
+		work->type = IONIC_DW_TYPE_RX_MODE;
+		netdev_dbg(lif->netdev, "deferred: rx_mode\n");
+		ionic_lif_deferred_enqueue(&lif->deferred, work);
+	} else {
+		ionic_lif_rx_mode(lif);
+	}
+}
+
 static void ionic_ndo_set_rx_mode(struct net_device *netdev)
 {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ionic_set_rx_mode(netdev, CAN_NOT_SLEEP);
 }
 
@@ -1441,7 +1774,11 @@ static int ionic_start_queues_reconfig(struct ionic_lif *lif)
 	 */
 	err = ionic_txrx_init(lif);
 	mutex_unlock(&lif->queue_lock);
+<<<<<<< HEAD
 	ionic_link_status_check_request(lif, true);
+=======
+	ionic_link_status_check_request(lif, CAN_SLEEP);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	netif_device_attach(lif->netdev);
 
 	return err;
@@ -1855,6 +2192,13 @@ static int ionic_open(struct net_device *netdev)
 	struct ionic_lif *lif = netdev_priv(netdev);
 	int err;
 
+<<<<<<< HEAD
+=======
+	/* If recovering from a broken state, clear the bit and we'll try again */
+	if (test_and_clear_bit(IONIC_LIF_F_BROKEN, lif->state))
+		netdev_info(netdev, "clearing broken state\n");
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = ionic_txrx_alloc(lif);
 	if (err)
 		return err;
@@ -1910,6 +2254,23 @@ static int ionic_stop(struct net_device *netdev)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static int ionic_do_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
+{
+	struct ionic_lif *lif = netdev_priv(netdev);
+
+	switch (cmd) {
+	case SIOCSHWTSTAMP:
+		return ionic_lif_hwstamp_set(lif, ifr);
+	case SIOCGHWTSTAMP:
+		return ionic_lif_hwstamp_get(lif, ifr);
+	default:
+		return -EOPNOTSUPP;
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int ionic_get_vf_config(struct net_device *netdev,
 			       int vf, struct ifla_vf_info *ivf)
 {
@@ -2158,6 +2519,10 @@ static int ionic_set_vf_link_state(struct net_device *netdev, int vf, int set)
 static const struct net_device_ops ionic_netdev_ops = {
 	.ndo_open               = ionic_open,
 	.ndo_stop               = ionic_stop,
+<<<<<<< HEAD
+=======
+	.ndo_do_ioctl		= ionic_do_ioctl,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.ndo_start_xmit		= ionic_start_xmit,
 	.ndo_get_stats64	= ionic_get_stats64,
 	.ndo_set_rx_mode	= ionic_ndo_set_rx_mode,
@@ -2209,10 +2574,15 @@ int ionic_reconfigure_queues(struct ionic_lif *lif,
 {
 	struct ionic_qcq **tx_qcqs = NULL;
 	struct ionic_qcq **rx_qcqs = NULL;
+<<<<<<< HEAD
 	unsigned int sg_desc_sz;
 	unsigned int flags;
 	int err = -ENOMEM;
 	unsigned int i;
+=======
+	unsigned int flags, i;
+	int err = -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* allocate temporary qcq arrays to hold new queue structs */
 	if (qparam->nxqs != lif->nxqs || qparam->ntxq_descs != lif->ntxq_descs) {
@@ -2450,7 +2820,10 @@ int ionic_lif_alloc(struct ionic *ionic)
 	lif->index = 0;
 	lif->ntxq_descs = IONIC_DEF_TXRX_DESC;
 	lif->nrxq_descs = IONIC_DEF_TXRX_DESC;
+<<<<<<< HEAD
 	lif->tx_budget = IONIC_TX_BUDGET_DEFAULT;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Convert the default coalesce value to actual hw resolution */
 	lif->rx_coalesce_usecs = IONIC_ITR_COAL_USEC_DEFAULT;
@@ -2793,7 +3166,11 @@ static int ionic_station_set(struct ionic_lif *lif)
 		 */
 		if (!ether_addr_equal(ctx.comp.lif_getattr.mac,
 				      netdev->dev_addr))
+<<<<<<< HEAD
 			ionic_lif_addr(lif, netdev->dev_addr, ADD_ADDR, CAN_SLEEP);
+=======
+			ionic_lif_addr(lif, netdev->dev_addr, ADD_ADDR);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		/* Update the netdev mac with the device's mac */
 		memcpy(addr.sa_data, ctx.comp.lif_getattr.mac, netdev->addr_len);
@@ -2810,7 +3187,11 @@ static int ionic_station_set(struct ionic_lif *lif)
 
 	netdev_dbg(lif->netdev, "adding station MAC addr %pM\n",
 		   netdev->dev_addr);
+<<<<<<< HEAD
 	ionic_lif_addr(lif, netdev->dev_addr, ADD_ADDR, CAN_SLEEP);
+=======
+	ionic_lif_addr(lif, netdev->dev_addr, ADD_ADDR);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -3128,6 +3509,19 @@ int ionic_lif_size(struct ionic *ionic)
 	ntxqs_per_lif = le32_to_cpu(lc->queue_count[IONIC_QTYPE_TXQ]);
 	nrxqs_per_lif = le32_to_cpu(lc->queue_count[IONIC_QTYPE_RXQ]);
 
+<<<<<<< HEAD
+=======
+	/* reserve last queue id for hardware timestamping */
+	if (lc->features & cpu_to_le64(IONIC_ETH_HW_TIMESTAMP)) {
+		if (ntxqs_per_lif <= 1 || nrxqs_per_lif <= 1) {
+			lc->features &= cpu_to_le64(~IONIC_ETH_HW_TIMESTAMP);
+		} else {
+			ntxqs_per_lif -= 1;
+			nrxqs_per_lif -= 1;
+		}
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	nxqs = min(ntxqs_per_lif, nrxqs_per_lif);
 	nxqs = min(nxqs, num_online_cpus());
 	neqs = min(neqs_per_lif, num_online_cpus());

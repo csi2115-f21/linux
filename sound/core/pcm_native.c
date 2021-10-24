@@ -251,7 +251,19 @@ static bool hw_support_mmap(struct snd_pcm_substream *substream)
 	     substream->dma_buffer.dev.type != SNDRV_DMA_TYPE_DEV_UC))
 		return true;
 
+<<<<<<< HEAD
 	return dma_can_mmap(substream->dma_buffer.dev.dev);
+=======
+	switch (substream->dma_buffer.dev.type) {
+	case SNDRV_DMA_TYPE_UNKNOWN:
+		return false;
+	case SNDRV_DMA_TYPE_CONTINUOUS:
+	case SNDRV_DMA_TYPE_VMALLOC:
+		return true;
+	default:
+		return dma_can_mmap(substream->dma_buffer.dev.dev);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int constrain_mask_params(struct snd_pcm_substream *substream,

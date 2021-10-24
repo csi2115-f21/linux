@@ -346,9 +346,39 @@ static int lps0_device_attach(struct acpi_device *adev,
 		return 0;
 
 	if (acpi_s2idle_vendor_amd()) {
+<<<<<<< HEAD
 		guid_parse(ACPI_LPS0_DSM_UUID_AMD, &lps0_dsm_guid);
 		out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 0, 0, NULL);
 		rev_id = 0;
+=======
+		/* AMD0004, AMDI0005:
+		 * - Should use rev_id 0x0
+		 * - function mask > 0x3: Should use AMD method, but has off by one bug
+		 * - function mask = 0x3: Should use Microsoft method
+		 * AMDI0006:
+		 * - should use rev_id 0x0
+		 * - function mask = 0x3: Should use Microsoft method
+		 * AMDI0007:
+		 * - Should use rev_id 0x2
+		 * - Should only use AMD method
+		 */
+		const char *hid = acpi_device_hid(adev);
+		rev_id = strcmp(hid, "AMDI0007") ? 0 : 2;
+		lps0_dsm_func_mask = validate_dsm(adev->handle,
+					ACPI_LPS0_DSM_UUID_AMD, rev_id, &lps0_dsm_guid);
+		lps0_dsm_func_mask_microsoft = validate_dsm(adev->handle,
+					ACPI_LPS0_DSM_UUID_MICROSOFT, 0,
+					&lps0_dsm_guid_microsoft);
+		if (lps0_dsm_func_mask > 0x3 && (!strcmp(hid, "AMD0004") ||
+						 !strcmp(hid, "AMDI0005"))) {
+			lps0_dsm_func_mask = (lps0_dsm_func_mask << 1) | 0x1;
+			acpi_handle_debug(adev->handle, "_DSM UUID %s: Adjusted function mask: 0x%x\n",
+					  ACPI_LPS0_DSM_UUID_AMD, lps0_dsm_func_mask);
+		} else if (lps0_dsm_func_mask_microsoft > 0 && !strcmp(hid, "AMDI0007")) {
+			lps0_dsm_func_mask_microsoft = -EINVAL;
+			acpi_handle_debug(adev->handle, "_DSM Using AMD method\n");
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		guid_parse(ACPI_LPS0_DSM_UUID, &lps0_dsm_guid);
 		out_obj = acpi_evaluate_dsm(adev->handle, &lps0_dsm_guid, 1, 0, NULL);
@@ -406,11 +436,31 @@ int acpi_s2idle_prepare_late(void)
 	if (pm_debug_messages_on)
 		lpi_check_constraints();
 
+<<<<<<< HEAD
 	if (acpi_s2idle_vendor_amd()) {
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF_AMD);
 	} else {
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
+=======
+	if (lps0_dsm_func_mask_microsoft > 0) {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_EXIT,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+	} else if (acpi_s2idle_vendor_amd()) {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF_AMD,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY_AMD,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+	} else {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return 0;
@@ -421,11 +471,31 @@ void acpi_s2idle_restore_early(void)
 	if (!lps0_device_handle || sleep_no_lps0)
 		return;
 
+<<<<<<< HEAD
 	if (acpi_s2idle_vendor_amd()) {
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON_AMD);
 	} else {
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
+=======
+	if (lps0_dsm_func_mask_microsoft > 0) {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_ENTRY,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
+				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
+	} else if (acpi_s2idle_vendor_amd()) {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT_AMD,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON_AMD,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+	} else {
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
+				lps0_dsm_func_mask, lps0_dsm_guid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 

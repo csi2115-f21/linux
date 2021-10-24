@@ -231,8 +231,12 @@ struct recv_frame *_rtw_alloc_recvframe(struct __queue *pfree_recv_queue);
 struct recv_frame *rtw_alloc_recvframe(struct __queue *pfree_recv_queue);
 void rtw_init_recvframe(struct recv_frame *precvframe,
 			struct recv_priv *precvpriv);
+<<<<<<< HEAD
 int  rtw_free_recvframe(struct recv_frame *precvframe,
 			struct __queue *pfree_recv_queue);
+=======
+void rtw_free_recvframe(struct recv_frame *precvframe, struct __queue *pfree_recv_queue);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define rtw_dequeue_recvframe(queue) rtw_alloc_recvframe(queue)
 int _rtw_enqueue_recvframe(struct recv_frame *precvframe,
 			   struct __queue *queue);

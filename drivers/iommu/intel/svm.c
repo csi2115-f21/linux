@@ -25,6 +25,29 @@
 
 static irqreturn_t prq_event_thread(int irq, void *d);
 static void intel_svm_drain_prq(struct device *dev, u32 pasid);
+<<<<<<< HEAD
+=======
+#define to_intel_svm_dev(handle) container_of(handle, struct intel_svm_dev, sva)
+
+#define PRQ_ORDER 0
+
+static DEFINE_XARRAY_ALLOC(pasid_private_array);
+static int pasid_private_add(ioasid_t pasid, void *priv)
+{
+	return xa_alloc(&pasid_private_array, &pasid, priv,
+			XA_LIMIT(pasid, pasid), GFP_ATOMIC);
+}
+
+static void pasid_private_remove(ioasid_t pasid)
+{
+	xa_erase(&pasid_private_array, pasid);
+}
+
+static void *pasid_private_find(ioasid_t pasid)
+{
+	return xa_load(&pasid_private_array, pasid);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define PRQ_ORDER 0
 
@@ -673,9 +696,15 @@ static int intel_svm_unbind_mm(struct device *dev, u32 pasid)
 			kfree_rcu(sdev, rcu);
 
 			if (list_empty(&svm->devs)) {
+<<<<<<< HEAD
 				ioasid_put(svm->pasid);
 				if (svm->mm) {
 					mmu_notifier_unregister(&svm->notifier, svm->mm);
+=======
+				intel_svm_free_pasid(mm);
+				if (svm->notifier.ops) {
+					mmu_notifier_unregister(&svm->notifier, mm);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					/* Clear mm's pasid. */
 					load_pasid(svm->mm, PASID_DISABLED);
 				}
@@ -724,6 +753,7 @@ struct page_req_dsc {
 
 #define PRQ_RING_MASK	((0x1000 << PRQ_ORDER) - 0x20)
 
+<<<<<<< HEAD
 static bool access_error(struct vm_area_struct *vma, struct page_req_dsc *req)
 {
 	unsigned long requested = 0;
@@ -740,6 +770,8 @@ static bool access_error(struct vm_area_struct *vma, struct page_req_dsc *req)
 	return (requested & ~vma->vm_flags) != 0;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool is_canonical_address(u64 addr)
 {
 	int shift = 64 - (__VIRTUAL_MASK_SHIFT + 1);
@@ -809,6 +841,11 @@ prq_retry:
 		goto prq_retry;
 	}
 
+<<<<<<< HEAD
+=======
+	iopf_queue_flush_dev(dev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * Perform steps described in VT-d spec CH7.10 to drain page
 	 * requests and responses in hardware.

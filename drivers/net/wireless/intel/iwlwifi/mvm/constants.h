@@ -93,6 +93,18 @@
 #define IWL_MVM_ENABLE_EBS			1
 #define IWL_MVM_FTM_INITIATOR_ALGO		IWL_TOF_ALGO_TYPE_MAX_LIKE
 #define IWL_MVM_FTM_INITIATOR_DYNACK		true
+<<<<<<< HEAD
+=======
+#define IWL_MVM_FTM_R2I_MAX_REP			7
+#define IWL_MVM_FTM_I2R_MAX_REP			7
+#define IWL_MVM_FTM_R2I_MAX_STS			1
+#define IWL_MVM_FTM_I2R_MAX_STS			1
+#define IWL_MVM_FTM_R2I_MAX_TOTAL_LTF		3
+#define IWL_MVM_FTM_I2R_MAX_TOTAL_LTF		3
+#define IWL_MVM_FTM_INITIATOR_SECURE_LTF	false
+#define IWL_MVM_FTM_RESP_NDP_SUPPORT		true
+#define IWL_MVM_FTM_RESP_LMR_FEEDBACK_SUPPORT	true
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define IWL_MVM_D3_DEBUG			false
 #define IWL_MVM_USE_TWT				true
 #define IWL_MVM_AMPDU_CONSEC_DROPS_DELBA	10

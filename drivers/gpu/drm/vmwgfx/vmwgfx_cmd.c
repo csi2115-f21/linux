@@ -30,11 +30,14 @@
 #include <drm/ttm/ttm_placement.h>
 
 #include "vmwgfx_drv.h"
+<<<<<<< HEAD
 
 struct vmw_temp_set_context {
 	SVGA3dCmdHeader header;
 	SVGA3dCmdDXTempSetContext body;
 };
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 bool vmw_supports_3d(struct vmw_private *dev_priv)
 {

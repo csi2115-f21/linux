@@ -57,7 +57,11 @@ static inline void dma_direct_sync_single_for_device(struct device *dev,
 	phys_addr_t paddr = dma_to_phys(dev, addr);
 
 	if (unlikely(is_swiotlb_buffer(paddr)))
+<<<<<<< HEAD
 		swiotlb_tbl_sync_single(dev, paddr, size, dir, SYNC_FOR_DEVICE);
+=======
+		swiotlb_sync_single_for_device(dev, paddr, size, dir);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!dev_is_dma_coherent(dev))
 		arch_sync_dma_for_device(paddr, size, dir);
@@ -74,7 +78,11 @@ static inline void dma_direct_sync_single_for_cpu(struct device *dev,
 	}
 
 	if (unlikely(is_swiotlb_buffer(paddr)))
+<<<<<<< HEAD
 		swiotlb_tbl_sync_single(dev, paddr, size, dir, SYNC_FOR_CPU);
+=======
+		swiotlb_sync_single_for_cpu(dev, paddr, size, dir);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (dir == DMA_FROM_DEVICE)
 		arch_dma_mark_clean(paddr, size);
@@ -114,6 +122,10 @@ static inline void dma_direct_unmap_page(struct device *dev, dma_addr_t addr,
 		dma_direct_sync_single_for_cpu(dev, addr, size, dir);
 
 	if (unlikely(is_swiotlb_buffer(phys)))
+<<<<<<< HEAD
 		swiotlb_tbl_unmap_single(dev, phys, size, size, dir, attrs);
+=======
+		swiotlb_tbl_unmap_single(dev, phys, size, dir, attrs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 #endif /* _KERNEL_DMA_DIRECT_H */

@@ -567,6 +567,11 @@ static void amdgpu_vram_mgr_del(struct ttm_resource_manager *man,
  *
  * @adev: amdgpu device pointer
  * @mem: TTM memory object
+<<<<<<< HEAD
+=======
+ * @offset: byte offset from the base of VRAM BO
+ * @length: number of bytes to export in sg_table
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @dev: the other device
  * @dir: dma direction
  * @sgt: resulting sg table

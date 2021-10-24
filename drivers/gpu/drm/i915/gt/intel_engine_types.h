@@ -249,12 +249,21 @@ struct intel_engine_execlists {
 	 * request we wanted to preempt but since completed, at the time of
 	 * dequeuing the priority hint may no longer may match the highest
 	 * available request priority.
+<<<<<<< HEAD
 	 */
 	int queue_priority_hint;
 
 	/**
 	 * @queue: queue of requests, in priority lists
 	 */
+=======
+	 */
+	int queue_priority_hint;
+
+	/**
+	 * @queue: queue of requests, in priority lists
+	 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rb_root_cached queue;
 	struct rb_root_cached virtual;
 
@@ -482,10 +491,16 @@ struct intel_engine_cs {
 #define I915_ENGINE_HAS_PREEMPTION   BIT(2)
 #define I915_ENGINE_HAS_SEMAPHORES   BIT(3)
 #define I915_ENGINE_HAS_TIMESLICES   BIT(4)
+<<<<<<< HEAD
 #define I915_ENGINE_NEEDS_BREADCRUMB_TASKLET BIT(5)
 #define I915_ENGINE_IS_VIRTUAL       BIT(6)
 #define I915_ENGINE_HAS_RELATIVE_MMIO BIT(7)
 #define I915_ENGINE_REQUIRES_CMD_PARSER BIT(8)
+=======
+#define I915_ENGINE_IS_VIRTUAL       BIT(5)
+#define I915_ENGINE_HAS_RELATIVE_MMIO BIT(6)
+#define I915_ENGINE_REQUIRES_CMD_PARSER BIT(7)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int flags;
 
 	/*

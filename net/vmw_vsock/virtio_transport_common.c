@@ -74,6 +74,13 @@ virtio_transport_alloc_pkt(struct virtio_vsock_pkt_info *info,
 		err = memcpy_from_msg(pkt->buf, info->msg, len);
 		if (err)
 			goto out;
+<<<<<<< HEAD
+=======
+
+		if (msg_data_left(info->msg) == 0 &&
+		    info->type == VIRTIO_VSOCK_TYPE_SEQPACKET)
+			pkt->hdr.flags |= cpu_to_le32(VIRTIO_VSOCK_SEQ_EOR);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	trace_virtio_transport_alloc_pkt(src_cid, src_port,
@@ -397,6 +404,78 @@ out:
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static int virtio_transport_seqpacket_do_dequeue(struct vsock_sock *vsk,
+						 struct msghdr *msg,
+						 int flags)
+{
+	struct virtio_vsock_sock *vvs = vsk->trans;
+	struct virtio_vsock_pkt *pkt;
+	int dequeued_len = 0;
+	size_t user_buf_len = msg_data_left(msg);
+	bool msg_ready = false;
+
+	spin_lock_bh(&vvs->rx_lock);
+
+	if (vvs->msg_count == 0) {
+		spin_unlock_bh(&vvs->rx_lock);
+		return 0;
+	}
+
+	while (!msg_ready) {
+		pkt = list_first_entry(&vvs->rx_queue, struct virtio_vsock_pkt, list);
+
+		if (dequeued_len >= 0) {
+			size_t pkt_len;
+			size_t bytes_to_copy;
+
+			pkt_len = (size_t)le32_to_cpu(pkt->hdr.len);
+			bytes_to_copy = min(user_buf_len, pkt_len);
+
+			if (bytes_to_copy) {
+				int err;
+
+				/* sk_lock is held by caller so no one else can dequeue.
+				 * Unlock rx_lock since memcpy_to_msg() may sleep.
+				 */
+				spin_unlock_bh(&vvs->rx_lock);
+
+				err = memcpy_to_msg(msg, pkt->buf, bytes_to_copy);
+				if (err) {
+					/* Copy of message failed. Rest of
+					 * fragments will be freed without copy.
+					 */
+					dequeued_len = err;
+				} else {
+					user_buf_len -= bytes_to_copy;
+				}
+
+				spin_lock_bh(&vvs->rx_lock);
+			}
+
+			if (dequeued_len >= 0)
+				dequeued_len += pkt_len;
+		}
+
+		if (le32_to_cpu(pkt->hdr.flags) & VIRTIO_VSOCK_SEQ_EOR) {
+			msg_ready = true;
+			vvs->msg_count--;
+		}
+
+		virtio_transport_dec_rx_pkt(vvs, pkt);
+		list_del(&pkt->list);
+		virtio_transport_free_pkt(pkt);
+	}
+
+	spin_unlock_bh(&vvs->rx_lock);
+
+	virtio_transport_send_credit_update(vsk);
+
+	return dequeued_len;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 ssize_t
 virtio_transport_stream_dequeue(struct vsock_sock *vsk,
 				struct msghdr *msg,
@@ -902,6 +981,12 @@ virtio_transport_recv_enqueue(struct vsock_sock *vsk,
 		goto out;
 	}
 
+<<<<<<< HEAD
+=======
+	if (le32_to_cpu(pkt->hdr.flags) & VIRTIO_VSOCK_SEQ_EOR)
+		vvs->msg_count++;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Try to copy small packets into the buffer of last packet queued,
 	 * to avoid wasting memory queueing the entire buffer with a small
 	 * payload.
@@ -913,9 +998,19 @@ virtio_transport_recv_enqueue(struct vsock_sock *vsk,
 					   struct virtio_vsock_pkt, list);
 
 		/* If there is space in the last packet queued, we copy the
+<<<<<<< HEAD
 		 * new packet in its buffer.
 		 */
 		if (pkt->len <= last_pkt->buf_len - last_pkt->len) {
+=======
+		 * new packet in its buffer. We avoid this if the last packet
+		 * queued has VIRTIO_VSOCK_SEQ_EOR set, because this is
+		 * delimiter of SEQPACKET record, so 'pkt' is the first packet
+		 * of a new record.
+		 */
+		if ((pkt->len <= last_pkt->buf_len - last_pkt->len) &&
+		    !(le32_to_cpu(last_pkt->hdr.flags) & VIRTIO_VSOCK_SEQ_EOR)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			memcpy(last_pkt->buf + last_pkt->len, pkt->buf,
 			       pkt->len);
 			last_pkt->len += pkt->len;

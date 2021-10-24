@@ -1960,10 +1960,22 @@ vsock_stream_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 				goto out;
 			}
 
+<<<<<<< HEAD
 			err = transport->notify_recv_pre_dequeue(
 					vsk, target, &recv_data);
 			if (err < 0)
 				break;
+=======
+static int __vsock_seqpacket_recvmsg(struct sock *sk, struct msghdr *msg,
+				     size_t len, int flags)
+{
+	const struct vsock_transport *transport;
+	struct vsock_sock *vsk;
+	ssize_t record_len;
+	long timeout;
+	int err = 0;
+	DEFINE_WAIT(wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			read = transport->stream_dequeue(
 					vsk, msg,
@@ -1981,16 +1993,100 @@ vsock_stream_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 			if (err < 0)
 				goto out;
 
+<<<<<<< HEAD
 			if (read >= target || flags & MSG_PEEK)
 				break;
 
 			target -= read;
 		}
+=======
+	record_len = transport->seqpacket_dequeue(vsk, msg, flags);
+
+	if (record_len < 0) {
+		err = -ENOMEM;
+		goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (sk->sk_err)
 		err = -sk->sk_err;
+<<<<<<< HEAD
 	else if (sk->sk_shutdown & RCV_SHUTDOWN)
+=======
+	} else if (sk->sk_shutdown & RCV_SHUTDOWN) {
+		err = 0;
+	} else {
+		/* User sets MSG_TRUNC, so return real length of
+		 * packet.
+		 */
+		if (flags & MSG_TRUNC)
+			err = record_len;
+		else
+			err = len - msg_data_left(msg);
+
+		/* Always set MSG_TRUNC if real length of packet is
+		 * bigger than user's buffer.
+		 */
+		if (record_len > len)
+			msg->msg_flags |= MSG_TRUNC;
+	}
+
+out:
+	return err;
+}
+
+static int
+vsock_connectible_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+			  int flags)
+{
+	struct sock *sk;
+	struct vsock_sock *vsk;
+	const struct vsock_transport *transport;
+	int err;
+
+	DEFINE_WAIT(wait);
+
+	sk = sock->sk;
+	vsk = vsock_sk(sk);
+	err = 0;
+
+	lock_sock(sk);
+
+	transport = vsk->transport;
+
+	if (!transport || sk->sk_state != TCP_ESTABLISHED) {
+		/* Recvmsg is supposed to return 0 if a peer performs an
+		 * orderly shutdown. Differentiate between that case and when a
+		 * peer has not connected or a local shutdown occurred with the
+		 * SOCK_DONE flag.
+		 */
+		if (sock_flag(sk, SOCK_DONE))
+			err = 0;
+		else
+			err = -ENOTCONN;
+
+		goto out;
+	}
+
+	if (flags & MSG_OOB) {
+		err = -EOPNOTSUPP;
+		goto out;
+	}
+
+	/* We don't check peer_shutdown flag here since peer may actually shut
+	 * down, but there can be data in the queue that a local socket can
+	 * receive.
+	 */
+	if (sk->sk_shutdown & RCV_SHUTDOWN) {
+		err = 0;
+		goto out;
+	}
+
+	/* It is valid on Linux to pass in a zero-length receive buffer.  This
+	 * is not an error.  We may as well bail out now.
+	 */
+	if (!len) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = 0;
 
 	if (copied > 0)

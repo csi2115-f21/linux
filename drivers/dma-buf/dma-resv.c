@@ -633,7 +633,11 @@ static inline int dma_resv_test_signaled_single(struct dma_fence *passed_fence)
  */
 bool dma_resv_test_signaled_rcu(struct dma_resv *obj, bool test_all)
 {
+<<<<<<< HEAD
 	unsigned seq, shared_count;
+=======
+	unsigned int seq, shared_count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	rcu_read_lock();
@@ -643,16 +647,27 @@ retry:
 	seq = read_seqcount_begin(&obj->seq);
 
 	if (test_all) {
+<<<<<<< HEAD
 		unsigned i;
 
 		struct dma_resv_list *fobj = rcu_dereference(obj->fence);
+=======
+		struct dma_resv_list *fobj = dma_resv_shared_list(obj);
+		unsigned int i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (fobj)
 			shared_count = fobj->shared_count;
 
 		for (i = 0; i < shared_count; ++i) {
+<<<<<<< HEAD
 			struct dma_fence *fence = rcu_dereference(fobj->shared[i]);
 
+=======
+			struct dma_fence *fence;
+
+			fence = rcu_dereference(fobj->shared[i]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			ret = dma_resv_test_signaled_single(fence);
 			if (ret < 0)
 				goto retry;
@@ -665,7 +680,41 @@ retry:
 	}
 
 	if (!shared_count) {
+<<<<<<< HEAD
 		struct dma_fence *fence_excl = rcu_dereference(obj->fence_excl);
+=======
+		struct dma_fence *fence_excl = dma_resv_excl_fence(obj);
+
+		if (fence_excl) {
+			ret = dma_resv_test_signaled_single(fence_excl);
+			if (ret < 0)
+				goto retry;
+
+			if (read_seqcount_retry(&obj->seq, seq))
+				goto retry;
+		}
+	}
+
+	rcu_read_unlock();
+	return ret;
+}
+EXPORT_SYMBOL_GPL(dma_resv_test_signaled);
+
+#if IS_ENABLED(CONFIG_LOCKDEP)
+static int __init dma_resv_lockdep(void)
+{
+	struct mm_struct *mm = mm_alloc();
+	struct ww_acquire_ctx ctx;
+	struct dma_resv obj;
+	struct address_space mapping;
+	int ret;
+
+	if (!mm)
+		return -ENOMEM;
+
+	dma_resv_init(&obj);
+	address_space_init_once(&mapping);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (fence_excl) {
 			ret = dma_resv_test_signaled_single(fence_excl);

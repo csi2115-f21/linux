@@ -554,8 +554,23 @@ static int afs_write_back_from_locked_page(struct address_space *mapping,
 				break;
 			if (page->index > final_page)
 				break;
+<<<<<<< HEAD
 			if (!trylock_page(page))
 				break;
+=======
+
+			if (!page_cache_get_speculative(page)) {
+				xas_reset(&xas);
+				continue;
+			}
+
+			/* Has the page moved or been split? */
+			if (unlikely(page != xas_reload(&xas)))
+				break;
+
+			if (!trylock_page(page))
+				break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (!PageDirty(page) || PageWriteback(page)) {
 				unlock_page(page);
 				break;
@@ -839,9 +854,12 @@ vm_fault_t afs_page_mkwrite(struct vm_fault *vmf)
 	struct afs_vnode *vnode = AFS_FS_I(inode);
 	unsigned long priv;
 
+<<<<<<< HEAD
 	_enter("{{%llx:%llu}},{%lx}",
 	       vnode->fid.vid, vnode->fid.vnode, vmf->page->index);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	sb_start_pagefault(inode->i_sb);
 
 	/* Wait for the page to be written to the cache before we allow it to
@@ -928,9 +946,20 @@ int afs_launder_page(struct page *page)
 			t = afs_page_dirty_to(priv);
 		}
 
+<<<<<<< HEAD
 		trace_afs_page_dirty(vnode, tracepoint_string("launder"),
 				     page->index, priv);
 		ret = afs_store_data(mapping, page->index, page->index, t, f, true);
+=======
+		bv[0].bv_page = page;
+		bv[0].bv_offset = f;
+		bv[0].bv_len = t - f;
+		iov_iter_bvec(&iter, WRITE, bv, 1, bv[0].bv_len);
+
+		trace_afs_page_dirty(vnode, tracepoint_string("launder"), page);
+		ret = afs_store_data(vnode, &iter, (loff_t)page->index * PAGE_SIZE,
+				     true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	priv = (unsigned long)detach_page_private(page);

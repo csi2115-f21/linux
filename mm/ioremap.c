@@ -16,6 +16,7 @@
 #include "pgalloc-track.h"
 
 #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+<<<<<<< HEAD
 static int __read_mostly ioremap_p4d_capable;
 static int __read_mostly ioremap_pud_capable;
 static int __read_mostly ioremap_pmd_capable;
@@ -247,6 +248,24 @@ int ioremap_page_range(unsigned long addr,
 		arch_sync_kernel_mappings(start, end);
 
 	return err;
+=======
+static unsigned int __ro_after_init iomap_max_page_shift = BITS_PER_LONG - 1;
+
+static int __init set_nohugeiomap(char *str)
+{
+	iomap_max_page_shift = PAGE_SHIFT;
+	return 0;
+}
+early_param("nohugeiomap", set_nohugeiomap);
+#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
+#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+
+int ioremap_page_range(unsigned long addr,
+		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
+{
+	return vmap_range(addr, end, phys_addr, prot, iomap_max_page_shift);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #ifdef CONFIG_GENERIC_IOREMAP

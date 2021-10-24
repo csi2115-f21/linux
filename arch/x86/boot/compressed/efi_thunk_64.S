@@ -5,7 +5,11 @@
  * Early support for invoking 32-bit EFI services from a 64-bit kernel.
  *
  * Because this thunking occurs before ExitBootServices() we have to
+<<<<<<< HEAD
  * restore the firmware's 32-bit GDT before we make EFI serivce calls,
+=======
+ * restore the firmware's 32-bit GDT before we make EFI service calls,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * since the firmware's 32-bit IDT is still currently installed and it
  * needs to be able to service interrupts.
  *

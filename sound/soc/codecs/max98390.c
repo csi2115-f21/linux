@@ -988,6 +988,12 @@ static int max98390_i2c_probe(struct i2c_client *i2c,
 		__func__, max98390->ref_rdc_value,
 		max98390->ambient_temp_value);
 
+<<<<<<< HEAD
+=======
+	/* voltage/current slot configuration */
+	max98390_slot_config(i2c, max98390);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* regmap initialization */
 	max98390->regmap = devm_regmap_init_i2c(i2c, &max98390_regmap);
 	if (IS_ERR(max98390->regmap)) {

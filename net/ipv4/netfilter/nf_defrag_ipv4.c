@@ -20,7 +20,12 @@
 #endif
 #include <net/netfilter/nf_conntrack_zones.h>
 
+static unsigned int defrag4_pernet_id __read_mostly;
 static DEFINE_MUTEX(defrag4_mutex);
+
+struct defrag4_pernet {
+	unsigned int users;
+};
 
 static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
 				   u_int32_t user)
@@ -106,15 +111,26 @@ static const struct nf_hook_ops ipv4_defrag_ops[] = {
 
 static void __net_exit defrag4_net_exit(struct net *net)
 {
+<<<<<<< HEAD
 	if (net->nf.defrag_ipv4) {
 		nf_unregister_net_hooks(net, ipv4_defrag_ops,
 					ARRAY_SIZE(ipv4_defrag_ops));
 		net->nf.defrag_ipv4 = false;
+=======
+	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
+
+	if (nf_defrag->users) {
+		nf_unregister_net_hooks(net, ipv4_defrag_ops,
+					ARRAY_SIZE(ipv4_defrag_ops));
+		nf_defrag->users = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
 static struct pernet_operations defrag4_net_ops = {
 	.exit = defrag4_net_exit,
+	.id   = &defrag4_pernet_id,
+	.size = sizeof(struct defrag4_pernet),
 };
 
 static int __init nf_defrag_init(void)
@@ -129,8 +145,10 @@ static void __exit nf_defrag_fini(void)
 
 int nf_defrag_ipv4_enable(struct net *net)
 {
+	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
 	int err = 0;
 
+<<<<<<< HEAD
 	might_sleep();
 
 	if (net->nf.defrag_ipv4)
@@ -138,12 +156,26 @@ int nf_defrag_ipv4_enable(struct net *net)
 
 	mutex_lock(&defrag4_mutex);
 	if (net->nf.defrag_ipv4)
+=======
+	mutex_lock(&defrag4_mutex);
+	if (nf_defrag->users == UINT_MAX) {
+		err = -EOVERFLOW;
+		goto out_unlock;
+	}
+
+	if (nf_defrag->users) {
+		nf_defrag->users++;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out_unlock;
 
 	err = nf_register_net_hooks(net, ipv4_defrag_ops,
 				    ARRAY_SIZE(ipv4_defrag_ops));
 	if (err == 0)
+<<<<<<< HEAD
 		net->nf.defrag_ipv4 = true;
+=======
+		nf_defrag->users = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
  out_unlock:
 	mutex_unlock(&defrag4_mutex);
@@ -151,6 +183,25 @@ int nf_defrag_ipv4_enable(struct net *net)
 }
 EXPORT_SYMBOL_GPL(nf_defrag_ipv4_enable);
 
+<<<<<<< HEAD
+=======
+void nf_defrag_ipv4_disable(struct net *net)
+{
+	struct defrag4_pernet *nf_defrag = net_generic(net, defrag4_pernet_id);
+
+	mutex_lock(&defrag4_mutex);
+	if (nf_defrag->users) {
+		nf_defrag->users--;
+		if (nf_defrag->users == 0)
+			nf_unregister_net_hooks(net, ipv4_defrag_ops,
+						ARRAY_SIZE(ipv4_defrag_ops));
+	}
+
+	mutex_unlock(&defrag4_mutex);
+}
+EXPORT_SYMBOL_GPL(nf_defrag_ipv4_disable);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 module_init(nf_defrag_init);
 module_exit(nf_defrag_fini);
 

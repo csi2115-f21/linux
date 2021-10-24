@@ -467,6 +467,20 @@ static void intel_pstate_exit_perf_limits(struct cpufreq_policy *policy)
 
 	acpi_processor_unregister_performance(policy->cpu);
 }
+
+static bool intel_pstate_cppc_perf_valid(u32 perf, struct cppc_perf_caps *caps)
+{
+	return perf && perf <= caps->highest_perf && perf >= caps->lowest_perf;
+}
+
+static bool intel_pstate_cppc_perf_caps(struct cpudata *cpu,
+					struct cppc_perf_caps *caps)
+{
+	if (cppc_get_perf_caps(cpu->cpu, caps))
+		return false;
+
+	return caps->highest_perf && caps->lowest_perf <= caps->highest_perf;
+}
 #else /* CONFIG_ACPI */
 static inline void intel_pstate_init_acpi_perf_limits(struct cpufreq_policy *policy)
 {
@@ -489,6 +503,143 @@ static int intel_pstate_get_cppc_guranteed(int cpu)
 }
 #endif /* CONFIG_ACPI_CPPC_LIB */
 
+<<<<<<< HEAD
+=======
+static void intel_pstate_hybrid_hwp_perf_ctl_parity(struct cpudata *cpu)
+{
+	pr_debug("CPU%d: Using PERF_CTL scaling for HWP\n", cpu->cpu);
+
+	cpu->pstate.scaling = cpu->pstate.perf_ctl_scaling;
+}
+
+/**
+ * intel_pstate_hybrid_hwp_calibrate - Calibrate HWP performance levels.
+ * @cpu: Target CPU.
+ *
+ * On hybrid processors, HWP may expose more performance levels than there are
+ * P-states accessible through the PERF_CTL interface.  If that happens, the
+ * scaling factor between HWP performance levels and CPU frequency will be less
+ * than the scaling factor between P-state values and CPU frequency.
+ *
+ * In that case, the scaling factor between HWP performance levels and CPU
+ * frequency needs to be determined which can be done with the help of the
+ * observation that certain HWP performance levels should correspond to certain
+ * P-states, like for example the HWP highest performance should correspond
+ * to the maximum turbo P-state of the CPU.
+ */
+static void intel_pstate_hybrid_hwp_calibrate(struct cpudata *cpu)
+{
+	int perf_ctl_max_phys = cpu->pstate.max_pstate_physical;
+	int perf_ctl_scaling = cpu->pstate.perf_ctl_scaling;
+	int perf_ctl_turbo = pstate_funcs.get_turbo();
+	int turbo_freq = perf_ctl_turbo * perf_ctl_scaling;
+	int perf_ctl_max = pstate_funcs.get_max();
+	int max_freq = perf_ctl_max * perf_ctl_scaling;
+	int scaling = INT_MAX;
+	int freq;
+
+	pr_debug("CPU%d: perf_ctl_max_phys = %d\n", cpu->cpu, perf_ctl_max_phys);
+	pr_debug("CPU%d: perf_ctl_max = %d\n", cpu->cpu, perf_ctl_max);
+	pr_debug("CPU%d: perf_ctl_turbo = %d\n", cpu->cpu, perf_ctl_turbo);
+	pr_debug("CPU%d: perf_ctl_scaling = %d\n", cpu->cpu, perf_ctl_scaling);
+
+	pr_debug("CPU%d: HWP_CAP guaranteed = %d\n", cpu->cpu, cpu->pstate.max_pstate);
+	pr_debug("CPU%d: HWP_CAP highest = %d\n", cpu->cpu, cpu->pstate.turbo_pstate);
+
+#ifdef CONFIG_ACPI
+	if (IS_ENABLED(CONFIG_ACPI_CPPC_LIB)) {
+		struct cppc_perf_caps caps;
+
+		if (intel_pstate_cppc_perf_caps(cpu, &caps)) {
+			if (intel_pstate_cppc_perf_valid(caps.nominal_perf, &caps)) {
+				pr_debug("CPU%d: Using CPPC nominal\n", cpu->cpu);
+
+				/*
+				 * If the CPPC nominal performance is valid, it
+				 * can be assumed to correspond to cpu_khz.
+				 */
+				if (caps.nominal_perf == perf_ctl_max_phys) {
+					intel_pstate_hybrid_hwp_perf_ctl_parity(cpu);
+					return;
+				}
+				scaling = DIV_ROUND_UP(cpu_khz, caps.nominal_perf);
+			} else if (intel_pstate_cppc_perf_valid(caps.guaranteed_perf, &caps)) {
+				pr_debug("CPU%d: Using CPPC guaranteed\n", cpu->cpu);
+
+				/*
+				 * If the CPPC guaranteed performance is valid,
+				 * it can be assumed to correspond to max_freq.
+				 */
+				if (caps.guaranteed_perf == perf_ctl_max) {
+					intel_pstate_hybrid_hwp_perf_ctl_parity(cpu);
+					return;
+				}
+				scaling = DIV_ROUND_UP(max_freq, caps.guaranteed_perf);
+			}
+		}
+	}
+#endif
+	/*
+	 * If using the CPPC data to compute the HWP-to-frequency scaling factor
+	 * doesn't work, use the HWP_CAP gauranteed perf for this purpose with
+	 * the assumption that it corresponds to max_freq.
+	 */
+	if (scaling > perf_ctl_scaling) {
+		pr_debug("CPU%d: Using HWP_CAP guaranteed\n", cpu->cpu);
+
+		if (cpu->pstate.max_pstate == perf_ctl_max) {
+			intel_pstate_hybrid_hwp_perf_ctl_parity(cpu);
+			return;
+		}
+		scaling = DIV_ROUND_UP(max_freq, cpu->pstate.max_pstate);
+		if (scaling > perf_ctl_scaling) {
+			/*
+			 * This should not happen, because it would mean that
+			 * the number of HWP perf levels was less than the
+			 * number of P-states, so use the PERF_CTL scaling in
+			 * that case.
+			 */
+			pr_debug("CPU%d: scaling (%d) out of range\n", cpu->cpu,
+				scaling);
+
+			intel_pstate_hybrid_hwp_perf_ctl_parity(cpu);
+			return;
+		}
+	}
+
+	/*
+	 * If the product of the HWP performance scaling factor obtained above
+	 * and the HWP_CAP highest performance is greater than the maximum turbo
+	 * frequency corresponding to the pstate_funcs.get_turbo() return value,
+	 * the scaling factor is too high, so recompute it so that the HWP_CAP
+	 * highest performance corresponds to the maximum turbo frequency.
+	 */
+	if (turbo_freq < cpu->pstate.turbo_pstate * scaling) {
+		pr_debug("CPU%d: scaling too high (%d)\n", cpu->cpu, scaling);
+
+		cpu->pstate.turbo_freq = turbo_freq;
+		scaling = DIV_ROUND_UP(turbo_freq, cpu->pstate.turbo_pstate);
+	}
+
+	cpu->pstate.scaling = scaling;
+
+	pr_debug("CPU%d: HWP-to-frequency scaling factor: %d\n", cpu->cpu, scaling);
+
+	cpu->pstate.max_freq = rounddown(cpu->pstate.max_pstate * scaling,
+					 perf_ctl_scaling);
+
+	freq = perf_ctl_max_phys * perf_ctl_scaling;
+	cpu->pstate.max_pstate_physical = DIV_ROUND_UP(freq, scaling);
+
+	cpu->pstate.min_freq = cpu->pstate.min_pstate * perf_ctl_scaling;
+	/*
+	 * Cast the min P-state value retrieved via pstate_funcs.get_min() to
+	 * the effective range of HWP performance levels.
+	 */
+	cpu->pstate.min_pstate = DIV_ROUND_UP(cpu->pstate.min_freq, scaling);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline void update_turbo_state(void)
 {
 	u64 misc_en;
@@ -1713,6 +1864,14 @@ static void intel_pstate_max_within_limits(struct cpudata *cpu)
 
 static void intel_pstate_get_cpu_pstates(struct cpudata *cpu)
 {
+<<<<<<< HEAD
+=======
+	bool hybrid_cpu = boot_cpu_has(X86_FEATURE_HYBRID_CPU);
+	int perf_ctl_max_phys = pstate_funcs.get_max_physical();
+	int perf_ctl_scaling = hybrid_cpu ? cpu_khz / perf_ctl_max_phys :
+					    pstate_funcs.get_scaling();
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cpu->pstate.min_pstate = pstate_funcs.get_min();
 	cpu->pstate.max_pstate_physical = pstate_funcs.get_max_physical();
 	cpu->pstate.turbo_pstate = pstate_funcs.get_turbo();
@@ -1721,10 +1880,17 @@ static void intel_pstate_get_cpu_pstates(struct cpudata *cpu)
 	if (hwp_active && !hwp_mode_bdw) {
 		unsigned int phy_max, current_max;
 
+<<<<<<< HEAD
 		intel_pstate_get_hwp_max(cpu, &phy_max, &current_max);
 		cpu->pstate.turbo_freq = phy_max * cpu->pstate.scaling;
 		cpu->pstate.turbo_pstate = phy_max;
 		cpu->pstate.max_pstate = HWP_GUARANTEED_PERF(READ_ONCE(cpu->hwp_cap_cached));
+=======
+		if (hybrid_cpu)
+			intel_pstate_hybrid_hwp_calibrate(cpu);
+		else
+			cpu->pstate.scaling = perf_ctl_scaling;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		cpu->pstate.turbo_freq = cpu->pstate.turbo_pstate * cpu->pstate.scaling;
 		cpu->pstate.max_pstate = pstate_funcs.get_max();
@@ -3073,7 +3239,12 @@ static int __init intel_pstate_init(void)
 		 * because that means incomplete HWP implementation which is a
 		 * corner case and supporting it is generally problematic.
 		 */
+<<<<<<< HEAD
 		if (!no_hwp && boot_cpu_has(X86_FEATURE_HWP_EPP)) {
+=======
+		if ((!no_hwp && boot_cpu_has(X86_FEATURE_HWP_EPP)) ||
+		    intel_pstate_hwp_is_enabled()) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			hwp_active++;
 			hwp_mode_bdw = id->driver_data;
 			intel_pstate.attr = hwp_cpufreq_attrs;

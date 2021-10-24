@@ -14,7 +14,11 @@
 #include <rtw_xmit.h>
 #include <mon.h>
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * unprotect_frame() - unset Protected flag and strip off IV and ICV/MIC
  */
 static void unprotect_frame(struct sk_buff *skb, int iv_len, int icv_len)
@@ -65,7 +69,11 @@ static void mon_recv_encrypted(struct net_device *dev, const u8 *data,
 		netdev_info(dev, "Encrypted packets are not supported");
 }
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * rtl88eu_mon_recv_hook() - forward received frame to the monitor interface
  *
  * Assumes that the frame contains an IV and an ICV/MIC, and that
@@ -96,7 +104,11 @@ void rtl88eu_mon_recv_hook(struct net_device *dev, struct recv_frame *frame)
 		mon_recv_encrypted(dev, data, data_len);
 }
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * rtl88eu_mon_xmit_hook() - forward trasmitted frame to the monitor interface
  *
  * Assumes that:
@@ -163,6 +175,7 @@ struct net_device *rtl88eu_mon_init(void)
 
 	dev = alloc_netdev(0, "mon%d", NET_NAME_UNKNOWN, mon_setup);
 	if (!dev)
+<<<<<<< HEAD
 		goto fail;
 
 	err = register_netdev(dev);
@@ -175,6 +188,17 @@ fail_free_dev:
 	free_netdev(dev);
 fail:
 	return NULL;
+=======
+		return NULL;
+
+	err = register_netdev(dev);
+	if (err < 0) {
+		free_netdev(dev);
+		return NULL;
+	}
+
+	return dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtl88eu_mon_deinit(struct net_device *dev)

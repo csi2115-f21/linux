@@ -643,8 +643,13 @@ void bpf_jit_compile(struct bpf_prog *fp)
 	for (pass = 1; pass < 3; pass++) {
 		/* Now build the prologue, body code & epilogue for real. */
 		cgctx.idx = 0;
+<<<<<<< HEAD
 		bpf_jit_build_prologue(fp, code_base, &cgctx);
 		bpf_jit_build_body(fp, code_base, &cgctx, addrs);
+=======
+		bpf_jit_build_prologue(code_base, &cgctx);
+		bpf_jit_build_body(fp, code_base, &cgctx, addrs, extra_pass);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bpf_jit_build_epilogue(code_base, &cgctx);
 
 		if (bpf_jit_enable > 1)

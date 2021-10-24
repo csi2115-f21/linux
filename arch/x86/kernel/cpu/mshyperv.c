@@ -17,6 +17,7 @@
 #include <linux/irq.h>
 #include <linux/kexec.h>
 #include <linux/i8253.h>
+#include <linux/panic_notifier.h>
 #include <linux/random.h>
 #include <asm/processor.h>
 #include <asm/hypervisor.h>
@@ -69,14 +70,19 @@ int hv_setup_vmbus_irq(int irq, void (*handler)(void))
 	vmbus_handler = handler;
 	return 0;
 }
+EXPORT_SYMBOL_GPL(hv_setup_vmbus_handler);
 
 void hv_remove_vmbus_irq(void)
 {
 	/* We have no way to deallocate the interrupt gate */
 	vmbus_handler = NULL;
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL_GPL(hv_setup_vmbus_irq);
 EXPORT_SYMBOL_GPL(hv_remove_vmbus_irq);
+=======
+EXPORT_SYMBOL_GPL(hv_remove_vmbus_handler);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Routines to do per-architecture handling of stimer0

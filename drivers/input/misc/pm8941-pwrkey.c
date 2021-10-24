@@ -271,12 +271,23 @@ static int pm8941_pwrkey_probe(struct platform_device *pdev)
 		return error;
 	}
 
+<<<<<<< HEAD
 	pwrkey->reboot_notifier.notifier_call = pm8941_reboot_notify,
 	error = register_reboot_notifier(&pwrkey->reboot_notifier);
 	if (error) {
 		dev_err(&pdev->dev, "failed to register reboot notifier: %d\n",
 			error);
 		return error;
+=======
+	if (pwrkey->data->supports_ps_hold_poff_config) {
+		pwrkey->reboot_notifier.notifier_call = pm8941_reboot_notify,
+		error = register_reboot_notifier(&pwrkey->reboot_notifier);
+		if (error) {
+			dev_err(&pdev->dev, "failed to register reboot notifier: %d\n",
+				error);
+			return error;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	platform_set_drvdata(pdev, pwrkey);

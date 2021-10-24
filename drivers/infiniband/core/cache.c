@@ -1441,7 +1441,11 @@ int rdma_read_gid_l2_fields(const struct ib_gid_attr *attr,
 EXPORT_SYMBOL(rdma_read_gid_l2_fields);
 
 static int config_non_roce_gid_cache(struct ib_device *device,
+<<<<<<< HEAD
 				     u8 port, int gid_tbl_len)
+=======
+				     u32 port, int gid_tbl_len)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct ib_gid_attr gid_attr = {};
 	struct ib_gid_table *table;

@@ -1478,6 +1478,10 @@ qla2xxx_eh_target_reset(struct scsi_cmnd *cmd)
 	if (qla2x00_isp_reg_stat(ha)) {
 		ql_log(ql_log_info, vha, 0x803f,
 		    "PCI/Register disconnect, exiting.\n");
+<<<<<<< HEAD
+=======
+		qla_pci_set_eeh_busy(vha);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return FAILED;
 	}
 

@@ -62,7 +62,16 @@ static void sig_handler_common(int sig, struct siginfo *si, mcontext_t *mc)
 #define SIGALRM_BIT 1
 #define SIGALRM_MASK (1 << SIGALRM_BIT)
 
+<<<<<<< HEAD
 static int signals_enabled;
+=======
+int signals_enabled;
+#ifdef UML_CONFIG_UML_TIME_TRAVEL_SUPPORT
+static int signals_blocked;
+#else
+#define signals_blocked false
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static unsigned int signals_pending;
 static unsigned int signals_active = 0;
 

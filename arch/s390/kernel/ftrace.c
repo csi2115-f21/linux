@@ -40,6 +40,10 @@
  * trampoline (ftrace_plt), which clobbers also r1.
  */
 
+<<<<<<< HEAD
+=======
+void *ftrace_func __read_mostly = ftrace_stub;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 unsigned long ftrace_plt;
 
 int ftrace_modify_call(struct dyn_ftrace *rec, unsigned long old_addr,

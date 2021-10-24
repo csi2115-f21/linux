@@ -45,7 +45,11 @@ static int __igt_client_fill(struct intel_engine_cs *engine)
 			goto err_flush;
 		}
 
+<<<<<<< HEAD
 		vaddr = i915_gem_object_pin_map(obj, I915_MAP_WB);
+=======
+		vaddr = i915_gem_object_pin_map_unlocked(obj, I915_MAP_WB);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (IS_ERR(vaddr)) {
 			err = PTR_ERR(vaddr);
 			goto err_put;

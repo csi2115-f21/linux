@@ -346,11 +346,15 @@ bool intel_dsc_source_support(const struct intel_crtc_state *crtc_state)
 	if (INTEL_GEN(i915) >= 12)
 		return true;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 10 &&
 	    (pipe != PIPE_A ||
 	     (cpu_transcoder == TRANSCODER_EDP ||
 	      cpu_transcoder == TRANSCODER_DSI_0 ||
 	      cpu_transcoder == TRANSCODER_DSI_1)))
+=======
+	if ((DISPLAY_VER(i915) >= 11 || IS_CANNONLAKE(i915)) && (pipe != PIPE_A || (cpu_transcoder == TRANSCODER_EDP || cpu_transcoder == TRANSCODER_DSI_0 || cpu_transcoder == TRANSCODER_DSI_1)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return true;
 
 	return false;

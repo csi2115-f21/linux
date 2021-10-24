@@ -822,6 +822,64 @@ static long madvise_dontneed_free(struct vm_area_struct *vma,
 		return -EINVAL;
 }
 
+<<<<<<< HEAD
+=======
+static long madvise_populate(struct vm_area_struct *vma,
+			     struct vm_area_struct **prev,
+			     unsigned long start, unsigned long end,
+			     int behavior)
+{
+	const bool write = behavior == MADV_POPULATE_WRITE;
+	struct mm_struct *mm = vma->vm_mm;
+	unsigned long tmp_end;
+	int locked = 1;
+	long pages;
+
+	*prev = vma;
+
+	while (start < end) {
+		/*
+		 * We might have temporarily dropped the lock. For example,
+		 * our VMA might have been split.
+		 */
+		if (!vma || start >= vma->vm_end) {
+			vma = find_vma(mm, start);
+			if (!vma || start < vma->vm_start)
+				return -ENOMEM;
+		}
+
+		tmp_end = min_t(unsigned long, end, vma->vm_end);
+		/* Populate (prefault) page tables readable/writable. */
+		pages = faultin_vma_page_range(vma, start, tmp_end, write,
+					       &locked);
+		if (!locked) {
+			mmap_read_lock(mm);
+			locked = 1;
+			*prev = NULL;
+			vma = NULL;
+		}
+		if (pages < 0) {
+			switch (pages) {
+			case -EINTR:
+				return -EINTR;
+			case -EFAULT: /* Incompatible mappings / permissions. */
+				return -EINVAL;
+			case -EHWPOISON:
+				return -EHWPOISON;
+			default:
+				pr_warn_once("%s: unhandled return value: %ld\n",
+					     __func__, pages);
+				fallthrough;
+			case -ENOMEM:
+				return -ENOMEM;
+			}
+		}
+		start += pages * PAGE_SIZE;
+	}
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Application wants to free up the pages and associated backing store.
  * This is effectively punching a hole into the middle of a file.

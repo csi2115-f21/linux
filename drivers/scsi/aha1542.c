@@ -260,9 +260,22 @@ static void aha1542_free_cmd(struct scsi_cmnd *cmd)
 	struct device *dev = cmd->device->host->dma_dev;
 	size_t len = scsi_sg_count(cmd) * sizeof(struct chain);
 
+<<<<<<< HEAD
 	if (acmd->chain) {
 		dma_unmap_single(dev, acmd->chain_handle, len, DMA_TO_DEVICE);
 		kfree(acmd->chain);
+=======
+	if (cmd->sc_data_direction == DMA_FROM_DEVICE) {
+		void *buf = acmd->data_buffer;
+		struct req_iterator iter;
+		struct bio_vec bv;
+
+		rq_for_each_segment(bv, cmd->request, iter) {
+			memcpy_to_page(bv.bv_page, bv.bv_offset, buf,
+				       bv.bv_len);
+			buf += bv.bv_len;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	acmd->chain = NULL;
@@ -438,6 +451,7 @@ static int aha1542_queuecommand(struct Scsi_Host *sh, struct scsi_cmnd *cmd)
 		print_hex_dump_bytes("command: ", DUMP_PREFIX_NONE, cmd->cmnd, cmd->cmd_len);
 	}
 #endif
+<<<<<<< HEAD
 	sg_count = scsi_dma_map(cmd);
 	if (sg_count) {
 		size_t len = sg_count * sizeof(struct chain);
@@ -449,6 +463,19 @@ static int aha1542_queuecommand(struct Scsi_Host *sh, struct scsi_cmnd *cmd)
 				len, DMA_TO_DEVICE);
 		if (dma_mapping_error(sh->dma_dev, acmd->chain_handle))
 			goto out_free_chain;
+=======
+
+	if (cmd->sc_data_direction == DMA_TO_DEVICE) {
+		void *buf = acmd->data_buffer;
+		struct req_iterator iter;
+		struct bio_vec bv;
+
+		rq_for_each_segment(bv, cmd->request, iter) {
+			memcpy_from_page(buf, bv.bv_page, bv.bv_offset,
+					 bv.bv_len);
+			buf += bv.bv_len;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/*

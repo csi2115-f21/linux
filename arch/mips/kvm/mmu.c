@@ -448,6 +448,7 @@ static int handle_hva_to_gpa(struct kvm *kvm,
 					    void *data),
 			     void *data)
 {
+<<<<<<< HEAD
 	struct kvm_memslots *slots;
 	struct kvm_memory_slot *memslot;
 	int ret = 0;
@@ -493,6 +494,10 @@ int kvm_unmap_hva_range(struct kvm *kvm, unsigned long start, unsigned long end,
 
 	kvm_mips_callbacks->flush_shadow_all(kvm);
 	return 0;
+=======
+	kvm_mips_flush_gpa_pt(kvm, range->start, range->end);
+	return 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int kvm_set_spte_handler(struct kvm *kvm, gfn_t gfn, gfn_t gfn_end,

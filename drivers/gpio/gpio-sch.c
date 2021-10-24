@@ -144,6 +144,142 @@ static const struct gpio_chip sch_gpio_chip = {
 	.get_direction		= sch_gpio_get_direction,
 };
 
+<<<<<<< HEAD
+=======
+static int sch_irq_type(struct irq_data *d, unsigned int type)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
+	struct sch_gpio *sch = gpiochip_get_data(gc);
+	irq_hw_number_t gpio_num = irqd_to_hwirq(d);
+	unsigned long flags;
+	int rising, falling;
+
+	switch (type & IRQ_TYPE_SENSE_MASK) {
+	case IRQ_TYPE_EDGE_RISING:
+		rising = 1;
+		falling = 0;
+		break;
+	case IRQ_TYPE_EDGE_FALLING:
+		rising = 0;
+		falling = 1;
+		break;
+	case IRQ_TYPE_EDGE_BOTH:
+		rising = 1;
+		falling = 1;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	spin_lock_irqsave(&sch->lock, flags);
+
+	sch_gpio_reg_set(sch, gpio_num, GTPE, rising);
+	sch_gpio_reg_set(sch, gpio_num, GTNE, falling);
+
+	irq_set_handler_locked(d, handle_edge_irq);
+
+	spin_unlock_irqrestore(&sch->lock, flags);
+
+	return 0;
+}
+
+static void sch_irq_ack(struct irq_data *d)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
+	struct sch_gpio *sch = gpiochip_get_data(gc);
+	irq_hw_number_t gpio_num = irqd_to_hwirq(d);
+	unsigned long flags;
+
+	spin_lock_irqsave(&sch->lock, flags);
+	sch_gpio_reg_set(sch, gpio_num, GTS, 1);
+	spin_unlock_irqrestore(&sch->lock, flags);
+}
+
+static void sch_irq_mask_unmask(struct irq_data *d, int val)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
+	struct sch_gpio *sch = gpiochip_get_data(gc);
+	irq_hw_number_t gpio_num = irqd_to_hwirq(d);
+	unsigned long flags;
+
+	spin_lock_irqsave(&sch->lock, flags);
+	sch_gpio_reg_set(sch, gpio_num, GGPE, val);
+	spin_unlock_irqrestore(&sch->lock, flags);
+}
+
+static void sch_irq_mask(struct irq_data *d)
+{
+	sch_irq_mask_unmask(d, 0);
+}
+
+static void sch_irq_unmask(struct irq_data *d)
+{
+	sch_irq_mask_unmask(d, 1);
+}
+
+static u32 sch_gpio_gpe_handler(acpi_handle gpe_device, u32 gpe, void *context)
+{
+	struct sch_gpio *sch = context;
+	struct gpio_chip *gc = &sch->chip;
+	unsigned long core_status, resume_status;
+	unsigned long pending;
+	unsigned long flags;
+	int offset;
+	u32 ret;
+
+	spin_lock_irqsave(&sch->lock, flags);
+
+	core_status = inl(sch->iobase + CORE_BANK_OFFSET + GTS);
+	resume_status = inl(sch->iobase + RESUME_BANK_OFFSET + GTS);
+
+	spin_unlock_irqrestore(&sch->lock, flags);
+
+	pending = (resume_status << sch->resume_base) | core_status;
+	for_each_set_bit(offset, &pending, sch->chip.ngpio)
+		generic_handle_irq(irq_find_mapping(gc->irq.domain, offset));
+
+	/* Set returning value depending on whether we handled an interrupt */
+	ret = pending ? ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+
+	/* Acknowledge GPE to ACPICA */
+	ret |= ACPI_REENABLE_GPE;
+
+	return ret;
+}
+
+static void sch_gpio_remove_gpe_handler(void *data)
+{
+	struct sch_gpio *sch = data;
+
+	acpi_disable_gpe(NULL, sch->gpe);
+	acpi_remove_gpe_handler(NULL, sch->gpe, sch->gpe_handler);
+}
+
+static int sch_gpio_install_gpe_handler(struct sch_gpio *sch)
+{
+	struct device *dev = sch->chip.parent;
+	acpi_status status;
+
+	status = acpi_install_gpe_handler(NULL, sch->gpe, ACPI_GPE_LEVEL_TRIGGERED,
+					  sch->gpe_handler, sch);
+	if (ACPI_FAILURE(status)) {
+		dev_err(dev, "Failed to install GPE handler for %u: %s\n",
+			sch->gpe, acpi_format_exception(status));
+		return -ENODEV;
+	}
+
+	status = acpi_enable_gpe(NULL, sch->gpe);
+	if (ACPI_FAILURE(status)) {
+		dev_err(dev, "Failed to enable GPE handler for %u: %s\n",
+			sch->gpe, acpi_format_exception(status));
+		acpi_remove_gpe_handler(NULL, sch->gpe, sch->gpe_handler);
+		return -ENODEV;
+	}
+
+	return devm_add_action_or_reset(dev, sch_gpio_remove_gpe_handler, sch);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int sch_gpio_probe(struct platform_device *pdev)
 {
 	struct sch_gpio *sch;

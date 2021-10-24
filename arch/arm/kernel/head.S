@@ -48,6 +48,23 @@
 	.globl	swapper_pg_dir
 	.equ	swapper_pg_dir, KERNEL_RAM_VADDR - PG_DIR_SIZE
 
+<<<<<<< HEAD
+=======
+	/*
+	 * This needs to be assigned at runtime when the linker symbols are
+	 * resolved.
+	 */
+	.pushsection .data
+	.align	2
+	.globl	kernel_sec_start
+	.globl	kernel_sec_end
+kernel_sec_start:
+	.long	0
+kernel_sec_end:
+	.long	0
+	.popsection
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.macro	pgtbl, rd, phys
 	add	\rd, \phys, #TEXT_OFFSET
 	sub	\rd, \rd, #PG_DIR_SIZE
@@ -234,12 +251,24 @@ __create_page_tables:
 	 */
 	add	r0, r4, #PAGE_OFFSET >> (SECTION_SHIFT - PMD_ORDER)
 	ldr	r6, =(_end - 1)
+<<<<<<< HEAD
 	orr	r3, r8, r7
+=======
+	adr_l	r5, kernel_sec_start		@ _pa(kernel_sec_start)
+	str	r8, [r5]			@ Save physical start of kernel
+	orr	r3, r8, r7			@ Add the MMU flags
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	add	r6, r4, r6, lsr #(SECTION_SHIFT - PMD_ORDER)
 1:	str	r3, [r0], #1 << PMD_ORDER
 	add	r3, r3, #1 << SECTION_SHIFT
 	cmp	r0, r6
 	bls	1b
+<<<<<<< HEAD
+=======
+	eor	r3, r3, r7			@ Remove the MMU flags
+	adr_l	r5, kernel_sec_end		@ _pa(kernel_sec_end)
+	str	r3, [r5]			@ Save physical end of kernel
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_XIP_KERNEL
 	/*

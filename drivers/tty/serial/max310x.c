@@ -1286,16 +1286,27 @@ static int max310x_probe(struct device *dev, const struct max310x_devtype *devty
 		return -ENOMEM;
 	}
 
+<<<<<<< HEAD
+=======
+	/* Always ask for fixed clock rate from a property. */
+	device_property_read_u32(dev, "clock-frequency", &uartclk);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	s->clk = devm_clk_get_optional(dev, "osc");
 	if (IS_ERR(s->clk))
 		return PTR_ERR(s->clk);
 	if (s->clk) {
+<<<<<<< HEAD
 		fmin = 500000;
 		fmax = 35000000;
+=======
+		xtal = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		s->clk = devm_clk_get_optional(dev, "xtal");
 		if (IS_ERR(s->clk))
 			return PTR_ERR(s->clk);
+<<<<<<< HEAD
 		if (s->clk) {
 			fmin = 1000000;
 			fmax = 4000000;
@@ -1304,6 +1315,10 @@ static int max310x_probe(struct device *dev, const struct max310x_devtype *devty
 			dev_err(dev, "Cannot get clock\n");
 			return -EINVAL;
 		}
+=======
+
+		xtal = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = clk_prepare_enable(s->clk);

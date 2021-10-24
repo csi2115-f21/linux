@@ -2373,9 +2373,19 @@ int drm_mode_getconnector(struct drm_device *dev, void *data,
 
 	mutex_lock(&dev->mode_config.mutex);
 	if (out_resp->count_modes == 0) {
+<<<<<<< HEAD
 		connector->funcs->fill_modes(connector,
 					     dev->mode_config.max_width,
 					     dev->mode_config.max_height);
+=======
+		if (drm_is_current_master(file_priv))
+			connector->funcs->fill_modes(connector,
+						     dev->mode_config.max_width,
+						     dev->mode_config.max_height);
+		else
+			drm_dbg_kms(dev, "User-space requested a forced probe on [CONNECTOR:%d:%s] but is not the DRM master, demoting to read-only probe",
+				    connector->base.id, connector->name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	out_resp->mm_width = connector->display_info.width_mm;

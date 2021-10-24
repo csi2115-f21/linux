@@ -241,6 +241,10 @@ static const struct of_device_id qcom_smd_rpm_of_match[] = {
 	{ .compatible = "qcom,rpm-msm8996" },
 	{ .compatible = "qcom,rpm-msm8998" },
 	{ .compatible = "qcom,rpm-sdm660" },
+<<<<<<< HEAD
+=======
+	{ .compatible = "qcom,rpm-sm6125" },
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{ .compatible = "qcom,rpm-qcs404" },
 	{}
 };

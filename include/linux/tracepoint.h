@@ -465,7 +465,11 @@ static inline struct tracepoint *tracepoint_ptr_deref(tracepoint_ptr_t *p)
  *	*
  *	* The declared 'local variable' is called '__entry'
  *	*
+<<<<<<< HEAD
  *	* __field(pid_t, prev_prid) is equivalent to a standard declariton:
+=======
+ *	* __field(pid_t, prev_prid) is equivalent to a standard declaration:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *	*
  *	*	pid_t	prev_pid;
  *	*

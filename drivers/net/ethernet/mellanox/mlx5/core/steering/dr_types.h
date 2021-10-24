@@ -70,10 +70,22 @@ enum {
 	DR_STE_SIZE_CTRL = 32,
 	DR_STE_SIZE_TAG = 16,
 	DR_STE_SIZE_MASK = 16,
+<<<<<<< HEAD
 };
 
 enum {
 	DR_STE_SIZE_REDUCED = DR_STE_SIZE - DR_STE_SIZE_MASK,
+=======
+};
+
+enum {
+	DR_STE_SIZE_REDUCED = DR_STE_SIZE - DR_STE_SIZE_MASK,
+};
+
+enum mlx5dr_ste_ctx_action_cap {
+	DR_STE_CTX_ACTION_CAP_NONE = 0,
+	DR_STE_CTX_ACTION_CAP_RX_ENCAP = 1 << 0,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum {
@@ -104,6 +116,11 @@ enum mlx5dr_action_type {
 	DR_ACTION_TYP_VPORT,
 	DR_ACTION_TYP_POP_VLAN,
 	DR_ACTION_TYP_PUSH_VLAN,
+<<<<<<< HEAD
+=======
+	DR_ACTION_TYP_INSERT_HDR,
+	DR_ACTION_TYP_SAMPLER,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	DR_ACTION_TYP_MAX,
 };
 
@@ -707,6 +724,11 @@ struct mlx5dr_cmd_caps {
 	struct mlx5dr_esw_caps esw_caps;
 	struct mlx5dr_cmd_vport_cap *vports_caps;
 	bool prio_tag_required;
+<<<<<<< HEAD
+=======
+	struct mlx5dr_roce_cap roce_caps;
+	u8 isolate_vl_tc:1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct mlx5dr_domain_rx_tx {

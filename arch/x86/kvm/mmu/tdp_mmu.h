@@ -8,7 +8,50 @@
 hpa_t kvm_tdp_mmu_get_vcpu_root_hpa(struct kvm_vcpu *vcpu);
 void kvm_tdp_mmu_free_root(struct kvm *kvm, struct kvm_mmu_page *root);
 
+<<<<<<< HEAD
 bool kvm_tdp_mmu_zap_gfn_range(struct kvm *kvm, gfn_t start, gfn_t end);
+=======
+__must_check static inline bool kvm_tdp_mmu_get_root(struct kvm *kvm,
+						     struct kvm_mmu_page *root)
+{
+	if (root->role.invalid)
+		return false;
+
+	return refcount_inc_not_zero(&root->tdp_mmu_root_count);
+}
+
+void kvm_tdp_mmu_put_root(struct kvm *kvm, struct kvm_mmu_page *root,
+			  bool shared);
+
+bool __kvm_tdp_mmu_zap_gfn_range(struct kvm *kvm, int as_id, gfn_t start,
+				 gfn_t end, bool can_yield, bool flush,
+				 bool shared);
+static inline bool kvm_tdp_mmu_zap_gfn_range(struct kvm *kvm, int as_id,
+					     gfn_t start, gfn_t end, bool flush,
+					     bool shared)
+{
+	return __kvm_tdp_mmu_zap_gfn_range(kvm, as_id, start, end, true, flush,
+					   shared);
+}
+static inline bool kvm_tdp_mmu_zap_sp(struct kvm *kvm, struct kvm_mmu_page *sp)
+{
+	gfn_t end = sp->gfn + KVM_PAGES_PER_HPAGE(sp->role.level + 1);
+
+	/*
+	 * Don't allow yielding, as the caller may have a flush pending.  Note,
+	 * if mmu_lock is held for write, zapping will never yield in this case,
+	 * but explicitly disallow it for safety.  The TDP MMU does not yield
+	 * until it has made forward progress (steps sideways), and when zapping
+	 * a single shadow page that it's guaranteed to see (thus the mmu_lock
+	 * requirement), its "step sideways" will always step beyond the bounds
+	 * of the shadow page's gfn range and stop iterating before yielding.
+	 */
+	lockdep_assert_held_write(&kvm->mmu_lock);
+	return __kvm_tdp_mmu_zap_gfn_range(kvm, kvm_mmu_page_as_id(sp),
+					   sp->gfn, end, false, false, false);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void kvm_tdp_mmu_zap_all(struct kvm *kvm);
 
 int kvm_tdp_mmu_map(struct kvm_vcpu *vcpu, gpa_t gpa, u32 error_code,
@@ -22,9 +65,12 @@ int kvm_tdp_mmu_age_hva_range(struct kvm *kvm, unsigned long start,
 			      unsigned long end);
 int kvm_tdp_mmu_test_age_hva(struct kvm *kvm, unsigned long hva);
 
+<<<<<<< HEAD
 int kvm_tdp_mmu_set_spte_hva(struct kvm *kvm, unsigned long address,
 			     pte_t *host_ptep);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 bool kvm_tdp_mmu_wrprot_slot(struct kvm *kvm, struct kvm_memory_slot *slot,
 			     int min_level);
 bool kvm_tdp_mmu_clear_dirty_slot(struct kvm *kvm,
@@ -37,7 +83,12 @@ void kvm_tdp_mmu_zap_collapsible_sptes(struct kvm *kvm,
 				       struct kvm_memory_slot *slot);
 
 bool kvm_tdp_mmu_write_protect_gfn(struct kvm *kvm,
+<<<<<<< HEAD
 				   struct kvm_memory_slot *slot, gfn_t gfn);
+=======
+				   struct kvm_memory_slot *slot, gfn_t gfn,
+				   int min_level);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int kvm_tdp_mmu_get_walk(struct kvm_vcpu *vcpu, u64 addr, u64 *sptes,
 			 int *root_level);

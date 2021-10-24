@@ -181,12 +181,15 @@ struct qdio_input_q {
 struct qdio_output_q {
 	/* PCIs are enabled for the queue */
 	int pci_out_enabled;
+<<<<<<< HEAD
 	/* cq: use asynchronous output buffers */
 	int use_cq;
 	/* cq: aobs used for particual SBAL */
 	struct qaob **aobs;
 	/* cq: sbal state related to asynchronous operation */
 	struct qdio_outbuf_state *sbal_state;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* timer to check for more outbound work */
 	struct timer_list timer;
 	/* tasklet to check for completions */

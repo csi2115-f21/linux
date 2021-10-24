@@ -21,6 +21,11 @@ struct msm_dsi_phy_ops {
 	int (*enable)(struct msm_dsi_phy *phy, int src_pll_id,
 			struct msm_dsi_phy_clk_request *clk_req);
 	void (*disable)(struct msm_dsi_phy *phy);
+<<<<<<< HEAD
+=======
+	void (*save_pll_state)(struct msm_dsi_phy *phy);
+	int (*restore_pll_state)(struct msm_dsi_phy *phy);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct msm_dsi_phy_cfg {
@@ -89,6 +94,12 @@ struct msm_dsi_phy {
 
 	enum msm_dsi_phy_usecase usecase;
 	bool regulator_ldo_mode;
+<<<<<<< HEAD
+=======
+
+	struct clk_hw *vco_hw;
+	bool pll_on;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	struct msm_dsi_pll *pll;
 };
@@ -104,9 +115,12 @@ int msm_dsi_dphy_timing_calc_v3(struct msm_dsi_dphy_timing *timing,
 				struct msm_dsi_phy_clk_request *clk_req);
 int msm_dsi_dphy_timing_calc_v4(struct msm_dsi_dphy_timing *timing,
 				struct msm_dsi_phy_clk_request *clk_req);
+<<<<<<< HEAD
 void msm_dsi_phy_set_src_pll(struct msm_dsi_phy *phy, int pll_id, u32 reg,
 				u32 bit_mask);
 int msm_dsi_phy_init_common(struct msm_dsi_phy *phy);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* __DSI_PHY_H__ */
 

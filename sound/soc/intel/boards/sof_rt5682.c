@@ -437,12 +437,20 @@ static const struct snd_kcontrol_new sof_controls[] = {
 
 };
 
+static const struct snd_kcontrol_new speaker_controls[] = {
+	SOC_DAPM_PIN_SWITCH("Spk"),
+};
+
 static const struct snd_soc_dapm_widget sof_widgets[] = {
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_SPK("Spk", NULL),
 	SND_SOC_DAPM_SPK("Left Spk", NULL),
 	SND_SOC_DAPM_SPK("Right Spk", NULL),
+};
+
+static const struct snd_soc_dapm_widget speaker_widgets[] = {
+	SND_SOC_DAPM_SPK("Spk", NULL),
 };
 
 static const struct snd_soc_dapm_widget dmic_widgets[] = {
@@ -484,6 +492,24 @@ static int speaker_codec_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_card *card = rtd->card;
 	int ret;
 
+<<<<<<< HEAD
+=======
+	ret = snd_soc_dapm_new_controls(&card->dapm, speaker_widgets,
+					ARRAY_SIZE(speaker_widgets));
+	if (ret) {
+		dev_err(rtd->dev, "unable to add dapm controls, ret %d\n", ret);
+		/* Don't need to add routes if widget addition failed */
+		return ret;
+	}
+
+	ret = snd_soc_add_card_controls(card, speaker_controls,
+					ARRAY_SIZE(speaker_controls));
+	if (ret) {
+		dev_err(rtd->dev, "unable to add card controls, ret %d\n", ret);
+		return ret;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = snd_soc_dapm_add_routes(&card->dapm, speaker_map,
 				      ARRAY_SIZE(speaker_map));
 
@@ -553,6 +579,7 @@ static struct snd_soc_dai_link_component dmic_component[] = {
 	}
 };
 
+<<<<<<< HEAD
 static struct snd_soc_dai_link_component max98357a_component[] = {
 	{
 		.name = "MX98357A:00",
@@ -560,6 +587,8 @@ static struct snd_soc_dai_link_component max98357a_component[] = {
 	}
 };
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct snd_soc_dai_link_component max98360a_component[] = {
 	{
 		.name = "MX98360A:00",

@@ -415,4 +415,7 @@ SYM_CODE_END(startup_pgm_check_handler)
 	.org	EARLY_SCCB_OFFSET
 	.fill	4096
 
+	.org	EARLY_SCCB_OFFSET
+	.fill	4096
+
 	.org	HEAD_END

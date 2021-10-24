@@ -9,7 +9,11 @@
 #include "iwl-prph.h"
 
 /* Highest firmware API version supported */
+<<<<<<< HEAD
 #define IWL_22000_UCODE_API_MAX	62
+=======
+#define IWL_22000_UCODE_API_MAX	64
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Lowest firmware API version supported */
 #define IWL_22000_UCODE_API_MIN	39
@@ -357,13 +361,37 @@ const struct iwl_cfg_trans_params iwl_ma_trans_cfg = {
 	.umac_prph_offset = 0x300000
 };
 
+<<<<<<< HEAD
+=======
+const struct iwl_cfg_trans_params iwl_bz_trans_cfg = {
+	.device_family = IWL_DEVICE_FAMILY_AX210,
+	.base_params = &iwl_ax210_base_params,
+	.mq_rx_supported = true,
+	.use_tfh = true,
+	.rf_id = true,
+	.gen2 = true,
+	.integrated = true,
+	.umac_prph_offset = 0x300000,
+	.xtal_latency = 12000,
+	.low_latency_xtal = true,
+	.ltr_delay = IWL_CFG_TRANS_LTR_DELAY_2500US,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 const char iwl_ax101_name[] = "Intel(R) Wi-Fi 6 AX101";
 const char iwl_ax200_name[] = "Intel(R) Wi-Fi 6 AX200 160MHz";
 const char iwl_ax201_name[] = "Intel(R) Wi-Fi 6 AX201 160MHz";
 const char iwl_ax203_name[] = "Intel(R) Wi-Fi 6 AX203";
+<<<<<<< HEAD
 const char iwl_ax211_name[] = "Intel(R) Wi-Fi 6 AX211 160MHz";
 const char iwl_ax411_name[] = "Intel(R) Wi-Fi 6 AX411 160MHz";
 const char iwl_ma_name[] = "Intel(R) Wi-Fi 6";
+=======
+const char iwl_ax211_name[] = "Intel(R) Wi-Fi 6E AX211 160MHz";
+const char iwl_ax221_name[] = "Intel(R) Wi-Fi 6E AX221 160MHz";
+const char iwl_ax231_name[] = "Intel(R) Wi-Fi 6E AX231 160MHz";
+const char iwl_ax411_name[] = "Intel(R) Wi-Fi 6E AX411 160MHz";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 const char iwl_ax200_killer_1650w_name[] =
 	"Killer(R) Wi-Fi 6 AX1650w 160MHz Wireless Network Adapter (200D2W)";
@@ -719,6 +747,37 @@ const struct iwl_cfg iwl_cfg_quz_a0_hr_b0 = {
 	.num_rbds = IWL_NUM_RBDS_22000_HE,
 };
 
+<<<<<<< HEAD
+=======
+const struct iwl_cfg iwl_cfg_bz_a0_hr_b0 = {
+	.fw_name_pre = IWL_BZ_A_HR_B_FW_PRE,
+	.uhb_supported = true,
+	IWL_DEVICE_AX210,
+	.num_rbds = IWL_NUM_RBDS_AX210_HE,
+};
+
+const struct iwl_cfg iwl_cfg_bz_a0_gf_a0 = {
+	.fw_name_pre = IWL_BZ_A_GF_A_FW_PRE,
+	.uhb_supported = true,
+	IWL_DEVICE_AX210,
+	.num_rbds = IWL_NUM_RBDS_AX210_HE,
+};
+
+const struct iwl_cfg iwl_cfg_bz_a0_gf4_a0 = {
+	.fw_name_pre = IWL_BZ_A_GF4_A_FW_PRE,
+	.uhb_supported = true,
+	IWL_DEVICE_AX210,
+	.num_rbds = IWL_NUM_RBDS_AX210_HE,
+};
+
+const struct iwl_cfg iwl_cfg_bz_a0_mr_a0 = {
+	.fw_name_pre = IWL_BZ_A_MR_A_FW_PRE,
+	.uhb_supported = true,
+	IWL_DEVICE_AX210,
+	.num_rbds = IWL_NUM_RBDS_AX210_HE,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 MODULE_FIRMWARE(IWL_QU_B_HR_B_MODULE_FIRMWARE(IWL_22000_UCODE_API_MAX));
 MODULE_FIRMWARE(IWL_QNJ_B_HR_B_MODULE_FIRMWARE(IWL_22000_UCODE_API_MAX));
 MODULE_FIRMWARE(IWL_QU_C_HR_B_MODULE_FIRMWARE(IWL_22000_UCODE_API_MAX));

@@ -685,6 +685,14 @@ ast_cursor_plane_helper_atomic_update(struct drm_plane *plane,
 	struct drm_plane_state *state = plane->state;
 	struct drm_framebuffer *fb = state->fb;
 	struct ast_private *ast = to_ast_private(plane->dev);
+<<<<<<< HEAD
+=======
+	struct dma_buf_map dst_map =
+		ast_cursor_plane->hwc[ast_cursor_plane->next_hwc_index].map;
+	u64 dst_off =
+		ast_cursor_plane->hwc[ast_cursor_plane->next_hwc_index].off;
+	struct dma_buf_map src_map = shadow_plane_state->map[0];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int offset_x, offset_y;
 
 	offset_x = AST_MAX_HWC_WIDTH - fb->width;

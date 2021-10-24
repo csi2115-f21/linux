@@ -638,6 +638,7 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
 	return err;
 }
 
+<<<<<<< HEAD
 void ovl_set_flag(unsigned long flag, struct inode *inode)
 {
 	set_bit(flag, &OVL_I(inode)->flags);
@@ -653,6 +654,8 @@ bool ovl_test_flag(unsigned long flag, struct inode *inode)
 	return test_bit(flag, &OVL_I(inode)->flags);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * Caller must hold a reference to inode to prevent it from being freed while
  * it is marked inuse.

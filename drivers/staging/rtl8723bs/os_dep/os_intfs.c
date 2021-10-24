@@ -113,11 +113,15 @@ static int rtw_enusbss;/* 0:disable, 1:enable */
 
 static int rtw_hwpdn_mode = 2;/* 0:disable, 1:enable, 2: by EFUSE config */
 
+<<<<<<< HEAD
 #ifdef CONFIG_HW_PWRP_DETECTION
 static int rtw_hwpwrp_detect = 1;
 #else
 static int rtw_hwpwrp_detect; /* HW power  ping detect 0:disable , 1:enable */
 #endif
+=======
+static int rtw_hwpwrp_detect; /* HW power  ping detect 0:disable , 1:enable */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static int rtw_hw_wps_pbc;
 

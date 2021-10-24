@@ -424,6 +424,10 @@ int mlx5e_ethtool_set_channels(struct mlx5e_priv *priv,
 	unsigned int count = ch->combined_count;
 	struct mlx5e_channels new_channels = {};
 	bool arfs_enabled;
+<<<<<<< HEAD
+=======
+	bool opened;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int err = 0;
 
 	if (!count) {
@@ -458,6 +462,7 @@ int mlx5e_ethtool_set_channels(struct mlx5e_priv *priv,
 		goto out;
 	}
 
+<<<<<<< HEAD
 	new_channels.params = *cur_params;
 	new_channels.params.num_channels = count;
 
@@ -469,6 +474,10 @@ int mlx5e_ethtool_set_channels(struct mlx5e_priv *priv,
 		err = mlx5e_num_channels_changed(priv);
 		if (err)
 			*cur_params = old_params;
+=======
+	new_params = *cur_params;
+	new_params.num_channels = count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		goto out;
 	}
@@ -1267,6 +1276,7 @@ int mlx5e_set_rxfh(struct net_device *dev, const u32 *indir,
 		memcpy(rss->toeplitz_hash_key, key,
 		       sizeof(rss->toeplitz_hash_key));
 		refresh_tirs = refresh_tirs || rss->hfunc == ETH_RSS_HASH_TOP;
+<<<<<<< HEAD
 	}
 
 	if (refresh_rqt && test_bit(MLX5E_STATE_OPENED, &priv->state)) {
@@ -1289,6 +1299,30 @@ int mlx5e_set_rxfh(struct net_device *dev, const u32 *indir,
 
 	mutex_unlock(&priv->state_lock);
 
+=======
+	}
+
+	if (refresh_rqt && test_bit(MLX5E_STATE_OPENED, &priv->state)) {
+		struct mlx5e_redirect_rqt_param rrp = {
+			.is_rss = true,
+			{
+				.rss = {
+					.hfunc = rss->hfunc,
+					.channels  = &priv->channels,
+				},
+			},
+		};
+		u32 rqtn = priv->indir_rqt.rqtn;
+
+		mlx5e_redirect_rqt(priv, rqtn, MLX5E_INDIR_RQT_SIZE, rrp);
+	}
+
+	if (refresh_tirs)
+		mlx5e_modify_tirs_hash(priv, in);
+
+	mutex_unlock(&priv->state_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kvfree(in);
 
 	return 0;
@@ -1863,6 +1897,7 @@ int mlx5e_modify_rx_cqe_compression_locked(struct mlx5e_priv *priv, bool new_val
 	if (curr_val == new_val)
 		return 0;
 
+<<<<<<< HEAD
 	new_channels.params = priv->channels.params;
 	MLX5E_SET_PFLAG(&new_channels.params, MLX5E_PFLAG_RX_CQE_COMPRESS, new_val);
 
@@ -1870,6 +1905,19 @@ int mlx5e_modify_rx_cqe_compression_locked(struct mlx5e_priv *priv, bool new_val
 		priv->channels.params = new_channels.params;
 		return 0;
 	}
+=======
+	if (new_val && !priv->profile->rx_ptp_support &&
+	    priv->tstamp.rx_filter != HWTSTAMP_FILTER_NONE) {
+		netdev_err(priv->netdev,
+			   "Profile doesn't support enabling of CQE compression while hardware time-stamping is enabled.\n");
+		return -EINVAL;
+	}
+
+	new_params = priv->channels.params;
+	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_RX_CQE_COMPRESS, new_val);
+	if (priv->tstamp.rx_filter != HWTSTAMP_FILTER_NONE)
+		new_params.ptp_rx = new_val;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	err = mlx5e_safe_switch_channels(priv, &new_channels, NULL, NULL);
 	if (err)
@@ -1887,14 +1935,24 @@ static int set_pflag_rx_cqe_compress(struct net_device *netdev,
 {
 	struct mlx5e_priv *priv = netdev_priv(netdev);
 	struct mlx5_core_dev *mdev = priv->mdev;
+<<<<<<< HEAD
+=======
+	int err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!MLX5_CAP_GEN(mdev, cqe_compression))
 		return -EOPNOTSUPP;
 
+<<<<<<< HEAD
 	if (enable && priv->tstamp.rx_filter != HWTSTAMP_FILTER_NONE) {
 		netdev_err(netdev, "Can't enable cqe compression while timestamping is enabled.\n");
 		return -EINVAL;
 	}
+=======
+	err = mlx5e_modify_rx_cqe_compression_locked(priv, enable);
+	if (err)
+		return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mlx5e_modify_rx_cqe_compression_locked(priv, enable);
 	priv->channels.params.rx_cqe_compress_def = enable;
@@ -2006,8 +2064,13 @@ static int set_pflag_tx_port_ts(struct net_device *netdev, bool enable)
 		return -EINVAL;
 	}
 
+<<<<<<< HEAD
 	new_channels.params = priv->channels.params;
 	MLX5E_SET_PFLAG(&new_channels.params, MLX5E_PFLAG_TX_PORT_TS, enable);
+=======
+	new_params = priv->channels.params;
+	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_TX_PORT_TS, enable);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* No need to verify SQ stop room as
 	 * ptpsq.txqsq.stop_room <= generic_sq->stop_room, and both
 	 * has the same log_sq_size.

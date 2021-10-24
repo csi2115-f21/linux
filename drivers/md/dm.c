@@ -936,7 +936,10 @@ static void dec_pending(struct dm_io *io, blk_status_t error)
 		}
 
 		io_error = io->status;
+<<<<<<< HEAD
 		bio = io->orig_bio;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		end_io_acct(io);
 		free_io(md, io);
 
@@ -1806,6 +1809,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
 		md->disk->private_data = NULL;
 		spin_unlock(&_minor_lock);
 		del_gendisk(md->disk);
+<<<<<<< HEAD
 		put_disk(md->disk);
 	}
 
@@ -1813,6 +1817,15 @@ static void cleanup_mapped_device(struct mapped_device *md)
 		dm_queue_destroy_keyslot_manager(md->queue);
 		blk_cleanup_queue(md->queue);
 	}
+=======
+	}
+
+	if (md->queue)
+		dm_queue_destroy_keyslot_manager(md->queue);
+
+	if (md->disk)
+		blk_cleanup_disk(md->disk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	cleanup_srcu_struct(&md->io_barrier);
 
@@ -2190,6 +2203,11 @@ int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
 	dm_table_set_restrictions(t, md->queue, &limits);
 	blk_register_queue(md->disk);
 
+<<<<<<< HEAD
+=======
+	blk_register_queue(md->disk);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 

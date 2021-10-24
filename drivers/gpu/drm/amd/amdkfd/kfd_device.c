@@ -78,6 +78,11 @@ static const struct kfd2kgd_calls *kfd2kgd_funcs[] = {
 	[CHIP_NAVY_FLOUNDER] = &gfx_v10_3_kfd2kgd,
 	[CHIP_VANGOGH] = &gfx_v10_3_kfd2kgd,
 	[CHIP_DIMGREY_CAVEFISH] = &gfx_v10_3_kfd2kgd,
+<<<<<<< HEAD
+=======
+	[CHIP_BEIGE_GOBY] = &gfx_v10_3_kfd2kgd,
+	[CHIP_YELLOW_CARP] = &gfx_v10_3_kfd2kgd,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #ifdef KFD_SUPPORT_IOMMU_V2
@@ -392,6 +397,27 @@ static const struct kfd_device_info arcturus_device_info = {
 	.num_sdma_queues_per_engine = 8,
 };
 
+<<<<<<< HEAD
+=======
+static const struct kfd_device_info aldebaran_device_info = {
+	.asic_family = CHIP_ALDEBARAN,
+	.asic_name = "aldebaran",
+	.max_pasid_bits = 16,
+	.max_no_of_hqd	= 24,
+	.doorbell_size	= 8,
+	.ih_ring_entry_size = 8 * sizeof(uint32_t),
+	.event_interrupt_class = &event_interrupt_class_v9,
+	.num_of_watch_points = 4,
+	.mqd_size_aligned = MQD_SIZE_ALIGNED,
+	.supports_cwsr = true,
+	.needs_iommu_device = false,
+	.needs_pci_atomics = false,
+	.num_sdma_engines = 2,
+	.num_xgmi_sdma_engines = 3,
+	.num_sdma_queues_per_engine = 8,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct kfd_device_info renoir_device_info = {
 	.asic_family = CHIP_RENOIR,
 	.asic_name = "renoir",
@@ -536,6 +562,44 @@ static const struct kfd_device_info dimgrey_cavefish_device_info = {
 	.num_sdma_queues_per_engine = 8,
 };
 
+<<<<<<< HEAD
+=======
+static const struct kfd_device_info beige_goby_device_info = {
+	.asic_family = CHIP_BEIGE_GOBY,
+	.asic_name = "beige_goby",
+	.max_pasid_bits = 16,
+	.max_no_of_hqd  = 24,
+	.doorbell_size  = 8,
+	.ih_ring_entry_size = 8 * sizeof(uint32_t),
+	.event_interrupt_class = &event_interrupt_class_v9,
+	.num_of_watch_points = 4,
+	.mqd_size_aligned = MQD_SIZE_ALIGNED,
+	.needs_iommu_device = false,
+	.supports_cwsr = true,
+	.needs_pci_atomics = true,
+	.num_sdma_engines = 1,
+	.num_xgmi_sdma_engines = 0,
+	.num_sdma_queues_per_engine = 8,
+};
+
+static const struct kfd_device_info yellow_carp_device_info = {
+	.asic_family = CHIP_YELLOW_CARP,
+	.asic_name = "yellow_carp",
+	.max_pasid_bits = 16,
+	.max_no_of_hqd  = 24,
+	.doorbell_size  = 8,
+	.ih_ring_entry_size = 8 * sizeof(uint32_t),
+	.event_interrupt_class = &event_interrupt_class_v9,
+	.num_of_watch_points = 4,
+	.mqd_size_aligned = MQD_SIZE_ALIGNED,
+	.needs_iommu_device = false,
+	.supports_cwsr = true,
+	.needs_pci_atomics = false,
+	.num_sdma_engines = 1,
+	.num_xgmi_sdma_engines = 0,
+	.num_sdma_queues_per_engine = 2,
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* For each entry, [0] is regular and [1] is virtualisation device. */
 static const struct kfd_device_info *kfd_supported_devices[][2] = {
@@ -563,6 +627,11 @@ static const struct kfd_device_info *kfd_supported_devices[][2] = {
 	[CHIP_NAVY_FLOUNDER] = {&navy_flounder_device_info, &navy_flounder_device_info},
 	[CHIP_VANGOGH] = {&vangogh_device_info, NULL},
 	[CHIP_DIMGREY_CAVEFISH] = {&dimgrey_cavefish_device_info, &dimgrey_cavefish_device_info},
+<<<<<<< HEAD
+=======
+	[CHIP_BEIGE_GOBY] = {&beige_goby_device_info, &beige_goby_device_info},
+	[CHIP_YELLOW_CARP] = {&yellow_carp_device_info, NULL},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static int kfd_gtt_sa_init(struct kfd_dev *kfd, unsigned int buf_size,
@@ -836,7 +905,11 @@ out:
 void kgd2kfd_device_exit(struct kfd_dev *kfd)
 {
 	if (kfd->init_complete) {
+<<<<<<< HEAD
 		kgd2kfd_suspend(kfd, false);
+=======
+		svm_migrate_fini((struct amdgpu_device *)kfd->kgd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		device_queue_manager_uninit(kfd->dqm);
 		kfd_interrupt_exit(kfd);
 		kfd_topology_remove_device(kfd);

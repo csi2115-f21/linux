@@ -1434,9 +1434,37 @@ void nf_conntrack_tcp_init_net(struct net *net)
 	 * ->timeouts[0] contains 'new' timeout, like udp or icmp.
 	 */
 	tn->timeouts[0] = tcp_timeouts[TCP_CONNTRACK_SYN_SENT];
+<<<<<<< HEAD
 	tn->tcp_loose = nf_ct_tcp_loose;
 	tn->tcp_be_liberal = nf_ct_tcp_be_liberal;
 	tn->tcp_max_retrans = nf_ct_tcp_max_retrans;
+=======
+
+	/* If it is set to zero, we disable picking up already established
+	 * connections.
+	 */
+	tn->tcp_loose = 1;
+
+	/* "Be conservative in what you do,
+	 *  be liberal in what you accept from others."
+	 * If it's non-zero, we mark only out of window RST segments as INVALID.
+	 */
+	tn->tcp_be_liberal = 0;
+
+	/* If it's non-zero, we turn off RST sequence number check */
+	tn->tcp_ignore_invalid_rst = 0;
+
+	/* Max number of the retransmitted packets without receiving an (acceptable)
+	 * ACK from the destination. If this number is reached, a shorter timer
+	 * will be started.
+	 */
+	tn->tcp_max_retrans = 3;
+
+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
+	tn->offload_timeout = 30 * HZ;
+	tn->offload_pickup = 120 * HZ;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp =

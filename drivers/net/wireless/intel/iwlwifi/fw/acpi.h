@@ -53,8 +53,13 @@
 
 #define ACPI_WGDS_TABLE_SIZE		3
 
+<<<<<<< HEAD
 #define ACPI_PPAG_WIFI_DATA_SIZE	((IWL_NUM_CHAIN_LIMITS * \
 					  IWL_NUM_SUB_BANDS) + 2)
+=======
+#define ACPI_PPAG_WIFI_DATA_SIZE_V1	((IWL_NUM_CHAIN_LIMITS * \
+					  IWL_NUM_SUB_BANDS_V1) + 2)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define ACPI_PPAG_WIFI_DATA_SIZE_V2	((IWL_NUM_CHAIN_LIMITS * \
 					  IWL_NUM_SUB_BANDS_V2) + 2)
 

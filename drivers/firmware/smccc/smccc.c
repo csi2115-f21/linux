@@ -8,6 +8,10 @@
 #include <linux/cache.h>
 #include <linux/init.h>
 #include <linux/arm-smccc.h>
+<<<<<<< HEAD
+=======
+#include <linux/kernel.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <asm/archrandom.h>
 
 static u32 smccc_version = ARM_SMCCC_VERSION_1_0;

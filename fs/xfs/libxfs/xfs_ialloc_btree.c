@@ -739,7 +739,11 @@ xfs_finobt_calc_reserves(
 		return 0;
 
 	if (xfs_sb_version_hasinobtcounts(&mp->m_sb))
+<<<<<<< HEAD
 		error = xfs_finobt_read_blocks(mp, tp, agno, &tree_len);
+=======
+		error = xfs_finobt_read_blocks(mp, tp, pag, &tree_len);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else
 		error = xfs_inobt_count_blocks(mp, tp, agno, XFS_BTNUM_FINO,
 				&tree_len);

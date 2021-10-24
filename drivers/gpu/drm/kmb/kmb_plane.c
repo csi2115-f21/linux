@@ -92,9 +92,15 @@ static int kmb_plane_atomic_check(struct drm_plane *plane,
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	if (state->crtc_w > KMB_MAX_WIDTH || state->crtc_h > KMB_MAX_HEIGHT)
 		return -EINVAL;
 	if (state->crtc_w < KMB_MIN_WIDTH || state->crtc_h < KMB_MIN_HEIGHT)
+=======
+	if (new_plane_state->crtc_w > KMB_MAX_WIDTH || new_plane_state->crtc_h > KMB_MAX_HEIGHT)
+		return -EINVAL;
+	if (new_plane_state->crtc_w < KMB_MIN_WIDTH || new_plane_state->crtc_h < KMB_MIN_HEIGHT)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EINVAL;
 	can_position = (plane->type == DRM_PLANE_TYPE_OVERLAY);
 	crtc_state =
@@ -418,6 +424,15 @@ static void kmb_plane_atomic_update(struct drm_plane *plane,
 	ctrl |= LCD_CTRL_VHSYNC_IDLE_LVL;
 
 	kmb_set_bitmask_lcd(kmb, LCD_CONTROL, ctrl);
+<<<<<<< HEAD
+=======
+
+	/* Enable pipeline AXI read transactions for the DMA
+	 * after setting graphics layers. This must be done
+	 * in a separate write cycle.
+	 */
+	kmb_set_bitmask_lcd(kmb, LCD_CONTROL, LCD_CTRL_PIPELINE_DMA);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* FIXME no doc on how to set output format,these values are
 	 * taken from the Myriadx tests

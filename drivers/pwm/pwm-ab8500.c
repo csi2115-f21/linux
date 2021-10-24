@@ -24,12 +24,35 @@ struct ab8500_pwm_chip {
 	struct pwm_chip chip;
 };
 
+<<<<<<< HEAD
 static int ab8500_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 			     int duty_ns, int period_ns)
 {
 	int ret = 0;
 	unsigned int higher_val, lower_val;
 	u8 reg;
+=======
+static int ab8500_pwm_apply(struct pwm_chip *chip, struct pwm_device *pwm,
+			    const struct pwm_state *state)
+{
+	int ret;
+	u8 reg;
+	unsigned int higher_val, lower_val;
+
+	if (state->polarity != PWM_POLARITY_NORMAL)
+		return -EINVAL;
+
+	if (!state->enabled) {
+		ret = abx500_mask_and_set_register_interruptible(chip->dev,
+					AB8500_MISC, AB8500_PWM_OUT_CTRL7_REG,
+					1 << (chip->base - 1), 0);
+
+		if (ret < 0)
+			dev_err(chip->dev, "%s: Failed to disable PWM, Error %d\n",
+								pwm->label, ret);
+		return ret;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * get the first 8 bits that are be written to

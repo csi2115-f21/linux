@@ -1646,6 +1646,12 @@ void __init paging_init(const struct machine_desc *mdesc)
 {
 	void *zero_page;
 
+<<<<<<< HEAD
+=======
+	pr_debug("physical kernel sections: 0x%08x-0x%08x\n",
+		 kernel_sec_start, kernel_sec_end);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	prepare_page_table();
 	map_lowmem();
 	memblock_set_current_limit(arm_lowmem_limit);

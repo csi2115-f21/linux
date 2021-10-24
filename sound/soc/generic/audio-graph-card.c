@@ -250,6 +250,11 @@ static int graph_dai_link_of_dpcm(struct asoc_simple_priv *priv,
 	dev_dbg(dev, "link_of DPCM (%pOF)\n", ep);
 
 	if (li->cpu) {
+<<<<<<< HEAD
+=======
+		struct snd_soc_card *card = simple_priv_to_card(priv);
+		struct snd_soc_dai_link_component *cpus = asoc_link_to_cpu(dai_link, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		int is_single_links = 0;
 
 		/* Codec is dummy */
@@ -292,8 +297,12 @@ static int graph_dai_link_of_dpcm(struct asoc_simple_priv *priv,
 		if (card->component_chaining && !soc_component_is_pcm(cpus))
 			dai_link->no_pcm = 1;
 
+<<<<<<< HEAD
 		/* card->num_links includes Codec */
 		asoc_simple_canonicalize_cpu(dai_link, is_single_links);
+=======
+		asoc_simple_canonicalize_cpu(cpus, is_single_links);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		struct snd_soc_codec_conf *cconf;
 
@@ -376,6 +385,7 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 {
 	struct device *dev = simple_priv_to_dev(priv);
 	struct snd_soc_dai_link *dai_link = simple_priv_to_link(priv, li->link);
+<<<<<<< HEAD
 	struct simple_dai_props *dai_props = simple_priv_to_props(priv, li->link);
 	struct device_node *top = dev->of_node;
 	struct asoc_simple_dai *cpu_dai;
@@ -385,6 +395,12 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 	/* Do it only CPU turn */
 	if (!li->cpu)
 		return 0;
+=======
+	struct snd_soc_dai_link_component *cpus = asoc_link_to_cpu(dai_link, 0);
+	struct snd_soc_dai_link_component *codecs = asoc_link_to_codec(dai_link, 0);
+	char dai_name[64];
+	int ret, is_single_links = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	dev_dbg(dev, "link_of (%pOF)\n", cpu_ep);
 
@@ -412,9 +428,13 @@ static int graph_dai_link_of(struct asoc_simple_priv *priv,
 	if (ret < 0)
 		return ret;
 
+<<<<<<< HEAD
 	ret = asoc_simple_parse_tdm(cpu_ep, cpu_dai);
 	if (ret < 0)
 		return ret;
+=======
+	asoc_simple_canonicalize_cpu(cpus, is_single_links);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = asoc_simple_parse_tdm(codec_ep, codec_dai);
 	if (ret < 0)
@@ -617,6 +637,17 @@ static int graph_count_noml(struct asoc_simple_priv *priv,
 {
 	struct device *dev = simple_priv_to_dev(priv);
 
+<<<<<<< HEAD
+=======
+	if (li->link >= SNDRV_MAX_LINKS) {
+		dev_err(dev, "too many links\n");
+		return -EINVAL;
+	}
+
+	li->num[li->link].cpus		= 1;
+	li->num[li->link].codecs	= 1;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	li->link += 1; /* 1xCPU-Codec */
 	li->dais += 2; /* 1xCPU + 1xCodec */
 
@@ -633,8 +664,22 @@ static int graph_count_dpcm(struct asoc_simple_priv *priv,
 {
 	struct device *dev = simple_priv_to_dev(priv);
 
+<<<<<<< HEAD
 	li->link++; /* 1xCPU-dummy */
 	li->dais++; /* 1xCPU */
+=======
+	if (li->link >= SNDRV_MAX_LINKS) {
+		dev_err(dev, "too many links\n");
+		return -EINVAL;
+	}
+
+	if (li->cpu) {
+		li->num[li->link].cpus		= 1;
+
+		li->link++; /* 1xCPU-dummy */
+	} else {
+		li->num[li->link].codecs	= 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!dup_codec && codec_ep) {
 		li->link++; /* 1xdummy-Codec */

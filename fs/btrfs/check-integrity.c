@@ -1558,7 +1558,11 @@ static void btrfsic_release_block_ctx(struct btrfsic_block_data_ctx *block_ctx)
 		while (num_pages > 0) {
 			num_pages--;
 			if (block_ctx->datav[num_pages]) {
+<<<<<<< HEAD
 				kunmap(block_ctx->pagev[num_pages]);
+=======
+				kunmap_local(block_ctx->datav[num_pages]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				block_ctx->datav[num_pages] = NULL;
 			}
 			if (block_ctx->pagev[num_pages]) {
@@ -1637,7 +1641,11 @@ static int btrfsic_read_block(struct btrfsic_state *state,
 		i = j;
 	}
 	for (i = 0; i < num_pages; i++)
+<<<<<<< HEAD
 		block_ctx->datav[i] = kmap(block_ctx->pagev[i]);
+=======
+		block_ctx->datav[i] = kmap_local_page(block_ctx->pagev[i]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return block_ctx->len;
 }
@@ -2702,7 +2710,11 @@ static void __btrfsic_submit_bio(struct bio *bio)
 
 		bio_for_each_segment(bvec, bio, iter) {
 			BUG_ON(bvec.bv_len != PAGE_SIZE);
+<<<<<<< HEAD
 			mapped_datav[i] = kmap(bvec.bv_page);
+=======
+			mapped_datav[i] = kmap_local_page(bvec.bv_page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			i++;
 
 			if (dev_state->state->print_mask &
@@ -2715,8 +2727,14 @@ static void __btrfsic_submit_bio(struct bio *bio)
 					      mapped_datav, segs,
 					      bio, &bio_is_patched,
 					      bio->bi_opf);
+<<<<<<< HEAD
 		bio_for_each_segment(bvec, bio, iter)
 			kunmap(bvec.bv_page);
+=======
+		/* Unmap in reverse order */
+		for (--i; i >= 0; i--)
+			kunmap_local(mapped_datav[i]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(mapped_datav);
 	} else if (NULL != dev_state && (bio->bi_opf & REQ_PREFLUSH)) {
 		if (dev_state->state->print_mask &

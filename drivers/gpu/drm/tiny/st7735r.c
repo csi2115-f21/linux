@@ -136,7 +136,11 @@ static const struct drm_simple_display_pipe_funcs st7735r_pipe_funcs = {
 	.enable		= st7735r_pipe_enable,
 	.disable	= mipi_dbi_pipe_disable,
 	.update		= mipi_dbi_pipe_update,
+<<<<<<< HEAD
 	.prepare_fb	= drm_gem_fb_simple_display_pipe_prepare_fb,
+=======
+	.prepare_fb	= drm_gem_simple_display_pipe_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct st7735r_cfg jd_t18003_t01_cfg = {

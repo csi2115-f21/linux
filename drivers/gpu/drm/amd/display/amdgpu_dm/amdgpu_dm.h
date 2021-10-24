@@ -335,8 +335,16 @@ struct amdgpu_display_manager {
 	spinlock_t irq_handler_list_table_lock;
 
 	struct backlight_device *backlight_dev;
+<<<<<<< HEAD
 
 	const struct dc_link *backlight_link;
+=======
+
+	const struct dc_link *backlight_link[AMDGPU_DM_MAX_NUM_EDP];
+
+	uint8_t num_of_edps;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct amdgpu_dm_backlight_caps backlight_caps;
 
 	struct mod_freesync *freesync_module;
@@ -345,6 +353,14 @@ struct amdgpu_display_manager {
 #endif
 
 #if defined(CONFIG_DRM_AMD_DC_DCN)
+<<<<<<< HEAD
+=======
+	/**
+	 * @vblank_workqueue:
+	 *
+	 * amdgpu workqueue during vblank
+	 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct vblank_workqueue *vblank_workqueue;
 #endif
 

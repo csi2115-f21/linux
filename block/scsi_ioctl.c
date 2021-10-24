@@ -254,9 +254,17 @@ static int blk_complete_sghdr_rq(struct request *rq, struct sg_io_hdr *hdr,
 	 */
 	hdr->status = req->result & 0xff;
 	hdr->masked_status = status_byte(req->result);
+<<<<<<< HEAD
 	hdr->msg_status = msg_byte(req->result);
 	hdr->host_status = host_byte(req->result);
 	hdr->driver_status = driver_byte(req->result);
+=======
+	hdr->msg_status = COMMAND_COMPLETE;
+	hdr->host_status = host_byte(req->result);
+	hdr->driver_status = 0;
+	if (scsi_status_is_check_condition(hdr->status))
+		hdr->driver_status = DRIVER_SENSE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hdr->info = 0;
 	if (hdr->masked_status || hdr->host_status || hdr->driver_status)
 		hdr->info |= SG_INFO_CHECK;
@@ -311,7 +319,11 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 		at_head = 1;
 
 	ret = -ENOMEM;
+<<<<<<< HEAD
 	rq = blk_get_request(q, writing ? REQ_OP_SCSI_OUT : REQ_OP_SCSI_IN, 0);
+=======
+	rq = blk_get_request(q, writing ? REQ_OP_DRV_OUT : REQ_OP_DRV_IN, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (IS_ERR(rq))
 		return PTR_ERR(rq);
 	req = scsi_req(rq);
@@ -353,10 +365,13 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 
 	start_time = jiffies;
 
+<<<<<<< HEAD
 	/* ignore return value. All information is passed back to caller
 	 * (if he doesn't check that is his problem).
 	 * N.B. a non-zero SCSI status is _not_ necessarily an error.
 	 */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	blk_execute_rq(bd_disk, rq, at_head);
 
 	hdr->duration = jiffies_to_msecs(jiffies - start_time);
@@ -431,13 +446,21 @@ int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
 
 	bytes = max(in_len, out_len);
 	if (bytes) {
+<<<<<<< HEAD
 		buffer = kzalloc(bytes, q->bounce_gfp | GFP_USER| __GFP_NOWARN);
+=======
+		buffer = kzalloc(bytes, GFP_NOIO | GFP_USER | __GFP_NOWARN);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!buffer)
 			return -ENOMEM;
 
 	}
 
+<<<<<<< HEAD
 	rq = blk_get_request(q, in_len ? REQ_OP_SCSI_OUT : REQ_OP_SCSI_IN, 0);
+=======
+	rq = blk_get_request(q, in_len ? REQ_OP_DRV_OUT : REQ_OP_DRV_IN, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (IS_ERR(rq)) {
 		err = PTR_ERR(rq);
 		goto error_free_buffer;
@@ -488,9 +511,16 @@ int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
 		break;
 	}
 
+<<<<<<< HEAD
 	if (bytes && blk_rq_map_kern(q, rq, buffer, bytes, GFP_NOIO)) {
 		err = DRIVER_ERROR << 24;
 		goto error;
+=======
+	if (bytes) {
+		err = blk_rq_map_kern(q, rq, buffer, bytes, GFP_NOIO);
+		if (err)
+			goto error;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	blk_execute_rq(disk, rq, 0);
@@ -525,7 +555,11 @@ static int __blk_send_generic(struct request_queue *q, struct gendisk *bd_disk,
 	struct request *rq;
 	int err;
 
+<<<<<<< HEAD
 	rq = blk_get_request(q, REQ_OP_SCSI_OUT, 0);
+=======
+	rq = blk_get_request(q, REQ_OP_DRV_OUT, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (IS_ERR(rq))
 		return PTR_ERR(rq);
 	rq->timeout = BLK_DEFAULT_SG_TIMEOUT;

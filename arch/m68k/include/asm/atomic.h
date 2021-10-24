@@ -48,7 +48,11 @@ static inline int atomic_##op##_return(int i, atomic_t *v)		\
 			"	casl %2,%1,%0\n"			\
 			"	jne 1b"					\
 			: "+m" (*v), "=&d" (t), "=&d" (tmp)		\
+<<<<<<< HEAD
 			: "g" (i), "2" (atomic_read(v)));		\
+=======
+			: "g" (i), "2" (arch_atomic_read(v)));		\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return t;							\
 }
 
@@ -63,7 +67,11 @@ static inline int atomic_fetch_##op(int i, atomic_t *v)			\
 			"	casl %2,%1,%0\n"			\
 			"	jne 1b"					\
 			: "+m" (*v), "=&d" (t), "=&d" (tmp)		\
+<<<<<<< HEAD
 			: "g" (i), "2" (atomic_read(v)));		\
+=======
+			: "g" (i), "2" (arch_atomic_read(v)));		\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return tmp;							\
 }
 

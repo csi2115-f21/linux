@@ -1185,6 +1185,7 @@ static u8 rtl8192_phy_SwChnlStepByStep(struct net_device *dev, u8 channel,
 				       u8 *stage, u8 *step, u32 *delay)
 {
 	struct r8192_priv *priv = ieee80211_priv(dev);
+<<<<<<< HEAD
 	struct sw_chnl_cmd   PreCommonCmd[MAX_PRECMD_CNT];
 	u32		   PreCommonCmdCnt;
 	struct sw_chnl_cmd   PostCommonCmd[MAX_POSTCMD_CNT];
@@ -1193,6 +1194,34 @@ static u8 rtl8192_phy_SwChnlStepByStep(struct net_device *dev, u8 channel,
 	u32		   RfDependCmdCnt;
 	struct sw_chnl_cmd  *CurrentCmd = NULL;
 	u8		   e_rfpath;
+=======
+	struct sw_chnl_cmd   *PreCommonCmd;
+	u32		   PreCommonCmdCnt;
+	struct sw_chnl_cmd   *PostCommonCmd;
+	u32		   PostCommonCmdCnt;
+	struct sw_chnl_cmd   *RfDependCmd;
+	u32		   RfDependCmdCnt;
+	struct sw_chnl_cmd  *CurrentCmd = NULL;
+	u8		   e_rfpath;
+	bool		   ret;
+
+	PreCommonCmd = kzalloc(sizeof(*PreCommonCmd) * MAX_PRECMD_CNT, GFP_KERNEL);
+	if (!PreCommonCmd)
+		return false;
+
+	PostCommonCmd = kzalloc(sizeof(*PostCommonCmd) * MAX_POSTCMD_CNT, GFP_KERNEL);
+	if (!PostCommonCmd) {
+		kfree(PreCommonCmd);
+		return false;
+	}
+
+	RfDependCmd = kzalloc(sizeof(*RfDependCmd) * MAX_RFDEPENDCMD_CNT, GFP_KERNEL);
+	if (!RfDependCmd) {
+		kfree(PreCommonCmd);
+		kfree(PostCommonCmd);
+		return false;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	RT_TRACE(COMP_CH, "%s() stage: %d, step: %d, channel: %d\n",
 		 __func__, *stage, *step, channel);
@@ -1281,7 +1310,12 @@ static u8 rtl8192_phy_SwChnlStepByStep(struct net_device *dev, u8 channel,
 		if (CurrentCmd->cmd_id == CMD_ID_END) {
 			if ((*stage) == 2) {
 				(*delay) = CurrentCmd->ms_delay;
+<<<<<<< HEAD
 				return true;
+=======
+				ret = true;
+				goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			}
 			(*stage)++;
 			(*step) = 0;
@@ -1324,7 +1358,18 @@ static u8 rtl8192_phy_SwChnlStepByStep(struct net_device *dev, u8 channel,
 
 	(*delay) = CurrentCmd->ms_delay;
 	(*step)++;
+<<<<<<< HEAD
 	return false;
+=======
+	ret = false;
+
+out:
+	kfree(PreCommonCmd);
+	kfree(PostCommonCmd);
+	kfree(RfDependCmd);
+
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /******************************************************************************

@@ -1846,6 +1846,7 @@ int import_single_range(int rw, void __user *buf, size_t len,
 	return 0;
 }
 EXPORT_SYMBOL(import_single_range);
+<<<<<<< HEAD
 
 int iov_iter_for_each_range(struct iov_iter *i, size_t bytes,
 			    int (*f)(struct kvec *vec, void *context),
@@ -1868,3 +1869,5 @@ int iov_iter_for_each_range(struct iov_iter *i, size_t bytes,
 	return err;
 }
 EXPORT_SYMBOL(iov_iter_for_each_range);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

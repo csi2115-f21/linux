@@ -2665,7 +2665,12 @@ static int snd_es1968_create(struct snd_card *card,
 	*chip_ret = NULL;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	/* check, if we can restrict PCI DMA transfers to 28 bits */
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(28))) {
@@ -2696,7 +2701,12 @@ static int snd_es1968_create(struct snd_card *card,
 	chip->playback_streams = play_streams;
 	chip->capture_streams = capt_streams;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "ESS Maestro")) < 0) {
+=======
+	err = pci_request_regions(pci, "ESS Maestro");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -2743,7 +2753,12 @@ static int snd_es1968_create(struct snd_card *card,
 
 	snd_es1968_chip_init(chip);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_es1968_free(chip);
 		return err;
 	}
@@ -2808,6 +2823,7 @@ static int snd_es1968_probe(struct pci_dev *pci,
 		total_bufsize[dev] = 128;
 	if (total_bufsize[dev] > 4096)
 		total_bufsize[dev] = 4096;
+<<<<<<< HEAD
 	if ((err = snd_es1968_create(card, pci,
 				     total_bufsize[dev] * 1024, /* in bytes */
 				     pcm_substreams_p[dev], 
@@ -2816,6 +2832,17 @@ static int snd_es1968_probe(struct pci_dev *pci,
 				     use_pm[dev],
 				     radio_nr[dev],
 				     &chip)) < 0) {
+=======
+	err = snd_es1968_create(card, pci,
+				total_bufsize[dev] * 1024, /* in bytes */
+				pcm_substreams_p[dev],
+				pcm_substreams_c[dev],
+				pci_id->driver_data,
+				use_pm[dev],
+				radio_nr[dev],
+				&chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2836,12 +2863,22 @@ static int snd_es1968_probe(struct pci_dev *pci,
 		break;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_es1968_pcm(chip, 0)) < 0) {
+=======
+	err = snd_es1968_pcm(chip, 0);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_es1968_mixer(chip)) < 0) {
+=======
+	err = snd_es1968_mixer(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2886,7 +2923,12 @@ static int snd_es1968_probe(struct pci_dev *pci,
 	sprintf(card->longname, "%s at 0x%lx, irq %i",
 		card->shortname, chip->io_port, chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

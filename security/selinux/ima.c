@@ -25,6 +25,22 @@ void selinux_ima_measure_state(struct selinux_state *state)
 	size_t policy_len;
 	int rc = 0;
 
+<<<<<<< HEAD
+=======
+	WARN_ON(!mutex_is_locked(&state->policy_mutex));
+
+	state_str = selinux_ima_collect_state(state);
+	if (!state_str) {
+		pr_err("SELinux: %s: failed to read state.\n", __func__);
+		return;
+	}
+
+	ima_measure_critical_data("selinux", "selinux-state",
+				  state_str, strlen(state_str), false);
+
+	kfree(state_str);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * Measure SELinux policy only after initialization is completed.
 	 */

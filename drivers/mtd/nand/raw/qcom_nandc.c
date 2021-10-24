@@ -1616,8 +1616,13 @@ qcom_nandc_read_cw_raw(struct mtd_info *mtd, struct nand_chip *chip,
 
 	clear_bam_transaction(nandc);
 	set_address(host, host->cw_size * cw, page);
+<<<<<<< HEAD
 	update_rw_regs(host, 1, true);
 	config_nand_page_read(nandc);
+=======
+	update_rw_regs(host, 1, true, cw);
+	config_nand_page_read(chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	data_size1 = mtd->writesize - host->cw_size * (ecc->steps - 1);
 	oob_size1 = host->bbm_size;
@@ -1645,7 +1650,11 @@ qcom_nandc_read_cw_raw(struct mtd_info *mtd, struct nand_chip *chip,
 		nandc_set_read_loc(nandc, 3, read_loc, oob_size2, 1);
 	}
 
+<<<<<<< HEAD
 	config_nand_cw_read(nandc, false);
+=======
+	config_nand_cw_read(chip, false, cw);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	read_data_dma(nandc, reg_off, data_buf, data_size1, 0);
 	reg_off += data_size1;

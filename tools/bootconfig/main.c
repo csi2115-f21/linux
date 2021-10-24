@@ -84,11 +84,18 @@ static void xbc_show_list(void)
 	char key[XBC_KEYLEN_MAX];
 	struct xbc_node *leaf;
 	const char *val;
+<<<<<<< HEAD
 	int ret = 0;
 
 	xbc_for_each_key_value(leaf, val) {
 		ret = xbc_node_compose_key(leaf, key, XBC_KEYLEN_MAX);
 		if (ret < 0)
+=======
+
+	xbc_for_each_key_value(leaf, val) {
+		if (xbc_node_compose_key(leaf, key, XBC_KEYLEN_MAX) < 0) {
+			fprintf(stderr, "Failed to compose key %d\n", ret);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		printf("%s = ", key);
 		if (!val || val[0] == '\0') {

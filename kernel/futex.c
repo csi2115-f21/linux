@@ -1494,6 +1494,10 @@ static void mark_wake_futex(struct wake_q_head *wake_q, struct futex_q *q)
 static int wake_futex_pi(u32 __user *uaddr, u32 uval, struct futex_pi_state *pi_state)
 {
 	u32 curval, newval;
+<<<<<<< HEAD
+=======
+	struct rt_mutex_waiter *top_waiter;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct task_struct *new_owner;
 	bool postunlock = false;
 	DEFINE_WAKE_Q(wake_q);
@@ -3238,12 +3242,20 @@ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
 	 * reference count.
 	 */
 
+<<<<<<< HEAD
 	/* Check if the requeue code acquired the second futex for us. */
 	if (!q.rt_waiter) {
 		/*
 		 * Got the lock. We might not be the anticipated owner if we
 		 * did a lock-steal - fix up the PI-state in that case.
 		 */
+=======
+	/*
+	 * Check if the requeue code acquired the second futex for us and do
+	 * any pertinent fixup.
+	 */
+	if (!q.rt_waiter) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (q.pi_state && (q.pi_state->owner != current)) {
 			spin_lock(q.lock_ptr);
 			ret = fixup_pi_state_owner(uaddr2, &q, current);
@@ -3290,6 +3302,10 @@ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
 
 		/* Unqueue and drop the lock. */
 		unqueue_me_pi(&q);
+<<<<<<< HEAD
+=======
+		spin_unlock(q.lock_ptr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (ret == -EINTR) {

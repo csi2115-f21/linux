@@ -227,7 +227,12 @@ static struct platform_device ixp46x_i2c_controller = {
 };
 
 static struct platform_device *ixp46x_devices[] __initdata = {
+<<<<<<< HEAD
 	&ixp46x_i2c_controller
+=======
+	&ixp46x_hwrandom_device,
+	&ixp46x_i2c_controller,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 unsigned long ixp4xx_exp_bus_size;

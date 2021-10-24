@@ -203,7 +203,10 @@ int mipi_dbi_buf_copy(void *dst, struct drm_framebuffer *fb,
 	struct drm_gem_object *gem = drm_gem_fb_get_obj(fb, 0);
 	struct drm_gem_cma_object *cma_obj = to_drm_gem_cma_obj(gem);
 	struct dma_buf_attachment *import_attach = gem->import_attach;
+<<<<<<< HEAD
 	struct drm_format_name_buf format_name;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	void *src = cma_obj->vaddr;
 	int ret = 0;
 

@@ -130,6 +130,12 @@ int amdgpu_umc_process_ras_data_cb(struct amdgpu_device *adev,
 			amdgpu_ras_add_bad_pages(adev, err_data->err_addr,
 						err_data->err_addr_cnt);
 			amdgpu_ras_save_bad_pages(adev);
+<<<<<<< HEAD
+=======
+
+			if (adev->smu.ppt_funcs && adev->smu.ppt_funcs->send_hbm_bad_pages_num)
+				adev->smu.ppt_funcs->send_hbm_bad_pages_num(&adev->smu, con->eeprom_control.num_recs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		amdgpu_ras_reset_gpu(adev);

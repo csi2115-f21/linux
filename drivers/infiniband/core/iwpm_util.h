@@ -90,7 +90,11 @@ struct iwpm_remote_info {
 };
 
 struct iwpm_admin_data {
+<<<<<<< HEAD
 	atomic_t refcount;
+=======
+	refcount_t refcount;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	atomic_t nlmsg_seq;
 	int      client_list[RDMA_NL_NUM_CLIENTS];
 	u32      reg_list[RDMA_NL_NUM_CLIENTS];

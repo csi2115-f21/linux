@@ -92,6 +92,37 @@ struct elan_tp_data {
 	bool			middle_button;
 };
 
+<<<<<<< HEAD
+=======
+static u32 elan_i2c_lookup_quirks(u16 ic_type, u16 product_id)
+{
+	static const struct {
+		u16 ic_type;
+		u16 product_id;
+		u32 quirks;
+	} elan_i2c_quirks[] = {
+		{ 0x0D, ETP_PRODUCT_ID_DELBIN, ETP_QUIRK_QUICK_WAKEUP },
+		{ 0x10, ETP_PRODUCT_ID_VOXEL, ETP_QUIRK_QUICK_WAKEUP },
+		{ 0x14, ETP_PRODUCT_ID_MAGPIE, ETP_QUIRK_QUICK_WAKEUP },
+		{ 0x14, ETP_PRODUCT_ID_BOBBA, ETP_QUIRK_QUICK_WAKEUP },
+	};
+	u32 quirks = 0;
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(elan_i2c_quirks); i++) {
+		if (elan_i2c_quirks[i].ic_type == ic_type &&
+		    elan_i2c_quirks[i].product_id == product_id) {
+			quirks = elan_i2c_quirks[i].quirks;
+		}
+	}
+
+	if (ic_type >= 0x0D && product_id >= 0x123)
+		quirks |= ETP_QUIRK_QUICK_WAKEUP;
+
+	return quirks;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int elan_get_fwinfo(u16 ic_type, u8 iap_version, u16 *validpage_count,
 			   u32 *signature_address, u16 *page_size)
 {

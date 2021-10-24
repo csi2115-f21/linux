@@ -341,7 +341,13 @@ mgag200_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct drm_device *dev;
 	int ret;
 
+<<<<<<< HEAD
 	drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "mgag200drmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "mgag200drmfb");
+	if (ret)
+		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = pcim_enable_device(pdev);
 	if (ret)

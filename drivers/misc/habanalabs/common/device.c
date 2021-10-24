@@ -97,7 +97,21 @@ static int hl_device_release(struct inode *inode, struct file *filp)
 	hl_cb_mgr_fini(hpriv->hdev, &hpriv->cb_mgr);
 	hl_ctx_mgr_fini(hpriv->hdev, &hpriv->ctx_mgr);
 
+<<<<<<< HEAD
 	filp->private_data = NULL;
+=======
+	/* Each pending user interrupt holds the user's context, hence we
+	 * must release them all before calling hl_ctx_mgr_fini().
+	 */
+	hl_release_pending_user_interrupts(hpriv->hdev);
+
+	hl_cb_mgr_fini(hdev, &hpriv->cb_mgr);
+	hl_ctx_mgr_fini(hdev, &hpriv->ctx_mgr);
+
+	if (!hl_hpriv_put(hpriv))
+		dev_warn(hdev->dev,
+			"Device is still in use because there are live CS and/or memory mappings\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	hl_hpriv_put(hpriv);
 
@@ -265,7 +279,11 @@ static void device_hard_reset_pending(struct work_struct *work)
 	struct hl_device *hdev = device_reset_work->hdev;
 	int rc;
 
+<<<<<<< HEAD
 	rc = hl_device_reset(hdev, true, true);
+=======
+	rc = hl_device_reset(hdev, HL_RESET_HARD | HL_RESET_FROM_RESET_THREAD);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((rc == -EBUSY) && !hdev->device_fini_pending) {
 		dev_info(hdev->dev,
 			"Could not reset device. will try again in %u seconds",
@@ -904,6 +922,11 @@ wait_for_processes:
 int hl_device_reset(struct hl_device *hdev, bool hard_reset,
 			bool from_hard_reset_thread)
 {
+<<<<<<< HEAD
+=======
+	u64 idle_mask[HL_BUSY_ENGINES_MASK_EXT_SIZE] = {0};
+	bool hard_reset, from_hard_reset_thread, hard_instead_soft = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int i, rc;
 
 	if (!hdev->init_done) {
@@ -912,8 +935,29 @@ int hl_device_reset(struct hl_device *hdev, bool hard_reset,
 		return 0;
 	}
 
+<<<<<<< HEAD
 	if ((!hard_reset) && (!hdev->supports_soft_reset)) {
 		dev_dbg(hdev->dev, "Doing hard-reset instead of soft-reset\n");
+=======
+	hard_reset = (flags & HL_RESET_HARD) != 0;
+	from_hard_reset_thread = (flags & HL_RESET_FROM_RESET_THREAD) != 0;
+
+	if (!hard_reset && !hdev->supports_soft_reset) {
+		hard_instead_soft = true;
+		hard_reset = true;
+	}
+
+	if (hdev->reset_upon_device_release &&
+			(flags & HL_RESET_DEVICE_RELEASE)) {
+		dev_dbg(hdev->dev,
+			"Perform %s-reset upon device release\n",
+			hard_reset ? "hard" : "soft");
+		goto do_reset;
+	}
+
+	if (!hard_reset && !hdev->allow_external_soft_reset) {
+		hard_instead_soft = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		hard_reset = true;
 	}
 
@@ -932,7 +976,28 @@ int hl_device_reset(struct hl_device *hdev, bool hard_reset,
 		if (rc)
 			return 0;
 
+<<<<<<< HEAD
 		if (hard_reset) {
+=======
+		/*
+		 * 'reset cause' is being updated here, because getting here
+		 * means that it's the 1st time and the last time we're here
+		 * ('in_reset' makes sure of it). This makes sure that
+		 * 'reset_cause' will continue holding its 1st recorded reason!
+		 */
+		if (flags & HL_RESET_HEARTBEAT)
+			hdev->curr_reset_cause = HL_RESET_CAUSE_HEARTBEAT;
+		else if (flags & HL_RESET_TDR)
+			hdev->curr_reset_cause = HL_RESET_CAUSE_TDR;
+		else
+			hdev->curr_reset_cause = HL_RESET_CAUSE_UNKNOWN;
+
+		/*
+		 * if reset is due to heartbeat, device CPU is no responsive in
+		 * which case no point sending PCI disable message to it
+		 */
+		if (hard_reset && !(flags & HL_RESET_HEARTBEAT)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/* Disable PCI access from device F/W so he won't send
 			 * us additional interrupts. We disable MSI/MSI-X at
 			 * the halt_engines function and we can't have the F/W
@@ -1001,6 +1066,14 @@ again:
 
 	/* Go over all the queues, release all CS and their jobs */
 	hl_cs_rollback_all(hdev);
+<<<<<<< HEAD
+=======
+
+	/* Release all pending user interrupts, each pending user interrupt
+	 * holds a reference to user context
+	 */
+	hl_release_pending_user_interrupts(hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 kill_processes:
 	if (hard_reset) {
@@ -1252,7 +1325,11 @@ int hl_device_init(struct hl_device *hdev, struct class *hclass)
 	 */
 	rc = hdev->asic_funcs->sw_init(hdev);
 	if (rc)
+<<<<<<< HEAD
 		goto early_fini;
+=======
+		goto user_interrupts_fini;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Initialize the H/W queues. Must be done before hw_init, because

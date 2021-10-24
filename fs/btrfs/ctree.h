@@ -2745,7 +2745,10 @@ enum btrfs_flush_state {
 	ALLOC_CHUNK_FORCE	=	8,
 	RUN_DELAYED_IPUTS	=	9,
 	COMMIT_TRANS		=	10,
+<<<<<<< HEAD
 	FORCE_COMMIT_TRANS	=	11,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 int btrfs_subvolume_reserve_metadata(struct btrfs_root *root,
@@ -3165,7 +3168,12 @@ int btrfs_run_delalloc_range(struct btrfs_inode *inode, struct page *locked_page
 		u64 start, u64 end, int *page_started, unsigned long *nr_written,
 		struct writeback_control *wbc);
 int btrfs_writepage_cow_fixup(struct page *page, u64 start, u64 end);
+<<<<<<< HEAD
 void btrfs_writepage_endio_finish_ordered(struct page *page, u64 start,
+=======
+void btrfs_writepage_endio_finish_ordered(struct btrfs_inode *inode,
+					  struct page *page, u64 start,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					  u64 end, int uptodate);
 extern const struct dentry_operations btrfs_dentry_operations;
 extern const struct iomap_ops btrfs_dio_iomap_ops;
@@ -3727,8 +3735,11 @@ static inline int btrfs_defrag_cancelled(struct btrfs_fs_info *fs_info)
 	return signal_pending(current);
 }
 
+<<<<<<< HEAD
 #define in_range(b, first, len) ((b) >= (first) && (b) < (first) + (len))
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Sanity test specific functions */
 #ifdef CONFIG_BTRFS_FS_RUN_SANITY_TESTS
 void btrfs_test_destroy_inode(struct inode *inode);

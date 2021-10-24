@@ -696,6 +696,10 @@ static inline int pci_aer_raw_clear_status(struct pci_dev *dev) { return -EINVAL
 
 #ifdef CONFIG_ACPI
 int pci_acpi_program_hp_params(struct pci_dev *dev);
+<<<<<<< HEAD
+=======
+extern const struct attribute_group pci_dev_acpi_attr_group;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 static inline int pci_acpi_program_hp_params(struct pci_dev *dev)
 {

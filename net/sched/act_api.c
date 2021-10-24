@@ -992,7 +992,12 @@ struct tc_action_ops *tc_action_load_ops(char *name, struct nlattr *nla,
 struct tc_action *tcf_action_init_1(struct net *net, struct tcf_proto *tp,
 				    struct nlattr *nla, struct nlattr *est,
 				    char *name, int ovr, int bind,
+<<<<<<< HEAD
 				    struct tc_action_ops *a_o, bool rtnl_held,
+=======
+				    struct tc_action_ops *a_o, int *init_res,
+				    bool rtnl_held,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				    struct netlink_ext_ack *extack)
 {
 	struct nla_bitfield32 flags = { 0, 0 };
@@ -1056,7 +1061,11 @@ err_out:
 
 int tcf_action_init(struct net *net, struct tcf_proto *tp, struct nlattr *nla,
 		    struct nlattr *est, char *name, int ovr, int bind,
+<<<<<<< HEAD
 		    struct tc_action *actions[], size_t *attr_size,
+=======
+		    struct tc_action *actions[], int init_res[], size_t *attr_size,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		    bool rtnl_held, struct netlink_ext_ack *extack)
 {
 	struct tc_action_ops *ops[TCA_ACT_MAX_PRIO] = {};
@@ -1084,7 +1093,12 @@ int tcf_action_init(struct net *net, struct tcf_proto *tp, struct nlattr *nla,
 
 	for (i = 1; i <= TCA_ACT_MAX_PRIO && tb[i]; i++) {
 		act = tcf_action_init_1(net, tp, tb[i], est, name, ovr, bind,
+<<<<<<< HEAD
 					ops[i - 1], rtnl_held, extack);
+=======
+					ops[i - 1], &init_res[i - 1], rtnl_held,
+					extack);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (IS_ERR(act)) {
 			err = PTR_ERR(act);
 			goto err;
@@ -1502,7 +1516,11 @@ static int tcf_action_add(struct net *net, struct nlattr *nla,
 
 	for (loop = 0; loop < 10; loop++) {
 		ret = tcf_action_init(net, NULL, nla, NULL, NULL, ovr, 0,
+<<<<<<< HEAD
 				      actions, &attr_size, true, extack);
+=======
+				      actions, init_res, &attr_size, true, extack);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret != -EAGAIN)
 			break;
 	}

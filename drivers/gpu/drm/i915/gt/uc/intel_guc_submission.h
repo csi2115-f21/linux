@@ -20,7 +20,10 @@ void intel_guc_submission_fini(struct intel_guc *guc);
 int intel_guc_preempt_work_create(struct intel_guc *guc);
 void intel_guc_preempt_work_destroy(struct intel_guc *guc);
 int intel_guc_submission_setup(struct intel_engine_cs *engine);
+<<<<<<< HEAD
 bool intel_engine_in_guc_submission_mode(const struct intel_engine_cs *engine);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline bool intel_guc_submission_is_supported(struct intel_guc *guc)
 {

@@ -26,6 +26,64 @@
 
 #include <linux/iversion.h>
 
+<<<<<<< HEAD
+=======
+/* Radix tree tags for incore inode tree. */
+
+/* inode is to be reclaimed */
+#define XFS_ICI_RECLAIM_TAG	0
+/* Inode has speculative preallocations (posteof or cow) to clean. */
+#define XFS_ICI_BLOCKGC_TAG	1
+
+/*
+ * The goal for walking incore inodes.  These can correspond with incore inode
+ * radix tree tags when convenient.  Avoid existing XFS_IWALK namespace.
+ */
+enum xfs_icwalk_goal {
+	/* Goals that are not related to tags; these must be < 0. */
+	XFS_ICWALK_DQRELE	= -1,
+
+	/* Goals directly associated with tagged inodes. */
+	XFS_ICWALK_BLOCKGC	= XFS_ICI_BLOCKGC_TAG,
+	XFS_ICWALK_RECLAIM	= XFS_ICI_RECLAIM_TAG,
+};
+
+#define XFS_ICWALK_NULL_TAG	(-1U)
+
+/* Compute the inode radix tree tag for this goal. */
+static inline unsigned int
+xfs_icwalk_tag(enum xfs_icwalk_goal goal)
+{
+	return goal < 0 ? XFS_ICWALK_NULL_TAG : goal;
+}
+
+static int xfs_icwalk(struct xfs_mount *mp,
+		enum xfs_icwalk_goal goal, struct xfs_icwalk *icw);
+static int xfs_icwalk_ag(struct xfs_perag *pag,
+		enum xfs_icwalk_goal goal, struct xfs_icwalk *icw);
+
+/*
+ * Private inode cache walk flags for struct xfs_icwalk.  Must not
+ * coincide with XFS_ICWALK_FLAGS_VALID.
+ */
+#define XFS_ICWALK_FLAG_DROP_UDQUOT	(1U << 31)
+#define XFS_ICWALK_FLAG_DROP_GDQUOT	(1U << 30)
+#define XFS_ICWALK_FLAG_DROP_PDQUOT	(1U << 29)
+
+/* Stop scanning after icw_scan_limit inodes. */
+#define XFS_ICWALK_FLAG_SCAN_LIMIT	(1U << 28)
+
+#define XFS_ICWALK_FLAG_RECLAIM_SICK	(1U << 27)
+#define XFS_ICWALK_FLAG_UNION		(1U << 26) /* union filter algorithm */
+
+#define XFS_ICWALK_PRIVATE_FLAGS	(XFS_ICWALK_FLAG_DROP_UDQUOT | \
+					 XFS_ICWALK_FLAG_DROP_GDQUOT | \
+					 XFS_ICWALK_FLAG_DROP_PDQUOT | \
+					 XFS_ICWALK_FLAG_SCAN_LIMIT | \
+					 XFS_ICWALK_FLAG_RECLAIM_SICK | \
+					 XFS_ICWALK_FLAG_UNION)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Allocate and initialise an xfs_inode.
  */
@@ -159,6 +217,7 @@ static void
 xfs_perag_set_reclaim_tag(
 	struct xfs_perag	*pag)
 {
+<<<<<<< HEAD
 	struct xfs_mount	*mp = pag->pag_mount;
 
 	lockdep_assert_held(&pag->pag_ici_lock);
@@ -175,6 +234,14 @@ xfs_perag_set_reclaim_tag(
 	xfs_reclaim_work_queue(mp);
 
 	trace_xfs_perag_set_reclaim(mp, pag->pag_agno, -1, _RET_IP_);
+=======
+	rcu_read_lock();
+	if (radix_tree_tagged(&pag->pag_ici_root, XFS_ICI_BLOCKGC_TAG))
+		queue_delayed_work(pag->pag_mount->m_gc_workqueue,
+				   &pag->pag_blockgc_work,
+				   msecs_to_jiffies(xfs_blockgc_secs * 1000));
+	rcu_read_unlock();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void
@@ -233,7 +300,36 @@ xfs_inode_clear_reclaim_tag(
 	xfs_perag_clear_reclaim_tag(pag);
 }
 
+<<<<<<< HEAD
 static void
+=======
+/*
+ * We set the inode flag atomically with the radix tree tag.
+ * Once we get tag lookups on the radix tree, this inode flag
+ * can go away.
+ */
+void
+xfs_inode_mark_reclaimable(
+	struct xfs_inode	*ip)
+{
+	struct xfs_mount	*mp = ip->i_mount;
+	struct xfs_perag	*pag;
+
+	pag = xfs_perag_get(mp, XFS_INO_TO_AGNO(mp, ip->i_ino));
+	spin_lock(&pag->pag_ici_lock);
+	spin_lock(&ip->i_flags_lock);
+
+	xfs_perag_set_inode_tag(pag, XFS_INO_TO_AGINO(mp, ip->i_ino),
+			XFS_ICI_RECLAIM_TAG);
+	__xfs_iflags_set(ip, XFS_IRECLAIMABLE);
+
+	spin_unlock(&ip->i_flags_lock);
+	spin_unlock(&pag->pag_ici_lock);
+	xfs_perag_put(pag);
+}
+
+static inline void
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 xfs_inew_wait(
 	struct xfs_inode	*ip)
 {
@@ -364,12 +460,17 @@ xfs_iget_cache_hit(
 	 *	     wait_on_inode to wait for these flags to be cleared
 	 *	     instead of polling for it.
 	 */
+<<<<<<< HEAD
 	if (ip->i_flags & (XFS_INEW|XFS_IRECLAIM)) {
 		trace_xfs_iget_skip(ip);
 		XFS_STATS_INC(mp, xs_ig_frecycle);
 		error = -EAGAIN;
 		goto out_error;
 	}
+=======
+	if (ip->i_flags & (XFS_INEW | XFS_IRECLAIM))
+		goto out_skip;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Check the inode free state is valid. This also detects lookup
@@ -713,6 +814,97 @@ xfs_icache_inode_is_allocated(
 	return 0;
 }
 
+#ifdef CONFIG_XFS_QUOTA
+/* Decide if we want to grab this inode to drop its dquots. */
+static bool
+xfs_dqrele_igrab(
+	struct xfs_inode	*ip)
+{
+	bool			ret = false;
+
+	ASSERT(rcu_read_lock_held());
+
+	/* Check for stale RCU freed inode */
+	spin_lock(&ip->i_flags_lock);
+	if (!ip->i_ino)
+		goto out_unlock;
+
+	/*
+	 * Skip inodes that are anywhere in the reclaim machinery because we
+	 * drop dquots before tagging an inode for reclamation.
+	 */
+	if (ip->i_flags & (XFS_IRECLAIM | XFS_IRECLAIMABLE))
+		goto out_unlock;
+
+	/*
+	 * The inode looks alive; try to grab a VFS reference so that it won't
+	 * get destroyed.  If we got the reference, return true to say that
+	 * we grabbed the inode.
+	 *
+	 * If we can't get the reference, then we know the inode had its VFS
+	 * state torn down and hasn't yet entered the reclaim machinery.  Since
+	 * we also know that dquots are detached from an inode before it enters
+	 * reclaim, we can skip the inode.
+	 */
+	ret = igrab(VFS_I(ip)) != NULL;
+
+out_unlock:
+	spin_unlock(&ip->i_flags_lock);
+	return ret;
+}
+
+/* Drop this inode's dquots. */
+static void
+xfs_dqrele_inode(
+	struct xfs_inode	*ip,
+	struct xfs_icwalk	*icw)
+{
+	if (xfs_iflags_test(ip, XFS_INEW))
+		xfs_inew_wait(ip);
+
+	xfs_ilock(ip, XFS_ILOCK_EXCL);
+	if (icw->icw_flags & XFS_ICWALK_FLAG_DROP_UDQUOT) {
+		xfs_qm_dqrele(ip->i_udquot);
+		ip->i_udquot = NULL;
+	}
+	if (icw->icw_flags & XFS_ICWALK_FLAG_DROP_GDQUOT) {
+		xfs_qm_dqrele(ip->i_gdquot);
+		ip->i_gdquot = NULL;
+	}
+	if (icw->icw_flags & XFS_ICWALK_FLAG_DROP_PDQUOT) {
+		xfs_qm_dqrele(ip->i_pdquot);
+		ip->i_pdquot = NULL;
+	}
+	xfs_iunlock(ip, XFS_ILOCK_EXCL);
+	xfs_irele(ip);
+}
+
+/*
+ * Detach all dquots from incore inodes if we can.  The caller must already
+ * have dropped the relevant XFS_[UGP]QUOTA_ACTIVE flags so that dquots will
+ * not get reattached.
+ */
+int
+xfs_dqrele_all_inodes(
+	struct xfs_mount	*mp,
+	unsigned int		qflags)
+{
+	struct xfs_icwalk	icw = { .icw_flags = 0 };
+
+	if (qflags & XFS_UQUOTA_ACCT)
+		icw.icw_flags |= XFS_ICWALK_FLAG_DROP_UDQUOT;
+	if (qflags & XFS_GQUOTA_ACCT)
+		icw.icw_flags |= XFS_ICWALK_FLAG_DROP_GDQUOT;
+	if (qflags & XFS_PQUOTA_ACCT)
+		icw.icw_flags |= XFS_ICWALK_FLAG_DROP_PDQUOT;
+
+	return xfs_icwalk(mp, XFS_ICWALK_DQRELE, &icw);
+}
+#else
+# define xfs_dqrele_igrab(ip)		(false)
+# define xfs_dqrele_inode(ip, priv)	((void)0)
+#endif /* CONFIG_XFS_QUOTA */
+
 /*
  * The inode lookup is done in batches to keep the amount of lock traffic and
  * radix tree lookups to a minimum. The batch size is a trade off between
@@ -792,6 +984,7 @@ restart:
 		int		error = 0;
 		int		i;
 
+<<<<<<< HEAD
 		rcu_read_lock();
 
 		if (tag == XFS_ICI_NO_TAG)
@@ -974,6 +1167,8 @@ xfs_reclaim_inode(
 	if (xfs_iflags_test_and_set(ip, XFS_IFLUSHING))
 		goto out_iunlock;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (XFS_FORCED_SHUTDOWN(ip->i_mount)) {
 		xfs_iunpin_wait(ip);
 		xfs_iflush_abort(ip);
@@ -1058,6 +1253,7 @@ xfs_reclaim_inodes_ag(
 	struct xfs_mount	*mp,
 	int			*nr_to_scan)
 {
+<<<<<<< HEAD
 	struct xfs_perag	*pag;
 	xfs_agnumber_t		ag = 0;
 
@@ -1134,6 +1330,11 @@ xfs_reclaim_inodes_ag(
 		WRITE_ONCE(pag->pag_ici_reclaim_cursor, first_index);
 		xfs_perag_put(pag);
 	}
+=======
+	return (mp->m_flags & XFS_MOUNT_UNMOUNTING) ||
+	       (mp->m_flags & XFS_MOUNT_NORECOVERY) ||
+	       XFS_FORCED_SHUTDOWN(mp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void
@@ -1585,6 +1786,51 @@ xfs_blockgc_start(
 		xfs_blockgc_queue(pag);
 }
 
+<<<<<<< HEAD
+=======
+/* Don't try to run block gc on an inode that's in any of these states. */
+#define XFS_BLOCKGC_NOGRAB_IFLAGS	(XFS_INEW | \
+					 XFS_IRECLAIMABLE | \
+					 XFS_IRECLAIM)
+/*
+ * Decide if the given @ip is eligible for garbage collection of speculative
+ * preallocations, and grab it if so.  Returns true if it's ready to go or
+ * false if we should just ignore it.
+ */
+static bool
+xfs_blockgc_igrab(
+	struct xfs_inode	*ip)
+{
+	struct inode		*inode = VFS_I(ip);
+
+	ASSERT(rcu_read_lock_held());
+
+	/* Check for stale RCU freed inode */
+	spin_lock(&ip->i_flags_lock);
+	if (!ip->i_ino)
+		goto out_unlock_noent;
+
+	if (ip->i_flags & XFS_BLOCKGC_NOGRAB_IFLAGS)
+		goto out_unlock_noent;
+	spin_unlock(&ip->i_flags_lock);
+
+	/* nothing to sync during shutdown */
+	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
+		return false;
+
+	/* If we can't grab the inode, it must on it's way to reclaim. */
+	if (!igrab(inode))
+		return false;
+
+	/* inode is valid */
+	return true;
+
+out_unlock_noent:
+	spin_unlock(&ip->i_flags_lock);
+	return false;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Scan one incore inode for block preallocations that we can remove. */
 static int
 xfs_blockgc_scan_inode(
@@ -1617,8 +1863,12 @@ xfs_blockgc_worker(
 
 	if (!sb_start_write_trylock(mp->m_super))
 		return;
+<<<<<<< HEAD
 	error = xfs_inode_walk_ag(pag, 0, xfs_blockgc_scan_inode, NULL,
 			XFS_ICI_BLOCKGC_TAG);
+=======
+	error = xfs_icwalk_ag(pag, XFS_ICWALK_BLOCKGC, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (error)
 		xfs_info(mp, "AG %u preallocation gc worker failed, err=%d",
 				pag->pag_agno, error);
@@ -1632,12 +1882,20 @@ xfs_blockgc_worker(
 int
 xfs_blockgc_free_space(
 	struct xfs_mount	*mp,
+<<<<<<< HEAD
 	struct xfs_eofblocks	*eofb)
 {
 	trace_xfs_blockgc_free_space(mp, eofb, _RET_IP_);
 
 	return xfs_inode_walk(mp, 0, xfs_blockgc_scan_inode, eofb,
 			XFS_ICI_BLOCKGC_TAG);
+=======
+	struct xfs_icwalk	*icw)
+{
+	trace_xfs_blockgc_free_space(mp, icw, _RET_IP_);
+
+	return xfs_icwalk(mp, XFS_ICWALK_BLOCKGC, icw);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -1703,5 +1961,229 @@ xfs_blockgc_free_quota(
 	return xfs_blockgc_free_dquots(ip->i_mount,
 			xfs_inode_dquot(ip, XFS_DQTYPE_USER),
 			xfs_inode_dquot(ip, XFS_DQTYPE_GROUP),
+<<<<<<< HEAD
 			xfs_inode_dquot(ip, XFS_DQTYPE_PROJ), eof_flags);
+=======
+			xfs_inode_dquot(ip, XFS_DQTYPE_PROJ), iwalk_flags);
+}
+
+/* XFS Inode Cache Walking Code */
+
+/*
+ * The inode lookup is done in batches to keep the amount of lock traffic and
+ * radix tree lookups to a minimum. The batch size is a trade off between
+ * lookup reduction and stack usage. This is in the reclaim path, so we can't
+ * be too greedy.
+ */
+#define XFS_LOOKUP_BATCH	32
+
+
+/*
+ * Decide if we want to grab this inode in anticipation of doing work towards
+ * the goal.
+ */
+static inline bool
+xfs_icwalk_igrab(
+	enum xfs_icwalk_goal	goal,
+	struct xfs_inode	*ip,
+	struct xfs_icwalk	*icw)
+{
+	switch (goal) {
+	case XFS_ICWALK_DQRELE:
+		return xfs_dqrele_igrab(ip);
+	case XFS_ICWALK_BLOCKGC:
+		return xfs_blockgc_igrab(ip);
+	case XFS_ICWALK_RECLAIM:
+		return xfs_reclaim_igrab(ip, icw);
+	default:
+		return false;
+	}
+}
+
+/*
+ * Process an inode.  Each processing function must handle any state changes
+ * made by the icwalk igrab function.  Return -EAGAIN to skip an inode.
+ */
+static inline int
+xfs_icwalk_process_inode(
+	enum xfs_icwalk_goal	goal,
+	struct xfs_inode	*ip,
+	struct xfs_perag	*pag,
+	struct xfs_icwalk	*icw)
+{
+	int			error = 0;
+
+	switch (goal) {
+	case XFS_ICWALK_DQRELE:
+		xfs_dqrele_inode(ip, icw);
+		break;
+	case XFS_ICWALK_BLOCKGC:
+		error = xfs_blockgc_scan_inode(ip, icw);
+		break;
+	case XFS_ICWALK_RECLAIM:
+		xfs_reclaim_inode(ip, pag);
+		break;
+	}
+	return error;
+}
+
+/*
+ * For a given per-AG structure @pag and a goal, grab qualifying inodes and
+ * process them in some manner.
+ */
+static int
+xfs_icwalk_ag(
+	struct xfs_perag	*pag,
+	enum xfs_icwalk_goal	goal,
+	struct xfs_icwalk	*icw)
+{
+	struct xfs_mount	*mp = pag->pag_mount;
+	uint32_t		first_index;
+	int			last_error = 0;
+	int			skipped;
+	bool			done;
+	int			nr_found;
+
+restart:
+	done = false;
+	skipped = 0;
+	if (goal == XFS_ICWALK_RECLAIM)
+		first_index = READ_ONCE(pag->pag_ici_reclaim_cursor);
+	else
+		first_index = 0;
+	nr_found = 0;
+	do {
+		struct xfs_inode *batch[XFS_LOOKUP_BATCH];
+		unsigned int	tag = xfs_icwalk_tag(goal);
+		int		error = 0;
+		int		i;
+
+		rcu_read_lock();
+
+		if (tag == XFS_ICWALK_NULL_TAG)
+			nr_found = radix_tree_gang_lookup(&pag->pag_ici_root,
+					(void **)batch, first_index,
+					XFS_LOOKUP_BATCH);
+		else
+			nr_found = radix_tree_gang_lookup_tag(
+					&pag->pag_ici_root,
+					(void **) batch, first_index,
+					XFS_LOOKUP_BATCH, tag);
+
+		if (!nr_found) {
+			done = true;
+			rcu_read_unlock();
+			break;
+		}
+
+		/*
+		 * Grab the inodes before we drop the lock. if we found
+		 * nothing, nr == 0 and the loop will be skipped.
+		 */
+		for (i = 0; i < nr_found; i++) {
+			struct xfs_inode *ip = batch[i];
+
+			if (done || !xfs_icwalk_igrab(goal, ip, icw))
+				batch[i] = NULL;
+
+			/*
+			 * Update the index for the next lookup. Catch
+			 * overflows into the next AG range which can occur if
+			 * we have inodes in the last block of the AG and we
+			 * are currently pointing to the last inode.
+			 *
+			 * Because we may see inodes that are from the wrong AG
+			 * due to RCU freeing and reallocation, only update the
+			 * index if it lies in this AG. It was a race that lead
+			 * us to see this inode, so another lookup from the
+			 * same index will not find it again.
+			 */
+			if (XFS_INO_TO_AGNO(mp, ip->i_ino) != pag->pag_agno)
+				continue;
+			first_index = XFS_INO_TO_AGINO(mp, ip->i_ino + 1);
+			if (first_index < XFS_INO_TO_AGINO(mp, ip->i_ino))
+				done = true;
+		}
+
+		/* unlock now we've grabbed the inodes. */
+		rcu_read_unlock();
+
+		for (i = 0; i < nr_found; i++) {
+			if (!batch[i])
+				continue;
+			error = xfs_icwalk_process_inode(goal, batch[i], pag,
+					icw);
+			if (error == -EAGAIN) {
+				skipped++;
+				continue;
+			}
+			if (error && last_error != -EFSCORRUPTED)
+				last_error = error;
+		}
+
+		/* bail out if the filesystem is corrupted.  */
+		if (error == -EFSCORRUPTED)
+			break;
+
+		cond_resched();
+
+		if (icw && (icw->icw_flags & XFS_ICWALK_FLAG_SCAN_LIMIT)) {
+			icw->icw_scan_limit -= XFS_LOOKUP_BATCH;
+			if (icw->icw_scan_limit <= 0)
+				break;
+		}
+	} while (nr_found && !done);
+
+	if (goal == XFS_ICWALK_RECLAIM) {
+		if (done)
+			first_index = 0;
+		WRITE_ONCE(pag->pag_ici_reclaim_cursor, first_index);
+	}
+
+	if (skipped) {
+		delay(1);
+		goto restart;
+	}
+	return last_error;
+}
+
+/* Fetch the next (possibly tagged) per-AG structure. */
+static inline struct xfs_perag *
+xfs_icwalk_get_perag(
+	struct xfs_mount	*mp,
+	xfs_agnumber_t		agno,
+	enum xfs_icwalk_goal	goal)
+{
+	unsigned int		tag = xfs_icwalk_tag(goal);
+
+	if (tag == XFS_ICWALK_NULL_TAG)
+		return xfs_perag_get(mp, agno);
+	return xfs_perag_get_tag(mp, agno, tag);
+}
+
+/* Walk all incore inodes to achieve a given goal. */
+static int
+xfs_icwalk(
+	struct xfs_mount	*mp,
+	enum xfs_icwalk_goal	goal,
+	struct xfs_icwalk	*icw)
+{
+	struct xfs_perag	*pag;
+	int			error = 0;
+	int			last_error = 0;
+	xfs_agnumber_t		agno = 0;
+
+	while ((pag = xfs_icwalk_get_perag(mp, agno, goal))) {
+		agno = pag->pag_agno + 1;
+		error = xfs_icwalk_ag(pag, goal, icw);
+		xfs_perag_put(pag);
+		if (error) {
+			last_error = error;
+			if (error == -EFSCORRUPTED)
+				break;
+		}
+	}
+	return last_error;
+	BUILD_BUG_ON(XFS_ICWALK_PRIVATE_FLAGS & XFS_ICWALK_FLAGS_VALID);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

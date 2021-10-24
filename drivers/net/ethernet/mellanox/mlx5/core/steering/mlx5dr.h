@@ -26,6 +26,10 @@ enum mlx5dr_action_reformat_type {
 	DR_ACTION_REFORMAT_TYP_L2_TO_TNL_L2,
 	DR_ACTION_REFORMAT_TYP_TNL_L3_TO_L2,
 	DR_ACTION_REFORMAT_TYP_L2_TO_TNL_L3,
+<<<<<<< HEAD
+=======
+	DR_ACTION_REFORMAT_TYP_INSERT_HDR,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct mlx5dr_match_parameters {

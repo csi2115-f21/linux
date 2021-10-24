@@ -1716,6 +1716,7 @@ static inline bool may_mount(void)
 
 #ifdef	CONFIG_MANDATORY_FILE_LOCKING
 static inline bool may_mandlock(void)
+<<<<<<< HEAD
 {
 	return capable(CAP_SYS_ADMIN);
 }
@@ -1725,6 +1726,17 @@ static inline bool may_mandlock(void)
 	pr_warn("VFS: \"mand\" mount option not supported");
 	return false;
 }
+=======
+{
+	return capable(CAP_SYS_ADMIN);
+}
+#else
+static inline bool may_mandlock(void)
+{
+	pr_warn("VFS: \"mand\" mount option not supported");
+	return false;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 static int can_umount(const struct path *path, int flags)

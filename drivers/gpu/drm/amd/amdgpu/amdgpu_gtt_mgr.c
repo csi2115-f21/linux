@@ -183,6 +183,7 @@ static int amdgpu_gtt_mgr_new(struct ttm_resource_manager *man,
 	int r;
 
 	spin_lock(&mgr->lock);
+<<<<<<< HEAD
 	if ((&tbo->mem == mem || tbo->mem.mem_type != TTM_PL_TT) &&
 	    atomic64_read(&mgr->available) < mem->num_pages) {
 		spin_unlock(&mgr->lock);
@@ -196,6 +197,15 @@ static int amdgpu_gtt_mgr_new(struct ttm_resource_manager *man,
 		mem->start = AMDGPU_BO_INVALID_OFFSET;
 		return 0;
 	}
+=======
+	if (tbo->resource && tbo->resource->mem_type != TTM_PL_TT &&
+	    atomic64_read(&mgr->available) < num_pages) {
+		spin_unlock(&mgr->lock);
+		return -ENOSPC;
+	}
+	atomic64_sub(num_pages, &mgr->available);
+	spin_unlock(&mgr->lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	node = kzalloc(sizeof(*node), GFP_KERNEL);
 	if (!node) {
@@ -223,7 +233,11 @@ err_free:
 	kfree(node);
 
 err_out:
+<<<<<<< HEAD
 	atomic64_add(mem->num_pages, &mgr->available);
+=======
+	atomic64_add(num_pages, &mgr->available);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return r;
 }
@@ -242,12 +256,20 @@ static void amdgpu_gtt_mgr_del(struct ttm_resource_manager *man,
 	struct amdgpu_gtt_mgr *mgr = to_gtt_mgr(man);
 	struct amdgpu_gtt_node *node = mem->mm_node;
 
+<<<<<<< HEAD
 	if (node) {
 		spin_lock(&mgr->lock);
 		drm_mm_remove_node(&node->node);
 		spin_unlock(&mgr->lock);
 		kfree(node);
 	}
+=======
+	spin_lock(&mgr->lock);
+	if (drm_mm_node_allocated(&node->base.mm_nodes[0]))
+		drm_mm_remove_node(&node->base.mm_nodes[0]);
+	spin_unlock(&mgr->lock);
+	atomic64_add(res->num_pages, &mgr->available);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	atomic64_add(mem->num_pages, &mgr->available);
 }
@@ -313,3 +335,64 @@ static const struct ttm_resource_manager_func amdgpu_gtt_mgr_func = {
 	.free = amdgpu_gtt_mgr_del,
 	.debug = amdgpu_gtt_mgr_debug
 };
+<<<<<<< HEAD
+=======
+
+/**
+ * amdgpu_gtt_mgr_init - init GTT manager and DRM MM
+ *
+ * @adev: amdgpu_device pointer
+ * @gtt_size: maximum size of GTT
+ *
+ * Allocate and initialize the GTT manager.
+ */
+int amdgpu_gtt_mgr_init(struct amdgpu_device *adev, uint64_t gtt_size)
+{
+	struct amdgpu_gtt_mgr *mgr = &adev->mman.gtt_mgr;
+	struct ttm_resource_manager *man = &mgr->manager;
+	uint64_t start, size;
+
+	man->use_tt = true;
+	man->func = &amdgpu_gtt_mgr_func;
+
+	ttm_resource_manager_init(man, gtt_size >> PAGE_SHIFT);
+
+	start = AMDGPU_GTT_MAX_TRANSFER_SIZE * AMDGPU_GTT_NUM_TRANSFER_WINDOWS;
+	size = (adev->gmc.gart_size >> PAGE_SHIFT) - start;
+	drm_mm_init(&mgr->mm, start, size);
+	spin_lock_init(&mgr->lock);
+	atomic64_set(&mgr->available, gtt_size >> PAGE_SHIFT);
+
+	ttm_set_driver_manager(&adev->mman.bdev, TTM_PL_TT, &mgr->manager);
+	ttm_resource_manager_set_used(man, true);
+	return 0;
+}
+
+/**
+ * amdgpu_gtt_mgr_fini - free and destroy GTT manager
+ *
+ * @adev: amdgpu_device pointer
+ *
+ * Destroy and free the GTT manager, returns -EBUSY if ranges are still
+ * allocated inside it.
+ */
+void amdgpu_gtt_mgr_fini(struct amdgpu_device *adev)
+{
+	struct amdgpu_gtt_mgr *mgr = &adev->mman.gtt_mgr;
+	struct ttm_resource_manager *man = &mgr->manager;
+	int ret;
+
+	ttm_resource_manager_set_used(man, false);
+
+	ret = ttm_resource_manager_evict_all(&adev->mman.bdev, man);
+	if (ret)
+		return;
+
+	spin_lock(&mgr->lock);
+	drm_mm_takedown(&mgr->mm);
+	spin_unlock(&mgr->lock);
+
+	ttm_resource_manager_cleanup(man);
+	ttm_set_driver_manager(&adev->mman.bdev, TTM_PL_TT, NULL);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

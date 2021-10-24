@@ -53,7 +53,11 @@ int prestera_devlink_register(struct prestera_switch *sw)
 	int err;
 
 	err = devlink_register(dl, sw->dev->dev);
+<<<<<<< HEAD
 	if (err)
+=======
+	if (err) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dev_err(prestera_dev(sw), "devlink_register failed: %d\n", err);
 
 	return err;

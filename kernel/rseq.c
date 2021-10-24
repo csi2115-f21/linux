@@ -266,8 +266,11 @@ void __rseq_handle_notify_resume(struct ksignal *ksig, struct pt_regs *regs)
 
 	if (unlikely(t->flags & PF_EXITING))
 		return;
+<<<<<<< HEAD
 	if (unlikely(!access_ok(t->rseq, sizeof(*t->rseq))))
 		goto error;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = rseq_ip_fixup(regs);
 	if (unlikely(ret < 0))
 		goto error;

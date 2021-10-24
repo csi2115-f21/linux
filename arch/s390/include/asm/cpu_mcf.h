@@ -31,6 +31,7 @@ static const u64 cpumf_ctr_ctl[CPUMF_CTR_SET_MAX] = {
 	[CPUMF_CTR_SET_EXT]	= 0x01,
 	[CPUMF_CTR_SET_MT_DIAG] = 0x20,
 };
+<<<<<<< HEAD
 
 static inline void ctr_set_enable(u64 *state, int ctr_set)
 {
@@ -48,6 +49,8 @@ static inline void ctr_set_stop(u64 *state, int ctr_set)
 {
 	*state &= ~(cpumf_ctr_ctl[ctr_set] << CPUMF_LCCTL_ACTCTL_SHIFT);
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline void ctr_set_multiple_enable(u64 *state, u64 ctrsets)
 {

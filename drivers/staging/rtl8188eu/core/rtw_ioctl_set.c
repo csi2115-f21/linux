@@ -11,6 +11,17 @@
 #include <rtw_ioctl_set.h>
 #include <hal_intf.h>
 
+<<<<<<< HEAD
+=======
+static const struct {
+	int channel_plan;
+	char *name;
+} channel_table[] = { { RT_CHANNEL_DOMAIN_FCC, "US" },
+	{ RT_CHANNEL_DOMAIN_ETSI, "EU" },
+	{ RT_CHANNEL_DOMAIN_MKK, "JP" },
+	{ RT_CHANNEL_DOMAIN_CHINA, "CN"} };
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern void indicate_wx_scan_complete_event(struct adapter *padapter);
 
 u8 rtw_do_join(struct adapter *padapter)
@@ -25,8 +36,11 @@ u8 rtw_do_join(struct adapter *padapter)
 	phead = get_list_head(queue);
 	plist = phead->next;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("\n %s: phead = %p; plist = %p\n\n\n", __func__, phead, plist));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmlmepriv->cur_network.join_res = -2;
 
 	set_fwstate(pmlmepriv, _FW_UNDER_LINKING);
@@ -44,6 +58,7 @@ u8 rtw_do_join(struct adapter *padapter)
 
 		if (!pmlmepriv->LinkDetectInfo.bBusyTraffic ||
 		    pmlmepriv->to_roaming > 0) {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("%s: site survey if scanned_queue is empty\n.", __func__));
 			/*  submit site_survey_cmd */
 			ret = rtw_sitesurvey_cmd(padapter, &pmlmepriv->assoc_ssid, 1, NULL, 0);
@@ -51,6 +66,12 @@ u8 rtw_do_join(struct adapter *padapter)
 				pmlmepriv->to_join = false;
 				RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("%s: site survey return error\n.", __func__));
 			}
+=======
+			/*  submit site_survey_cmd */
+			ret = rtw_sitesurvey_cmd(padapter, &pmlmepriv->assoc_ssid, 1, NULL, 0);
+			if (ret != _SUCCESS)
+				pmlmepriv->to_join = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			pmlmepriv->to_join = false;
 			ret = _FAIL;
@@ -84,14 +105,20 @@ u8 rtw_do_join(struct adapter *padapter)
 				rtw_generate_random_ibss(pibss);
 
 				if (rtw_createbss_cmd(padapter) != _SUCCESS) {
+<<<<<<< HEAD
 					RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("***Error =>do_goin: rtw_createbss_cmd status FAIL***\n "));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					ret =  false;
 					goto exit;
 				}
 				pmlmepriv->to_join = false;
+<<<<<<< HEAD
 
 				RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 					 ("***Error => rtw_select_and_join_from_scanned_queue FAIL under STA_Mode***\n "));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			} else {
 				/*  can't associate ; reset under-linking */
 				_clr_fwstate_(pmlmepriv, _FW_UNDER_LINKING);
@@ -101,10 +128,15 @@ u8 rtw_do_join(struct adapter *padapter)
 				if (!pmlmepriv->LinkDetectInfo.bBusyTraffic ||
 				    pmlmepriv->to_roaming > 0) {
 					ret = rtw_sitesurvey_cmd(padapter, &pmlmepriv->assoc_ssid, 1, NULL, 0);
+<<<<<<< HEAD
 					if (ret != _SUCCESS) {
 						pmlmepriv->to_join = false;
 						RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("do_join(): site survey return error\n."));
 					}
+=======
+					if (ret != _SUCCESS)
+						pmlmepriv->to_join = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				} else {
 					ret = _FAIL;
 					pmlmepriv->to_join = false;
@@ -123,8 +155,11 @@ u8 rtw_set_802_11_bssid(struct adapter *padapter, u8 *bssid)
 	u32 cur_time = 0;
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_info_, "set bssid:%pM\n", bssid);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((bssid[0] == 0x00 && bssid[1] == 0x00 && bssid[2] == 0x00 &&
 	     bssid[3] == 0x00 && bssid[4] == 0x00 && bssid[5] == 0x00) ||
 	    (bssid[0] == 0xFF && bssid[1] == 0xFF && bssid[2] == 0xFF &&
@@ -135,23 +170,32 @@ u8 rtw_set_802_11_bssid(struct adapter *padapter, u8 *bssid)
 
 	spin_lock_bh(&pmlmepriv->lock);
 
+<<<<<<< HEAD
 	DBG_88E("Set BSSID under fw_state = 0x%08x\n", get_fwstate(pmlmepriv));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (check_fwstate(pmlmepriv, _FW_UNDER_SURVEY))
 		goto handle_tkip_countermeasure;
 	else if (check_fwstate(pmlmepriv, _FW_UNDER_LINKING))
 		goto release_mlme_lock;
 
 	if (check_fwstate(pmlmepriv, _FW_LINKED | WIFI_ADHOC_MASTER_STATE)) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("set_bssid: _FW_LINKED||WIFI_ADHOC_MASTER_STATE\n"));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!memcmp(&pmlmepriv->cur_network.network.MacAddress, bssid, ETH_ALEN)) {
 			if (!check_fwstate(pmlmepriv, WIFI_STATION_STATE))
 				goto release_mlme_lock;/* it means driver is in WIFI_ADHOC_MASTER_STATE, we needn't create bss again. */
 		} else {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("Set BSSID not the same bssid\n"));
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("set_bssid =%pM\n", (bssid)));
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("cur_bssid =%pM\n", (pmlmepriv->cur_network.network.MacAddress)));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rtw_disassoc_cmd(padapter, 0, true);
 
 			if (check_fwstate(pmlmepriv, _FW_LINKED))
@@ -193,9 +237,12 @@ release_mlme_lock:
 	spin_unlock_bh(&pmlmepriv->lock);
 
 exit:
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_,
 		 ("%s: status=%d\n", __func__, status));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return status;
 }
 
@@ -207,25 +254,33 @@ u8 rtw_set_802_11_ssid(struct adapter *padapter, struct ndis_802_11_ssid *ssid)
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 	struct wlan_network *pnetwork = &pmlmepriv->cur_network;
 
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_info_, "set ssid [%s] fw_state=0x%08x\n",
 		      ssid->ssid, get_fwstate(pmlmepriv));
 
 	if (!padapter->hw_init_completed) {
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_,
 			 ("set_ssid: hw_init_completed == false =>exit!!!\n"));
+=======
+	if (!padapter->hw_init_completed) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = _FAIL;
 		goto exit;
 	}
 
 	spin_lock_bh(&pmlmepriv->lock);
 
+<<<<<<< HEAD
 	DBG_88E("Set SSID under fw_state = 0x%08x\n", get_fwstate(pmlmepriv));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (check_fwstate(pmlmepriv, _FW_UNDER_SURVEY))
 		goto handle_tkip_countermeasure;
 	else if (check_fwstate(pmlmepriv, _FW_UNDER_LINKING))
 		goto release_mlme_lock;
 
 	if (check_fwstate(pmlmepriv, _FW_LINKED | WIFI_ADHOC_MASTER_STATE)) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 			 ("set_ssid: _FW_LINKED||WIFI_ADHOC_MASTER_STATE\n"));
 
@@ -236,6 +291,11 @@ u8 rtw_set_802_11_ssid(struct adapter *padapter, struct ndis_802_11_ssid *ssid)
 					 ("Set SSID is the same ssid, fw_state = 0x%08x\n",
 					  get_fwstate(pmlmepriv)));
 
+=======
+		if (pmlmepriv->assoc_ssid.ssid_length == ssid->ssid_length &&
+		    !memcmp(&pmlmepriv->assoc_ssid.ssid, ssid->ssid, ssid->ssid_length)) {
+			if (!check_fwstate(pmlmepriv, WIFI_STATION_STATE)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				if (!rtw_is_same_ibss(padapter, pnetwork)) {
 					/* if in WIFI_ADHOC_MASTER_STATE | WIFI_ADHOC_STATE, create bss or rejoin again */
 					rtw_disassoc_cmd(padapter, 0, true);
@@ -256,10 +316,13 @@ u8 rtw_set_802_11_ssid(struct adapter *padapter, struct ndis_802_11_ssid *ssid)
 				rtw_lps_ctrl_wk_cmd(padapter, LPS_CTRL_JOINBSS, 1);
 			}
 		} else {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("Set SSID not the same ssid\n"));
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("set_ssid =[%s] len = 0x%x\n", ssid->ssid, (unsigned int)ssid->ssid_length));
 			RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("assoc_ssid =[%s] len = 0x%x\n", pmlmepriv->assoc_ssid.ssid, (unsigned int)pmlmepriv->assoc_ssid.ssid_length));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rtw_disassoc_cmd(padapter, 0, true);
 
 			if (check_fwstate(pmlmepriv, _FW_LINKED))
@@ -300,8 +363,11 @@ release_mlme_lock:
 	spin_unlock_bh(&pmlmepriv->lock);
 
 exit:
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_,
 		 ("-%s: status =%d\n", __func__, status));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return status;
 }
 
@@ -312,6 +378,7 @@ u8 rtw_set_802_11_infrastructure_mode(struct adapter *padapter,
 	struct wlan_network *cur_network = &pmlmepriv->cur_network;
 	enum ndis_802_11_network_infra *pold_state = &cur_network->network.InfrastructureMode;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_notice_,
 		 ("+%s: old =%d new =%d fw_state = 0x%08x\n", __func__,
 		  *pold_state, networktype, get_fwstate(pmlmepriv)));
@@ -322,6 +389,11 @@ u8 rtw_set_802_11_infrastructure_mode(struct adapter *padapter,
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, (" change mode!"));
 		/* DBG_88E("change mode, old_mode =%d, new_mode =%d, fw_state = 0x%x\n", *pold_state, networktype, get_fwstate(pmlmepriv)); */
 
+=======
+	if (*pold_state != networktype) {
+		spin_lock_bh(&pmlmepriv->lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (*pold_state == Ndis802_11APMode) {
 			/* change to other mode from Ndis802_11APMode */
 			cur_network->join_res = -1;
@@ -379,9 +451,12 @@ u8 rtw_set_802_11_disassociate(struct adapter *padapter)
 	spin_lock_bh(&pmlmepriv->lock);
 
 	if (check_fwstate(pmlmepriv, _FW_LINKED)) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 			 ("MgntActrtw_set_802_11_disassociate: rtw_indicate_disconnect\n"));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rtw_disassoc_cmd(padapter, 0, true);
 		rtw_indicate_disconnect(padapter);
 		rtw_free_assoc_resources(padapter);
@@ -398,21 +473,28 @@ u8 rtw_set_802_11_bssid_list_scan(struct adapter *padapter, struct ndis_802_11_s
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 	u8 res = true;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("+%s(), fw_state =%x\n", __func__, get_fwstate(pmlmepriv)));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!padapter) {
 		res = false;
 		goto exit;
 	}
 	if (!padapter->hw_init_completed) {
 		res = false;
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("\n === %s:hw_init_completed == false ===\n", __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto exit;
 	}
 
 	if (check_fwstate(pmlmepriv, _FW_UNDER_SURVEY | _FW_UNDER_LINKING) ||
 	    pmlmepriv->LinkDetectInfo.bBusyTraffic) {
 		/*  Scan or linking is in progress, do nothing. */
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("%s fail since fw_state = %x\n", __func__, get_fwstate(pmlmepriv)));
 		res = true;
 
@@ -425,6 +507,11 @@ u8 rtw_set_802_11_bssid_list_scan(struct adapter *padapter, struct ndis_802_11_s
 	} else {
 		if (rtw_is_scan_deny(padapter)) {
 			DBG_88E(FUNC_ADPT_FMT": scan deny\n", FUNC_ADPT_ARG(padapter));
+=======
+		res = true;
+	} else {
+		if (rtw_is_scan_deny(padapter)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			indicate_wx_scan_complete_event(padapter);
 			return _SUCCESS;
 		}
@@ -445,6 +532,7 @@ u8 rtw_set_802_11_authentication_mode(struct adapter *padapter, enum ndis_802_11
 	int res;
 	u8 ret;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 		 ("set_802_11_auth.mode(): mode =%x\n", authmode));
 
@@ -454,6 +542,10 @@ u8 rtw_set_802_11_authentication_mode(struct adapter *padapter, enum ndis_802_11
 		 ("%s:psecuritypriv->ndisauthtype=%d", __func__,
 		 psecuritypriv->ndisauthtype));
 
+=======
+	psecuritypriv->ndisauthtype = authmode;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (psecuritypriv->ndisauthtype > 3)
 		psecuritypriv->dot11AuthAlgrthm = dot11AuthAlgrthm_8021X;
 
@@ -476,7 +568,10 @@ u8 rtw_set_802_11_add_wep(struct adapter *padapter, struct ndis_802_11_wep *wep)
 	keyid = wep->KeyIndex & 0x3fffffff;
 
 	if (keyid >= 4) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_err_, ("MgntActrtw_set_802_11_add_wep:keyid>4 =>fail\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = false;
 		goto exit;
 	}
@@ -484,6 +579,7 @@ u8 rtw_set_802_11_add_wep(struct adapter *padapter, struct ndis_802_11_wep *wep)
 	switch (wep->KeyLength) {
 	case 5:
 		psecuritypriv->dot11PrivacyAlgrthm = _WEP40_;
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_, ("MgntActrtw_set_802_11_add_wep:wep->KeyLength = 5\n"));
 		break;
 	case 13:
@@ -498,6 +594,16 @@ u8 rtw_set_802_11_add_wep(struct adapter *padapter, struct ndis_802_11_wep *wep)
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 		 ("%s:before memcpy, wep->KeyLength = 0x%x wep->KeyIndex = 0x%x  keyid =%x\n", __func__,
 		 wep->KeyLength, wep->KeyIndex, keyid));
+=======
+		break;
+	case 13:
+		psecuritypriv->dot11PrivacyAlgrthm = _WEP104_;
+		break;
+	default:
+		psecuritypriv->dot11PrivacyAlgrthm = _NO_PRIVACY_;
+		break;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memcpy(&psecuritypriv->dot11DefKey[keyid].skey[0],
 	       &wep->KeyMaterial, wep->KeyLength);
@@ -506,6 +612,7 @@ u8 rtw_set_802_11_add_wep(struct adapter *padapter, struct ndis_802_11_wep *wep)
 
 	psecuritypriv->dot11PrivacyKeyIndex = keyid;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_ioctl_set_c_, _drv_info_,
 		 ("%s:security key material : %x %x %x %x %x %x %x %x %x %x %x %x %x\n", __func__,
 		 psecuritypriv->dot11DefKey[keyid].skey[0],
@@ -522,6 +629,8 @@ u8 rtw_set_802_11_add_wep(struct adapter *padapter, struct ndis_802_11_wep *wep)
 		 psecuritypriv->dot11DefKey[keyid].skey[11],
 		 psecuritypriv->dot11DefKey[keyid].skey[12]));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	res = rtw_set_key(padapter, psecuritypriv, keyid, 1);
 
 	if (res == _FAIL)
@@ -587,7 +696,10 @@ int rtw_set_country(struct adapter *adapter, const char *country_code)
 	int i;
 	int channel_plan = RT_CHANNEL_DOMAIN_WORLD_WIDE_5G;
 
+<<<<<<< HEAD
 	DBG_88E("%s country_code:%s\n", __func__, country_code);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0; i < ARRAY_SIZE(channel_table); i++) {
 		if (strcmp(channel_table[i].name, country_code) == 0) {
 			channel_plan = channel_table[i].channel_plan;
@@ -595,8 +707,11 @@ int rtw_set_country(struct adapter *adapter, const char *country_code)
 		}
 	}
 
+<<<<<<< HEAD
 	if (i == ARRAY_SIZE(channel_table))
 		DBG_88E("%s unknown country_code:%s\n", __func__, country_code);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return rtw_set_chplan_cmd(adapter, channel_plan, 1);
 }

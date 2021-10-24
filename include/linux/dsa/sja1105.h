@@ -14,6 +14,10 @@
 
 #define ETH_P_SJA1105				ETH_P_DSA_8021Q
 #define ETH_P_SJA1105_META			0x0008
+<<<<<<< HEAD
+=======
+#define ETH_P_SJA1110				0xdadc
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* IEEE 802.3 Annex 57A: Slow Protocols PDUs (01:80:C2:xx:xx:xx) */
 #define SJA1105_LINKLOCAL_FILTER_A		0x0180C2000000ull
@@ -44,6 +48,10 @@ struct sja1105_tagger_data {
 	 */
 	spinlock_t meta_lock;
 	unsigned long state;
+<<<<<<< HEAD
+=======
+	u8 ts_id;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct sja1105_skb_cb {
@@ -64,4 +72,27 @@ struct sja1105_port {
 	u16 xmit_tpid;
 };
 
+<<<<<<< HEAD
+=======
+enum sja1110_meta_tstamp {
+	SJA1110_META_TSTAMP_TX = 0,
+	SJA1110_META_TSTAMP_RX = 1,
+};
+
+#if IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP)
+
+void sja1110_process_meta_tstamp(struct dsa_switch *ds, int port, u8 ts_id,
+				 enum sja1110_meta_tstamp dir, u64 tstamp);
+
+#else
+
+static inline void sja1110_process_meta_tstamp(struct dsa_switch *ds, int port,
+					       u8 ts_id, enum sja1110_meta_tstamp dir,
+					       u64 tstamp)
+{
+}
+
+#endif /* IS_ENABLED(CONFIG_NET_DSA_SJA1105_PTP) */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* _NET_DSA_SJA1105_H */

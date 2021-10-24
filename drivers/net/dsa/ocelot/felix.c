@@ -861,6 +861,7 @@ static void felix_phylink_mac_link_down(struct dsa_switch *ds, int port,
 	struct ocelot *ocelot = ds->priv;
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
 	int err;
+<<<<<<< HEAD
 
 	ocelot_port_rmwl(ocelot_port, 0, DEV_MAC_ENA_CFG_RX_ENA,
 			 DEV_MAC_ENA_CFG);
@@ -872,6 +873,19 @@ static void felix_phylink_mac_link_down(struct dsa_switch *ds, int port,
 		dev_err(ocelot->dev, "failed to flush port %d: %d\n",
 			port, err);
 
+=======
+
+	ocelot_port_rmwl(ocelot_port, 0, DEV_MAC_ENA_CFG_RX_ENA,
+			 DEV_MAC_ENA_CFG);
+
+	ocelot_fields_write(ocelot, port, QSYS_SWITCH_PORT_MODE_PORT_ENA, 0);
+
+	err = ocelot_port_flush(ocelot, port);
+	if (err)
+		dev_err(ocelot->dev, "failed to flush port %d: %d\n",
+			port, err);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Put the port in reset. */
 	ocelot_port_writel(ocelot_port,
 			   DEV_CLOCK_CFG_MAC_TX_RST |
@@ -938,6 +952,11 @@ static void felix_phylink_mac_link_up(struct dsa_switch *ds, int port,
 
 	ocelot_write_rix(ocelot, 0, ANA_POL_FLOWC, port);
 
+<<<<<<< HEAD
+=======
+	ocelot_fields_write(ocelot, port, SYS_PAUSE_CFG_PAUSE_ENA, tx_pause);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Undo the effects of felix_phylink_mac_link_down:
 	 * enable MAC module
 	 */
@@ -1399,11 +1418,16 @@ static bool felix_txtstamp(struct dsa_switch *ds, int port,
 	struct ocelot *ocelot = ds->priv;
 	struct ocelot_port *ocelot_port = ocelot->ports[port];
 
+<<<<<<< HEAD
 	if (ocelot->ptp && (skb_shinfo(clone)->tx_flags & SKBTX_HW_TSTAMP) &&
 	    ocelot_port->ptp_cmd == IFH_REW_OP_TWO_STEP_PTP) {
 		ocelot_port_add_txtstamp_skb(ocelot, port, clone);
 		return true;
 	}
+=======
+	if (ocelot_port_txtstamp_request(ocelot, port, skb, &clone))
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return false;
 }

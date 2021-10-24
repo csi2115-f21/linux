@@ -80,7 +80,19 @@ void dump_chip_info(HAL_VERSION	ChipVersion)
 	else
 		cnt += sprintf((buf+cnt), "UNKNOWN_RFTYPE(%d)_", ChipVersion.RFType);
 
+<<<<<<< HEAD
 	cnt += sprintf((buf+cnt), "RomVer(%d)\n", ChipVersion.ROMVer);
+=======
+	if (IS_1T1R(ChipVersion))
+		cnt += scnprintf(buf + cnt, sizeof(buf) - cnt, "1T1R_");
+	else if (IS_1T2R(ChipVersion))
+		cnt += scnprintf(buf + cnt, sizeof(buf) - cnt, "1T2R_");
+	else if (IS_2T2R(ChipVersion))
+		cnt += scnprintf(buf + cnt, sizeof(buf) - cnt, "2T2R_");
+	else
+		cnt += scnprintf(buf + cnt, sizeof(buf) - cnt,
+				"UNKNOWN_RFTYPE(%d)_", ChipVersion.RFType);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	DBG_871X("%s", buf);
 }
@@ -152,7 +164,11 @@ bool HAL_IsLegalChannel(struct adapter *Adapter, u32 Channel)
 	bool bLegalChannel = true;
 
 	if ((Channel <= 14) && (Channel >= 1)) {
+<<<<<<< HEAD
 		if (IsSupported24G(Adapter->registrypriv.wireless_mode) == false) {
+=======
+		if (IsSupported24G(Adapter->registrypriv.wireless_mode) == false)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			bLegalChannel = false;
 			DBG_871X("(Channel <= 14) && (Channel >= 1) but wireless_mode do not support 2.4G\n");
 		}
@@ -301,6 +317,7 @@ u8 MRateToHwRate(u8 rate)
 	case MGN_MCS31:
 		ret = DESC_RATEMCS31;
 		break;
+<<<<<<< HEAD
 	case MGN_VHT1SS_MCS0:
 		ret = DESC_RATEVHTSS1MCS0;
 		break;
@@ -421,6 +438,8 @@ u8 MRateToHwRate(u8 rate)
 	case MGN_VHT4SS_MCS9:
 		ret = DESC_RATEVHTSS4MCS9;
 		break;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		break;
 	}
@@ -565,6 +584,7 @@ u8 HwRateToMRate(u8 rate)
 	case DESC_RATEMCS31:
 		ret_rate = MGN_MCS31;
 		break;
+<<<<<<< HEAD
 	case DESC_RATEVHTSS1MCS0:
 		ret_rate = MGN_VHT1SS_MCS0;
 		break;
@@ -686,6 +706,8 @@ u8 HwRateToMRate(u8 rate)
 		ret_rate = MGN_VHT4SS_MCS9;
 		break;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		DBG_871X("HwRateToMRate(): Non supported Rate [%x]!!!\n", rate);
 		break;

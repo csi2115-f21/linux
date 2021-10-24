@@ -55,8 +55,11 @@ struct io_worker {
 	const struct cred *cur_creds;
 	const struct cred *saved_creds;
 
+<<<<<<< HEAD
 	struct completion ref_done;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rcu_head rcu;
 };
 
@@ -126,6 +129,20 @@ struct io_wq {
 
 static enum cpuhp_state io_wq_online;
 
+<<<<<<< HEAD
+=======
+struct io_cb_cancel_data {
+	work_cancel_fn *fn;
+	void *data;
+	int nr_running;
+	int nr_pending;
+	bool cancel_all;
+};
+
+static void create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index);
+static void io_wqe_dec_running(struct io_worker *worker);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool io_worker_get(struct io_worker *worker)
 {
 	return refcount_inc_not_zero(&worker->ref);
@@ -160,12 +177,23 @@ static void io_worker_exit(struct io_worker *worker)
 {
 	struct io_wqe *wqe = worker->wqe;
 	struct io_wqe_acct *acct = io_wqe_get_acct(worker);
+<<<<<<< HEAD
 	unsigned flags;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (refcount_dec_and_test(&worker->ref))
 		complete(&worker->ref_done);
 	wait_for_completion(&worker->ref_done);
 
+<<<<<<< HEAD
+=======
+	raw_spin_lock_irq(&wqe->lock);
+	if (worker->flags & IO_WORKER_F_FREE)
+		hlist_nulls_del_rcu(&worker->nulls_node);
+	list_del_rcu(&worker->all_list);
+	acct->nr_workers--;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	preempt_disable();
 	current->flags &= ~PF_IO_WORKER;
 	flags = worker->flags;
@@ -174,6 +202,7 @@ static void io_worker_exit(struct io_worker *worker)
 		atomic_dec(&acct->nr_running);
 	worker->flags = 0;
 	preempt_enable();
+<<<<<<< HEAD
 
 	if (worker->saved_creds) {
 		revert_creds(worker->saved_creds);
@@ -185,6 +214,8 @@ static void io_worker_exit(struct io_worker *worker)
 		hlist_nulls_del_rcu(&worker->nulls_node);
 	list_del_rcu(&worker->all_list);
 	acct->nr_workers--;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	raw_spin_unlock_irq(&wqe->lock);
 
 	kfree_rcu(worker, rcu);
@@ -210,6 +241,7 @@ static bool io_wqe_activate_free_worker(struct io_wqe *wqe)
 	struct hlist_nulls_node *n;
 	struct io_worker *worker;
 
+<<<<<<< HEAD
 	n = rcu_dereference(hlist_nulls_first_rcu(&wqe->free_list));
 	if (is_a_nulls(n))
 		return false;
@@ -217,6 +249,20 @@ static bool io_wqe_activate_free_worker(struct io_wqe *wqe)
 	worker = hlist_nulls_entry(n, struct io_worker, nulls_node);
 	if (io_worker_get(worker)) {
 		wake_up_process(worker->task);
+=======
+	/*
+	 * Iterate free_list and see if we can find an idle worker to
+	 * activate. If a given worker is on the free_list but in the process
+	 * of exiting, keep trying.
+	 */
+	hlist_nulls_for_each_entry_rcu(worker, n, &wqe->free_list, nulls_node) {
+		if (!io_worker_get(worker))
+			continue;
+		if (wake_up_process(worker->task)) {
+			io_worker_release(worker);
+			return true;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		io_worker_release(worker);
 		return true;
 	}
@@ -242,8 +288,25 @@ static void io_wqe_wake_worker(struct io_wqe *wqe, struct io_wqe_acct *acct)
 	ret = io_wqe_activate_free_worker(wqe);
 	rcu_read_unlock();
 
+<<<<<<< HEAD
 	if (!ret && acct->nr_workers < acct->max_workers)
 		wake_up_process(wqe->wq->manager);
+=======
+	if (!ret) {
+		bool do_create = false;
+
+		raw_spin_lock_irq(&wqe->lock);
+		if (acct->nr_workers < acct->max_workers) {
+			atomic_inc(&acct->nr_running);
+			atomic_inc(&wqe->wq->worker_refs);
+			acct->nr_workers++;
+			do_create = true;
+		}
+		raw_spin_unlock_irq(&wqe->lock);
+		if (do_create)
+			create_io_worker(wqe->wq, wqe, acct->index);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_wqe_inc_running(struct io_worker *worker)
@@ -253,6 +316,58 @@ static void io_wqe_inc_running(struct io_worker *worker)
 	atomic_inc(&acct->nr_running);
 }
 
+<<<<<<< HEAD
+=======
+struct create_worker_data {
+	struct callback_head work;
+	struct io_wqe *wqe;
+	int index;
+};
+
+static void create_worker_cb(struct callback_head *cb)
+{
+	struct create_worker_data *cwd;
+	struct io_wq *wq;
+	struct io_wqe *wqe;
+	struct io_wqe_acct *acct;
+
+	cwd = container_of(cb, struct create_worker_data, work);
+	wqe = cwd->wqe;
+	wq = wqe->wq;
+	acct = &wqe->acct[cwd->index];
+	raw_spin_lock_irq(&wqe->lock);
+	if (acct->nr_workers < acct->max_workers)
+		acct->nr_workers++;
+	raw_spin_unlock_irq(&wqe->lock);
+	create_io_worker(wq, cwd->wqe, cwd->index);
+	kfree(cwd);
+}
+
+static void io_queue_worker_create(struct io_wqe *wqe, struct io_wqe_acct *acct)
+{
+	struct create_worker_data *cwd;
+	struct io_wq *wq = wqe->wq;
+
+	/* raced with exit, just ignore create call */
+	if (test_bit(IO_WQ_BIT_EXIT, &wq->state))
+		goto fail;
+
+	cwd = kmalloc(sizeof(*cwd), GFP_ATOMIC);
+	if (cwd) {
+		init_task_work(&cwd->work, create_worker_cb);
+		cwd->wqe = wqe;
+		cwd->index = acct->index;
+		if (!task_work_add(wq->task, &cwd->work, TWA_SIGNAL))
+			return;
+
+		kfree(cwd);
+	}
+fail:
+	atomic_dec(&acct->nr_running);
+	io_worker_ref_put(wq);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void io_wqe_dec_running(struct io_worker *worker)
 	__must_hold(wqe->lock)
 {
@@ -263,10 +378,18 @@ static void io_wqe_dec_running(struct io_worker *worker)
 		io_wqe_wake_worker(wqe, acct);
 }
 
+<<<<<<< HEAD
 static void io_worker_start(struct io_worker *worker)
 {
 	worker->flags |= (IO_WORKER_F_UP | IO_WORKER_F_RUNNING);
 	io_wqe_inc_running(worker);
+=======
+	if (atomic_dec_and_test(&acct->nr_running) && io_wqe_run_queue(wqe)) {
+		atomic_inc(&acct->nr_running);
+		atomic_inc(&wqe->wq->worker_refs);
+		io_queue_worker_create(wqe, acct);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -279,6 +402,11 @@ static void __io_worker_busy(struct io_wqe *wqe, struct io_worker *worker,
 {
 	bool worker_bound, work_bound;
 
+<<<<<<< HEAD
+=======
+	BUILD_BUG_ON((IO_WQ_ACCT_UNBOUND ^ IO_WQ_ACCT_BOUND) != 1);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (worker->flags & IO_WORKER_F_FREE) {
 		worker->flags &= ~IO_WORKER_F_FREE;
 		hlist_nulls_del_init_rcu(&worker->nulls_node);
@@ -291,6 +419,7 @@ static void __io_worker_busy(struct io_wqe *wqe, struct io_worker *worker,
 	worker_bound = (worker->flags & IO_WORKER_F_BOUND) != 0;
 	work_bound = (work->flags & IO_WQ_WORK_UNBOUND) == 0;
 	if (worker_bound != work_bound) {
+<<<<<<< HEAD
 		io_wqe_dec_running(worker);
 		if (work_bound) {
 			worker->flags |= IO_WORKER_F_BOUND;
@@ -301,6 +430,13 @@ static void __io_worker_busy(struct io_wqe *wqe, struct io_worker *worker,
 			wqe->acct[IO_WQ_ACCT_UNBOUND].nr_workers++;
 			wqe->acct[IO_WQ_ACCT_BOUND].nr_workers--;
 		}
+=======
+		int index = work_bound ? IO_WQ_ACCT_UNBOUND : IO_WQ_ACCT_BOUND;
+		io_wqe_dec_running(worker);
+		worker->flags ^= IO_WORKER_F_BOUND;
+		wqe->acct[index].nr_workers--;
+		wqe->acct[index ^ 1].nr_workers++;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		io_wqe_inc_running(worker);
 	 }
 }
@@ -495,6 +631,10 @@ static int io_wqe_worker(void *data)
 	struct io_worker *worker = data;
 	struct io_wqe *wqe = worker->wqe;
 	struct io_wq *wq = wqe->wq;
+<<<<<<< HEAD
+=======
+	char buf[TASK_COMM_LEN];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	io_worker_start(worker);
 
@@ -508,8 +648,12 @@ loop:
 		}
 		__io_worker_idle(wqe, worker);
 		raw_spin_unlock_irq(&wqe->lock);
+<<<<<<< HEAD
 		io_flush_signals();
 		if (schedule_timeout(WORKER_IDLE_TIMEOUT))
+=======
+		if (io_flush_signals())
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			continue;
 		if (fatal_signal_pending(current))
 			break;
@@ -517,14 +661,27 @@ loop:
 		if (test_bit(IO_WQ_BIT_EXIT, &wq->state) ||
 		    !(worker->flags & IO_WORKER_F_FIXED))
 			break;
+<<<<<<< HEAD
+=======
+		}
+		if (ret)
+			continue;
+		/* timed out, exit unless we're the fixed worker */
+		if (!(worker->flags & IO_WORKER_F_FIXED))
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (test_bit(IO_WQ_BIT_EXIT, &wq->state)) {
 		raw_spin_lock_irq(&wqe->lock);
+<<<<<<< HEAD
 		if (!wq_list_empty(&wqe->work_list))
 			io_worker_handle_work(worker);
 		else
 			raw_spin_unlock_irq(&wqe->lock);
+=======
+		io_worker_handle_work(worker);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	io_worker_exit(worker);
@@ -569,6 +726,7 @@ void io_wq_worker_sleeping(struct task_struct *tsk)
 	raw_spin_lock_irq(&worker->wqe->lock);
 	io_wqe_dec_running(worker);
 	raw_spin_unlock_irq(&worker->wqe->lock);
+<<<<<<< HEAD
 }
 
 static int task_thread(void *data, int index)
@@ -626,9 +784,11 @@ pid_t io_wq_fork_thread(int (*fn)(void *), void *arg)
 	};
 
 	return kernel_clone(&args);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
-static bool create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index)
+static void create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index)
 {
 	struct io_worker *worker;
 	pid_t pid;
@@ -637,7 +797,11 @@ static bool create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index)
 
 	worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, wqe->node);
 	if (!worker)
+<<<<<<< HEAD
 		return false;
+=======
+		goto fail;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	refcount_set(&worker->ref, 1);
 	worker->nulls_node.pprev = NULL;
@@ -645,6 +809,7 @@ static bool create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index)
 	spin_lock_init(&worker->lock);
 	init_completion(&worker->ref_done);
 
+<<<<<<< HEAD
 	refcount_inc(&wq->refs);
 
 	if (index == IO_WQ_ACCT_BOUND)
@@ -657,6 +822,35 @@ static bool create_io_worker(struct io_wq *wq, struct io_wqe *wqe, int index)
 		return false;
 	}
 	return true;
+=======
+	tsk = create_io_thread(io_wqe_worker, worker, wqe->node);
+	if (IS_ERR(tsk)) {
+		kfree(worker);
+fail:
+		atomic_dec(&acct->nr_running);
+		raw_spin_lock_irq(&wqe->lock);
+		acct->nr_workers--;
+		raw_spin_unlock_irq(&wqe->lock);
+		io_worker_ref_put(wq);
+		return;
+	}
+
+	tsk->pf_io_worker = worker;
+	worker->task = tsk;
+	set_cpus_allowed_ptr(tsk, wqe->cpu_mask);
+	tsk->flags |= PF_NO_SETAFFINITY;
+
+	raw_spin_lock_irq(&wqe->lock);
+	hlist_nulls_add_head_rcu(&worker->nulls_node, &wqe->free_list);
+	list_add_tail_rcu(&worker->all_list, &wqe->all_list);
+	worker->flags |= IO_WORKER_F_FREE;
+	if (index == IO_WQ_ACCT_BOUND)
+		worker->flags |= IO_WORKER_F_BOUND;
+	if ((acct->nr_workers == 1) && (worker->flags & IO_WORKER_F_BOUND))
+		worker->flags |= IO_WORKER_F_FIXED;
+	raw_spin_unlock_irq(&wqe->lock);
+	wake_up_new_task(tsk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline bool io_wqe_need_worker(struct io_wqe *wqe, int index)
@@ -701,6 +895,7 @@ static bool io_wq_worker_wake(struct io_worker *worker, void *data)
 	return false;
 }
 
+<<<<<<< HEAD
 static void io_wq_check_workers(struct io_wq *wq)
 {
 	int node;
@@ -752,6 +947,11 @@ static int io_wq_manager(void *data)
 	wq->manager = NULL;
 	io_wq_put(wq);
 	do_exit(0);
+=======
+static bool io_wq_work_match_all(struct io_wq_work *work, void *data)
+{
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_run_cancel(struct io_wq_work *work, struct io_wqe *wqe)
@@ -783,6 +983,7 @@ append:
 		goto append;
 
 	wq_list_add_after(&work->list, &tail->list, &wqe->work_list);
+<<<<<<< HEAD
 }
 
 static int io_wq_fork_manager(struct io_wq *wq)
@@ -804,6 +1005,8 @@ static int io_wq_fork_manager(struct io_wq *wq)
 
 	io_wq_put(wq);
 	return ret;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_wqe_enqueue(struct io_wqe *wqe, struct io_wq_work *work)
@@ -977,12 +1180,19 @@ static int io_wqe_hash_wake(struct wait_queue_entry *wait, unsigned mode,
 			    int sync, void *key)
 {
 	struct io_wqe *wqe = container_of(wait, struct io_wqe, wait);
+<<<<<<< HEAD
 	int ret;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	list_del_init(&wait->entry);
 
 	rcu_read_lock();
+<<<<<<< HEAD
 	ret = io_wqe_activate_free_worker(wqe);
+=======
+	io_wqe_activate_free_worker(wqe);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rcu_read_unlock();
 
 	if (!ret)
@@ -993,7 +1203,11 @@ static int io_wqe_hash_wake(struct wait_queue_entry *wait, unsigned mode,
 
 struct io_wq *io_wq_create(unsigned bounded, struct io_wq_data *data)
 {
+<<<<<<< HEAD
 	int ret = -ENOMEM, node;
+=======
+	int ret, node;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct io_wq *wq;
 
 	if (WARN_ON_ONCE(!data->free_work || !data->do_work))
@@ -1028,6 +1242,8 @@ struct io_wq *io_wq_create(unsigned bounded, struct io_wq_data *data)
 			goto err;
 		wq->wqes[node] = wqe;
 		wqe->node = alloc_node;
+		wqe->acct[IO_WQ_ACCT_BOUND].index = IO_WQ_ACCT_BOUND;
+		wqe->acct[IO_WQ_ACCT_UNBOUND].index = IO_WQ_ACCT_UNBOUND;
 		wqe->acct[IO_WQ_ACCT_BOUND].max_workers = bounded;
 		atomic_set(&wqe->acct[IO_WQ_ACCT_BOUND].nr_running, 0);
 		wqe->acct[IO_WQ_ACCT_UNBOUND].max_workers =
@@ -1063,15 +1279,48 @@ err_wq:
 	return ERR_PTR(ret);
 }
 
+<<<<<<< HEAD
 static void io_wq_destroy(struct io_wq *wq)
+=======
+static bool io_task_work_match(struct callback_head *cb, void *data)
+{
+	struct create_worker_data *cwd;
+
+	if (cb->func != create_worker_cb)
+		return false;
+	cwd = container_of(cb, struct create_worker_data, work);
+	return cwd->wqe->wq == data;
+}
+
+void io_wq_exit_start(struct io_wq *wq)
+{
+	set_bit(IO_WQ_BIT_EXIT, &wq->state);
+}
+
+static void io_wq_exit_workers(struct io_wq *wq)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int node;
 
+<<<<<<< HEAD
 	cpuhp_state_remove_instance_nocalls(io_wq_online, &wq->cpuhp_node);
 
 	set_bit(IO_WQ_BIT_EXIT, &wq->state);
 	if (wq->manager)
 		wake_up_process(wq->manager);
+=======
+	if (!wq->task)
+		return;
+
+	while ((cb = task_work_cancel_match(wq->task, io_task_work_match, wq)) != NULL) {
+		struct create_worker_data *cwd;
+
+		cwd = container_of(cb, struct create_worker_data, work);
+		atomic_dec(&cwd->wqe->acct[cwd->index].nr_running);
+		io_worker_ref_put(wq);
+		kfree(cwd);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rcu_read_lock();
 	for_each_node(node)
@@ -1117,8 +1366,19 @@ static int io_wq_cpu_online(unsigned int cpu, struct hlist_node *node)
 	int i;
 
 	rcu_read_lock();
+<<<<<<< HEAD
 	for_each_node(i)
 		io_wq_for_each_worker(wq->wqes[i], io_wq_worker_affinity, NULL);
+=======
+	for_each_node(i) {
+		struct io_wqe *wqe = wq->wqes[i];
+
+		if (mask)
+			cpumask_copy(wqe->cpu_mask, mask);
+		else
+			cpumask_copy(wqe->cpu_mask, cpumask_of_node(i));
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rcu_read_unlock();
 	return 0;
 }

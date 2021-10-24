@@ -278,7 +278,14 @@ void amdgpu_device_vram_access(struct amdgpu_device *adev, loff_t pos,
 	unsigned long flags;
 	uint32_t hi = ~0;
 	uint64_t last;
+<<<<<<< HEAD
 
+=======
+	int idx;
+
+	if (!drm_dev_enter(&adev->ddev, &idx))
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_64BIT
 	last = min(pos + size, adev->gmc.visible_vram_size);
@@ -297,7 +304,11 @@ void amdgpu_device_vram_access(struct amdgpu_device *adev, loff_t pos,
 		}
 
 		if (count == size)
+<<<<<<< HEAD
 			return;
+=======
+			goto exit;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		pos += count;
 		buf += count / 4;
@@ -320,6 +331,14 @@ void amdgpu_device_vram_access(struct amdgpu_device *adev, loff_t pos,
 			*buf++ = RREG32_NO_KIQ(mmMM_DATA);
 	}
 	spin_unlock_irqrestore(&adev->mmio_idx_lock, flags);
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_64BIT
+exit:
+#endif
+	drm_dev_exit(idx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -458,7 +477,11 @@ void amdgpu_mm_wreg_mmio_rlc(struct amdgpu_device *adev,
 	    adev->gfx.rlc.funcs &&
 	    adev->gfx.rlc.funcs->is_rlcg_access_range) {
 		if (adev->gfx.rlc.funcs->is_rlcg_access_range(adev, reg))
+<<<<<<< HEAD
 			return adev->gfx.rlc.funcs->rlcg_wreg(adev, reg, v);
+=======
+			return adev->gfx.rlc.funcs->rlcg_wreg(adev, reg, v, 0, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		writel(v, ((void __iomem *)adev->rmmio) + (reg * 4));
 	}
@@ -1348,6 +1371,41 @@ def_value:
 	adev->pm.smu_prv_buffer_size = 0;
 }
 
+<<<<<<< HEAD
+=======
+static int amdgpu_device_init_apu_flags(struct amdgpu_device *adev)
+{
+	if (!(adev->flags & AMD_IS_APU) ||
+	    adev->asic_type < CHIP_RAVEN)
+		return 0;
+
+	switch (adev->asic_type) {
+	case CHIP_RAVEN:
+		if (adev->pdev->device == 0x15dd)
+			adev->apu_flags |= AMD_APU_IS_RAVEN;
+		if (adev->pdev->device == 0x15d8)
+			adev->apu_flags |= AMD_APU_IS_PICASSO;
+		break;
+	case CHIP_RENOIR:
+		if ((adev->pdev->device == 0x1636) ||
+		    (adev->pdev->device == 0x164c))
+			adev->apu_flags |= AMD_APU_IS_RENOIR;
+		else
+			adev->apu_flags |= AMD_APU_IS_GREEN_SARDINE;
+		break;
+	case CHIP_VANGOGH:
+		adev->apu_flags |= AMD_APU_IS_VANGOGH;
+		break;
+	case CHIP_YELLOW_CARP:
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * amdgpu_device_check_arguments - validate module params
  *
@@ -2026,6 +2084,10 @@ static int amdgpu_device_ip_early_init(struct amdgpu_device *adev)
 	case  CHIP_NAVY_FLOUNDER:
 	case  CHIP_DIMGREY_CAVEFISH:
 	case CHIP_VANGOGH:
+<<<<<<< HEAD
+=======
+	case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (adev->asic_type == CHIP_VANGOGH)
 			adev->family = AMDGPU_FAMILY_VGH;
 		else
@@ -2289,7 +2351,14 @@ static int amdgpu_device_ip_init(struct amdgpu_device *adev)
 
 	if (adev->gmc.xgmi.num_physical_nodes > 1)
 		amdgpu_xgmi_add_device(adev);
+<<<<<<< HEAD
 	amdgpu_amdkfd_device_init(adev);
+=======
+
+	/* Don't init kfd if whole hive need to be reset during init */
+	if (!adev->gmc.xgmi.pending_reset)
+		amdgpu_amdkfd_device_init(adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	amdgpu_fru_get_product_info(adev);
 
@@ -3568,6 +3637,26 @@ fence_driver_init:
 	if (amdgpu_device_cache_pci_state(adev->pdev))
 		pci_restore_state(pdev);
 
+<<<<<<< HEAD
+=======
+	/* if we have > 1 VGA cards, then disable the amdgpu VGA resources */
+	/* this will fail for cards that aren't VGA class devices, just
+	 * ignore it */
+	if ((adev->pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
+		vga_client_register(adev->pdev, adev, NULL, amdgpu_device_vga_set_decode);
+
+	if (amdgpu_device_supports_px(ddev)) {
+		px = true;
+		vga_switcheroo_register_client(adev->pdev,
+					       &amdgpu_switcheroo_ops, px);
+		vga_switcheroo_init_domain_pm_ops(adev->dev, &adev->vga_pm_domain);
+	}
+
+	if (adev->gmc.xgmi.pending_reset)
+		queue_delayed_work(system_wq, &mgpu_info.delayed_reset_work,
+				   msecs_to_jiffies(AMDGPU_RESUME_MS));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 failed:
@@ -3594,6 +3683,10 @@ void amdgpu_device_fini(struct amdgpu_device *adev)
 {
 	dev_info(adev->dev, "amdgpu: finishing device.\n");
 	flush_delayed_work(&adev->delayed_init_work);
+<<<<<<< HEAD
+=======
+	ttm_bo_lock_delayed_workqueue(&adev->mman.bdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	adev->shutdown = true;
 
 	kfree(adev->pci_state);
@@ -3614,11 +3707,20 @@ void amdgpu_device_fini(struct amdgpu_device *adev)
 		else
 			drm_atomic_helper_shutdown(adev_to_drm(adev));
 	}
+<<<<<<< HEAD
 	amdgpu_fence_driver_fini(adev);
+=======
+	amdgpu_fence_driver_fini_hw(adev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (adev->pm_sysfs_en)
 		amdgpu_pm_sysfs_fini(adev);
 	amdgpu_fbdev_fini(adev);
 	amdgpu_device_ip_fini(adev);
+<<<<<<< HEAD
+=======
+	amdgpu_fence_driver_fini_sw(adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	release_firmware(adev->firmware.gpu_info_fw);
 	adev->firmware.gpu_info_fw = NULL;
 	adev->accel_working = false;
@@ -3640,6 +3742,7 @@ void amdgpu_device_fini(struct amdgpu_device *adev)
 		vga_switcheroo_fini_domain_pm_ops(adev->dev);
 	if ((adev->pdev->class >> 8) == PCI_CLASS_DISPLAY_VGA)
 		vga_client_register(adev->pdev, NULL, NULL, NULL);
+<<<<<<< HEAD
 	if (adev->rio_mem)
 		pci_iounmap(adev->pdev, adev->rio_mem);
 	adev->rio_mem = NULL;
@@ -3649,6 +3752,8 @@ void amdgpu_device_fini(struct amdgpu_device *adev)
 
 	if (adev->ucode_sysfs_en)
 		amdgpu_ucode_sysfs_fini(adev);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	sysfs_remove_files(&adev->dev->kobj, amdgpu_dev_attributes);
 	if (IS_ENABLED(CONFIG_PERF_EVENTS))
@@ -4243,7 +4348,16 @@ static int amdgpu_device_pre_asic_reset(struct amdgpu_device *adev,
 					bool *need_full_reset_arg)
 {
 	int i, r = 0;
+<<<<<<< HEAD
 	bool need_full_reset  = *need_full_reset_arg;
+=======
+	struct amdgpu_job *job = NULL;
+	bool need_full_reset =
+		test_bit(AMDGPU_NEED_FULL_RESET, &reset_context->flags);
+
+	if (reset_context->reset_req_dev == adev)
+		job = reset_context->job;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	amdgpu_debugfs_wait_dump(adev);
 
@@ -4349,8 +4463,12 @@ static int amdgpu_do_asic_reset(struct amdgpu_hive_info *hive,
 			/* post card */
 			if (amdgpu_device_asic_init(tmp_adev))
 				dev_warn(tmp_adev->dev, "asic atom init failed!");
+<<<<<<< HEAD
 
 			if (!r) {
+=======
+			} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				dev_info(tmp_adev->dev, "GPU reset succeeded, trying to resume\n");
 				r = amdgpu_device_ip_resume_phase1(tmp_adev);
 				if (r)

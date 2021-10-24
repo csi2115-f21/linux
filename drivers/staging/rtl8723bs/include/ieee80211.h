@@ -183,6 +183,7 @@ enum NETWORK_TYPE {
 
 #define SUPPORTED_24G_NETTYPE_MSK (WIRELESS_11B | WIRELESS_11G | WIRELESS_11_24N)
 
+<<<<<<< HEAD
 #define IsLegacyOnly(NetType)  ((NetType) == ((NetType) & (WIRELESS_11BG|WIRELESS_11A)))
 
 #define IsSupported24G(NetType) ((NetType) & SUPPORTED_24G_NETTYPE_MSK ? true : false)
@@ -200,6 +201,22 @@ enum NETWORK_TYPE {
 
 #define IsSupportedVHT(NetType) (((NetType) & (WIRELESS_11AC)) ? true : false)
 
+=======
+#define IsLegacyOnly(NetType)  ((NetType) == ((NetType) & (WIRELESS_11BG)))
+
+#define IsSupported24G(NetType) ((NetType) & SUPPORTED_24G_NETTYPE_MSK ? true : false)
+
+#define IsEnableHWCCK(NetType) IsSupported24G(NetType)
+#define IsEnableHWOFDM(NetType) (((NetType) & (WIRELESS_11G|WIRELESS_11_24N)) ? true : false)
+
+#define IsSupportedRxCCK(NetType) IsEnableHWCCK(NetType)
+#define IsSupportedRxOFDM(NetType) IsEnableHWOFDM(NetType)
+#define IsSupportedRxHT(NetType) IsEnableHWOFDM(NetType)
+
+#define IsSupportedTxCCK(NetType) (((NetType) & (WIRELESS_11B)) ? true : false)
+#define IsSupportedTxOFDM(NetType) (((NetType) & (WIRELESS_11G) ? true : false)
+#define IsSupportedHT(NetType) (((NetType) & (WIRELESS_11_24N)) ? true : false)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct ieee_param {
 	u32 cmd;
@@ -469,6 +486,7 @@ enum MGN_RATE {
 	MGN_MCS29,
 	MGN_MCS30,
 	MGN_MCS31,
+<<<<<<< HEAD
 	MGN_VHT1SS_MCS0,
 	MGN_VHT1SS_MCS1,
 	MGN_VHT1SS_MCS2,
@@ -509,6 +527,8 @@ enum MGN_RATE {
 	MGN_VHT4SS_MCS7,
 	MGN_VHT4SS_MCS8,
 	MGN_VHT4SS_MCS9,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	MGN_UNKNOWN
 };
 
@@ -1046,7 +1066,11 @@ void rtw_get_bcn_info(struct wlan_network *pnetwork);
 
 void rtw_macaddr_cfg(struct device *dev, u8 *mac_addr);
 
+<<<<<<< HEAD
 u16 rtw_mcs_rate(u8 rf_type, u8 bw_40MHz, u8 short_GI, unsigned char * MCS_rate);
+=======
+u16 rtw_mcs_rate(u8 rf_type, u8 bw_40MHz, u8 short_GI, unsigned char *MCS_rate);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int rtw_action_frame_parse(const u8 *frame, u32 frame_len, u8 *category, u8 *action);
 const char *action_public_str(u8 action);

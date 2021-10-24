@@ -516,6 +516,16 @@ int parse_events_add_cache(struct list_head *list, int *idx,
 		if (get_config_terms(head_config, &config_terms))
 			return -ENOMEM;
 	}
+<<<<<<< HEAD
+=======
+
+	ret = parse_events__add_cache_hybrid(list, idx, &attr,
+					     config_name ? : name, &config_terms,
+					     &hybrid, parse_state);
+	if (hybrid)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return add_event(list, idx, &attr, config_name ? : name, &config_terms);
 }
 
@@ -1430,6 +1440,15 @@ int parse_events_add_numeric(struct parse_events_state *parse_state,
 			return -ENOMEM;
 	}
 
+<<<<<<< HEAD
+=======
+	ret = parse_events__add_numeric_hybrid(parse_state, list, &attr,
+					       get_config_name(head_config),
+					       &config_terms, &hybrid);
+	if (hybrid)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return add_event(list, &parse_state->idx, &attr,
 			 get_config_name(head_config), &config_terms);
 }

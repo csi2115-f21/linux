@@ -287,6 +287,7 @@ int mte_default_setup(void)
 	unsigned long en = 0;
 	int ret;
 
+<<<<<<< HEAD
 	if (!(hwcaps & HWCAP_CPUID)) {
 		ksft_print_msg("FAIL: CPUID registers unavailable\n");
 		return KSFT_FAIL;
@@ -294,6 +295,9 @@ int mte_default_setup(void)
 	/* Read ID_AA64PFR1_EL1 register */
 	asm volatile("mrs %0, id_aa64pfr1_el1" : "=r"(hwcaps) : : "memory");
 	if (((hwcaps >> ID_AA64PFR1_MTE_SHIFT) & MT_TAG_MASK) != ID_AA64PFR1_MTE) {
+=======
+	if (!(hwcaps2 & HWCAP2_MTE)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ksft_print_msg("FAIL: MTE features unavailable\n");
 		return KSFT_SKIP;
 	}

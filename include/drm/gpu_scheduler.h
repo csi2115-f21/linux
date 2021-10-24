@@ -230,8 +230,19 @@ struct drm_sched_backend_ops {
 	struct dma_fence *(*run_job)(struct drm_sched_job *sched_job);
 
 	/**
+<<<<<<< HEAD
          * @timedout_job: Called when a job has taken too long to execute,
          * to trigger GPU recovery.
+=======
+	 * @timedout_job: Called when a job has taken too long to execute,
+	 * to trigger GPU recovery.
+	 *
+	 * Return DRM_GPU_SCHED_STAT_NOMINAL, when all is normal,
+	 * and the underlying driver has started or completed recovery.
+	 *
+	 * Return DRM_GPU_SCHED_STAT_ENODEV, if the device is no longer
+	 * available, i.e. has been unplugged.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 */
 	void (*timedout_job)(struct drm_sched_job *sched_job);
 
@@ -293,7 +304,11 @@ struct drm_gpu_scheduler {
 int drm_sched_init(struct drm_gpu_scheduler *sched,
 		   const struct drm_sched_backend_ops *ops,
 		   uint32_t hw_submission, unsigned hang_limit, long timeout,
+<<<<<<< HEAD
 		   const char *name);
+=======
+		   atomic_t *score, const char *name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void drm_sched_fini(struct drm_gpu_scheduler *sched);
 int drm_sched_job_init(struct drm_sched_job *job,

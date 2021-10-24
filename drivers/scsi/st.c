@@ -3829,11 +3829,19 @@ static long st_ioctl_common(struct file *file, unsigned int cmd_in, void __user 
 				STp->ready = ST_NO_TAPE;
 			}
 			return retval;
+<<<<<<< HEAD
 
 		case SCSI_IOCTL_GET_IDLUN:
 		case SCSI_IOCTL_GET_BUS_NUMBER:
 			break;
 
+=======
+
+		case SCSI_IOCTL_GET_IDLUN:
+		case SCSI_IOCTL_GET_BUS_NUMBER:
+			break;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		default:
 			if ((cmd_in == SG_IO ||
 			     cmd_in == SCSI_IOCTL_SEND_COMMAND ||

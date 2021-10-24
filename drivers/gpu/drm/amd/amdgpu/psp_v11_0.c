@@ -272,7 +272,11 @@ static int psp_v11_0_bootloader_load_kdb(struct psp_context *psp)
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 
 	/* Copy PSP KDB binary to memory */
+<<<<<<< HEAD
 	memcpy(psp->fw_pri_buf, psp->kdb_start_addr, psp->kdb_bin_size);
+=======
+	psp_copy_fw(psp, psp->kdb_start_addr, psp->kdb_bin_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Provide the PSP KDB to bootloader */
 	WREG32_SOC15(MP0, 0, mmMP0_SMN_C2PMSG_36,
@@ -305,7 +309,11 @@ static int psp_v11_0_bootloader_load_spl(struct psp_context *psp)
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 
 	/* Copy PSP SPL binary to memory */
+<<<<<<< HEAD
 	memcpy(psp->fw_pri_buf, psp->spl_start_addr, psp->spl_bin_size);
+=======
+	psp_copy_fw(psp, psp->spl_start_addr, psp->spl_bin_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Provide the PSP SPL to bootloader */
 	WREG32_SOC15(MP0, 0, mmMP0_SMN_C2PMSG_36,
@@ -338,7 +346,11 @@ static int psp_v11_0_bootloader_load_sysdrv(struct psp_context *psp)
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 
 	/* Copy PSP System Driver binary to memory */
+<<<<<<< HEAD
 	memcpy(psp->fw_pri_buf, psp->sys_start_addr, psp->sys_bin_size);
+=======
+	psp_copy_fw(psp, psp->sys_start_addr, psp->sys_bin_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Provide the sys driver to bootloader */
 	WREG32_SOC15(MP0, 0, mmMP0_SMN_C2PMSG_36,
@@ -374,7 +386,11 @@ static int psp_v11_0_bootloader_load_sos(struct psp_context *psp)
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 
 	/* Copy Secure OS binary to PSP memory */
+<<<<<<< HEAD
 	memcpy(psp->fw_pri_buf, psp->sos_start_addr, psp->sos_bin_size);
+=======
+	psp_copy_fw(psp, psp->sos_start_addr, psp->sos_bin_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Provide the PSP secure OS to bootloader */
 	WREG32_SOC15(MP0, 0, mmMP0_SMN_C2PMSG_36,

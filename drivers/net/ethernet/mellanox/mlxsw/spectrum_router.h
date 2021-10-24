@@ -78,6 +78,13 @@ struct mlxsw_sp_router {
 	struct mlxsw_sp_fib_entry_op_ctx *ll_op_ctx;
 	u16 lb_rif_index;
 	struct mlxsw_sp_router_xm *xm;
+<<<<<<< HEAD
+=======
+	const struct mlxsw_sp_adj_grp_size_range *adj_grp_size_ranges;
+	size_t adj_grp_size_ranges_count;
+	struct delayed_work nh_grp_activity_dw;
+	struct list_head nh_res_grp_list;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct mlxsw_sp_fib_entry_priv {

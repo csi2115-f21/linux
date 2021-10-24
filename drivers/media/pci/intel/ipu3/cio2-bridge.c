@@ -228,7 +228,10 @@ err_free_swnodes:
 	software_node_unregister_nodes(sensor->swnodes);
 err_put_adev:
 	acpi_dev_put(sensor->adev);
+<<<<<<< HEAD
 err_out:
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 

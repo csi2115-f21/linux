@@ -71,6 +71,7 @@ struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev, u32 size,
 int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
 
 /* rxe_mr.c */
+<<<<<<< HEAD
 enum copy_direction {
 	to_mem_obj,
 	from_mem_obj,
@@ -107,6 +108,22 @@ int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
 
 void rxe_mem_cleanup(struct rxe_pool_entry *arg);
 
+=======
+u8 rxe_get_next_key(u32 last_key);
+void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr);
+int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
+		     int access, struct rxe_mr *mr);
+int rxe_mr_init_fast(struct rxe_pd *pd, int max_pages, struct rxe_mr *mr);
+int rxe_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
+		enum rxe_mr_copy_dir dir, u32 *crcp);
+int copy_data(struct rxe_pd *pd, int access,
+	      struct rxe_dma_info *dma, void *addr, int length,
+	      enum rxe_mr_copy_dir dir, u32 *crcp);
+void *iova_to_vaddr(struct rxe_mr *mr, u64 iova, int length);
+struct rxe_mr *lookup_mr(struct rxe_pd *pd, int access, u32 key,
+			 enum rxe_mr_lookup_type type);
+int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
 
 /* rxe_net.c */

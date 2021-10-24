@@ -43,6 +43,7 @@ static uint32_t dc_dsc_bandwidth_in_kbps_from_timing(
 	uint32_t bits_per_channel = 0;
 	uint32_t kbps;
 
+<<<<<<< HEAD
 	if (timing->flags.DSC) {
 		kbps = (timing->pix_clk_100hz * timing->dsc_cfg.bits_per_pixel);
 		kbps = kbps / 160 + ((kbps % 160) ? 1 : 0);
@@ -90,6 +91,8 @@ static uint32_t dc_dsc_bandwidth_in_kbps_from_timing(
 
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool dsc_buff_block_size_from_dpcd(int dpcd_buff_block_size, int *buff_block_size)
 {
 
@@ -311,6 +314,59 @@ static inline uint32_t dsc_div_by_10_round_up(uint32_t value)
 	return (value + 9) / 10;
 }
 
+<<<<<<< HEAD
+=======
+static struct fixed31_32 compute_dsc_max_bandwidth_overhead(
+		const struct dc_crtc_timing *timing,
+		const int num_slices_h,
+		const bool is_dp)
+{
+	struct fixed31_32 max_dsc_overhead;
+	struct fixed31_32 refresh_rate;
+
+	if (dsc_policy_disable_dsc_stream_overhead || !is_dp)
+		return dc_fixpt_from_int(0);
+
+	/* use target bpp that can take entire target bandwidth */
+	refresh_rate = dc_fixpt_from_int(timing->pix_clk_100hz);
+	refresh_rate = dc_fixpt_div_int(refresh_rate, timing->h_total);
+	refresh_rate = dc_fixpt_div_int(refresh_rate, timing->v_total);
+	refresh_rate = dc_fixpt_mul_int(refresh_rate, 100);
+
+	max_dsc_overhead = dc_fixpt_from_int(num_slices_h);
+	max_dsc_overhead = dc_fixpt_mul_int(max_dsc_overhead, timing->v_total);
+	max_dsc_overhead = dc_fixpt_mul_int(max_dsc_overhead, 256);
+	max_dsc_overhead = dc_fixpt_div_int(max_dsc_overhead, 1000);
+	max_dsc_overhead = dc_fixpt_mul(max_dsc_overhead, refresh_rate);
+
+	return max_dsc_overhead;
+}
+
+static uint32_t compute_bpp_x16_from_target_bandwidth(
+		const uint32_t bandwidth_in_kbps,
+		const struct dc_crtc_timing *timing,
+		const uint32_t num_slices_h,
+		const uint32_t bpp_increment_div,
+		const bool is_dp)
+{
+	struct fixed31_32 overhead_in_kbps;
+	struct fixed31_32 effective_bandwidth_in_kbps;
+	struct fixed31_32 bpp_x16;
+
+	overhead_in_kbps = compute_dsc_max_bandwidth_overhead(
+				timing, num_slices_h, is_dp);
+	effective_bandwidth_in_kbps = dc_fixpt_from_int(bandwidth_in_kbps);
+	effective_bandwidth_in_kbps = dc_fixpt_sub(effective_bandwidth_in_kbps,
+			overhead_in_kbps);
+	bpp_x16 = dc_fixpt_mul_int(effective_bandwidth_in_kbps, 10);
+	bpp_x16 = dc_fixpt_div_int(bpp_x16, timing->pix_clk_100hz);
+	bpp_x16 = dc_fixpt_from_int(dc_fixpt_floor(dc_fixpt_mul_int(bpp_x16, bpp_increment_div)));
+	bpp_x16 = dc_fixpt_div_int(bpp_x16, bpp_increment_div);
+	bpp_x16 = dc_fixpt_mul_int(bpp_x16, 16);
+	return dc_fixpt_floor(bpp_x16);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Get DSC bandwidth range based on [min_bpp, max_bpp] target bitrate range, and timing's pixel clock
  * and uncompressed bandwidth.
  */
@@ -854,6 +910,10 @@ bool dc_dsc_parse_dsc_dpcd(const struct dc *dc, const uint8_t *dpcd_dsc_basic_da
 	dsc_sink_caps->branch_max_line_width = dpcd_dsc_branch_decoder_caps[DP_DSC_BRANCH_MAX_LINE_WIDTH - DP_DSC_BRANCH_OVERALL_THROUGHPUT_0] * 320;
 	ASSERT(dsc_sink_caps->branch_max_line_width == 0 || dsc_sink_caps->branch_max_line_width >= 5120);
 
+<<<<<<< HEAD
+=======
+	dsc_sink_caps->is_dp = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return true;
 }
 
@@ -865,8 +925,13 @@ bool dc_dsc_parse_dsc_dpcd(const struct dc *dc, const uint8_t *dpcd_dsc_basic_da
 bool dc_dsc_compute_bandwidth_range(
 		const struct display_stream_compressor *dsc,
 		uint32_t dsc_min_slice_height_override,
+<<<<<<< HEAD
 		uint32_t min_bpp,
 		uint32_t max_bpp,
+=======
+		uint32_t min_bpp_x16,
+		uint32_t max_bpp_x16,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		const struct dsc_dec_dpcd_caps *dsc_sink_caps,
 		const struct dc_crtc_timing *timing,
 		struct dc_dsc_bw_range *range)
@@ -883,10 +948,18 @@ bool dc_dsc_compute_bandwidth_range(
 
 	if (is_dsc_possible)
 		is_dsc_possible = setup_dsc_config(dsc_sink_caps, &dsc_enc_caps, 0, timing,
+<<<<<<< HEAD
 				dsc_min_slice_height_override, max_bpp, &config);
 
 	if (is_dsc_possible)
 		get_dsc_bandwidth_range(min_bpp, max_bpp, &dsc_common_caps, timing, range);
+=======
+				dsc_min_slice_height_override, max_bpp_x16, &config);
+
+	if (is_dsc_possible)
+		get_dsc_bandwidth_range(min_bpp_x16, max_bpp_x16,
+				config.num_slices_h, &dsc_common_caps, timing, range);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return is_dsc_possible;
 }
@@ -908,11 +981,35 @@ bool dc_dsc_compute_config(
 			&dsc_enc_caps,
 			target_bandwidth_kbps,
 			timing, dsc_min_slice_height_override,
+<<<<<<< HEAD
 			max_target_bpp_limit_override, dsc_cfg);
 	return is_dsc_possible;
 }
 
 void dc_dsc_get_policy_for_timing(const struct dc_crtc_timing *timing, uint32_t max_target_bpp_limit_override, struct dc_dsc_policy *policy)
+=======
+			max_target_bpp_limit_override * 16, dsc_cfg);
+	return is_dsc_possible;
+}
+
+uint32_t dc_dsc_stream_bandwidth_in_kbps(const struct dc_crtc_timing *timing,
+		uint32_t bpp_x16, uint32_t num_slices_h, bool is_dp)
+{
+	struct fixed31_32 overhead_in_kbps;
+	struct fixed31_32 bpp;
+	struct fixed31_32 actual_bandwidth_in_kbps;
+
+	overhead_in_kbps = compute_dsc_max_bandwidth_overhead(
+			timing, num_slices_h, is_dp);
+	bpp = dc_fixpt_from_fraction(bpp_x16, 16);
+	actual_bandwidth_in_kbps = dc_fixpt_from_fraction(timing->pix_clk_100hz, 10);
+	actual_bandwidth_in_kbps = dc_fixpt_mul(actual_bandwidth_in_kbps, bpp);
+	actual_bandwidth_in_kbps = dc_fixpt_add(actual_bandwidth_in_kbps, overhead_in_kbps);
+	return dc_fixpt_ceil(actual_bandwidth_in_kbps);
+}
+
+void dc_dsc_get_policy_for_timing(const struct dc_crtc_timing *timing, uint32_t max_target_bpp_limit_override_x16, struct dc_dsc_policy *policy)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	uint32_t bpc = 0;
 

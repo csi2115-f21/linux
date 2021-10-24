@@ -1301,15 +1301,160 @@ static int writecache_map(struct dm_target *ti, struct bio *bio)
 			writecache_flush(wc);
 			if (writecache_has_error(wc))
 				goto unlock_error;
+<<<<<<< HEAD
 			goto unlock_submit;
+		} else {
+=======
+			if (unlikely(wc->cleaner) || unlikely(wc->metadata_only))
+				goto unlock_remap_origin;
+			goto unlock_submit;
+		} else {
+			if (dm_bio_get_target_bio_nr(bio))
+				goto unlock_remap_origin;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+			writecache_offload_bio(wc, bio);
+			goto unlock_return;
+		}
+	}
+<<<<<<< HEAD
+=======
+
+	bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);
+
+	if (unlikely((((unsigned)bio->bi_iter.bi_sector | bio_sectors(bio)) &
+				(wc->block_size / 512 - 1)) != 0)) {
+		DMERR("I/O is not aligned, sector %llu, size %u, block size %u",
+		      (unsigned long long)bio->bi_iter.bi_sector,
+		      bio->bi_iter.bi_size, wc->block_size);
+		goto unlock_error;
+	}
+
+	if (unlikely(bio_op(bio) == REQ_OP_DISCARD)) {
+		if (writecache_has_error(wc))
+			goto unlock_error;
+		if (WC_MODE_PMEM(wc)) {
+			writecache_discard(wc, bio->bi_iter.bi_sector, bio_end_sector(bio));
+			goto unlock_remap_origin;
 		} else {
 			writecache_offload_bio(wc, bio);
 			goto unlock_return;
 		}
 	}
 
-	bio->bi_iter.bi_sector = dm_target_offset(ti, bio->bi_iter.bi_sector);
+	if (bio_data_dir(bio) == READ) {
+read_next_block:
+		e = writecache_find_entry(wc, bio->bi_iter.bi_sector, WFE_RETURN_FOLLOWING);
+		if (e && read_original_sector(wc, e) == bio->bi_iter.bi_sector) {
+			if (WC_MODE_PMEM(wc)) {
+				bio_copy_block(wc, bio, memory_data(wc, e));
+				if (bio->bi_iter.bi_size)
+					goto read_next_block;
+				goto unlock_submit;
+			} else {
+				dm_accept_partial_bio(bio, wc->block_size >> SECTOR_SHIFT);
+				bio_set_dev(bio, wc->ssd_dev->bdev);
+				bio->bi_iter.bi_sector = cache_sector(wc, e);
+				if (!writecache_entry_is_committed(wc, e))
+					writecache_wait_for_ios(wc, WRITE);
+				goto unlock_remap;
+			}
+		} else {
+			if (e) {
+				sector_t next_boundary =
+					read_original_sector(wc, e) - bio->bi_iter.bi_sector;
+				if (next_boundary < bio->bi_iter.bi_size >> SECTOR_SHIFT) {
+					dm_accept_partial_bio(bio, next_boundary);
+				}
+			}
+			goto unlock_remap_origin;
+		}
+	} else {
+		do {
+			bool found_entry = false;
+			bool search_used = false;
+			if (writecache_has_error(wc))
+				goto unlock_error;
+			e = writecache_find_entry(wc, bio->bi_iter.bi_sector, 0);
+			if (e) {
+				if (!writecache_entry_is_committed(wc, e)) {
+					search_used = true;
+					goto bio_copy;
+				}
+				if (!WC_MODE_PMEM(wc) && !e->write_in_progress) {
+					wc->overwrote_committed = true;
+					search_used = true;
+					goto bio_copy;
+				}
+				found_entry = true;
+			} else {
+				if (unlikely(wc->cleaner) ||
+				    (wc->metadata_only && !(bio->bi_opf & REQ_META)))
+					goto direct_write;
+			}
+			e = writecache_pop_from_freelist(wc, (sector_t)-1);
+			if (unlikely(!e)) {
+				if (!WC_MODE_PMEM(wc) && !found_entry) {
+direct_write:
+					e = writecache_find_entry(wc, bio->bi_iter.bi_sector, WFE_RETURN_FOLLOWING);
+					if (e) {
+						sector_t next_boundary = read_original_sector(wc, e) - bio->bi_iter.bi_sector;
+						BUG_ON(!next_boundary);
+						if (next_boundary < bio->bi_iter.bi_size >> SECTOR_SHIFT) {
+							dm_accept_partial_bio(bio, next_boundary);
+						}
+					}
+					goto unlock_remap_origin;
+				}
+				writecache_wait_on_freelist(wc);
+				continue;
+			}
+			write_original_sector_seq_count(wc, e, bio->bi_iter.bi_sector, wc->seq_count);
+			writecache_insert_entry(wc, e);
+			wc->uncommitted_blocks++;
+bio_copy:
+			if (WC_MODE_PMEM(wc)) {
+				bio_copy_block(wc, bio, memory_data(wc, e));
+			} else {
+				unsigned bio_size = wc->block_size;
+				sector_t start_cache_sec = cache_sector(wc, e);
+				sector_t current_cache_sec = start_cache_sec + (bio_size >> SECTOR_SHIFT);
 
+				while (bio_size < bio->bi_iter.bi_size) {
+					if (!search_used) {
+						struct wc_entry *f = writecache_pop_from_freelist(wc, current_cache_sec);
+						if (!f)
+							break;
+						write_original_sector_seq_count(wc, f, bio->bi_iter.bi_sector +
+										(bio_size >> SECTOR_SHIFT), wc->seq_count);
+						writecache_insert_entry(wc, f);
+						wc->uncommitted_blocks++;
+					} else {
+						struct wc_entry *f;
+						struct rb_node *next = rb_next(&e->rb_node);
+						if (!next)
+							break;
+						f = container_of(next, struct wc_entry, rb_node);
+						if (f != e + 1)
+							break;
+						if (read_original_sector(wc, f) !=
+						    read_original_sector(wc, e) + (wc->block_size >> SECTOR_SHIFT))
+							break;
+						if (unlikely(f->write_in_progress))
+							break;
+						if (writecache_entry_is_committed(wc, f))
+							wc->overwrote_committed = true;
+						e = f;
+					}
+					bio_size += wc->block_size;
+					current_cache_sec += wc->block_size >> SECTOR_SHIFT;
+				}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+				bio_set_dev(bio, wc->ssd_dev->bdev);
+				bio->bi_iter.bi_sector = start_cache_sec;
+				dm_accept_partial_bio(bio, bio_size >> SECTOR_SHIFT);
+
+<<<<<<< HEAD
 	if (unlikely((((unsigned)bio->bi_iter.bi_sector | bio_sectors(bio)) &
 				(wc->block_size / 512 - 1)) != 0)) {
 		DMERR("I/O is not aligned, sector %llu, size %u, block size %u",
@@ -1458,6 +1603,53 @@ unlock_return:
 	wc_unlock(wc);
 	return DM_MAPIO_SUBMITTED;
 
+=======
+				if (unlikely(wc->uncommitted_blocks >= wc->autocommit_blocks)) {
+					wc->uncommitted_blocks = 0;
+					queue_work(wc->writeback_wq, &wc->flush_work);
+				} else {
+					writecache_schedule_autocommit(wc);
+				}
+				goto unlock_remap;
+			}
+		} while (bio->bi_iter.bi_size);
+
+		if (unlikely(bio->bi_opf & REQ_FUA ||
+			     wc->uncommitted_blocks >= wc->autocommit_blocks))
+			writecache_flush(wc);
+		else
+			writecache_schedule_autocommit(wc);
+		goto unlock_submit;
+	}
+
+unlock_remap_origin:
+	if (likely(wc->pause != 0)) {
+		 if (bio_op(bio) == REQ_OP_WRITE) {
+			dm_iot_io_begin(&wc->iot, 1);
+			bio->bi_private = (void *)2;
+		}
+	}
+	bio_set_dev(bio, wc->dev->bdev);
+	wc_unlock(wc);
+	return DM_MAPIO_REMAPPED;
+
+unlock_remap:
+	/* make sure that writecache_end_io decrements bio_in_progress: */
+	bio->bi_private = (void *)1;
+	atomic_inc(&wc->bio_in_progress[bio_data_dir(bio)]);
+	wc_unlock(wc);
+	return DM_MAPIO_REMAPPED;
+
+unlock_submit:
+	wc_unlock(wc);
+	bio_endio(bio);
+	return DM_MAPIO_SUBMITTED;
+
+unlock_return:
+	wc_unlock(wc);
+	return DM_MAPIO_SUBMITTED;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 unlock_error:
 	wc_unlock(wc);
 	bio_io_error(bio);
@@ -2535,13 +2727,24 @@ static void writecache_status(struct dm_target *ti, status_type_t type,
 			DMEMIT(" cleaner");
 		if (wc->writeback_fua_set)
 			DMEMIT(" %sfua", wc->writeback_fua ? "" : "no");
+<<<<<<< HEAD
+=======
+		if (wc->metadata_only)
+			DMEMIT(" metadata_only");
+		if (wc->pause_set)
+			DMEMIT(" pause_writeback %u", wc->pause_value);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	}
 }
 
 static struct target_type writecache_target = {
 	.name			= "writecache",
+<<<<<<< HEAD
 	.version		= {1, 4, 0},
+=======
+	.version		= {1, 5, 0},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.module			= THIS_MODULE,
 	.ctr			= writecache_ctr,
 	.dtr			= writecache_dtr,

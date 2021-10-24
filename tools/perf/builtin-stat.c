@@ -2320,6 +2320,20 @@ int cmd_stat(int argc, const char **argv)
 		goto out;
 	}
 
+<<<<<<< HEAD
+=======
+	if (stat_config.iostat_run) {
+		status = iostat_prepare(evsel_list, &stat_config);
+		if (status)
+			goto out;
+		if (iostat_mode == IOSTAT_LIST) {
+			iostat_list(evsel_list, &stat_config);
+			goto out;
+		} else if (verbose)
+			iostat_list(evsel_list, &stat_config);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (add_default_attributes())
 		goto out;
 

@@ -974,8 +974,14 @@ static int init_hdlc_queues(struct port *port)
 			return -ENOMEM;
 	}
 
+<<<<<<< HEAD
 	if (!(port->desc_tab = dma_pool_alloc(dma_pool, GFP_KERNEL,
 					      &port->desc_tab_phys)))
+=======
+	port->desc_tab = dma_pool_alloc(dma_pool, GFP_KERNEL,
+					&port->desc_tab_phys);
+	if (!port->desc_tab)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	memset(port->desc_tab, 0, POOL_ALLOC_SIZE);
 	memset(port->rx_buff_tab, 0, sizeof(port->rx_buff_tab)); /* tables */
@@ -1255,7 +1261,11 @@ static int hss_hdlc_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	if (cmd != SIOCWANDEV)
 		return hdlc_ioctl(dev, ifr, cmd);
 
+<<<<<<< HEAD
 	switch(ifr->ifr_settings.type) {
+=======
+	switch (ifr->ifr_settings.type) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case IF_GET_IFACE:
 		ifr->ifr_settings.type = IF_IFACE_V35;
 		if (ifr->ifr_settings.size < size) {

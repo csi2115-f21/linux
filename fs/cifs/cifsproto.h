@@ -256,6 +256,22 @@ extern void cifs_add_pending_open_locked(struct cifs_fid *fid,
 					 struct tcon_link *tlink,
 					 struct cifs_pending_open *open);
 extern void cifs_del_pending_open(struct cifs_pending_open *open);
+<<<<<<< HEAD
+=======
+
+extern bool cifs_is_deferred_close(struct cifsFileInfo *cfile,
+				struct cifs_deferred_close **dclose);
+
+extern void cifs_add_deferred_close(struct cifsFileInfo *cfile,
+				struct cifs_deferred_close *dclose);
+
+extern void cifs_del_deferred_close(struct cifsFileInfo *cfile);
+
+extern void cifs_close_deferred_file(struct cifsInodeInfo *cifs_inode);
+
+extern void cifs_close_all_deferred_files(struct cifs_tcon *cifs_tcon);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern struct TCP_Server_Info *cifs_get_tcp_session(struct smb3_fs_context *ctx);
 extern void cifs_put_tcp_session(struct TCP_Server_Info *server,
 				 int from_reconnect);
@@ -504,12 +520,15 @@ extern int generate_smb311signingkey(struct cifs_ses *);
 extern int calc_lanman_hash(const char *password, const char *cryptkey,
 				bool encrypt, char *lnm_session_key);
 #endif /* CIFS_WEAK_PW_HASH */
+<<<<<<< HEAD
 #ifdef CONFIG_CIFS_DNOTIFY_EXPERIMENTAL /* unused temporarily */
 extern int CIFSSMBNotify(const unsigned int xid, struct cifs_tcon *tcon,
 			const int notify_subdirs, const __u16 netfid,
 			__u32 filter, struct file *file, int multishot,
 			const struct nls_table *nls_codepage);
 #endif /* was needed for dnotify, and will be needed for inotify when VFS fix */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern int CIFSSMBCopy(unsigned int xid,
 			struct cifs_tcon *source_tcon,
 			const char *fromName,

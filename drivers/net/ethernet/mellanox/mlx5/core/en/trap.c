@@ -213,7 +213,11 @@ static int mlx5e_create_trap_direct_rq_tir(struct mlx5_core_dev *mdev, struct ml
 		return -ENOMEM;
 
 	tirc = MLX5_ADDR_OF(create_tir_in, in, ctx);
+<<<<<<< HEAD
 	MLX5_SET(tirc, tirc, transport_domain, mdev->mlx5e_res.td.tdn);
+=======
+	MLX5_SET(tirc, tirc, transport_domain, mdev->mlx5e_res.hw_objs.td.tdn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	MLX5_SET(tirc, tirc, rx_hash_fn, MLX5_RX_HASH_FN_NONE);
 	MLX5_SET(tirc, tirc, disp_type, MLX5_TIRC_DISP_TYPE_DIRECT);
 	MLX5_SET(tirc, tirc, inline_rqn, rqn);
@@ -228,6 +232,7 @@ static void mlx5e_destroy_trap_direct_rq_tir(struct mlx5_core_dev *mdev, struct 
 	mlx5e_destroy_tir(mdev, tir);
 }
 
+<<<<<<< HEAD
 static void mlx5e_activate_trap_rq(struct mlx5e_rq *rq)
 {
 	set_bit(MLX5E_RQ_STATE_ENABLED, &rq->state);
@@ -239,6 +244,11 @@ static void mlx5e_deactivate_trap_rq(struct mlx5e_rq *rq)
 }
 
 static void mlx5e_build_trap_params(struct mlx5e_priv *priv, struct mlx5e_trap *t)
+=======
+static void mlx5e_build_trap_params(struct mlx5_core_dev *mdev,
+				    int max_mtu, u16 q_counter,
+				    struct mlx5e_trap *t)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mlx5e_params *params = &t->params;
 

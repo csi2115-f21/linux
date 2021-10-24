@@ -2232,7 +2232,11 @@ int msm_dsi_host_set_src_pll(struct mipi_dsi_host *host,
 	struct clk *byte_clk_provider, *pixel_clk_provider;
 	int ret;
 
+<<<<<<< HEAD
 	ret = msm_dsi_pll_get_clk_provider(src_pll,
+=======
+	ret = msm_dsi_phy_get_clk_provider(src_phy,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				&byte_clk_provider, &pixel_clk_provider);
 	if (ret) {
 		pr_info("%s: can't get provider from pll, don't set parent\n",
@@ -2489,3 +2493,18 @@ struct drm_bridge *msm_dsi_host_get_bridge(struct mipi_dsi_host *host)
 
 	return of_drm_find_bridge(msm_host->device_node);
 }
+<<<<<<< HEAD
+=======
+
+void msm_dsi_host_snapshot(struct msm_disp_state *disp_state, struct mipi_dsi_host *host)
+{
+	struct msm_dsi_host *msm_host = to_msm_dsi_host(host);
+
+	pm_runtime_get_sync(&msm_host->pdev->dev);
+
+	msm_disp_snapshot_add_block(disp_state, msm_host->ctrl_size,
+			msm_host->ctrl_base, "dsi%d_ctrl", msm_host->id);
+
+	pm_runtime_put_sync(&msm_host->pdev->dev);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

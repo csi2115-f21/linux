@@ -97,6 +97,19 @@
 #define HZIP_RD_CNT_CLR_CE_EN		(HZIP_CNT_CLR_CE_EN | \
 					 HZIP_RO_CNT_CLR_CE_EN)
 
+<<<<<<< HEAD
+=======
+#define HZIP_PREFETCH_CFG		0x3011B0
+#define HZIP_SVA_TRANS			0x3011C4
+#define HZIP_PREFETCH_ENABLE		(~(BIT(26) | BIT(17) | BIT(0)))
+#define HZIP_SVA_PREFETCH_DISABLE	BIT(26)
+#define HZIP_SVA_DISABLE_READY		(BIT(26) | BIT(30))
+#define HZIP_SHAPER_RATE_COMPRESS	252
+#define HZIP_SHAPER_RATE_DECOMPRESS	229
+#define HZIP_DELAY_1_US		1
+#define HZIP_POLL_TIMEOUT_US	1000
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const char hisi_zip_name[] = "hisi_zip";
 static struct dentry *hzip_debugfs_root;
 
@@ -263,6 +276,48 @@ int zip_create_qps(struct hisi_qp **qps, int qp_num, int node)
 	return hisi_qm_alloc_qps_node(&zip_devices, qp_num, 0, node, qps);
 }
 
+<<<<<<< HEAD
+=======
+static void hisi_zip_open_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	/* Enable prefetch */
+	val = readl_relaxed(qm->io_base + HZIP_PREFETCH_CFG);
+	val &= HZIP_PREFETCH_ENABLE;
+	writel(val, qm->io_base + HZIP_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + HZIP_PREFETCH_CFG,
+					 val, !(val & HZIP_SVA_PREFETCH_DISABLE),
+					 HZIP_DELAY_1_US, HZIP_POLL_TIMEOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to open sva prefetch\n");
+}
+
+static void hisi_zip_close_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	val = readl_relaxed(qm->io_base + HZIP_PREFETCH_CFG);
+	val |= HZIP_SVA_PREFETCH_DISABLE;
+	writel(val, qm->io_base + HZIP_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + HZIP_SVA_TRANS,
+					 val, !(val & HZIP_SVA_DISABLE_READY),
+					 HZIP_DELAY_1_US, HZIP_POLL_TIMEOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to close sva prefetch\n");
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hisi_zip_set_user_domain_and_cache(struct hisi_qm *qm)
 {
 	void __iomem *base = qm->io_base;
@@ -363,6 +418,7 @@ static inline struct hisi_qm *file_to_qm(struct ctrl_debug_file *file)
 	return &hisi_zip->qm;
 }
 
+<<<<<<< HEAD
 static u32 current_qm_read(struct ctrl_debug_file *file)
 {
 	struct hisi_qm *qm = file_to_qm(file);
@@ -409,6 +465,12 @@ static u32 clear_enable_read(struct ctrl_debug_file *file)
 {
 	struct hisi_qm *qm = file_to_qm(file);
 
+=======
+static u32 clear_enable_read(struct ctrl_debug_file *file)
+{
+	struct hisi_qm *qm = file_to_qm(file);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return readl(qm->io_base + HZIP_SOFT_CTRL_CNT_CLR_CE) &
 		     HZIP_SOFT_CTRL_CNT_CLR_CE_BIT;
 }

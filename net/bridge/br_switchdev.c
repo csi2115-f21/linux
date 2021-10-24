@@ -126,8 +126,20 @@ br_switchdev_fdb_call_notifiers(bool adding, const unsigned char *mac,
 void
 br_switchdev_fdb_notify(const struct net_bridge_fdb_entry *fdb, int type)
 {
+<<<<<<< HEAD
 	if (!fdb->dst)
 		return;
+=======
+	const struct net_bridge_port *dst = READ_ONCE(fdb->dst);
+	struct net_device *dev = dst ? dst->dev : br->dev;
+	struct switchdev_notifier_fdb_info info = {
+		.addr = fdb->key.addr.addr,
+		.vid = fdb->key.vlan_id,
+		.added_by_user = test_bit(BR_FDB_ADDED_BY_USER, &fdb->flags),
+		.is_local = test_bit(BR_FDB_LOCAL, &fdb->flags),
+		.offloaded = test_bit(BR_FDB_OFFLOADED, &fdb->flags),
+	};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	switch (type) {
 	case RTM_DELNEIGH:

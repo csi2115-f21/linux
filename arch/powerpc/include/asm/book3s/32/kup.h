@@ -40,6 +40,7 @@
 
 #ifdef CONFIG_PPC_KUAP
 
+<<<<<<< HEAD
 .macro kuap_update_sr	gpr1, gpr2, gpr3	/* NEVER use r0 as gpr2 due to addis */
 101:	mtsrin	\gpr1, \gpr2
 	addi	\gpr1, \gpr1, 0x111		/* next VSID */
@@ -81,10 +82,19 @@
 	EMIT_BUG_ENTRY 999b, __FILE__, __LINE__, (BUGFLAG_WARNING | BUGFLAG_ONCE)
 #endif
 .endm
+=======
+	update_user_segments(mfsr(0) | SR_NX);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* CONFIG_PPC_KUAP */
 
+<<<<<<< HEAD
 #else /* !__ASSEMBLY__ */
+=======
+	update_user_segments(mfsr(0) & ~SR_NX);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_PPC_KUAP
 
@@ -114,12 +124,28 @@ static __always_inline void allow_user_access(void __user *to, const void __user
 	if (!(dir & KUAP_WRITE))
 		return;
 
+<<<<<<< HEAD
 	addr = (__force u32)to;
 
 	if (unlikely(addr >= TASK_SIZE || !size))
 		return;
 
 	end = min(addr + size, TASK_SIZE);
+=======
+	current->thread.kuap = regs->kuap;
+
+	kuap_unlock(regs->kuap, false);
+}
+
+static inline unsigned long kuap_get_and_assert_locked(void)
+{
+	unsigned long kuap = current->thread.kuap;
+
+	if (kuap_is_disabled())
+		return KUAP_NONE;
+
+	WARN_ON_ONCE(IS_ENABLED(CONFIG_PPC_KUAP_DEBUG) && kuap != KUAP_NONE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	current->thread.kuap = (addr & 0xf0000000) | ((((end - 1) >> 28) + 1) & 0xf);
 	kuap_update_sr(mfsr(addr) & ~SR_KS, addr, end);	/* Clear Ks */

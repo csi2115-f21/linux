@@ -20,6 +20,10 @@
 #include <linux/osq_lock.h>
 #include <linux/debug_locks.h>
 
+<<<<<<< HEAD
+=======
+struct ww_class;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct ww_acquire_ctx;
 
 /*
@@ -65,9 +69,12 @@ struct mutex {
 #endif
 };
 
+<<<<<<< HEAD
 struct ww_class;
 struct ww_acquire_ctx;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct ww_mutex {
 	struct mutex base;
 	struct ww_acquire_ctx *ctx;

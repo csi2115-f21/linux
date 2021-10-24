@@ -45,7 +45,10 @@ enum ANDROID_WIFI_CMD {
 	ANDROID_WIFI_CMD_MAX
 };
 
+<<<<<<< HEAD
 int rtw_android_cmdstr_to_num(char *cmdstr);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd);
 
 #endif /* __RTW_ANDROID_H__ */

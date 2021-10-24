@@ -838,10 +838,17 @@ static struct attribute *i8k_attrs[] = {
 static umode_t i8k_is_visible(struct kobject *kobj, struct attribute *attr,
 			      int index)
 {
+<<<<<<< HEAD
 	if (disallow_fan_support && index >= 8)
 		return 0;
 	if (disallow_fan_type_call &&
 	    (index == 9 || index == 12 || index == 15))
+=======
+	if (disallow_fan_support && index >= 20)
+		return 0;
+	if (disallow_fan_type_call &&
+	    (index == 21 || index == 25 || index == 28))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0;
 	if (index >= 0 && index <= 1 &&
 	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_TEMP1))
@@ -873,6 +880,7 @@ static umode_t i8k_is_visible(struct kobject *kobj, struct attribute *attr,
 	if (index >= 18 && index <= 19 &&
 	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_TEMP10))
 		return 0;
+<<<<<<< HEAD
 
 	if (index >= 20 && index <= 23 &&
 	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN1))
@@ -900,6 +908,35 @@ static int __init i8k_init_hwmon(void)
 {
 	int err;
 
+=======
+
+	if (index >= 20 && index <= 23 &&
+	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN1))
+		return 0;
+	if (index >= 24 && index <= 26 &&
+	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN2))
+		return 0;
+	if (index >= 27 && index <= 29 &&
+	    !(i8k_hwmon_flags & I8K_HWMON_HAVE_FAN3))
+		return 0;
+
+	if (index == 23 && !auto_fan)
+		return 0;
+
+	return attr->mode;
+}
+
+static const struct attribute_group i8k_group = {
+	.attrs = i8k_attrs,
+	.is_visible = i8k_is_visible,
+};
+__ATTRIBUTE_GROUPS(i8k);
+
+static int __init i8k_init_hwmon(void)
+{
+	int err;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	i8k_hwmon_flags = 0;
 
 	/* CPU temperature attributes, if temperature type is OK */
@@ -1188,6 +1225,11 @@ static const struct i8k_fan_control_data i8k_fan_control_data[] = {
 static struct dmi_system_id i8k_whitelist_fan_control[] __initdata = {
 	{
 		.ident = "Dell Precision 5530",
+<<<<<<< HEAD
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Precision 5530"),
+=======
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
 			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Precision 5530"),
@@ -1199,14 +1241,37 @@ static struct dmi_system_id i8k_whitelist_fan_control[] __initdata = {
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
 			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Latitude 5480"),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		},
 		.driver_data = (void *)&i8k_fan_control_data[I8K_FAN_34A3_35A3],
 	},
 	{
+<<<<<<< HEAD
+		.ident = "Dell Latitude 5480",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Latitude 5480"),
+=======
 		.ident = "Dell Latitude E6440",
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
 			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Latitude E6440"),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+		},
+		.driver_data = (void *)&i8k_fan_control_data[I8K_FAN_34A3_35A3],
+	},
+	{
+<<<<<<< HEAD
+		.ident = "Dell Latitude E6440",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Latitude E6440"),
+=======
+		.ident = "Dell Latitude E7440",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Latitude E7440"),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		},
 		.driver_data = (void *)&i8k_fan_control_data[I8K_FAN_34A3_35A3],
 	},

@@ -222,12 +222,18 @@ static void nbd_dev_remove(struct nbd_device *nbd)
 	struct request_queue *q;
 
 	if (disk) {
+<<<<<<< HEAD
 		q = disk->queue;
 		del_gendisk(disk);
 		blk_cleanup_queue(q);
 		blk_mq_free_tag_set(&nbd->tag_set);
 		disk->private_data = NULL;
 		put_disk(disk);
+=======
+		del_gendisk(disk);
+		blk_cleanup_disk(disk);
+		blk_mq_free_tag_set(&nbd->tag_set);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/*
@@ -1653,8 +1659,24 @@ static int nbd_dev_add(int index)
 	if (!nbd)
 		goto out;
 
+<<<<<<< HEAD
 	disk = alloc_disk(1 << part_shift);
 	if (!disk)
+=======
+	nbd->tag_set.ops = &nbd_mq_ops;
+	nbd->tag_set.nr_hw_queues = 1;
+	nbd->tag_set.queue_depth = 128;
+	nbd->tag_set.numa_node = NUMA_NO_NODE;
+	nbd->tag_set.cmd_size = sizeof(struct nbd_cmd);
+	nbd->tag_set.flags = BLK_MQ_F_SHOULD_MERGE |
+		BLK_MQ_F_BLOCKING;
+	nbd->tag_set.driver_data = nbd;
+	nbd->destroy_complete = NULL;
+	nbd->backend = NULL;
+
+	err = blk_mq_alloc_tag_set(&nbd->tag_set);
+	if (err)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out_free_nbd;
 
 	if (index >= 0) {
@@ -1668,6 +1690,7 @@ static int nbd_dev_add(int index)
 			index = err;
 	}
 	if (err < 0)
+<<<<<<< HEAD
 		goto out_free_disk;
 
 	nbd->index = index;
@@ -1681,6 +1704,10 @@ static int nbd_dev_add(int index)
 		BLK_MQ_F_BLOCKING;
 	nbd->tag_set.driver_data = nbd;
 	nbd->destroy_complete = NULL;
+=======
+		goto out_free_tags;
+	nbd->index = index;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	err = blk_mq_alloc_tag_set(&nbd->tag_set);
 	if (err)
@@ -1712,6 +1739,10 @@ static int nbd_dev_add(int index)
 	INIT_LIST_HEAD(&nbd->list);
 	disk->major = NBD_MAJOR;
 	disk->first_minor = index << part_shift;
+<<<<<<< HEAD
+=======
+	disk->minors = 1 << part_shift;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	disk->fops = &nbd_fops;
 	disk->private_data = nbd;
 	sprintf(disk->disk_name, "nbd%d", index);
@@ -1719,6 +1750,11 @@ static int nbd_dev_add(int index)
 	nbd_total_devices++;
 	return index;
 
+<<<<<<< HEAD
+=======
+out_free_idr:
+	idr_remove(&nbd_index_idr, index);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_free_tags:
 	blk_mq_free_tag_set(&nbd->tag_set);
 out_free_idr:
@@ -1849,7 +1885,20 @@ again:
 		/* Wait untill the the nbd stuff is totally destroyed */
 		wait_for_completion(&destroy_complete);
 		goto again;
+<<<<<<< HEAD
+=======
 	}
+
+	if (!refcount_inc_not_zero(&nbd->refs)) {
+		mutex_unlock(&nbd_index_mutex);
+		if (index == -1)
+			goto again;
+		printk(KERN_ERR "nbd: device at index %d is going down\n",
+		       index);
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+	mutex_unlock(&nbd_index_mutex);
 
 	if (!refcount_inc_not_zero(&nbd->refs)) {
 		mutex_unlock(&nbd_index_mutex);
@@ -1980,7 +2029,12 @@ static void nbd_disconnect_and_put(struct nbd_device *nbd)
 	 * config ref and try to destroy the workqueue from inside the work
 	 * queue.
 	 */
+<<<<<<< HEAD
 	flush_workqueue(nbd->recv_workq);
+=======
+	if (nbd->recv_workq)
+		flush_workqueue(nbd->recv_workq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (test_and_clear_bit(NBD_RT_HAS_CONFIG_REF,
 			       &nbd->config->runtime_flags))
 		nbd_config_put(nbd);

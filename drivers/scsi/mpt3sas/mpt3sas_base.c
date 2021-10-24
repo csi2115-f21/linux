@@ -5176,12 +5176,33 @@ _base_static_config_pages(struct MPT3SAS_ADAPTER *ioc)
 			ioc_warn(ioc,
 			    "TimeSync Interval in Manuf page-11 is not enabled. Periodic Time-Sync will be disabled\n");
 	}
+<<<<<<< HEAD
 	mpt3sas_config_get_bios_pg2(ioc, &mpi_reply, &ioc->bios_pg2);
 	mpt3sas_config_get_bios_pg3(ioc, &mpi_reply, &ioc->bios_pg3);
 	mpt3sas_config_get_ioc_pg8(ioc, &mpi_reply, &ioc->ioc_pg8);
 	mpt3sas_config_get_iounit_pg0(ioc, &mpi_reply, &ioc->iounit_pg0);
 	mpt3sas_config_get_iounit_pg1(ioc, &mpi_reply, &ioc->iounit_pg1);
 	mpt3sas_config_get_iounit_pg8(ioc, &mpi_reply, &ioc->iounit_pg8);
+=======
+	rc = mpt3sas_config_get_bios_pg2(ioc, &mpi_reply, &ioc->bios_pg2);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_bios_pg3(ioc, &mpi_reply, &ioc->bios_pg3);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_ioc_pg8(ioc, &mpi_reply, &ioc->ioc_pg8);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg0(ioc, &mpi_reply, &ioc->iounit_pg0);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg1(ioc, &mpi_reply, &ioc->iounit_pg1);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg8(ioc, &mpi_reply, &ioc->iounit_pg8);
+	if (rc)
+		return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	_base_display_ioc_capabilities(ioc);
 
 	/*
@@ -7589,7 +7610,14 @@ _base_make_ioc_operational(struct MPT3SAS_ADAPTER *ioc)
 			return r;
 	}
 
+<<<<<<< HEAD
 	_base_static_config_pages(ioc);
+=======
+	rc = _base_static_config_pages(ioc);
+	if (r)
+		return r;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	r = _base_event_notification(ioc);
 	if (r)
 		return r;
@@ -8200,7 +8228,11 @@ mpt3sas_base_hard_reset_handler(struct MPT3SAS_ADAPTER *ioc,
 	_base_pre_reset_handler(ioc);
 	mpt3sas_wait_for_commands_to_complete(ioc);
 	mpt3sas_base_mask_interrupts(ioc);
+<<<<<<< HEAD
 	r = _base_make_ioc_ready(ioc, type);
+=======
+	r = mpt3sas_base_make_ioc_ready(ioc, type);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (r)
 		goto out;
 	_base_clear_outstanding_commands(ioc);

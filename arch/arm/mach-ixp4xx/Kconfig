@@ -20,7 +20,11 @@ config MACH_IXP4XX_OF
 config MACH_NSLU2
 	bool
 	prompt "Linksys NSLU2"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Linksys's
 	  NSLU2 NAS device. For more information on this platform,
@@ -28,7 +32,11 @@ config MACH_NSLU2
 
 config MACH_AVILA
 	bool "Avila"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support the Gateworks
 	  Avila Network Platform. For more information on this platform,
@@ -44,7 +52,11 @@ config MACH_LOFT
 
 config ARCH_ADI_COYOTE
 	bool "Coyote"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support the ADI 
 	  Engineering Coyote Gateway Reference Platform. For more
@@ -60,7 +72,11 @@ config MACH_GATEWAY7001
 
 config MACH_WG302V2
 	bool "Netgear WG302 v2 / WAG302 v2"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Netgear's
 	  WG302 v2 or WAG302 v2 Access Points. For more information
@@ -68,6 +84,10 @@ config MACH_WG302V2
 
 config ARCH_IXDP425
 	bool "IXDP425"
+<<<<<<< HEAD
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Intel's 
 	  IXDP425 Development Platform (Also known as Richfield).  
@@ -75,6 +95,10 @@ config ARCH_IXDP425
 
 config MACH_IXDPG425
 	bool "IXDPG425"
+<<<<<<< HEAD
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Intel's
 	  IXDPG425 Development Platform (Also known as Montajade).
@@ -120,7 +144,11 @@ config ARCH_PRPMC1100
 config MACH_NAS100D
 	bool
 	prompt "NAS100D"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Iomega's
 	  NAS 100d device. For more information on this platform,
@@ -129,7 +157,11 @@ config MACH_NAS100D
 config MACH_DSMG600
 	bool
 	prompt "D-Link DSM-G600 RevA"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support D-Link's
 	  DSM-G600 RevA device. For more information on this platform,
@@ -143,7 +175,11 @@ config	ARCH_IXDP4XX
 config MACH_FSG
 	bool
 	prompt "Freecom FSG-3"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Freecom's
 	  FSG-3 device. For more information on this platform,
@@ -152,7 +188,11 @@ config MACH_FSG
 config MACH_ARCOM_VULCAN
 	bool
 	prompt "Arcom/Eurotech Vulcan"
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  Say 'Y' here if you want your kernel to support Arcom's
 	  Vulcan board.
@@ -173,7 +213,11 @@ config CPU_IXP43X
 config MACH_GTWX5715
 	bool "Gemtek WX5715 (Linksys WRV54G)"
 	depends on ARCH_IXP4XX
+<<<<<<< HEAD
 	select FORCE_PCI
+=======
+	depends on IXP4XX_PCI_LEGACY
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 		This board is currently inside the Linksys WRV54G Gateways.
 
@@ -193,6 +237,24 @@ config MACH_DEVIXP
 	help
 	  Say 'Y' here if you want your kernel to support the DEVIXP
 	  board from OMICRON electronics GmbH.
+<<<<<<< HEAD
+=======
+
+config MACH_MICCPT
+	bool "Omicron MICCPT"
+	depends on IXP4XX_PCI_LEGACY
+	help
+	  Say 'Y' here if you want your kernel to support the MICCPT
+	  board from OMICRON electronics GmbH.
+
+config MACH_MIC256
+	bool "Omicron MIC256"
+	help
+	  Say 'Y' here if you want your kernel to support the MIC256
+	  board from OMICRON electronics GmbH.
+
+comment "IXP4xx Options"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 config MACH_MICCPT
 	bool "Omicron MICCPT"

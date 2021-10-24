@@ -526,6 +526,108 @@ static int vangogh_print_fine_grain_clk(struct smu_context *smu,
 			if (!value)
 				continue;
 			size += sprintf(buf + size, "%d: %uMhz %s\n", i, value,
+<<<<<<< HEAD
+=======
+					cur_value == value ? "*" : "");
+			if (cur_value == value)
+				cur_value_match_level = true;
+		}
+
+		if (!cur_value_match_level)
+			size += sprintf(buf + size, "   %uMhz *\n", cur_value);
+		break;
+	default:
+		break;
+	}
+
+	return size;
+}
+
+static int vangogh_print_clk_levels(struct smu_context *smu,
+			enum smu_clk_type clk_type, char *buf)
+{
+	DpmClocks_t *clk_table = smu->smu_table.clocks_table;
+	SmuMetrics_t metrics;
+	struct smu_dpm_context *smu_dpm_ctx = &(smu->smu_dpm);
+	int i, size = 0, ret = 0;
+	uint32_t cur_value = 0, value = 0, count = 0;
+	bool cur_value_match_level = false;
+
+	memset(&metrics, 0, sizeof(metrics));
+
+	ret = smu_cmn_get_metrics_table(smu, &metrics, false);
+	if (ret)
+		return ret;
+
+	switch (clk_type) {
+	case SMU_OD_SCLK:
+		if (smu_dpm_ctx->dpm_level == AMD_DPM_FORCED_LEVEL_MANUAL) {
+			size = sprintf(buf, "%s:\n", "OD_SCLK");
+			size += sprintf(buf + size, "0: %10uMhz\n",
+			(smu->gfx_actual_hard_min_freq > 0) ? smu->gfx_actual_hard_min_freq : smu->gfx_default_hard_min_freq);
+			size += sprintf(buf + size, "1: %10uMhz\n",
+			(smu->gfx_actual_soft_max_freq > 0) ? smu->gfx_actual_soft_max_freq : smu->gfx_default_soft_max_freq);
+		}
+		break;
+	case SMU_OD_CCLK:
+		if (smu_dpm_ctx->dpm_level == AMD_DPM_FORCED_LEVEL_MANUAL) {
+			size = sprintf(buf, "CCLK_RANGE in Core%d:\n",  smu->cpu_core_id_select);
+			size += sprintf(buf + size, "0: %10uMhz\n",
+			(smu->cpu_actual_soft_min_freq > 0) ? smu->cpu_actual_soft_min_freq : smu->cpu_default_soft_min_freq);
+			size += sprintf(buf + size, "1: %10uMhz\n",
+			(smu->cpu_actual_soft_max_freq > 0) ? smu->cpu_actual_soft_max_freq : smu->cpu_default_soft_max_freq);
+		}
+		break;
+	case SMU_OD_RANGE:
+		if (smu_dpm_ctx->dpm_level == AMD_DPM_FORCED_LEVEL_MANUAL) {
+			size = sprintf(buf, "%s:\n", "OD_RANGE");
+			size += sprintf(buf + size, "SCLK: %7uMhz %10uMhz\n",
+				smu->gfx_default_hard_min_freq, smu->gfx_default_soft_max_freq);
+			size += sprintf(buf + size, "CCLK: %7uMhz %10uMhz\n",
+				smu->cpu_default_soft_min_freq, smu->cpu_default_soft_max_freq);
+		}
+		break;
+	case SMU_SOCCLK:
+		/* the level 3 ~ 6 of socclk use the same frequency for vangogh */
+		count = clk_table->NumSocClkLevelsEnabled;
+		cur_value = metrics.Current.SocclkFrequency;
+		break;
+	case SMU_VCLK:
+		count = clk_table->VcnClkLevelsEnabled;
+		cur_value = metrics.Current.VclkFrequency;
+		break;
+	case SMU_DCLK:
+		count = clk_table->VcnClkLevelsEnabled;
+		cur_value = metrics.Current.DclkFrequency;
+		break;
+	case SMU_MCLK:
+		count = clk_table->NumDfPstatesEnabled;
+		cur_value = metrics.Current.MemclkFrequency;
+		break;
+	case SMU_FCLK:
+		count = clk_table->NumDfPstatesEnabled;
+		ret = smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_GetFclkFrequency, 0, &cur_value);
+		if (ret)
+			return ret;
+		break;
+	default:
+		break;
+	}
+
+	switch (clk_type) {
+	case SMU_SOCCLK:
+	case SMU_VCLK:
+	case SMU_DCLK:
+	case SMU_MCLK:
+	case SMU_FCLK:
+		for (i = 0; i < count; i++) {
+			ret = vangogh_get_dpm_clk_limited(smu, clk_type, i, &value);
+			if (ret)
+				return ret;
+			if (!value)
+				continue;
+			size += sprintf(buf + size, "%d: %uMhz %s\n", i, value,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					cur_value == value ? "*" : "");
 			if (cur_value == value)
 				cur_value_match_level = true;

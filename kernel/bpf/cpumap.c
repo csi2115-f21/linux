@@ -253,10 +253,17 @@ static int cpu_map_kthread_run(void *data)
 	while (!kthread_should_stop() || !__ptr_ring_empty(rcpu->queue)) {
 		struct xdp_cpumap_stats stats = {}; /* zero stats */
 		gfp_t gfp = __GFP_ZERO | GFP_ATOMIC;
+<<<<<<< HEAD
 		unsigned int drops = 0, sched = 0;
 		void *frames[CPUMAP_BATCH];
 		void *skbs[CPUMAP_BATCH];
 		int i, n, m, nframes;
+=======
+		void *frames[CPUMAP_BATCH];
+		void *skbs[CPUMAP_BATCH];
+		int i, n, m, nframes;
+		LIST_HEAD(list);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* Release CPU reschedule checks */
 		if (__ptr_ring_empty(rcpu->queue)) {

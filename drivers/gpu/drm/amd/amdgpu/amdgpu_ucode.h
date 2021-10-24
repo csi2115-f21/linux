@@ -71,40 +71,70 @@ struct smc_firmware_header_v2_1 {
         uint32_t pptable_entry_offset;
 };
 
+<<<<<<< HEAD
 /* version_major=1, version_minor=0 */
 struct psp_firmware_header_v1_0 {
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t sos_offset_bytes;
 	uint32_t sos_size_bytes;
+=======
+struct psp_fw_bin_desc {
+	uint32_t fw_version;
+	uint32_t offset_bytes;
+	uint32_t size_bytes;
+};
+
+/* version_major=1, version_minor=0 */
+struct psp_firmware_header_v1_0 {
+	struct common_firmware_header header;
+	struct psp_fw_bin_desc sos;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* version_major=1, version_minor=1 */
 struct psp_firmware_header_v1_1 {
 	struct psp_firmware_header_v1_0 v1_0;
+<<<<<<< HEAD
 	uint32_t toc_header_version;
 	uint32_t toc_offset_bytes;
 	uint32_t toc_size_bytes;
 	uint32_t kdb_header_version;
 	uint32_t kdb_offset_bytes;
 	uint32_t kdb_size_bytes;
+=======
+	struct psp_fw_bin_desc toc;
+	struct psp_fw_bin_desc kdb;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* version_major=1, version_minor=2 */
 struct psp_firmware_header_v1_2 {
 	struct psp_firmware_header_v1_0 v1_0;
+<<<<<<< HEAD
 	uint32_t reserve[3];
 	uint32_t kdb_header_version;
 	uint32_t kdb_offset_bytes;
 	uint32_t kdb_size_bytes;
+=======
+	struct psp_fw_bin_desc res;
+	struct psp_fw_bin_desc kdb;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* version_major=1, version_minor=3 */
 struct psp_firmware_header_v1_3 {
 	struct psp_firmware_header_v1_1 v1_1;
+<<<<<<< HEAD
 	uint32_t spl_header_version;
 	uint32_t spl_offset_bytes;
 	uint32_t spl_size_bytes;
+=======
+	struct psp_fw_bin_desc spl;
+	struct psp_fw_bin_desc rl;
+	struct psp_fw_bin_desc sys_drv_aux;
+	struct psp_fw_bin_desc sos_aux;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* version_major=1, version_minor=0 */
@@ -136,6 +166,13 @@ enum ta_fw_type {
 	TA_FW_TYPE_PSP_DTM,
 	TA_FW_TYPE_PSP_RAP,
 	TA_FW_TYPE_PSP_SECUREDISPLAY,
+};
+
+struct ta_fw_bin_desc {
+	uint32_t fw_type;
+	uint32_t fw_version;
+	uint32_t offset_bytes;
+	uint32_t size_bytes;
 };
 
 struct ta_fw_bin_desc {

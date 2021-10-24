@@ -313,6 +313,28 @@ int amdgpu_irq_init(struct amdgpu_device *adev)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+
+void amdgpu_irq_fini_hw(struct amdgpu_device *adev)
+{
+	if (adev->irq.installed) {
+		drm_irq_uninstall(&adev->ddev);
+		adev->irq.installed = false;
+		if (adev->irq.msi_enabled)
+			pci_free_irq_vectors(adev->pdev);
+
+		if (!amdgpu_device_has_dc_support(adev))
+			flush_work(&adev->hotplug_work);
+	}
+
+	amdgpu_ih_ring_fini(adev, &adev->irq.ih_soft);
+	amdgpu_ih_ring_fini(adev, &adev->irq.ih);
+	amdgpu_ih_ring_fini(adev, &adev->irq.ih1);
+	amdgpu_ih_ring_fini(adev, &adev->irq.ih2);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * amdgpu_irq_fini - shut down interrupt handling
  *
@@ -528,6 +550,12 @@ void amdgpu_irq_gpu_reset_resume_helper(struct amdgpu_device *adev)
 {
 	int i, j, k;
 
+<<<<<<< HEAD
+=======
+	if (amdgpu_sriov_vf(adev))
+		amdgpu_restore_msix(adev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0; i < AMDGPU_IRQ_CLIENTID_MAX; ++i) {
 		if (!adev->irq.client[i].sources)
 			continue;

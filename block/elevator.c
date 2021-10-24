@@ -621,7 +621,12 @@ static inline bool elv_support_iosched(struct request_queue *q)
  */
 static struct elevator_type *elevator_get_default(struct request_queue *q)
 {
+<<<<<<< HEAD
 	if (q->nr_hw_queues != 1)
+=======
+	if (q->nr_hw_queues != 1 &&
+			!blk_mq_is_sbitmap_shared(q->tag_set->flags))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return NULL;
 
 	return elevator_get(q, "mq-deadline", false);
@@ -692,6 +697,7 @@ void elevator_init_mq(struct request_queue *q)
 		elevator_put(e);
 	}
 }
+EXPORT_SYMBOL_GPL(elevator_init_mq); /* only for dm-rq */
 
 
 /*

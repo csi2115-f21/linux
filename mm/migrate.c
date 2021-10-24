@@ -1125,7 +1125,11 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
 		/* Establish migration ptes */
 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
 				page);
+<<<<<<< HEAD
 		try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK);
+=======
+		try_to_migrate(page, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		page_was_mapped = 1;
 	}
 
@@ -2153,9 +2157,14 @@ int migrate_misplaced_page(struct page *page, struct vm_area_struct *vma,
 		goto out;
 
 	list_add(&page->lru, &migratepages);
+<<<<<<< HEAD
 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_page,
 				     NULL, node, MIGRATE_ASYNC,
 				     MR_NUMA_MISPLACED);
+=======
+	nr_remaining = migrate_pages(&migratepages, *new, NULL, node,
+				     MIGRATE_ASYNC, MR_NUMA_MISPLACED);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (nr_remaining) {
 		if (!list_empty(&migratepages)) {
 			list_del(&page->lru);

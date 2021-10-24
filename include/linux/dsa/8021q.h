@@ -37,6 +37,7 @@ struct dsa_8021q_context {
 
 #define DSA_8021Q_N_SUBVLAN			8
 
+<<<<<<< HEAD
 #if IS_ENABLED(CONFIG_NET_DSA_TAG_8021Q)
 
 int dsa_8021q_setup(struct dsa_8021q_context *ctx, bool enabled);
@@ -51,6 +52,23 @@ int dsa_8021q_crosschip_bridge_leave(struct dsa_8021q_context *ctx, int port,
 
 struct sk_buff *dsa_8021q_xmit(struct sk_buff *skb, struct net_device *netdev,
 			       u16 tpid, u16 tci);
+=======
+int dsa_8021q_setup(struct dsa_8021q_context *ctx, bool enabled);
+
+int dsa_8021q_crosschip_bridge_join(struct dsa_8021q_context *ctx, int port,
+				    struct dsa_8021q_context *other_ctx,
+				    int other_port);
+
+int dsa_8021q_crosschip_bridge_leave(struct dsa_8021q_context *ctx, int port,
+				     struct dsa_8021q_context *other_ctx,
+				     int other_port);
+
+struct sk_buff *dsa_8021q_xmit(struct sk_buff *skb, struct net_device *netdev,
+			       u16 tpid, u16 tci);
+
+void dsa_8021q_rcv(struct sk_buff *skb, int *source_port, int *switch_id,
+		   int *subvlan);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 u16 dsa_8021q_tx_vid(struct dsa_switch *ds, int port);
 

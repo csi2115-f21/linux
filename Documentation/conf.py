@@ -340,11 +340,15 @@ latex_elements = {
 # Latex figure (float) alignment
 #'figure_align': 'htbp',
 
+<<<<<<< HEAD
 # Don't mangle with UTF-8 chars
 'inputenc': '',
 'utf8extra': '',
 
 # Additional stuff for the LaTeX preamble.
+=======
+    # Additional stuff for the LaTeX preamble.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
     'preamble': '''
 	% Use some font with UTF-8 support with XeLaTeX
         \\usepackage{fontspec}
@@ -359,11 +363,30 @@ latex_elements = {
 
 cjk_cmd = check_output(['fc-list', '--format="%{family[0]}\n"']).decode('utf-8', 'ignore')
 if cjk_cmd.find("Noto Sans CJK SC") >= 0:
+<<<<<<< HEAD
     print ("enabling CJK for LaTeX builder")
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
     latex_elements['preamble']  += '''
 	% This is needed for translations
         \\usepackage{xeCJK}
         \\setCJKmainfont{Noto Sans CJK SC}
+<<<<<<< HEAD
+=======
+	% Define custom macros to on/off CJK
+	\\newcommand{\\kerneldocCJKon}{\\makexeCJKactive}
+	\\newcommand{\\kerneldocCJKoff}{\\makexeCJKinactive}
+	% To customize \sphinxtableofcontents
+	\\usepackage{etoolbox}
+	% Inactivate CJK after tableofcontents
+	\\apptocmd{\\sphinxtableofcontents}{\\kerneldocCJKoff}{}{}
+     '''
+else:
+    latex_elements['preamble']  += '''
+	% Custom macros to on/off CJK (Dummy)
+	\\newcommand{\\kerneldocCJKon}{}
+	\\newcommand{\\kerneldocCJKoff}{}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
      '''
 
 # Fix reference escape troubles with Sphinx 1.4.x

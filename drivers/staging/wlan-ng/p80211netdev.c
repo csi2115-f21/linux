@@ -579,7 +579,11 @@ static int p80211knetdev_do_ioctl(struct net_device *dev,
 
 	if (result == 0) {
 		if (copy_to_user
+<<<<<<< HEAD
 		    ((void __user *)req->data, msgbuf, req->len)) {
+=======
+		    (req->data, msgbuf, req->len)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			result = -EFAULT;
 		}
 	}

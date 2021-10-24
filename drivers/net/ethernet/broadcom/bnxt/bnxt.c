@@ -399,7 +399,29 @@ static netdev_tx_t bnxt_start_xmit(struct sk_buff *skb, struct net_device *dev)
 			vlan_tag_flags |= 1 << TX_BD_CFA_META_TPID_SHIFT;
 	}
 
+<<<<<<< HEAD
 	if (free_size == bp->tx_ring_size && length <= bp->tx_push_thresh) {
+=======
+	if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP)) {
+		struct bnxt_ptp_cfg *ptp = bp->ptp_cfg;
+
+		if (ptp && ptp->tx_tstamp_en && !skb_is_gso(skb) &&
+		    atomic_dec_if_positive(&ptp->tx_avail) >= 0) {
+			if (!bnxt_ptp_parse(skb, &ptp->tx_seqid)) {
+				lflags |= cpu_to_le32(TX_BD_FLAGS_STAMP);
+				skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
+			} else {
+				atomic_inc(&bp->ptp_cfg->tx_avail);
+			}
+		}
+	}
+
+	if (unlikely(skb->no_fcs))
+		lflags |= cpu_to_le32(TX_BD_FLAGS_NO_CRC);
+
+	if (free_size == bp->tx_ring_size && length <= bp->tx_push_thresh &&
+	    !lflags) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		struct tx_push_buffer *tx_push_buf = txr->tx_push;
 		struct tx_push_bd *tx_push = &tx_push_buf->push_bd;
 		struct tx_bd_ext *tx_push1 = &tx_push->txbd2;
@@ -580,9 +602,15 @@ tx_done:
 	if (unlikely(bnxt_tx_avail(bp, txr) <= MAX_SKB_FRAGS + 1)) {
 		if (netdev_xmit_more() && !tx_buf->is_push)
 			bnxt_db_write(bp, &txr->tx_db, prod);
+<<<<<<< HEAD
 
 		netif_tx_stop_queue(txq);
 
+=======
+
+		netif_tx_stop_queue(txq);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* netif_tx_stop_queue() must be done before checking
 		 * tx index in bnxt_tx_avail() below, because in
 		 * bnxt_tx_int(), we update tx index before checking for
@@ -654,6 +682,17 @@ static void bnxt_tx_int(struct bnxt *bp, struct bnxt_napi *bnapi, int nr_pkts)
 				dma_unmap_addr(tx_buf, mapping),
 				skb_frag_size(&skb_shinfo(skb)->frags[j]),
 				PCI_DMA_TODEVICE);
+<<<<<<< HEAD
+=======
+		}
+		if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS)) {
+			if (bp->flags & BNXT_FLAG_CHIP_P5) {
+				if (!bnxt_get_tx_ts_p5(bp, skb))
+					compl_deferred = true;
+				else
+					atomic_inc(&bp->ptp_cfg->tx_avail);
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 next_tx_int:
@@ -4470,7 +4509,11 @@ static int bnxt_hwrm_do_send_msg(struct bnxt *bp, void *msg, u32 msg_len,
 	writel(1, bp->bar0 + doorbell_offset);
 
 	if (!pci_is_enabled(bp->pdev))
+<<<<<<< HEAD
 		return 0;
+=======
+		return -ENODEV;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!timeout)
 		timeout = DFLT_HWRM_CMD_TIMEOUT;
@@ -4500,12 +4543,24 @@ static int bnxt_hwrm_do_send_msg(struct bnxt *bp, void *msg, u32 msg_len,
 			if (test_bit(BNXT_STATE_FW_FATAL_COND, &bp->state))
 				return -EBUSY;
 			/* on first few passes, just barely sleep */
+<<<<<<< HEAD
 			if (i < HWRM_SHORT_TIMEOUT_COUNTER)
 				usleep_range(HWRM_SHORT_MIN_TIMEOUT,
 					     HWRM_SHORT_MAX_TIMEOUT);
 			else
 				usleep_range(HWRM_MIN_TIMEOUT,
 					     HWRM_MAX_TIMEOUT);
+=======
+			if (i < HWRM_SHORT_TIMEOUT_COUNTER) {
+				usleep_range(HWRM_SHORT_MIN_TIMEOUT,
+					     HWRM_SHORT_MAX_TIMEOUT);
+			} else {
+				if (HWRM_WAIT_MUST_ABORT(bp, req))
+					break;
+				usleep_range(HWRM_MIN_TIMEOUT,
+					     HWRM_MAX_TIMEOUT);
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		if (bp->hwrm_intr_seq_id != (u16)~seq_id) {
@@ -4530,6 +4585,7 @@ static int bnxt_hwrm_do_send_msg(struct bnxt *bp, void *msg, u32 msg_len,
 			if (len)
 				break;
 			/* on first few passes, just barely sleep */
+<<<<<<< HEAD
 			if (i < HWRM_SHORT_TIMEOUT_COUNTER)
 				usleep_range(HWRM_SHORT_MIN_TIMEOUT,
 					     HWRM_SHORT_MAX_TIMEOUT);
@@ -4539,6 +4595,21 @@ static int bnxt_hwrm_do_send_msg(struct bnxt *bp, void *msg, u32 msg_len,
 		}
 
 		if (i >= tmo_count) {
+=======
+			if (i < HWRM_SHORT_TIMEOUT_COUNTER) {
+				usleep_range(HWRM_SHORT_MIN_TIMEOUT,
+					     HWRM_SHORT_MAX_TIMEOUT);
+			} else {
+				if (HWRM_WAIT_MUST_ABORT(bp, req))
+					goto timeout_abort;
+				usleep_range(HWRM_MIN_TIMEOUT,
+					     HWRM_MAX_TIMEOUT);
+			}
+		}
+
+		if (i >= tmo_count) {
+timeout_abort:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (!silent)
 				netdev_err(bp->dev, "Error (timeout: %d) msg {0x%x 0x%x} len:%d\n",
 					   HWRM_TOTAL_TIMEOUT(i),
@@ -4943,9 +5014,15 @@ static int bnxt_hwrm_clear_vnic_filter(struct bnxt *bp)
 
 			bnxt_hwrm_cmd_hdr_init(bp, &req,
 					       HWRM_CFA_L2_FILTER_FREE, -1, -1);
+<<<<<<< HEAD
 
 			req.l2_filter_id = vnic->fw_l2_filter_id[j];
 
+=======
+
+			req.l2_filter_id = vnic->fw_l2_filter_id[j];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rc = _hwrm_send_message(bp, &req, sizeof(req),
 						HWRM_CMD_TIMEOUT);
 		}
@@ -7362,6 +7439,59 @@ int bnxt_hwrm_func_resc_qcaps(struct bnxt *bp, bool all)
 	}
 hwrm_func_resc_qcaps_exit:
 	mutex_unlock(&bp->hwrm_cmd_lock);
+<<<<<<< HEAD
+=======
+	return rc;
+}
+
+/* bp->hwrm_cmd_lock already held. */
+static int __bnxt_hwrm_ptp_qcfg(struct bnxt *bp)
+{
+	struct hwrm_port_mac_ptp_qcfg_output *resp = bp->hwrm_cmd_resp_addr;
+	struct hwrm_port_mac_ptp_qcfg_input req = {0};
+	struct bnxt_ptp_cfg *ptp = bp->ptp_cfg;
+	u8 flags;
+	int rc;
+
+	if (bp->hwrm_spec_code < 0x10801) {
+		rc = -ENODEV;
+		goto no_ptp;
+	}
+
+	req.port_id = cpu_to_le16(bp->pf.port_id);
+	bnxt_hwrm_cmd_hdr_init(bp, &req, HWRM_PORT_MAC_PTP_QCFG, -1, -1);
+	rc = _hwrm_send_message(bp, &req, sizeof(req), HWRM_CMD_TIMEOUT);
+	if (rc)
+		goto no_ptp;
+
+	flags = resp->flags;
+	if (!(flags & PORT_MAC_PTP_QCFG_RESP_FLAGS_HWRM_ACCESS)) {
+		rc = -ENODEV;
+		goto no_ptp;
+	}
+	if (!ptp) {
+		ptp = kzalloc(sizeof(*ptp), GFP_KERNEL);
+		if (!ptp)
+			return -ENOMEM;
+		ptp->bp = bp;
+		bp->ptp_cfg = ptp;
+	}
+	if (flags & PORT_MAC_PTP_QCFG_RESP_FLAGS_PARTIAL_DIRECT_ACCESS_REF_CLOCK) {
+		ptp->refclk_regs[0] = le32_to_cpu(resp->ts_ref_clock_reg_lower);
+		ptp->refclk_regs[1] = le32_to_cpu(resp->ts_ref_clock_reg_upper);
+	} else if (bp->flags & BNXT_FLAG_CHIP_P5) {
+		ptp->refclk_regs[0] = BNXT_TS_REG_TIMESYNC_TS0_LOWER;
+		ptp->refclk_regs[1] = BNXT_TS_REG_TIMESYNC_TS0_UPPER;
+	} else {
+		rc = -ENODEV;
+		goto no_ptp;
+	}
+	return 0;
+
+no_ptp:
+	kfree(ptp);
+	bp->ptp_cfg = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return rc;
 }
 
@@ -7436,6 +7566,15 @@ static int __bnxt_hwrm_func_qcaps(struct bnxt *bp)
 		bp->flags &= ~BNXT_FLAG_WOL_CAP;
 		if (flags & FUNC_QCAPS_RESP_FLAGS_WOL_MAGICPKT_SUPPORTED)
 			bp->flags |= BNXT_FLAG_WOL_CAP;
+<<<<<<< HEAD
+=======
+		if (flags & FUNC_QCAPS_RESP_FLAGS_PTP_SUPPORTED) {
+			__bnxt_hwrm_ptp_qcfg(bp);
+		} else {
+			kfree(bp->ptp_cfg);
+			bp->ptp_cfg = NULL;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 #ifdef CONFIG_BNXT_SRIOV
 		struct bnxt_vf_info *vf = &bp->vf;
@@ -9488,7 +9627,13 @@ static int bnxt_try_recover_fw(struct bnxt *bp)
 		do {
 			rc = __bnxt_hwrm_ver_get(bp, true);
 			sts = bnxt_fw_health_readl(bp, BNXT_FW_HEALTH_REG);
+<<<<<<< HEAD
 			if (!sts || !BNXT_FW_IS_BOOTING(sts))
+=======
+			rc = __bnxt_hwrm_ver_get(bp, true);
+			if (!BNXT_FW_IS_BOOTING(sts) &&
+			    !BNXT_FW_IS_RECOVERING(sts))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				break;
 			retry++;
 		} while (rc == -EBUSY && retry < BNXT_FW_RETRY);
@@ -9514,7 +9659,12 @@ static int bnxt_hwrm_if_change(struct bnxt *bp, bool up)
 {
 	struct hwrm_func_drv_if_change_output *resp = bp->hwrm_cmd_resp_addr;
 	struct hwrm_func_drv_if_change_input req = {0};
+<<<<<<< HEAD
 	bool resc_reinit = false, fw_reset = false;
+=======
+	bool fw_reset = !bp->irq_tbl;
+	bool resc_reinit = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int rc, retry = 0;
 	u32 flags = 0;
 
@@ -9726,7 +9876,13 @@ static ssize_t bnxt_show_temp(struct device *dev,
 	if (!rc)
 		len = sprintf(buf, "%u\n", resp->temp * 1000); /* display millidegree */
 	mutex_unlock(&bp->hwrm_cmd_lock);
+<<<<<<< HEAD
 	return rc ?: len;
+=======
+	if (rc)
+		return rc;
+	return len;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 static SENSOR_DEVICE_ATTR(temp1_input, 0444, bnxt_show_temp, NULL, 0);
 
@@ -10073,9 +10229,19 @@ static int bnxt_open(struct net_device *dev)
 	rc = bnxt_hwrm_if_change(bp, true);
 	if (rc)
 		return rc;
+<<<<<<< HEAD
+=======
+
+	if (bnxt_ptp_init(bp)) {
+		netdev_warn(dev, "PTP initialization failed.\n");
+		kfree(bp->ptp_cfg);
+		bp->ptp_cfg = NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rc = __bnxt_open_nic(bp, true, true);
 	if (rc) {
 		bnxt_hwrm_if_change(bp, false);
+		bnxt_ptp_clear(bp);
 	} else {
 		if (test_and_clear_bit(BNXT_STATE_FW_RESET_DET, &bp->state)) {
 			if (!test_bit(BNXT_STATE_IN_FW_RESET, &bp->state)) {
@@ -10166,6 +10332,7 @@ static int bnxt_close(struct net_device *dev)
 {
 	struct bnxt *bp = netdev_priv(dev);
 
+	bnxt_ptp_clear(bp);
 	bnxt_hwmon_close(bp);
 	bnxt_close_nic(bp, true, true);
 	bnxt_hwrm_shutdown_link(bp);
@@ -11021,6 +11188,7 @@ static void bnxt_fw_reset_close(struct bnxt *bp)
 		bnxt_clear_int_mode(bp);
 		pci_disable_device(bp->pdev);
 	}
+	bnxt_ptp_clear(bp);
 	__bnxt_close_nic(bp, true, false);
 	bnxt_clear_int_mode(bp);
 	bnxt_hwrm_func_drv_unrgtr(bp);
@@ -11627,7 +11795,11 @@ static void bnxt_reset_all(struct bnxt *bp)
 		req.selfrst_status = FW_RESET_REQ_SELFRST_STATUS_SELFRSTASAP;
 		req.flags = FW_RESET_REQ_FLAGS_RESET_GRACEFUL;
 		rc = hwrm_send_message(bp, &req, sizeof(req), HWRM_CMD_TIMEOUT);
+<<<<<<< HEAD
 		if (rc)
+=======
+		if (rc != -ENODEV)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			netdev_warn(bp->dev, "Unable to reset FW rc=%d\n", rc);
 	}
 	bp->fw_reset_timestamp = jiffies;
@@ -11771,9 +11943,16 @@ static void bnxt_fw_reset_task(struct work_struct *work)
 		/* Make sure fw_reset_state is 0 before clearing the flag */
 		smp_mb__before_atomic();
 		clear_bit(BNXT_STATE_IN_FW_RESET, &bp->state);
+<<<<<<< HEAD
 		bnxt_ulp_start(bp, rc);
 		if (!rc)
 			bnxt_reenable_sriov(bp);
+=======
+		bnxt_ulp_start(bp, 0);
+		bnxt_reenable_sriov(bp);
+		bnxt_vf_reps_alloc(bp);
+		bnxt_vf_reps_open(bp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bnxt_dl_health_recovery_done(bp);
 		bnxt_dl_health_status_update(bp, true);
 		rtnl_unlock();
@@ -12209,10 +12388,13 @@ static int bnxt_udp_tunnel_sync(struct net_device *netdev, unsigned int table)
 	unsigned int cmd;
 
 	udp_tunnel_nic_get_port(netdev, table, 0, &ti);
-	if (ti.type == UDP_TUNNEL_TYPE_VXLAN)
+	if (ti.type == UDP_TUNNEL_TYPE_VXLAN) {
+		bp->vxlan_port = ti.port;
 		cmd = TUNNEL_DST_PORT_FREE_REQ_TUNNEL_TYPE_VXLAN;
-	else
+	} else {
+		bp->nge_port = ti.port;
 		cmd = TUNNEL_DST_PORT_FREE_REQ_TUNNEL_TYPE_GENEVE;
+	}
 
 	if (ti.port)
 		return bnxt_hwrm_tunnel_dst_port_alloc(bp, ti.port, cmd);
@@ -12343,6 +12525,10 @@ static void bnxt_remove_one(struct pci_dev *pdev)
 
 	if (BNXT_PF(bp))
 		devlink_port_type_clear(&bp->dl_port);
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pci_disable_pcie_error_reporting(pdev);
 	unregister_netdev(dev);
 	clear_bit(BNXT_STATE_IN_FW_RESET, &bp->state);
@@ -12666,6 +12852,7 @@ static void bnxt_vpd_read_info(struct bnxt *bp)
 	if (vpd_size <= 0) {
 		netdev_err(bp->dev, "Unable to read VPD\n");
 		goto exit;
+<<<<<<< HEAD
 	}
 
 	i = pci_vpd_find_tag(vpd_data, 0, vpd_size, PCI_VPD_LRDT_RO_DATA);
@@ -12674,6 +12861,16 @@ static void bnxt_vpd_read_info(struct bnxt *bp)
 		goto exit;
 	}
 
+=======
+	}
+
+	i = pci_vpd_find_tag(vpd_data, vpd_size, PCI_VPD_LRDT_RO_DATA);
+	if (i < 0) {
+		netdev_err(bp->dev, "VPD READ-Only not found\n");
+		goto exit;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ro_size = pci_vpd_lrdt_size(&vpd_data[i]);
 	i += PCI_VPD_LRDT_TAG_SIZE;
 	if (i + ro_size > vpd_size)
@@ -12948,6 +13145,12 @@ init_err_pci_clean:
 	bnxt_hwrm_func_drv_unrgtr(bp);
 	bnxt_free_hwrm_short_cmd_req(bp);
 	bnxt_free_hwrm_resources(bp);
+<<<<<<< HEAD
+=======
+	bnxt_ethtool_free(bp);
+	kfree(bp->ptp_cfg);
+	bp->ptp_cfg = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(bp->fw_health);
 	bp->fw_health = NULL;
 	bnxt_cleanup_pci(bp);

@@ -25,18 +25,44 @@
 #define I10NM_GET_IMC_BAR(d, i, reg)	\
 	pci_read_config_dword((d)->uracu, 0xd8 + (i) * 4, &(reg))
 #define I10NM_GET_DIMMMTR(m, i, j)	\
+<<<<<<< HEAD
 	readl((m)->mbase + 0x2080c + (i) * (m)->chan_mmio_sz + (j) * 4)
 #define I10NM_GET_MCDDRTCFG(m, i, j)	\
 	readl((m)->mbase + 0x20970 + (i) * (m)->chan_mmio_sz + (j) * 4)
+=======
+	readl((m)->mbase + ((m)->hbm_mc ? 0x80c : 0x2080c) + \
+	(i) * (m)->chan_mmio_sz + (j) * 4)
+#define I10NM_GET_MCDDRTCFG(m, i, j)	\
+	readl((m)->mbase + ((m)->hbm_mc ? 0x970 : 0x20970) + \
+	(i) * (m)->chan_mmio_sz + (j) * 4)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define I10NM_GET_MCMTR(m, i)		\
 	readl((m)->mbase + 0x20ef8 + (i) * (m)->chan_mmio_sz)
 #define I10NM_GET_AMAP(m, i)		\
+<<<<<<< HEAD
 	readl((m)->mbase + 0x20814 + (i) * (m)->chan_mmio_sz)
+=======
+	readl((m)->mbase + ((m)->hbm_mc ? 0x814 : 0x20814) + \
+	(i) * (m)->chan_mmio_sz)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define I10NM_GET_SCK_MMIO_BASE(reg)	(GET_BITFIELD(reg, 0, 28) << 23)
 #define I10NM_GET_IMC_MMIO_OFFSET(reg)	(GET_BITFIELD(reg, 0, 10) << 12)
 #define I10NM_GET_IMC_MMIO_SIZE(reg)	((GET_BITFIELD(reg, 13, 23) - \
 					 GET_BITFIELD(reg, 0, 10) + 1) << 12)
+<<<<<<< HEAD
+=======
+#define I10NM_GET_HBM_IMC_MMIO_OFFSET(reg)	\
+	((GET_BITFIELD(reg, 0, 10) << 12) + 0x140000)
+
+#define I10NM_HBM_IMC_MMIO_SIZE		0x9000
+#define I10NM_IS_HBM_PRESENT(reg)	GET_BITFIELD(reg, 27, 30)
+#define I10NM_IS_HBM_IMC(reg)		GET_BITFIELD(reg, 29, 29)
+
+#define I10NM_MAX_SAD			16
+#define I10NM_SAD_ENABLE(reg)		GET_BITFIELD(reg, 0, 0)
+#define I10NM_SAD_NM_CACHEABLE(reg)	GET_BITFIELD(reg, 5, 5)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static struct list_head *i10nm_edac_list;
 
@@ -132,6 +158,11 @@ static struct res_config i10nm_cfg0 = {
 	.decs_did		= 0x3452,
 	.busno_cfg_offset	= 0xcc,
 	.ddr_chan_mmio_sz	= 0x4000,
+<<<<<<< HEAD
+=======
+	.sad_all_devfn		= PCI_DEVFN(29, 0),
+	.sad_all_offset		= 0x108,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static struct res_config i10nm_cfg1 = {
@@ -139,6 +170,11 @@ static struct res_config i10nm_cfg1 = {
 	.decs_did		= 0x3452,
 	.busno_cfg_offset	= 0xd0,
 	.ddr_chan_mmio_sz	= 0x4000,
+<<<<<<< HEAD
+=======
+	.sad_all_devfn		= PCI_DEVFN(29, 0),
+	.sad_all_offset		= 0x108,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static struct res_config spr_cfg = {
@@ -147,6 +183,11 @@ static struct res_config spr_cfg = {
 	.busno_cfg_offset	= 0xd0,
 	.ddr_chan_mmio_sz	= 0x8000,
 	.support_ddr5		= true,
+<<<<<<< HEAD
+=======
+	.sad_all_devfn		= PCI_DEVFN(10, 0),
+	.sad_all_offset		= 0x300,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct x86_cpu_id i10nm_cpuids[] = {
@@ -185,7 +226,11 @@ static int i10nm_get_dimm_config(struct mem_ctl_info *mci,
 
 		ndimms = 0;
 		amap = I10NM_GET_AMAP(imc, i);
+<<<<<<< HEAD
 		for (j = 0; j < I10NM_NUM_DIMMS; j++) {
+=======
+		for (j = 0; j < imc->num_dimms; j++) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			dimm = edac_get_dimm(mci, i, j, 0);
 			mtr = I10NM_GET_DIMMMTR(imc, i, j);
 			mcddrtcfg = I10NM_GET_MCDDRTCFG(imc, i, j);

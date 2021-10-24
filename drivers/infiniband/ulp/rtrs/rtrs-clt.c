@@ -174,7 +174,11 @@ struct rtrs_clt_con *rtrs_permit_to_clt_con(struct rtrs_clt_sess *sess,
 	int id = 0;
 
 	if (likely(permit->con_type == RTRS_IO_CON))
+<<<<<<< HEAD
 		id = (permit->cpu_id % (sess->s.con_num - 1)) + 1;
+=======
+		id = (permit->cpu_id % (sess->s.irq_con_num - 1)) + 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return to_clt_con(sess->s.con[id]);
 }
@@ -431,6 +435,11 @@ static void complete_rdma_req(struct rtrs_clt_io_req *req, int errno,
 		ib_dma_unmap_sg(sess->s.dev->ib_dev, req->sglist,
 				req->sg_cnt, req->dir);
 	}
+<<<<<<< HEAD
+=======
+	if (!refcount_dec_and_test(&req->ref))
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (sess->clt->mp_policy == MP_POLICY_MIN_INFLIGHT)
 		atomic_dec(&sess->stats->inflight);
 
@@ -805,6 +814,12 @@ static struct rtrs_clt_sess *get_next_path_min_inflight(struct path_it *it)
 	int inflight;
 
 	list_for_each_entry_rcu(sess, &clt->paths_list, s.entry) {
+<<<<<<< HEAD
+=======
+		if (unlikely(READ_ONCE(sess->state) != RTRS_CLT_CONNECTED))
+			continue;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (unlikely(!list_empty(raw_cpu_ptr(sess->mp_skip_entry))))
 			continue;
 
@@ -826,6 +841,60 @@ static struct rtrs_clt_sess *get_next_path_min_inflight(struct path_it *it)
 	return min_path;
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * get_next_path_min_latency() - Returns path with minimal latency.
+ * @it:	the path pointer
+ *
+ * Return: a path with the lowest latency or NULL if all paths are tried
+ *
+ * Locks:
+ *    rcu_read_lock() must be hold.
+ *
+ * Related to @MP_POLICY_MIN_LATENCY
+ *
+ * This DOES skip an already-tried path.
+ * There is a skip-list to skip a path if the path has tried but failed.
+ * It will try the minimum latency path and then the second minimum latency
+ * path and so on. Finally it will return NULL if all paths are tried.
+ * Therefore the caller MUST check the returned
+ * path is NULL and trigger the IO error.
+ */
+static struct rtrs_clt_sess *get_next_path_min_latency(struct path_it *it)
+{
+	struct rtrs_clt_sess *min_path = NULL;
+	struct rtrs_clt *clt = it->clt;
+	struct rtrs_clt_sess *sess;
+	ktime_t min_latency = INT_MAX;
+	ktime_t latency;
+
+	list_for_each_entry_rcu(sess, &clt->paths_list, s.entry) {
+		if (unlikely(READ_ONCE(sess->state) != RTRS_CLT_CONNECTED))
+			continue;
+
+		if (unlikely(!list_empty(raw_cpu_ptr(sess->mp_skip_entry))))
+			continue;
+
+		latency = sess->s.hb_cur_latency;
+
+		if (latency < min_latency) {
+			min_latency = latency;
+			min_path = sess;
+		}
+	}
+
+	/*
+	 * add the path to the skip list, so that next time we can get
+	 * a different one
+	 */
+	if (min_path)
+		list_add(raw_cpu_ptr(min_path->mp_skip_entry), &it->skip_list);
+
+	return min_path;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline void path_it_init(struct path_it *it, struct rtrs_clt *clt)
 {
 	INIT_LIST_HEAD(&it->skip_list);
@@ -892,6 +961,10 @@ static void rtrs_clt_init_req(struct rtrs_clt_io_req *req,
 	req->need_inv = false;
 	req->need_inv_comp = false;
 	req->inv_errno = 0;
+<<<<<<< HEAD
+=======
+	refcount_set(&req->ref, 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	iov_iter_kvec(&iter, READ, vec, 1, usr_len);
 	len = _copy_from_iter(req->iu->buf, usr_len, &iter);
@@ -969,7 +1042,26 @@ static int rtrs_post_rdma_write_sg(struct rtrs_clt_con *con,
 
 	return rtrs_iu_post_rdma_write_imm(&con->c, req->iu, sge, num_sge,
 					    rbuf->rkey, rbuf->addr, imm,
+<<<<<<< HEAD
 					    flags, NULL);
+=======
+					    flags, wr, ptail);
+}
+
+static int rtrs_map_sg_fr(struct rtrs_clt_io_req *req, size_t count)
+{
+	int nr;
+
+	/* Align the MR to a 4K page size to match the block virt boundary */
+	nr = ib_map_mr_sg(req->mr, req->sglist, count, NULL, SZ_4K);
+	if (nr < 0)
+		return nr;
+	if (unlikely(nr < req->sg_cnt))
+		return -EINVAL;
+	ib_update_fast_reg_key(req->mr, ib_inc_rkey(req->mr->rkey));
+
+	return nr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int rtrs_clt_write_req(struct rtrs_clt_io_req *req)
@@ -1016,11 +1108,22 @@ static int rtrs_clt_write_req(struct rtrs_clt_io_req *req)
 	 */
 	rtrs_clt_update_all_stats(req, WRITE);
 
+<<<<<<< HEAD
 	ret = rtrs_post_rdma_write_sg(req->con, req, rbuf,
 				       req->usr_len + sizeof(*msg),
 				       imm);
 	if (unlikely(ret)) {
 		rtrs_err(s, "Write request failed: %d\n", ret);
+=======
+	ret = rtrs_post_rdma_write_sg(req->con, req, rbuf, fr_en,
+				      req->usr_len + sizeof(*msg),
+				      imm, wr, &inv_wr);
+	if (unlikely(ret)) {
+		rtrs_err_rl(s,
+			    "Write request failed: error=%d path=%s [%s:%u]\n",
+			    ret, kobject_name(&sess->kobj), sess->hca_name,
+			    sess->hca_port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (sess->clt->mp_policy == MP_POLICY_MIN_INFLIGHT)
 			atomic_dec(&sess->stats->inflight);
 		if (req->sg_cnt)
@@ -1062,9 +1165,12 @@ static int rtrs_clt_read_req(struct rtrs_clt_io_req *req)
 
 	const size_t tsize = sizeof(*msg) + req->data_len + req->usr_len;
 
+<<<<<<< HEAD
 	s = &sess->s;
 	dev = sess->s.dev;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(tsize > sess->chunk_size)) {
 		rtrs_wrn(s,
 			  "Read request failed, message size is %zu, bigger than CHUNK_SIZE %d\n",
@@ -1141,7 +1247,14 @@ static int rtrs_clt_read_req(struct rtrs_clt_io_req *req)
 	ret = rtrs_post_send_rdma(req->con, req, &sess->rbufs[buf_id],
 				   req->data_len, imm, wr);
 	if (unlikely(ret)) {
+<<<<<<< HEAD
 		rtrs_err(s, "Read request failed: %d\n", ret);
+=======
+		rtrs_err_rl(s,
+			    "Read request failed: error=%d path=%s [%s:%u]\n",
+			    ret, kobject_name(&sess->kobj), sess->hca_name,
+			    sess->hca_port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (sess->clt->mp_policy == MP_POLICY_MIN_INFLIGHT)
 			atomic_dec(&sess->stats->inflight);
 		req->need_inv = false;
@@ -1564,6 +1677,10 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
 			min_t(int, sess->s.dev->ib_dev->attrs.max_qp_wr,
 			      sess->queue_depth * 3 + 1);
 	}
+<<<<<<< HEAD
+=======
+	cq_num = max_send_wr + max_recv_wr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* alloc iu to recv new rkey reply when server reports flags set */
 	if (sess->flags & RTRS_MSG_NEW_RKEY_F || con->c.cid == 0) {
 		con->rsp_ius = rtrs_iu_alloc(max_recv_wr, sizeof(*rsp),
@@ -1713,7 +1830,12 @@ static int rtrs_rdma_conn_established(struct rtrs_clt_con *con,
 				  queue_depth);
 			return -ECONNRESET;
 		}
+<<<<<<< HEAD
 		if (!sess->rbufs || sess->queue_depth < queue_depth) {
+=======
+
+		if (!sess->rbufs) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			kfree(sess->rbufs);
 			sess->rbufs = kcalloc(queue_depth, sizeof(*sess->rbufs),
 					      GFP_KERNEL);
@@ -2784,6 +2906,10 @@ int rtrs_clt_remove_path_from_sysfs(struct rtrs_clt_sess *sess,
 	} while (!changed && old_state != RTRS_CLT_DEAD);
 
 	if (likely(changed)) {
+<<<<<<< HEAD
+=======
+		rtrs_clt_remove_path_from_arr(sess);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rtrs_clt_destroy_sess_files(sess, sysfs_self);
 		rtrs_clt_remove_path_from_arr(sess);
 		kobject_put(&sess->kobj);

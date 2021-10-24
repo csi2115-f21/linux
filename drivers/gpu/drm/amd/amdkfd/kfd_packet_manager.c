@@ -249,6 +249,11 @@ int pm_init(struct packet_manager *pm, struct device_queue_manager *dqm)
 	case CHIP_NAVY_FLOUNDER:
 	case CHIP_VANGOGH:
 	case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+	case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pm->pmf = &kfd_v9_pm_funcs;
 		break;
 	default:

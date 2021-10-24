@@ -11,6 +11,27 @@
 #include "intel_gt.h"
 #include "intel_gtt.h"
 
+<<<<<<< HEAD
+=======
+struct drm_i915_gem_object *alloc_pt_lmem(struct i915_address_space *vm, int sz)
+{
+	struct drm_i915_gem_object *obj;
+
+	obj = i915_gem_object_create_lmem(vm->i915, sz, 0);
+	/*
+	 * Ensure all paging structures for this vm share the same dma-resv
+	 * object underneath, with the idea that one object_lock() will lock
+	 * them all at once.
+	 */
+	if (!IS_ERR(obj)) {
+		obj->base.resv = i915_vm_resv_get(vm);
+		obj->shares_resv_from = vm;
+	}
+
+	return obj;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct drm_i915_gem_object *alloc_pt_dma(struct i915_address_space *vm, int sz)
 {
 	if (I915_SELFTEST_ONLY(should_fail(&vm->fault_attr, 1)))
@@ -414,7 +435,11 @@ void setup_private_pat(struct intel_uncore *uncore)
 
 	if (INTEL_GEN(i915) >= 12)
 		tgl_setup_private_ppat(uncore);
+<<<<<<< HEAD
 	else if (INTEL_GEN(i915) >= 10)
+=======
+	else if (GRAPHICS_VER(i915) >= 10)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		cnl_setup_private_ppat(uncore);
 	else if (IS_CHERRYVIEW(i915) || IS_GEN9_LP(i915))
 		chv_setup_private_ppat(uncore);

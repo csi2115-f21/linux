@@ -41,9 +41,12 @@ enum intel_region_id {
 
 #define INTEL_MEMORY_TYPE_SHIFT 16
 
+<<<<<<< HEAD
 #define MEMORY_TYPE_FROM_REGION(r) (ilog2((r) >> INTEL_MEMORY_TYPE_SHIFT))
 #define MEMORY_INSTANCE_FROM_REGION(r) (ilog2((r) & 0xffff))
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define I915_ALLOC_MIN_PAGE_SIZE  BIT(0)
 #define I915_ALLOC_CONTIGUOUS     BIT(1)
 
@@ -63,10 +66,19 @@ struct intel_memory_region_ops {
 			   unsigned int flags);
 };
 
+struct intel_memory_region_private_ops {
+	struct ttm_resource *(*reserve)(struct intel_memory_region *mem,
+					resource_size_t offset,
+					resource_size_t size);
+	void (*free)(struct intel_memory_region *mem,
+		     struct ttm_resource *res);
+};
+
 struct intel_memory_region {
 	struct drm_i915_private *i915;
 
 	const struct intel_memory_region_ops *ops;
+	const struct intel_memory_region_private_ops *priv_ops;
 
 	struct io_mapping iomap;
 	struct resource region;
@@ -74,7 +86,10 @@ struct intel_memory_region {
 	/* For fake LMEM */
 	struct drm_mm_node fake_mappable;
 
+<<<<<<< HEAD
 	struct i915_buddy_mm mm;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mutex mm_lock;
 
 	struct kref kref;
@@ -89,6 +104,8 @@ struct intel_memory_region {
 	unsigned int id;
 	char name[8];
 
+	struct list_head reserved;
+
 	dma_addr_t remap_addr;
 
 	struct {
@@ -96,6 +113,15 @@ struct intel_memory_region {
 		struct list_head list;
 		struct list_head purgeable;
 	} objects;
+<<<<<<< HEAD
+=======
+
+	size_t chunk_size;
+	unsigned int max_order;
+	bool is_range_manager;
+
+	void *region_private;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 int intel_memory_region_init_buddy(struct intel_memory_region *mem);
@@ -135,4 +161,12 @@ __printf(2, 3) void
 intel_memory_region_set_name(struct intel_memory_region *mem,
 			     const char *fmt, ...);
 
+<<<<<<< HEAD
+=======
+void intel_memory_region_unreserve(struct intel_memory_region *mem);
+
+int intel_memory_region_reserve(struct intel_memory_region *mem,
+				resource_size_t offset,
+				resource_size_t size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

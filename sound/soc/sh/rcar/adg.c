@@ -390,8 +390,49 @@ void rsnd_adg_clk_control(struct rsnd_priv *priv, int enable)
 	}
 }
 
+<<<<<<< HEAD
 static void rsnd_adg_get_clkin(struct rsnd_priv *priv,
 			       struct rsnd_adg *adg)
+=======
+static struct clk *rsnd_adg_create_null_clk(struct rsnd_priv *priv,
+					    const char * const name,
+					    const char *parent)
+{
+	struct device *dev = rsnd_priv_to_dev(priv);
+	struct clk *clk;
+
+	clk = clk_register_fixed_rate(dev, name, parent, 0, 0);
+	if (IS_ERR(clk)) {
+		dev_err(dev, "create null clk error\n");
+		return NULL;
+	}
+
+	return clk;
+}
+
+static struct clk *rsnd_adg_null_clk_get(struct rsnd_priv *priv)
+{
+	struct rsnd_adg *adg = priv->adg;
+
+	if (!adg->null_clk) {
+		static const char * const name = "rsnd_adg_null";
+
+		adg->null_clk = rsnd_adg_create_null_clk(priv, name, NULL);
+	}
+
+	return adg->null_clk;
+}
+
+static void rsnd_adg_null_clk_clean(struct rsnd_priv *priv)
+{
+	struct rsnd_adg *adg = priv->adg;
+
+	if (adg->null_clk)
+		clk_unregister_fixed_rate(adg->null_clk);
+}
+
+static int rsnd_adg_get_clkin(struct rsnd_priv *priv)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct device *dev = rsnd_priv_to_dev(priv);
 	struct clk *clk;
@@ -399,7 +440,17 @@ static void rsnd_adg_get_clkin(struct rsnd_priv *priv,
 
 	for (i = 0; i < CLKMAX; i++) {
 		clk = devm_clk_get(dev, clk_name[i]);
+<<<<<<< HEAD
 		adg->clk[i] = IS_ERR(clk) ? NULL : clk;
+=======
+
+		if (IS_ERR(clk))
+			clk = rsnd_adg_null_clk_get(priv);
+		if (IS_ERR(clk))
+			goto err;
+
+		adg->clk[i] = clk;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -528,10 +579,18 @@ static void rsnd_adg_get_clkout(struct rsnd_priv *priv,
 	if (!count) {
 		clk = clk_register_fixed_rate(dev, clkout_name[CLKOUT],
 					      parent_clk_name, 0, req_rate[0]);
+<<<<<<< HEAD
 		if (!IS_ERR(clk)) {
 			adg->clkout[CLKOUT] = clk;
 			of_clk_add_provider(np, of_clk_src_simple_get, clk);
 		}
+=======
+		if (IS_ERR(clk))
+			goto err;
+
+		adg->clkout[CLKOUT] = clk;
+		of_clk_add_provider(np, of_clk_src_simple_get, clk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	/*
 	 * for clkout0/1/2/3
@@ -541,8 +600,15 @@ static void rsnd_adg_get_clkout(struct rsnd_priv *priv,
 			clk = clk_register_fixed_rate(dev, clkout_name[i],
 						      parent_clk_name, 0,
 						      req_rate[0]);
+<<<<<<< HEAD
 			if (!IS_ERR(clk))
 				adg->clkout[i] = clk;
+=======
+			if (IS_ERR(clk))
+				goto err;
+
+			adg->clkout[i] = clk;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		adg->onecell.clks	= adg->clkout;
 		adg->onecell.clk_num	= CLKOUTMAX;

@@ -801,7 +801,12 @@ static int j1939_session_tx_dat(struct j1939_session *session)
 			netdev_err_once(priv->ndev,
 					"%s: 0x%p: requested data outside of queued buffer: offset %i, len %i, pkt.tx: %i\n",
 					__func__, session, skcb->offset, se_skb->len , session->pkt.tx);
+<<<<<<< HEAD
 			return -EOVERFLOW;
+=======
+			ret = -EOVERFLOW;
+			goto out_free;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		if (!len) {
@@ -1170,9 +1175,16 @@ static void j1939_session_completed(struct j1939_session *session)
 	struct sk_buff *skb;
 
 	if (!session->transmission) {
+<<<<<<< HEAD
 		skb = j1939_session_skb_find(session);
 		/* distribute among j1939 receivers */
 		j1939_sk_recv(session->priv, skb);
+=======
+		skb = j1939_session_skb_get(session);
+		/* distribute among j1939 receivers */
+		j1939_sk_recv(session->priv, skb);
+		consume_skb(skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	j1939_session_deactivate_activate_next(session);
@@ -1744,7 +1756,11 @@ static void j1939_xtp_rx_dat_one(struct j1939_session *session,
 {
 	struct j1939_priv *priv = session->priv;
 	struct j1939_sk_buff_cb *skcb;
+<<<<<<< HEAD
 	struct sk_buff *se_skb;
+=======
+	struct sk_buff *se_skb = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	const u8 *dat;
 	u8 *tpdat;
 	int offset;

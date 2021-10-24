@@ -784,6 +784,25 @@ static void gfx_v9_0_rlcg_wreg(struct amdgpu_device *adev, u32 offset, u32 v)
 
 }
 
+<<<<<<< HEAD
+=======
+static void gfx_v9_0_rlcg_wreg(struct amdgpu_device *adev, u32 offset,
+			       u32 v, u32 acc_flags, u32 hwip)
+{
+	if ((acc_flags & AMDGPU_REGS_RLC) &&
+	    amdgpu_sriov_fullaccess(adev)) {
+		gfx_v9_0_rlcg_w(adev, offset, v, acc_flags);
+
+		return;
+	}
+
+	if (acc_flags & AMDGPU_REGS_NO_KIQ)
+		WREG32_NO_KIQ(offset, v);
+	else
+		WREG32(offset, v);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define VEGA10_GB_ADDR_CONFIG_GOLDEN 0x2a114042
 #define VEGA12_GB_ADDR_CONFIG_GOLDEN 0x24104041
 #define RAVEN_GB_ADDR_CONFIG_GOLDEN 0x24000042

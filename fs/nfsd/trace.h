@@ -391,6 +391,32 @@ DEFINE_EVENT(nfsd_err_class, nfsd_##name,	\
 DEFINE_NFSD_ERR_EVENT(read_err);
 DEFINE_NFSD_ERR_EVENT(write_err);
 
+<<<<<<< HEAD
+=======
+TRACE_EVENT(nfsd_dirent,
+	TP_PROTO(struct svc_fh *fhp,
+		 u64 ino,
+		 const char *name,
+		 int namlen),
+	TP_ARGS(fhp, ino, name, namlen),
+	TP_STRUCT__entry(
+		__field(u32, fh_hash)
+		__field(u64, ino)
+		__field(int, len)
+		__dynamic_array(unsigned char, name, namlen)
+	),
+	TP_fast_assign(
+		__entry->fh_hash = fhp ? knfsd_fh_hash(&fhp->fh_handle) : 0;
+		__entry->ino = ino;
+		__entry->len = namlen;
+		memcpy(__get_str(name), name, namlen);
+	),
+	TP_printk("fh_hash=0x%08x ino=%llu name=%.*s",
+		__entry->fh_hash, __entry->ino,
+		__entry->len, __get_str(name))
+)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "state.h"
 #include "filecache.h"
 #include "vfs.h"
@@ -548,20 +574,39 @@ TRACE_EVENT(nfsd_clid_inuse_err,
 		__field(u32, cl_boot)
 		__field(u32, cl_id)
 		__array(unsigned char, addr, sizeof(struct sockaddr_in6))
+<<<<<<< HEAD
 		__field(unsigned int, namelen)
 		__dynamic_array(unsigned char, name, clp->cl_name.len)
+=======
+		__field(unsigned long, flavor)
+		__array(unsigned char, verifier, NFS4_VERIFIER_SIZE)
+		__dynamic_array(char, name, clp->cl_name.len + 1)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	),
 	TP_fast_assign(
 		__entry->cl_boot = clp->cl_clientid.cl_boot;
 		__entry->cl_id = clp->cl_clientid.cl_id;
 		memcpy(__entry->addr, &clp->cl_addr,
 			sizeof(struct sockaddr_in6));
+<<<<<<< HEAD
 		__entry->namelen = clp->cl_name.len;
 		memcpy(__get_dynamic_array(name), clp->cl_name.data,
 			clp->cl_name.len);
 	),
 	TP_printk("nfs4_clientid %.*s already in use by %pISpc, client %08x:%08x",
 		__entry->namelen, __get_str(name), __entry->addr,
+=======
+		__entry->flavor = clp->cl_cred.cr_flavor;
+		memcpy(__entry->verifier, (void *)&clp->cl_verifier,
+		       NFS4_VERIFIER_SIZE);
+		memcpy(__get_str(name), clp->cl_name.data, clp->cl_name.len);
+		__get_str(name)[clp->cl_name.len] = '\0';
+	),
+	TP_printk("addr=%pISpc name='%s' verifier=0x%s flavor=%s client=%08x:%08x",
+		__entry->addr, __get_str(name),
+		__print_hex_str(__entry->verifier, NFS4_VERIFIER_SIZE),
+		show_nfsd_authflavor(__entry->flavor),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__entry->cl_boot, __entry->cl_id)
 )
 

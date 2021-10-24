@@ -578,6 +578,10 @@ void kvm_pmu_handle_pmcr(struct kvm_vcpu *vcpu, u64 val)
 		kvm_pmu_set_counter_value(vcpu, ARMV8_PMU_CYCLE_IDX, 0);
 
 	if (val & ARMV8_PMU_PMCR_P) {
+<<<<<<< HEAD
+=======
+		mask &= ~BIT(ARMV8_PMU_CYCLE_IDX);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		for_each_set_bit(i, &mask, 32)
 			kvm_pmu_set_counter_value(vcpu, i, 0);
 	}
@@ -739,7 +743,11 @@ void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu, u64 data,
 	kvm_pmu_create_perf_event(vcpu, select_idx);
 }
 
+<<<<<<< HEAD
 static int kvm_pmu_probe_pmuver(void)
+=======
+int kvm_pmu_probe_pmuver(void)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct perf_event_attr attr = { };
 	struct perf_event *event;

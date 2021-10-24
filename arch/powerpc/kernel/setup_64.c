@@ -33,6 +33,10 @@
 #include <linux/pgtable.h>
 
 #include <asm/debugfs.h>
+<<<<<<< HEAD
+=======
+#include <asm/kvm_guest.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <asm/io.h>
 #include <asm/kdump.h>
 #include <asm/prom.h>

@@ -122,6 +122,7 @@ vethXDPnative()
 
 execxdpxceiver()
 {
+<<<<<<< HEAD
 	local -a 'paramkeys=("${!'"$1"'[@]}")' copy
 	paramkeysstr=${paramkeys[*]}
 
@@ -132,4 +133,7 @@ execxdpxceiver()
 		done
 
 	./${XSKOBJ} -i ${VETH0} -i ${VETH1},${NS1} ${copy[*]} -C ${NUMPKTS}
+=======
+	./${XSKOBJ} -i ${VETH0} -i ${VETH1},${NS1} -C ${NUMPKTS} ${VERBOSE_ARG} ${DUMP_PKTS_ARG}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

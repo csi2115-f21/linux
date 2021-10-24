@@ -62,11 +62,53 @@ static int create_rcom(struct dlm_ls *ls, int to_nodeid, int type, int len,
 	return 0;
 }
 
+<<<<<<< HEAD
 static void send_rcom(struct dlm_ls *ls, struct dlm_mhandle *mh,
 		      struct dlm_rcom *rc)
 {
 	dlm_rcom_out(rc);
 	dlm_lowcomms_commit_buffer(mh);
+=======
+static int create_rcom_stateless(struct dlm_ls *ls, int to_nodeid, int type,
+				 int len, struct dlm_rcom **rc_ret,
+				 struct dlm_msg **msg_ret)
+{
+	int mb_len = sizeof(struct dlm_rcom) + len;
+	struct dlm_msg *msg;
+	char *mb;
+
+	msg = dlm_lowcomms_new_msg(to_nodeid, mb_len, GFP_NOFS, &mb,
+				   NULL, NULL);
+	if (!msg) {
+		log_print("create_rcom to %d type %d len %d ENOBUFS",
+			  to_nodeid, type, len);
+		return -ENOBUFS;
+	}
+
+	_create_rcom(ls, to_nodeid, type, len, rc_ret, mb, mb_len);
+	*msg_ret = msg;
+	return 0;
+}
+
+static void _send_rcom(struct dlm_ls *ls, struct dlm_rcom *rc)
+{
+	dlm_rcom_out(rc);
+}
+
+static void send_rcom(struct dlm_ls *ls, struct dlm_mhandle *mh,
+		      struct dlm_rcom *rc)
+{
+	_send_rcom(ls, rc);
+	dlm_midcomms_commit_mhandle(mh);
+}
+
+static void send_rcom_stateless(struct dlm_ls *ls, struct dlm_msg *msg,
+				struct dlm_rcom *rc)
+{
+	_send_rcom(ls, rc);
+	dlm_lowcomms_commit_msg(msg);
+	dlm_lowcomms_put_msg(msg);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void set_rcom_status(struct dlm_ls *ls, struct rcom_status *rs,
@@ -164,7 +206,11 @@ retry:
 	allow_sync_reply(ls, &rc->rc_id);
 	memset(ls->ls_recover_buf, 0, LOWCOMMS_MAX_TX_BUFFER_LEN);
 
+<<<<<<< HEAD
 	send_rcom(ls, mh, rc);
+=======
+	send_rcom_stateless(ls, msg, rc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	error = dlm_wait_function(ls, &rcom_response);
 	disallow_sync_reply(ls);
@@ -247,7 +293,11 @@ static void receive_rcom_status(struct dlm_ls *ls, struct dlm_rcom *rc_in)
 	spin_unlock(&ls->ls_recover_lock);
 
  do_send:
+<<<<<<< HEAD
 	send_rcom(ls, mh, rc);
+=======
+	send_rcom_stateless(ls, msg, rc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void receive_sync_reply(struct dlm_ls *ls, struct dlm_rcom *rc_in)
@@ -286,7 +336,11 @@ retry:
 	allow_sync_reply(ls, &rc->rc_id);
 	memset(ls->ls_recover_buf, 0, LOWCOMMS_MAX_TX_BUFFER_LEN);
 
+<<<<<<< HEAD
 	send_rcom(ls, mh, rc);
+=======
+	send_rcom_stateless(ls, msg, rc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	error = dlm_wait_function(ls, &rcom_response);
 	disallow_sync_reply(ls);
@@ -314,7 +368,11 @@ static void receive_rcom_names(struct dlm_ls *ls, struct dlm_rcom *rc_in)
 
 	dlm_copy_master_names(ls, rc_in->rc_buf, inlen, rc->rc_buf, outlen,
 			      nodeid);
+<<<<<<< HEAD
 	send_rcom(ls, mh, rc);
+=======
+	send_rcom_stateless(ls, msg, rc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int dlm_send_rcom_lookup(struct dlm_rsb *r, int dir_nodeid)

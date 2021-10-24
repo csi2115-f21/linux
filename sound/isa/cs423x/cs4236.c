@@ -373,8 +373,14 @@ static int snd_cs423x_probe(struct snd_card *card, int dev)
 	int err;
 
 	acard = card->private_data;
+<<<<<<< HEAD
 	if (sb_port[dev] > 0 && sb_port[dev] != SNDRV_AUTO_PORT)
 		if ((acard->res_sb_port = request_region(sb_port[dev], 16, IDENT " SB")) == NULL) {
+=======
+	if (sb_port[dev] > 0 && sb_port[dev] != SNDRV_AUTO_PORT) {
+		acard->res_sb_port = request_region(sb_port[dev], 16, IDENT " SB");
+		if (!acard->res_sb_port) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			printk(KERN_ERR IDENT ": unable to register SB port at 0x%lx\n", sb_port[dev]);
 			return -EBUSY;
 		}
@@ -478,7 +484,12 @@ static int snd_cs423x_isa_probe(struct device *pdev,
 	err = snd_cs423x_card_new(pdev, dev, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_cs423x_probe(card, dev)) < 0) {
+=======
+	err = snd_cs423x_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -572,7 +583,12 @@ static int snd_cs423x_pnpbios_detect(struct pnp_dev *pdev,
 		snd_card_free(card);
 		return err;
 	}
+<<<<<<< HEAD
 	if ((err = snd_cs423x_probe(card, dev)) < 0) {
+=======
+	err = snd_cs423x_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -632,7 +648,12 @@ static int snd_cs423x_pnpc_detect(struct pnp_card_link *pcard,
 		snd_card_free(card);
 		return res;
 	}
+<<<<<<< HEAD
 	if ((res = snd_cs423x_probe(card, dev)) < 0) {
+=======
+	res = snd_cs423x_probe(card, dev);
+	if (res < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return res;
 	}

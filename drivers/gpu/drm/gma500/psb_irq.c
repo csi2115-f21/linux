@@ -390,6 +390,7 @@ void psb_irq_uninstall(struct drm_device *dev)
 	/* This register is safe even if display island is off */
 	PSB_WVDC32(PSB_RVDC32(PSB_INT_IDENTITY_R), PSB_INT_IDENTITY_R);
 	spin_unlock_irqrestore(&dev_priv->irqmask_lock, irqflags);
+<<<<<<< HEAD
 }
 
 void psb_irq_turn_on_dpst(struct drm_device *dev)
@@ -476,6 +477,8 @@ int psb_irq_disable_dpst(struct drm_device *dev)
 	spin_unlock_irqrestore(&dev_priv->irqmask_lock, irqflags);
 
 	return 0;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*

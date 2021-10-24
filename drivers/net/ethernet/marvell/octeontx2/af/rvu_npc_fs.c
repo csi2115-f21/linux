@@ -597,7 +597,7 @@ static int npc_check_unsupported_flows(struct rvu *rvu, u64 features, u8 intf)
 		dev_info(rvu->dev, "Unsupported flow(s):\n");
 		for_each_set_bit(bit, (unsigned long *)&unsupported, 64)
 			dev_info(rvu->dev, "%s ", npc_get_field_name(bit));
-		return -EOPNOTSUPP;
+		return NIX_AF_ERR_NPC_KEY_NOT_SUPP;
 	}
 
 	return 0;
@@ -769,6 +769,11 @@ static void npc_update_flow(struct rvu *rvu, struct mcam_entry *entry,
 	if (features & BIT_ULL(NPC_IPPROTO_SCTP))
 		npc_update_entry(rvu, NPC_LD, entry, NPC_LT_LD_SCTP,
 				 0, ~0ULL, 0, intf);
+
+	if (features & BIT_ULL(NPC_OUTER_VID))
+		npc_update_entry(rvu, NPC_LB, entry,
+				 NPC_LT_LB_STAG_QINQ | NPC_LT_LB_CTAG, 0,
+				 NPC_LT_LB_STAG_QINQ & NPC_LT_LB_CTAG, 0, intf);
 
 	if (features & BIT_ULL(NPC_OUTER_VID))
 		npc_update_entry(rvu, NPC_LB, entry,
@@ -998,7 +1003,18 @@ static int npc_install_flow(struct rvu *rvu, int blkaddr, u16 target,
 	if (is_npc_intf_tx(req->intf))
 		goto find_rule;
 
+<<<<<<< HEAD
 	if (def_ucast_rule)
+=======
+	if (req->default_rule) {
+		entry_index = npc_get_nixlf_mcam_index(mcam, target, nixlf,
+						       NIXLF_UCAST_ENTRY);
+		enable = is_mcam_entry_enabled(rvu, mcam, blkaddr, entry_index);
+	}
+
+	/* update mcam entry with default unicast rule attributes */
+	if (def_ucast_rule && (msg_from_vf || (req->default_rule && req->append))) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		missing_features = (def_ucast_rule->features ^ features) &
 					def_ucast_rule->features;
 
@@ -1148,7 +1164,17 @@ int rvu_mbox_handler_npc_install_flow(struct rvu *rvu,
 	if (npc_check_unsupported_flows(rvu, req->features, req->intf))
 		return -EOPNOTSUPP;
 
+<<<<<<< HEAD
 	if (npc_mcam_verify_channel(rvu, target, req->intf, req->channel))
+=======
+	err = npc_check_unsupported_flows(rvu, req->features, req->intf);
+	if (err)
+		return err;
+
+	/* Skip channel validation if AF is installing */
+	if (!is_pffunc_af(req->hdr.pcifunc) &&
+	    npc_mcam_verify_channel(rvu, target, req->intf, req->channel))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EINVAL;
 
 	pfvf = rvu_get_pfvf(rvu, target);
@@ -1165,6 +1191,11 @@ int rvu_mbox_handler_npc_install_flow(struct rvu *rvu,
 	}
 
 	err = nix_get_nixlf(rvu, target, &nixlf, NULL);
+<<<<<<< HEAD
+=======
+	if (err && is_npc_intf_rx(req->intf) && !pf_set_vfs_mac)
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* If interface is uninitialized then do not enable entry */
 	if (err || (!req->default_rule && !pfvf->def_ucast_rule))
@@ -1180,6 +1211,17 @@ int rvu_mbox_handler_npc_install_flow(struct rvu *rvu,
 	/* Do not allow requests from uninitialized VFs */
 	if (from_vf && !enable)
 		return -EINVAL;
+<<<<<<< HEAD
+=======
+
+	/* PF sets VF mac & VF NIXLF is not attached, update the mac addr */
+	if (pf_set_vfs_mac && !enable) {
+		ether_addr_copy(pfvf->default_mac, req->packet.dmac);
+		ether_addr_copy(pfvf->mac_addr, req->packet.dmac);
+		set_bit(PF_SET_VF_MAC, &pfvf->flags);
+		return 0;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* If message is from VF then its flow should not overlap with
 	 * reserved unicast flow.

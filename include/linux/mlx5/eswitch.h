@@ -61,10 +61,15 @@ struct mlx5_eswitch_rep *mlx5_eswitch_vport_rep(struct mlx5_eswitch *esw,
 						u16 vport_num);
 void *mlx5_eswitch_uplink_get_proto_dev(struct mlx5_eswitch *esw, u8 rep_type);
 struct mlx5_flow_handle *
+<<<<<<< HEAD
 mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw,
 				    u16 vport_num, u32 sqn);
 
 u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev);
+=======
+mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *on_esw,
+				    struct mlx5_eswitch_rep *rep, u32 sqn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_MLX5_ESWITCH
 enum devlink_eswitch_encap_mode
@@ -126,6 +131,11 @@ u32 mlx5_eswitch_get_vport_metadata_for_set(struct mlx5_eswitch *esw,
 #define ESW_TUN_SLOW_TABLE_GOTO_VPORT_MARK ESW_TUN_OPTS_MASK
 
 u8 mlx5_eswitch_mode(struct mlx5_core_dev *dev);
+<<<<<<< HEAD
+=======
+u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else  /* CONFIG_MLX5_ESWITCH */
 
 static inline u8 mlx5_eswitch_mode(struct mlx5_core_dev *dev)
@@ -163,6 +173,15 @@ mlx5_eswitch_get_vport_metadata_mask(void)
 {
 	return 0;
 }
+<<<<<<< HEAD
+=======
+
+static inline u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev)
+{
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* CONFIG_MLX5_ESWITCH */
 
 static inline bool is_mdev_switchdev_mode(struct mlx5_core_dev *dev)

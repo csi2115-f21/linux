@@ -1133,10 +1133,17 @@ int __intel_engine_reset_bh(struct intel_engine_cs *engine, const char *msg)
 			   "Resetting %s for %s\n", engine->name, msg);
 	atomic_inc(&engine->i915->gpu_error.reset_engine_count[engine->uabi_class]);
 
+<<<<<<< HEAD
 	if (!uses_guc)
 		ret = intel_gt_reset_engine(engine);
 	else
 		ret = intel_guc_reset_engine(&engine->gt->uc.guc, engine);
+=======
+	if (intel_engine_uses_guc(engine))
+		ret = intel_guc_reset_engine(&engine->gt->uc.guc, engine);
+	else
+		ret = intel_gt_reset_engine(engine);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		/* If we fail here, we expect to fallback to a global reset */
 		ENGINE_TRACE(engine, "Failed to reset, err: %d\n", ret);

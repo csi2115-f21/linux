@@ -574,6 +574,7 @@ void dcn30_init_hw(struct dc *dc)
 	 * if DIG is turned on and seamless boot not enabled
 	 */
 	if (dc->config.power_down_display_on_boot) {
+<<<<<<< HEAD
 		struct dc_link *edp_link = get_edp_link(dc);
 
 		if (edp_link &&
@@ -585,6 +586,25 @@ void dcn30_init_hw(struct dc *dc)
 			dc->hwss.edp_backlight_control(edp_link, false);
 			dc->hwss.power_down(dc);
 			dc->hwss.edp_power_control(edp_link, false);
+=======
+		struct dc_link *edp_links[MAX_NUM_EDP];
+		struct dc_link *edp_link;
+
+		get_edp_links(dc, edp_links, &edp_num);
+		if (edp_num) {
+			for (i = 0; i < edp_num; i++) {
+				edp_link = edp_links[i];
+				if (edp_link->link_enc->funcs->is_dig_enabled &&
+						edp_link->link_enc->funcs->is_dig_enabled(edp_link->link_enc) &&
+						dc->hwss.edp_backlight_control &&
+						dc->hwss.power_down &&
+						dc->hwss.edp_power_control) {
+					dc->hwss.edp_backlight_control(edp_link, false);
+					dc->hwss.power_down(dc);
+					dc->hwss.edp_power_control(edp_link, false);
+				}
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			for (i = 0; i < dc->link_count; i++) {
 				struct dc_link *link = dc->links[i];

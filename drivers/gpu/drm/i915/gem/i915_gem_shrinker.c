@@ -113,6 +113,13 @@ i915_gem_shrink(struct drm_i915_private *i915,
 	intel_wakeref_t wakeref = 0;
 	unsigned long count = 0;
 	unsigned long scanned = 0;
+<<<<<<< HEAD
+=======
+	int err;
+
+	/* CHV + VTD workaround use stop_machine(); need to trylock vm->mutex */
+	bool trylock_vm = !ww && intel_vm_no_concurrent_access_wa(i915);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	trace_i915_gem_shrink(i915, target, shrink);
 
@@ -219,6 +226,11 @@ i915_gem_shrink(struct drm_i915_private *i915,
 		}
 		list_splice_tail(&still_in_list, phase->list);
 		spin_unlock_irqrestore(&i915->mm.obj_lock, flags);
+<<<<<<< HEAD
+=======
+		if (err)
+			return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (shrink & I915_SHRINK_BOUND)

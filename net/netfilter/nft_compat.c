@@ -687,8 +687,13 @@ static int nfnl_compat_get_rcu(struct net *net, struct sock *nfnl,
 		goto out_put;
 	}
 
+<<<<<<< HEAD
 	ret = netlink_unicast(nfnl, skb2, NETLINK_CB(skb).portid,
 				MSG_DONTWAIT);
+=======
+	ret = netlink_unicast(info->sk, skb2, NETLINK_CB(skb).portid,
+			      MSG_DONTWAIT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret > 0)
 		ret = 0;
 out_put:

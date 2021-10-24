@@ -16,7 +16,63 @@
 #ifdef CONFIG_RCU_NOCB_CPU
 static cpumask_var_t rcu_nocb_mask; /* CPUs to have callbacks offloaded. */
 static bool __read_mostly rcu_nocb_poll;    /* Offload kthread are to poll. */
+<<<<<<< HEAD
 #endif /* #ifdef CONFIG_RCU_NOCB_CPU */
+=======
+static inline int rcu_lockdep_is_held_nocb(struct rcu_data *rdp)
+{
+	return lockdep_is_held(&rdp->nocb_lock);
+}
+
+static inline bool rcu_current_is_nocb_kthread(struct rcu_data *rdp)
+{
+	/* Race on early boot between thread creation and assignment */
+	if (!rdp->nocb_cb_kthread || !rdp->nocb_gp_kthread)
+		return true;
+
+	if (current == rdp->nocb_cb_kthread || current == rdp->nocb_gp_kthread)
+		if (in_task())
+			return true;
+	return false;
+}
+
+#else
+static inline int rcu_lockdep_is_held_nocb(struct rcu_data *rdp)
+{
+	return 0;
+}
+
+static inline bool rcu_current_is_nocb_kthread(struct rcu_data *rdp)
+{
+	return false;
+}
+
+#endif /* #ifdef CONFIG_RCU_NOCB_CPU */
+
+static bool rcu_rdp_is_offloaded(struct rcu_data *rdp)
+{
+	/*
+	 * In order to read the offloaded state of an rdp is a safe
+	 * and stable way and prevent from its value to be changed
+	 * under us, we must either hold the barrier mutex, the cpu
+	 * hotplug lock (read or write) or the nocb lock. Local
+	 * non-preemptible reads are also safe. NOCB kthreads and
+	 * timers have their own means of synchronization against the
+	 * offloaded state updaters.
+	 */
+	RCU_LOCKDEP_WARN(
+		!(lockdep_is_held(&rcu_state.barrier_mutex) ||
+		  (IS_ENABLED(CONFIG_HOTPLUG_CPU) && lockdep_is_cpus_held()) ||
+		  rcu_lockdep_is_held_nocb(rdp) ||
+		  (rdp == this_cpu_ptr(&rcu_data) &&
+		   !(IS_ENABLED(CONFIG_PREEMPT_COUNT) && preemptible())) ||
+		  rcu_current_is_nocb_kthread(rdp)),
+		"Unsafe read of RCU_NOCB offloaded state"
+	);
+
+	return rcu_segcblist_is_offloaded(&rdp->cblist);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Check the RCU kernel configuration parameters and print informative
@@ -1464,13 +1520,18 @@ static void rcu_cleanup_after_idle(void)
 
 /*
  * Parse the boot-time rcu_nocb_mask CPU list from the kernel parameters.
+<<<<<<< HEAD
  * The string after the "rcu_nocbs=" is either "all" for all CPUs, or a
  * comma-separated list of CPUs and/or CPU ranges.  If an invalid list is
  * given, a warning is emitted and all CPUs are offloaded.
+=======
+ * If the list is invalid, a warning is emitted and all CPUs are offloaded.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 static int __init rcu_nocb_setup(char *str)
 {
 	alloc_bootmem_cpumask_var(&rcu_nocb_mask);
+<<<<<<< HEAD
 	if (!strcasecmp(str, "all"))
 		cpumask_setall(rcu_nocb_mask);
 	else
@@ -1478,6 +1539,12 @@ static int __init rcu_nocb_setup(char *str)
 			pr_warn("rcu_nocbs= bad CPU range, all CPUs set\n");
 			cpumask_setall(rcu_nocb_mask);
 		}
+=======
+	if (cpulist_parse(str, rcu_nocb_mask)) {
+		pr_warn("rcu_nocbs= bad CPU range, all CPUs set\n");
+		cpumask_setall(rcu_nocb_mask);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 1;
 }
 __setup("rcu_nocbs=", rcu_nocb_setup);
@@ -1494,7 +1561,11 @@ early_param("rcu_nocb_poll", parse_rcu_nocb_poll);
  * After all, the main point of bypassing is to avoid lock contention
  * on ->nocb_lock, which only can happen at high call_rcu() rates.
  */
+<<<<<<< HEAD
 int nocb_nobypass_lim_per_jiffy = 16 * 1000 / HZ;
+=======
+static int nocb_nobypass_lim_per_jiffy = 16 * 1000 / HZ;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 module_param(nocb_nobypass_lim_per_jiffy, int, 0);
 
 /*
@@ -1560,7 +1631,11 @@ static void rcu_nocb_bypass_unlock(struct rcu_data *rdp)
 static void rcu_nocb_lock(struct rcu_data *rdp)
 {
 	lockdep_assert_irqs_disabled();
+<<<<<<< HEAD
 	if (!rcu_segcblist_is_offloaded(&rdp->cblist))
+=======
+	if (!rcu_rdp_is_offloaded(rdp))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	raw_spin_lock(&rdp->nocb_lock);
 }
@@ -1571,7 +1646,11 @@ static void rcu_nocb_lock(struct rcu_data *rdp)
  */
 static void rcu_nocb_unlock(struct rcu_data *rdp)
 {
+<<<<<<< HEAD
 	if (rcu_segcblist_is_offloaded(&rdp->cblist)) {
+=======
+	if (rcu_rdp_is_offloaded(rdp)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		lockdep_assert_irqs_disabled();
 		raw_spin_unlock(&rdp->nocb_lock);
 	}
@@ -1584,7 +1663,11 @@ static void rcu_nocb_unlock(struct rcu_data *rdp)
 static void rcu_nocb_unlock_irqrestore(struct rcu_data *rdp,
 				       unsigned long flags)
 {
+<<<<<<< HEAD
 	if (rcu_segcblist_is_offloaded(&rdp->cblist)) {
+=======
+	if (rcu_rdp_is_offloaded(rdp)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		lockdep_assert_irqs_disabled();
 		raw_spin_unlock_irqrestore(&rdp->nocb_lock, flags);
 	} else {
@@ -1596,7 +1679,11 @@ static void rcu_nocb_unlock_irqrestore(struct rcu_data *rdp,
 static void rcu_lockdep_assert_cblist_protected(struct rcu_data *rdp)
 {
 	lockdep_assert_irqs_disabled();
+<<<<<<< HEAD
 	if (rcu_segcblist_is_offloaded(&rdp->cblist))
+=======
+	if (rcu_rdp_is_offloaded(rdp))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		lockdep_assert_held(&rdp->nocb_lock);
 }
 
@@ -1628,6 +1715,7 @@ bool rcu_is_nocb_cpu(int cpu)
 	return false;
 }
 
+<<<<<<< HEAD
 /*
  * Kick the GP kthread for this NOCB group.  Caller holds ->nocb_lock
  * and this function releases it.
@@ -1657,23 +1745,92 @@ static bool wake_nocb_gp(struct rcu_data *rdp, bool force,
 	raw_spin_unlock_irqrestore(&rdp_gp->nocb_gp_lock, flags);
 	if (needwake)
 		wake_up_process(rdp_gp->nocb_gp_kthread);
+=======
+static bool __wake_nocb_gp(struct rcu_data *rdp_gp,
+			   struct rcu_data *rdp,
+			   bool force, unsigned long flags)
+	__releases(rdp_gp->nocb_gp_lock)
+{
+	bool needwake = false;
+
+	if (!READ_ONCE(rdp_gp->nocb_gp_kthread)) {
+		raw_spin_unlock_irqrestore(&rdp_gp->nocb_gp_lock, flags);
+		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu,
+				    TPS("AlreadyAwake"));
+		return false;
+	}
+
+	if (rdp_gp->nocb_defer_wakeup > RCU_NOCB_WAKE_NOT) {
+		WRITE_ONCE(rdp_gp->nocb_defer_wakeup, RCU_NOCB_WAKE_NOT);
+		del_timer(&rdp_gp->nocb_timer);
+	}
+
+	if (force || READ_ONCE(rdp_gp->nocb_gp_sleep)) {
+		WRITE_ONCE(rdp_gp->nocb_gp_sleep, false);
+		needwake = true;
+	}
+	raw_spin_unlock_irqrestore(&rdp_gp->nocb_gp_lock, flags);
+	if (needwake) {
+		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("DoWake"));
+		wake_up_process(rdp_gp->nocb_gp_kthread);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return needwake;
 }
 
 /*
+<<<<<<< HEAD
+=======
+ * Kick the GP kthread for this NOCB group.
+ */
+static bool wake_nocb_gp(struct rcu_data *rdp, bool force)
+{
+	unsigned long flags;
+	struct rcu_data *rdp_gp = rdp->nocb_gp_rdp;
+
+	raw_spin_lock_irqsave(&rdp_gp->nocb_gp_lock, flags);
+	return __wake_nocb_gp(rdp_gp, rdp, force, flags);
+}
+
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * Arrange to wake the GP kthread for this NOCB group at some future
  * time when it is safe to do so.
  */
 static void wake_nocb_gp_defer(struct rcu_data *rdp, int waketype,
 			       const char *reason)
 {
+<<<<<<< HEAD
 	if (rdp->nocb_defer_wakeup == RCU_NOCB_WAKE_OFF)
 		return;
 	if (rdp->nocb_defer_wakeup == RCU_NOCB_WAKE_NOT)
 		mod_timer(&rdp->nocb_timer, jiffies + 1);
 	if (rdp->nocb_defer_wakeup < waketype)
 		WRITE_ONCE(rdp->nocb_defer_wakeup, waketype);
+=======
+	unsigned long flags;
+	struct rcu_data *rdp_gp = rdp->nocb_gp_rdp;
+
+	raw_spin_lock_irqsave(&rdp_gp->nocb_gp_lock, flags);
+
+	/*
+	 * Bypass wakeup overrides previous deferments. In case
+	 * of callback storm, no need to wake up too early.
+	 */
+	if (waketype == RCU_NOCB_WAKE_BYPASS) {
+		mod_timer(&rdp_gp->nocb_timer, jiffies + 2);
+		WRITE_ONCE(rdp_gp->nocb_defer_wakeup, waketype);
+	} else {
+		if (rdp_gp->nocb_defer_wakeup < RCU_NOCB_WAKE)
+			mod_timer(&rdp_gp->nocb_timer, jiffies + 1);
+		if (rdp_gp->nocb_defer_wakeup < waketype)
+			WRITE_ONCE(rdp_gp->nocb_defer_wakeup, waketype);
+	}
+
+	raw_spin_unlock_irqrestore(&rdp_gp->nocb_gp_lock, flags);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, reason);
 }
 
@@ -1690,7 +1847,11 @@ static bool rcu_nocb_do_flush_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 {
 	struct rcu_cblist rcl;
 
+<<<<<<< HEAD
 	WARN_ON_ONCE(!rcu_segcblist_is_offloaded(&rdp->cblist));
+=======
+	WARN_ON_ONCE(!rcu_rdp_is_offloaded(rdp));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rcu_lockdep_assert_cblist_protected(rdp);
 	lockdep_assert_held(&rdp->nocb_bypass_lock);
 	if (rhp && !rcu_cblist_n_cbs(&rdp->nocb_bypass)) {
@@ -1718,7 +1879,11 @@ static bool rcu_nocb_do_flush_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 static bool rcu_nocb_flush_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 				  unsigned long j)
 {
+<<<<<<< HEAD
 	if (!rcu_segcblist_is_offloaded(&rdp->cblist))
+=======
+	if (!rcu_rdp_is_offloaded(rdp))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return true;
 	rcu_lockdep_assert_cblist_protected(rdp);
 	rcu_nocb_bypass_lock(rdp);
@@ -1732,7 +1897,11 @@ static bool rcu_nocb_flush_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 static void rcu_nocb_try_flush_bypass(struct rcu_data *rdp, unsigned long j)
 {
 	rcu_lockdep_assert_cblist_protected(rdp);
+<<<<<<< HEAD
 	if (!rcu_segcblist_is_offloaded(&rdp->cblist) ||
+=======
+	if (!rcu_rdp_is_offloaded(rdp) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	    !rcu_nocb_bypass_trylock(rdp))
 		return;
 	WARN_ON_ONCE(!rcu_nocb_do_flush_bypass(rdp, NULL, j));
@@ -1764,11 +1933,30 @@ static bool rcu_nocb_try_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 	unsigned long j = jiffies;
 	long ncbs = rcu_cblist_n_cbs(&rdp->nocb_bypass);
 
+<<<<<<< HEAD
 	if (!rcu_segcblist_is_offloaded(&rdp->cblist)) {
 		*was_alldone = !rcu_segcblist_pend_cbs(&rdp->cblist);
 		return false; /* Not offloaded, no bypassing. */
 	}
 	lockdep_assert_irqs_disabled();
+=======
+	lockdep_assert_irqs_disabled();
+
+	// Pure softirq/rcuc based processing: no bypassing, no
+	// locking.
+	if (!rcu_rdp_is_offloaded(rdp)) {
+		*was_alldone = !rcu_segcblist_pend_cbs(&rdp->cblist);
+		return false;
+	}
+
+	// In the process of (de-)offloading: no bypassing, but
+	// locking.
+	if (!rcu_segcblist_completely_offloaded(&rdp->cblist)) {
+		rcu_nocb_lock(rdp);
+		*was_alldone = !rcu_segcblist_pend_cbs(&rdp->cblist);
+		return false; /* Not offloaded, no bypassing. */
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	// Don't use ->nocb_bypass during early boot.
 	if (rcu_scheduler_active != RCU_SCHEDULER_RUNNING) {
@@ -1861,7 +2049,11 @@ static bool rcu_nocb_try_bypass(struct rcu_data *rdp, struct rcu_head *rhp,
 }
 
 /*
+<<<<<<< HEAD
  * Awaken the no-CBs grace-period kthead if needed, either due to it
+=======
+ * Awaken the no-CBs grace-period kthread if needed, either due to it
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * legitimately being asleep or due to overload conditions.
  *
  * If warranted, also wake up the kthread servicing this CPUs queues.
@@ -1878,9 +2070,15 @@ static void __call_rcu_nocb_wake(struct rcu_data *rdp, bool was_alldone,
 	// If we are being polled or there is no kthread, just leave.
 	t = READ_ONCE(rdp->nocb_gp_kthread);
 	if (rcu_nocb_poll || !t) {
+<<<<<<< HEAD
 		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu,
 				    TPS("WakeNotPoll"));
 		rcu_nocb_unlock_irqrestore(rdp, flags);
+=======
+		rcu_nocb_unlock_irqrestore(rdp, flags);
+		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu,
+				    TPS("WakeNotPoll"));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 	// Need to actually to a wakeup.
@@ -1889,6 +2087,7 @@ static void __call_rcu_nocb_wake(struct rcu_data *rdp, bool was_alldone,
 		rdp->qlen_last_fqs_check = len;
 		if (!irqs_disabled_flags(flags)) {
 			/* ... if queue was empty ... */
+<<<<<<< HEAD
 			wake_nocb_gp(rdp, false, flags);
 			trace_rcu_nocb_wake(rcu_state.name, rdp->cpu,
 					    TPS("WakeEmpty"));
@@ -1896,6 +2095,16 @@ static void __call_rcu_nocb_wake(struct rcu_data *rdp, bool was_alldone,
 			wake_nocb_gp_defer(rdp, RCU_NOCB_WAKE,
 					   TPS("WakeEmptyIsDeferred"));
 			rcu_nocb_unlock_irqrestore(rdp, flags);
+=======
+			rcu_nocb_unlock_irqrestore(rdp, flags);
+			wake_nocb_gp(rdp, false);
+			trace_rcu_nocb_wake(rcu_state.name, rdp->cpu,
+					    TPS("WakeEmpty"));
+		} else {
+			rcu_nocb_unlock_irqrestore(rdp, flags);
+			wake_nocb_gp_defer(rdp, RCU_NOCB_WAKE,
+					   TPS("WakeEmptyIsDeferred"));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	} else if (len > rdp->qlen_last_fqs_check + qhimark) {
 		/* ... or if many callbacks queued. */
@@ -1910,6 +2119,7 @@ static void __call_rcu_nocb_wake(struct rcu_data *rdp, bool was_alldone,
 		smp_mb(); /* Enqueue before timer_pending(). */
 		if ((rdp->nocb_cb_sleep ||
 		     !rcu_segcblist_ready_cbs(&rdp->cblist)) &&
+<<<<<<< HEAD
 		    !timer_pending(&rdp->nocb_bypass_timer))
 			wake_nocb_gp_defer(rdp, RCU_NOCB_WAKE_FORCE,
 					   TPS("WakeOvfIsDeferred"));
@@ -1917,10 +2127,24 @@ static void __call_rcu_nocb_wake(struct rcu_data *rdp, bool was_alldone,
 	} else {
 		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("WakeNot"));
 		rcu_nocb_unlock_irqrestore(rdp, flags);
+=======
+		    !timer_pending(&rdp->nocb_timer)) {
+			rcu_nocb_unlock_irqrestore(rdp, flags);
+			wake_nocb_gp_defer(rdp, RCU_NOCB_WAKE_FORCE,
+					   TPS("WakeOvfIsDeferred"));
+		} else {
+			rcu_nocb_unlock_irqrestore(rdp, flags);
+			trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("WakeNot"));
+		}
+	} else {
+		rcu_nocb_unlock_irqrestore(rdp, flags);
+		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("WakeNot"));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return;
 }
 
+<<<<<<< HEAD
 /* Wake up the no-CBs GP kthread to flush ->nocb_bypass. */
 static void do_nocb_bypass_wakeup_timer(struct timer_list *t)
 {
@@ -1933,6 +2157,8 @@ static void do_nocb_bypass_wakeup_timer(struct timer_list *t)
 	__call_rcu_nocb_wake(rdp, true, flags);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Check if we ignore this rdp.
  *
@@ -1954,7 +2180,12 @@ static inline bool nocb_gp_enabled_cb(struct rcu_data *rdp)
 	return rcu_segcblist_test_flags(&rdp->cblist, flags);
 }
 
+<<<<<<< HEAD
 static inline bool nocb_gp_update_state(struct rcu_data *rdp, bool *needwake_state)
+=======
+static inline bool nocb_gp_update_state_deoffloading(struct rcu_data *rdp,
+						     bool *needwake_state)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct rcu_segcblist *cblist = &rdp->cblist;
 
@@ -1964,7 +2195,11 @@ static inline bool nocb_gp_update_state(struct rcu_data *rdp, bool *needwake_sta
 			if (rcu_segcblist_test_flags(cblist, SEGCBLIST_KTHREAD_CB))
 				*needwake_state = true;
 		}
+<<<<<<< HEAD
 		return true;
+=======
+		return false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/*
@@ -1975,7 +2210,11 @@ static inline bool nocb_gp_update_state(struct rcu_data *rdp, bool *needwake_sta
 	rcu_segcblist_clear_flags(cblist, SEGCBLIST_KTHREAD_GP);
 	if (!rcu_segcblist_test_flags(cblist, SEGCBLIST_KTHREAD_CB))
 		*needwake_state = true;
+<<<<<<< HEAD
 	return false;
+=======
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 
@@ -2013,7 +2252,11 @@ static void nocb_gp_wait(struct rcu_data *my_rdp)
 			continue;
 		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("Check"));
 		rcu_nocb_lock_irqsave(rdp, flags);
+<<<<<<< HEAD
 		if (!nocb_gp_update_state(rdp, &needwake_state)) {
+=======
+		if (nocb_gp_update_state_deoffloading(rdp, &needwake_state)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			rcu_nocb_unlock_irqrestore(rdp, flags);
 			if (needwake_state)
 				swake_up_one(&rdp->nocb_state_wq);
@@ -2038,11 +2281,15 @@ static void nocb_gp_wait(struct rcu_data *my_rdp)
 			bypass = true;
 		}
 		rnp = rdp->mynode;
+<<<<<<< HEAD
 		if (bypass) {  // Avoid race with first bypass CB.
 			WRITE_ONCE(my_rdp->nocb_defer_wakeup,
 				   RCU_NOCB_WAKE_NOT);
 			del_timer(&my_rdp->nocb_timer);
 		}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		// Advance callbacks if helpful and low contention.
 		needwake_gp = false;
 		if (!rcu_segcblist_restempty(&rdp->cblist,
@@ -2088,12 +2335,21 @@ static void nocb_gp_wait(struct rcu_data *my_rdp)
 	my_rdp->nocb_gp_bypass = bypass;
 	my_rdp->nocb_gp_gp = needwait_gp;
 	my_rdp->nocb_gp_seq = needwait_gp ? wait_gp_seq : 0;
+<<<<<<< HEAD
 	if (bypass && !rcu_nocb_poll) {
 		// At least one child with non-empty ->nocb_bypass, so set
 		// timer in order to avoid stranding its callbacks.
 		raw_spin_lock_irqsave(&my_rdp->nocb_gp_lock, flags);
 		mod_timer(&my_rdp->nocb_bypass_timer, j + 2);
 		raw_spin_unlock_irqrestore(&my_rdp->nocb_gp_lock, flags);
+=======
+
+	if (bypass && !rcu_nocb_poll) {
+		// At least one child with non-empty ->nocb_bypass, so set
+		// timer in order to avoid stranding its callbacks.
+		wake_nocb_gp_defer(my_rdp, RCU_NOCB_WAKE_BYPASS,
+				   TPS("WakeBypassIsDeferred"));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	if (rcu_nocb_poll) {
 		/* Polling, so trace if first poll in the series. */
@@ -2117,8 +2373,15 @@ static void nocb_gp_wait(struct rcu_data *my_rdp)
 	}
 	if (!rcu_nocb_poll) {
 		raw_spin_lock_irqsave(&my_rdp->nocb_gp_lock, flags);
+<<<<<<< HEAD
 		if (bypass)
 			del_timer(&my_rdp->nocb_bypass_timer);
+=======
+		if (my_rdp->nocb_defer_wakeup > RCU_NOCB_WAKE_NOT) {
+			WRITE_ONCE(my_rdp->nocb_defer_wakeup, RCU_NOCB_WAKE_NOT);
+			del_timer(&my_rdp->nocb_timer);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		WRITE_ONCE(my_rdp->nocb_gp_sleep, true);
 		raw_spin_unlock_irqrestore(&my_rdp->nocb_gp_lock, flags);
 	}
@@ -2168,11 +2431,24 @@ static void nocb_cb_wait(struct rcu_data *rdp)
 	unsigned long flags;
 	bool needwake_state = false;
 	bool needwake_gp = false;
+<<<<<<< HEAD
+=======
+	bool can_sleep = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rcu_node *rnp = rdp->mynode;
 
 	local_irq_save(flags);
 	rcu_momentary_dyntick_idle();
 	local_irq_restore(flags);
+<<<<<<< HEAD
+=======
+	/*
+	 * Disable BH to provide the expected environment.  Also, when
+	 * transitioning to/from NOCB mode, a self-requeuing callback might
+	 * be invoked from softirq.  A short grace period could cause both
+	 * instances of this callback would execute concurrently.
+	 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	local_bh_disable();
 	rcu_do_batch(rdp);
 	local_bh_enable();
@@ -2185,8 +2461,11 @@ static void nocb_cb_wait(struct rcu_data *rdp)
 		raw_spin_unlock_rcu_node(rnp); /* irqs remain disabled. */
 	}
 
+<<<<<<< HEAD
 	WRITE_ONCE(rdp->nocb_cb_sleep, true);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (rcu_segcblist_test_flags(cblist, SEGCBLIST_OFFLOADED)) {
 		if (!rcu_segcblist_test_flags(cblist, SEGCBLIST_KTHREAD_CB)) {
 			rcu_segcblist_set_flags(cblist, SEGCBLIST_KTHREAD_CB);
@@ -2194,7 +2473,11 @@ static void nocb_cb_wait(struct rcu_data *rdp)
 				needwake_state = true;
 		}
 		if (rcu_segcblist_ready_cbs(cblist))
+<<<<<<< HEAD
 			WRITE_ONCE(rdp->nocb_cb_sleep, false);
+=======
+			can_sleep = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		/*
 		 * De-offloading. Clear our flag and notify the de-offload worker.
@@ -2207,6 +2490,11 @@ static void nocb_cb_wait(struct rcu_data *rdp)
 			needwake_state = true;
 	}
 
+<<<<<<< HEAD
+=======
+	WRITE_ONCE(rdp->nocb_cb_sleep, can_sleep);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (rdp->nocb_cb_sleep)
 		trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("CBSleep"));
 
@@ -2247,6 +2535,7 @@ static int rcu_nocb_cb_kthread(void *arg)
 }
 
 /* Is a deferred wakeup of rcu_nocb_kthread() required? */
+<<<<<<< HEAD
 static int rcu_nocb_need_deferred_wakeup(struct rcu_data *rdp)
 {
 	return READ_ONCE(rdp->nocb_defer_wakeup) > RCU_NOCB_WAKE_NOT;
@@ -2267,6 +2556,29 @@ static bool do_nocb_deferred_wakeup_common(struct rcu_data *rdp)
 	ndw = READ_ONCE(rdp->nocb_defer_wakeup);
 	WRITE_ONCE(rdp->nocb_defer_wakeup, RCU_NOCB_WAKE_NOT);
 	ret = wake_nocb_gp(rdp, ndw == RCU_NOCB_WAKE_FORCE, flags);
+=======
+static int rcu_nocb_need_deferred_wakeup(struct rcu_data *rdp, int level)
+{
+	return READ_ONCE(rdp->nocb_defer_wakeup) >= level;
+}
+
+/* Do a deferred wakeup of rcu_nocb_kthread(). */
+static bool do_nocb_deferred_wakeup_common(struct rcu_data *rdp_gp,
+					   struct rcu_data *rdp, int level,
+					   unsigned long flags)
+	__releases(rdp_gp->nocb_gp_lock)
+{
+	int ndw;
+	int ret;
+
+	if (!rcu_nocb_need_deferred_wakeup(rdp_gp, level)) {
+		raw_spin_unlock_irqrestore(&rdp_gp->nocb_gp_lock, flags);
+		return false;
+	}
+
+	ndw = rdp_gp->nocb_defer_wakeup;
+	ret = __wake_nocb_gp(rdp_gp, rdp, ndw == RCU_NOCB_WAKE_FORCE, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("DeferredWake"));
 
 	return ret;
@@ -2275,9 +2587,21 @@ static bool do_nocb_deferred_wakeup_common(struct rcu_data *rdp)
 /* Do a deferred wakeup of rcu_nocb_kthread() from a timer handler. */
 static void do_nocb_deferred_wakeup_timer(struct timer_list *t)
 {
+<<<<<<< HEAD
 	struct rcu_data *rdp = from_timer(rdp, t, nocb_timer);
 
 	do_nocb_deferred_wakeup_common(rdp);
+=======
+	unsigned long flags;
+	struct rcu_data *rdp = from_timer(rdp, t, nocb_timer);
+
+	WARN_ON_ONCE(rdp->nocb_gp_rdp != rdp);
+	trace_rcu_nocb_wake(rcu_state.name, rdp->cpu, TPS("Timer"));
+
+	raw_spin_lock_irqsave(&rdp->nocb_gp_lock, flags);
+	smp_mb__after_spinlock(); /* Timer expire before wakeup. */
+	do_nocb_deferred_wakeup_common(rdp, rdp, RCU_NOCB_WAKE_BYPASS, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -2287,9 +2611,20 @@ static void do_nocb_deferred_wakeup_timer(struct timer_list *t)
  */
 static bool do_nocb_deferred_wakeup(struct rcu_data *rdp)
 {
+<<<<<<< HEAD
 	if (rcu_nocb_need_deferred_wakeup(rdp))
 		return do_nocb_deferred_wakeup_common(rdp);
 	return false;
+=======
+	unsigned long flags;
+	struct rcu_data *rdp_gp = rdp->nocb_gp_rdp;
+
+	if (!rdp_gp || !rcu_nocb_need_deferred_wakeup(rdp_gp, RCU_NOCB_WAKE))
+		return false;
+
+	raw_spin_lock_irqsave(&rdp_gp->nocb_gp_lock, flags);
+	return do_nocb_deferred_wakeup_common(rdp_gp, rdp, RCU_NOCB_WAKE, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rcu_nocb_flush_deferred_wakeup(void)
@@ -2331,16 +2666,28 @@ static int rdp_offload_toggle(struct rcu_data *rdp,
 	return 0;
 }
 
+<<<<<<< HEAD
 static int __rcu_nocb_rdp_deoffload(struct rcu_data *rdp)
 {
+=======
+static long rcu_nocb_rdp_deoffload(void *arg)
+{
+	struct rcu_data *rdp = arg;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rcu_segcblist *cblist = &rdp->cblist;
 	unsigned long flags;
 	int ret;
 
+<<<<<<< HEAD
+=======
+	WARN_ON_ONCE(rdp->cpu != raw_smp_processor_id());
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pr_info("De-offloading %d\n", rdp->cpu);
 
 	rcu_nocb_lock_irqsave(rdp, flags);
 	/*
+<<<<<<< HEAD
 	 * If there are still pending work offloaded, the offline
 	 * CPU won't help much handling them.
 	 */
@@ -2349,10 +2696,22 @@ static int __rcu_nocb_rdp_deoffload(struct rcu_data *rdp)
 		return -EBUSY;
 	}
 
+=======
+	 * Flush once and for all now. This suffices because we are
+	 * running on the target CPU holding ->nocb_lock (thus having
+	 * interrupts disabled), and because rdp_offload_toggle()
+	 * invokes rcu_segcblist_offload(), which clears SEGCBLIST_OFFLOADED.
+	 * Thus future calls to rcu_segcblist_completely_offloaded() will
+	 * return false, which means that future calls to rcu_nocb_try_bypass()
+	 * will refuse to put anything into the bypass.
+	 */
+	WARN_ON_ONCE(!rcu_nocb_flush_bypass(rdp, NULL, jiffies));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = rdp_offload_toggle(rdp, false, flags);
 	swait_event_exclusive(rdp->nocb_state_wq,
 			      !rcu_segcblist_test_flags(cblist, SEGCBLIST_KTHREAD_CB |
 							SEGCBLIST_KTHREAD_GP));
+<<<<<<< HEAD
 	rcu_nocb_lock_irqsave(rdp, flags);
 	/* Make sure nocb timer won't stay around */
 	WRITE_ONCE(rdp->nocb_defer_wakeup, RCU_NOCB_WAKE_OFF);
@@ -2384,6 +2743,29 @@ static long rcu_nocb_rdp_deoffload(void *arg)
 
 	WARN_ON_ONCE(rdp->cpu != raw_smp_processor_id());
 	return __rcu_nocb_rdp_deoffload(rdp);
+=======
+	/*
+	 * Lock one last time to acquire latest callback updates from kthreads
+	 * so we can later handle callbacks locally without locking.
+	 */
+	rcu_nocb_lock_irqsave(rdp, flags);
+	/*
+	 * Theoretically we could set SEGCBLIST_SOFTIRQ_ONLY after the nocb
+	 * lock is released but how about being paranoid for once?
+	 */
+	rcu_segcblist_set_flags(cblist, SEGCBLIST_SOFTIRQ_ONLY);
+	/*
+	 * With SEGCBLIST_SOFTIRQ_ONLY, we can't use
+	 * rcu_nocb_unlock_irqrestore() anymore.
+	 */
+	raw_spin_unlock_irqrestore(&rdp->nocb_lock, flags);
+
+	/* Sanity check */
+	WARN_ON_ONCE(rcu_cblist_n_cbs(&rdp->nocb_bypass));
+
+
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int rcu_nocb_cpu_deoffload(int cpu)
@@ -2391,6 +2773,7 @@ int rcu_nocb_cpu_deoffload(int cpu)
 	struct rcu_data *rdp = per_cpu_ptr(&rcu_data, cpu);
 	int ret = 0;
 
+<<<<<<< HEAD
 	if (rdp == rdp->nocb_gp_rdp) {
 		pr_info("Can't deoffload an rdp GP leader (yet)\n");
 		return -EINVAL;
@@ -2404,6 +2787,19 @@ int rcu_nocb_cpu_deoffload(int cpu)
 			ret = __rcu_nocb_rdp_deoffload(rdp);
 		if (!ret)
 			cpumask_clear_cpu(cpu, rcu_nocb_mask);
+=======
+	mutex_lock(&rcu_state.barrier_mutex);
+	cpus_read_lock();
+	if (rcu_rdp_is_offloaded(rdp)) {
+		if (cpu_online(cpu)) {
+			ret = work_on_cpu(cpu, rcu_nocb_rdp_deoffload, rdp);
+			if (!ret)
+				cpumask_clear_cpu(cpu, rcu_nocb_mask);
+		} else {
+			pr_info("NOCB: Can't CB-deoffload an offline CPU\n");
+			ret = -EINVAL;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	cpus_read_unlock();
 	mutex_unlock(&rcu_state.barrier_mutex);
@@ -2412,12 +2808,22 @@ int rcu_nocb_cpu_deoffload(int cpu)
 }
 EXPORT_SYMBOL_GPL(rcu_nocb_cpu_deoffload);
 
+<<<<<<< HEAD
 static int __rcu_nocb_rdp_offload(struct rcu_data *rdp)
 {
+=======
+static long rcu_nocb_rdp_offload(void *arg)
+{
+	struct rcu_data *rdp = arg;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rcu_segcblist *cblist = &rdp->cblist;
 	unsigned long flags;
 	int ret;
 
+<<<<<<< HEAD
+=======
+	WARN_ON_ONCE(rdp->cpu != raw_smp_processor_id());
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * For now we only support re-offload, ie: the rdp must have been
 	 * offloaded on boot first.
@@ -2431,8 +2837,12 @@ static int __rcu_nocb_rdp_offload(struct rcu_data *rdp)
 	 * SEGCBLIST_SOFTIRQ_ONLY mode.
 	 */
 	raw_spin_lock_irqsave(&rdp->nocb_lock, flags);
+<<<<<<< HEAD
 	/* Re-enable nocb timer */
 	WRITE_ONCE(rdp->nocb_defer_wakeup, RCU_NOCB_WAKE_NOT);
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * We didn't take the nocb lock while working on the
 	 * rdp->cblist in SEGCBLIST_SOFTIRQ_ONLY mode.
@@ -2457,6 +2867,7 @@ static int __rcu_nocb_rdp_offload(struct rcu_data *rdp)
 	return ret;
 }
 
+<<<<<<< HEAD
 static long rcu_nocb_rdp_offload(void *arg)
 {
 	struct rcu_data *rdp = arg;
@@ -2465,6 +2876,8 @@ static long rcu_nocb_rdp_offload(void *arg)
 	return __rcu_nocb_rdp_offload(rdp);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int rcu_nocb_cpu_offload(int cpu)
 {
 	struct rcu_data *rdp = per_cpu_ptr(&rcu_data, cpu);
@@ -2472,6 +2885,7 @@ int rcu_nocb_cpu_offload(int cpu)
 
 	mutex_lock(&rcu_state.barrier_mutex);
 	cpus_read_lock();
+<<<<<<< HEAD
 	if (!rcu_segcblist_is_offloaded(&rdp->cblist)) {
 		if (cpu_online(cpu))
 			ret = work_on_cpu(cpu, rcu_nocb_rdp_offload, rdp);
@@ -2479,6 +2893,17 @@ int rcu_nocb_cpu_offload(int cpu)
 			ret = __rcu_nocb_rdp_offload(rdp);
 		if (!ret)
 			cpumask_set_cpu(cpu, rcu_nocb_mask);
+=======
+	if (!rcu_rdp_is_offloaded(rdp)) {
+		if (cpu_online(cpu)) {
+			ret = work_on_cpu(cpu, rcu_nocb_rdp_offload, rdp);
+			if (!ret)
+				cpumask_set_cpu(cpu, rcu_nocb_mask);
+		} else {
+			pr_info("NOCB: Can't CB-offload an offline CPU\n");
+			ret = -EINVAL;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	cpus_read_unlock();
 	mutex_unlock(&rcu_state.barrier_mutex);
@@ -2546,7 +2971,10 @@ static void __init rcu_boot_init_nocb_percpu_data(struct rcu_data *rdp)
 	raw_spin_lock_init(&rdp->nocb_bypass_lock);
 	raw_spin_lock_init(&rdp->nocb_gp_lock);
 	timer_setup(&rdp->nocb_timer, do_nocb_deferred_wakeup_timer, 0);
+<<<<<<< HEAD
 	timer_setup(&rdp->nocb_bypass_timer, do_nocb_bypass_wakeup_timer, 0);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rcu_cblist_init(&rdp->nocb_bypass);
 }
 
@@ -2688,7 +3116,11 @@ EXPORT_SYMBOL_GPL(rcu_bind_current_to_nocb);
 #ifdef CONFIG_SMP
 static char *show_rcu_should_be_on_cpu(struct task_struct *tsp)
 {
+<<<<<<< HEAD
 	return tsp && tsp->state == TASK_RUNNING && !tsp->on_cpu ? "!" : "";
+=======
+	return tsp && task_is_running(tsp) && !tsp->on_cpu ? "!" : "";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 #else // #ifdef CONFIG_SMP
 static char *show_rcu_should_be_on_cpu(struct task_struct *tsp)
@@ -2705,13 +3137,20 @@ static void show_rcu_nocb_gp_state(struct rcu_data *rdp)
 {
 	struct rcu_node *rnp = rdp->mynode;
 
+<<<<<<< HEAD
 	pr_info("nocb GP %d %c%c%c%c%c%c %c[%c%c] %c%c:%ld rnp %d:%d %lu %c CPU %d%s\n",
+=======
+	pr_info("nocb GP %d %c%c%c%c%c %c[%c%c] %c%c:%ld rnp %d:%d %lu %c CPU %d%s\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rdp->cpu,
 		"kK"[!!rdp->nocb_gp_kthread],
 		"lL"[raw_spin_is_locked(&rdp->nocb_gp_lock)],
 		"dD"[!!rdp->nocb_defer_wakeup],
 		"tT"[timer_pending(&rdp->nocb_timer)],
+<<<<<<< HEAD
 		"bB"[timer_pending(&rdp->nocb_bypass_timer)],
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		"sS"[!!rdp->nocb_gp_sleep],
 		".W"[swait_active(&rdp->nocb_gp_wq)],
 		".W"[swait_active(&rnp->nocb_gp_wq[0])],
@@ -2732,7 +3171,10 @@ static void show_rcu_nocb_state(struct rcu_data *rdp)
 	char bufr[20];
 	struct rcu_segcblist *rsclp = &rdp->cblist;
 	bool waslocked;
+<<<<<<< HEAD
 	bool wastimer;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bool wassleep;
 
 	if (rdp->nocb_gp_rdp == rdp)
@@ -2769,6 +3211,7 @@ static void show_rcu_nocb_state(struct rcu_data *rdp)
 		return;
 
 	waslocked = raw_spin_is_locked(&rdp->nocb_gp_lock);
+<<<<<<< HEAD
 	wastimer = timer_pending(&rdp->nocb_bypass_timer);
 	wassleep = swait_active(&rdp->nocb_gp_wq);
 	if (!rdp->nocb_gp_sleep && !waslocked && !wastimer && !wassleep)
@@ -2778,6 +3221,15 @@ static void show_rcu_nocb_state(struct rcu_data *rdp)
 		"lL"[waslocked],
 		"dD"[!!rdp->nocb_defer_wakeup],
 		"tT"[wastimer],
+=======
+	wassleep = swait_active(&rdp->nocb_gp_wq);
+	if (!rdp->nocb_gp_sleep && !waslocked && !wassleep)
+		return;  /* Nothing untoward. */
+
+	pr_info("   nocb GP activity on CB-only CPU!!! %c%c%c %c\n",
+		"lL"[waslocked],
+		"dD"[!!rdp->nocb_defer_wakeup],
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		"sS"[!!rdp->nocb_gp_sleep],
 		".W"[wassleep]);
 }
@@ -2842,7 +3294,11 @@ static void __init rcu_boot_init_nocb_percpu_data(struct rcu_data *rdp)
 {
 }
 
+<<<<<<< HEAD
 static int rcu_nocb_need_deferred_wakeup(struct rcu_data *rdp)
+=======
+static int rcu_nocb_need_deferred_wakeup(struct rcu_data *rdp, int level)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return false;
 }

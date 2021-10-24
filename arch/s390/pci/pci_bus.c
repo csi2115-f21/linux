@@ -30,7 +30,158 @@ static LIST_HEAD(zbus_list);
 static DEFINE_SPINLOCK(zbus_list_lock);
 static int zpci_nb_devices;
 
+<<<<<<< HEAD
 /* zpci_bus_scan
+=======
+/* zpci_bus_prepare_device - Prepare a zPCI function for scanning
+ * @zdev: the zPCI function to be prepared
+ *
+ * The PCI resources for the function are set up and added to its zbus and the
+ * function is enabled. The function must be added to a zbus which must have
+ * a PCI bus created. If an error occurs the zPCI function is not enabled.
+ *
+ * Return: 0 on success, an error code otherwise
+ */
+static int zpci_bus_prepare_device(struct zpci_dev *zdev)
+{
+	struct resource_entry *window, *n;
+	struct resource *res;
+	int rc;
+
+	if (!zdev_enabled(zdev)) {
+		rc = zpci_enable_device(zdev);
+		if (rc)
+			return rc;
+	}
+
+	if (!zdev->has_resources) {
+		zpci_setup_bus_resources(zdev, &zdev->zbus->resources);
+		resource_list_for_each_entry_safe(window, n, &zdev->zbus->resources) {
+			res = window->res;
+			pci_bus_add_resource(zdev->zbus->bus, res, 0);
+		}
+	}
+
+	return 0;
+}
+
+/* zpci_bus_scan_device - Scan a single device adding it to the PCI core
+ * @zdev: the zdev to be scanned
+ *
+ * Scans the PCI function making it available to the common PCI code.
+ *
+ * Return: 0 on success, an error value otherwise
+ */
+int zpci_bus_scan_device(struct zpci_dev *zdev)
+{
+	struct pci_dev *pdev;
+	int rc;
+
+	rc = zpci_bus_prepare_device(zdev);
+	if (rc)
+		return rc;
+
+	pdev = pci_scan_single_device(zdev->zbus->bus, zdev->devfn);
+	if (!pdev)
+		return -ENODEV;
+
+	pci_bus_add_device(pdev);
+	pci_lock_rescan_remove();
+	pci_bus_add_devices(zdev->zbus->bus);
+	pci_unlock_rescan_remove();
+
+	return 0;
+}
+
+/* zpci_bus_remove_device - Removes the given zdev from the PCI core
+ * @zdev: the zdev to be removed from the PCI core
+ * @set_error: if true the device's error state is set to permanent failure
+ *
+ * Sets a zPCI device to a configured but offline state; the zPCI
+ * device is still accessible through its hotplug slot and the zPCI
+ * API but is removed from the common code PCI bus, making it
+ * no longer available to drivers.
+ */
+void zpci_bus_remove_device(struct zpci_dev *zdev, bool set_error)
+{
+	struct zpci_bus *zbus = zdev->zbus;
+	struct pci_dev *pdev;
+
+	if (!zdev->zbus->bus)
+		return;
+
+	pdev = pci_get_slot(zbus->bus, zdev->devfn);
+	if (pdev) {
+		if (set_error)
+			pdev->error_state = pci_channel_io_perm_failure;
+		if (pdev->is_virtfn) {
+			zpci_iov_remove_virtfn(pdev, zdev->vfn);
+			/* balance pci_get_slot */
+			pci_dev_put(pdev);
+			return;
+		}
+		pci_stop_and_remove_bus_device_locked(pdev);
+		/* balance pci_get_slot */
+		pci_dev_put(pdev);
+	}
+}
+
+/* zpci_bus_scan_bus - Scan all configured zPCI functions on the bus
+ * @zbus: the zbus to be scanned
+ *
+ * Enables and scans all PCI functions on the bus making them available to the
+ * common PCI code. If there is no function 0 on the zbus nothing is scanned. If
+ * a function does not have a slot yet because it was added to the zbus before
+ * function 0 the slot is created. If a PCI function fails to be initialized
+ * an error will be returned but attempts will still be made for all other
+ * functions on the bus.
+ *
+ * Return: 0 on success, an error value otherwise
+ */
+int zpci_bus_scan_bus(struct zpci_bus *zbus)
+{
+	struct zpci_dev *zdev;
+	int devfn, rc, ret = 0;
+
+	if (!zbus->function[0])
+		return 0;
+
+	for (devfn = 0; devfn < ZPCI_FUNCTIONS_PER_BUS; devfn++) {
+		zdev = zbus->function[devfn];
+		if (zdev && zdev->state == ZPCI_FN_STATE_CONFIGURED) {
+			rc = zpci_bus_prepare_device(zdev);
+			if (rc)
+				ret = -EIO;
+		}
+	}
+
+	pci_lock_rescan_remove();
+	pci_scan_child_bus(zbus->bus);
+	pci_bus_add_devices(zbus->bus);
+	pci_unlock_rescan_remove();
+
+	return ret;
+}
+
+/* zpci_bus_scan_busses - Scan all registered busses
+ *
+ * Scan all available zbusses
+ *
+ */
+void zpci_bus_scan_busses(void)
+{
+	struct zpci_bus *zbus = NULL;
+
+	mutex_lock(&zbus_list_lock);
+	list_for_each_entry(zbus, &zbus_list, bus_next) {
+		zpci_bus_scan_bus(zbus);
+		cond_resched();
+	}
+	mutex_unlock(&zbus_list_lock);
+}
+
+/* zpci_bus_create_pci_bus - Create the PCI bus associated with this zbus
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @zbus: the zbus holding the zdevices
  * @ops: the pci operations
  *
@@ -181,6 +332,7 @@ static void zpci_bus_add_devices(struct zpci_bus *zbus)
 {
 	int i;
 
+<<<<<<< HEAD
 	for (i = 1; i < ZPCI_FUNCTIONS_PER_BUS; i++)
 		if (zbus->function[i])
 			zpci_bus_add_device(zbus, zbus->function[i]);
@@ -188,6 +340,34 @@ static void zpci_bus_add_devices(struct zpci_bus *zbus)
 	pci_lock_rescan_remove();
 	pci_bus_add_devices(zbus->bus);
 	pci_unlock_rescan_remove();
+=======
+	zdev->zbus = zbus;
+	if (zbus->function[zdev->devfn]) {
+		pr_err("devfn %04x is already assigned\n", zdev->devfn);
+		return rc;
+	}
+	zbus->function[zdev->devfn] = zdev;
+	zpci_nb_devices++;
+
+	if (zbus->bus) {
+		if (zbus->multifunction && !zdev->rid_available) {
+			WARN_ONCE(1, "rid_available not set for multifunction\n");
+			goto error;
+		}
+
+		zpci_bus_create_hotplug_slots(zdev);
+	} else {
+		/* Hotplug slot will be created once function 0 appears */
+		zbus->multifunction = 1;
+	}
+
+	return 0;
+
+error:
+	zbus->function[zdev->devfn] = NULL;
+	zpci_nb_devices--;
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int zpci_bus_device_register(struct zpci_dev *zdev, struct pci_ops *ops)

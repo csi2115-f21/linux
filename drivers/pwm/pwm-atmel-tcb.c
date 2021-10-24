@@ -490,6 +490,13 @@ static int atmel_tcb_pwm_remove(struct platform_device *pdev)
 {
 	struct atmel_tcb_pwm_chip *tcbpwm = platform_get_drvdata(pdev);
 	int err;
+<<<<<<< HEAD
+=======
+
+	err = pwmchip_remove(&tcbpwm->chip);
+	if (err < 0)
+		return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	clk_disable_unprepare(tcbpwm->slow_clk);
 	clk_put(tcbpwm->slow_clk);

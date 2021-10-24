@@ -136,8 +136,14 @@ struct ionic_dev {
 	union ionic_dev_cmd_regs __iomem *dev_cmd_regs;
 
 	unsigned long last_hb_time;
+<<<<<<< HEAD
 	u32 last_hb;
 	u8 last_fw_status;
+=======
+	u32 last_fw_hb;
+	bool fw_hb_ready;
+	bool fw_status_ready;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	u64 __iomem *db_pages;
 	dma_addr_t phy_db_pages;

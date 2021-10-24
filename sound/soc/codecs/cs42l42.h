@@ -754,6 +754,11 @@ struct  cs42l42_private {
 	struct regulator_bulk_data supplies[CS42L42_NUM_SUPPLIES];
 	struct gpio_desc *reset_gpio;
 	struct completion pdn_done;
+<<<<<<< HEAD
+=======
+	struct snd_soc_jack *jack;
+	int bclk;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 sclk;
 	u32 srate;
 	u32 swidth;

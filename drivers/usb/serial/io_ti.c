@@ -2783,9 +2783,12 @@ MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 MODULE_FIRMWARE("edgeport/down3.bin");
 
+<<<<<<< HEAD
 module_param(closing_wait, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(closing_wait, "Maximum wait for data to drain, in .01 secs");
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 module_param(ignore_cpu_rev, bool, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(ignore_cpu_rev,
 			"Ignore the cpu revision when connecting to a device");

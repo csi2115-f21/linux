@@ -34,6 +34,11 @@
 #include <linux/mfd/abx500/ab8500-bm.h>
 #include <linux/iio/consumer.h>
 #include <linux/kernel.h>
+<<<<<<< HEAD
+=======
+
+#include "ab8500-bm.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define MILLI_TO_MICRO			1000
 #define FG_LSB_IN_MA			1627

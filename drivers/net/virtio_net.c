@@ -376,7 +376,12 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
 				   struct receive_queue *rq,
 				   struct page *page, unsigned int offset,
 				   unsigned int len, unsigned int truesize,
+<<<<<<< HEAD
 				   bool hdr_valid, unsigned int metasize)
+=======
+				   bool hdr_valid, unsigned int metasize,
+				   bool whole_page)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct sk_buff *skb;
 	struct virtio_net_hdr_mrg_rxbuf *hdr;
@@ -398,14 +403,40 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
 	else
 		hdr_padded_len = sizeof(struct padded_vnet_hdr);
 
+<<<<<<< HEAD
 	/* hdr_valid means no XDP, so we can copy the vnet header */
 	if (hdr_valid)
 		memcpy(hdr, p, hdr_len);
+=======
+	/* If whole_page, there is an offset between the beginning of the
+	 * data and the allocated space, otherwise the data and the allocated
+	 * space are aligned.
+	 *
+	 * Buffers with headroom use PAGE_SIZE as alloc size, see
+	 * add_recvbuf_mergeable() + get_mergeable_buf_len()
+	 */
+	if (whole_page) {
+		/* Buffers with whole_page use PAGE_SIZE as alloc size,
+		 * see add_recvbuf_mergeable() + get_mergeable_buf_len()
+		 */
+		truesize = PAGE_SIZE;
+
+		/* page maybe head page, so we should get the buf by p, not the
+		 * page
+		 */
+		tailroom = truesize - len - offset_in_page(p);
+		buf = (char *)((unsigned long)p & PAGE_MASK);
+	} else {
+		tailroom = truesize - len;
+		buf = p;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	len -= hdr_len;
 	offset += hdr_padded_len;
 	p += hdr_padded_len;
 
+<<<<<<< HEAD
 	copy = len;
 	if (copy > skb_tailroom(skb))
 		copy = skb_tailroom(skb);
@@ -414,6 +445,19 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
 	if (metasize) {
 		__skb_pull(skb, metasize);
 		skb_metadata_set(skb, metasize);
+=======
+	shinfo_size = SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
+
+	/* copy small packet so we can reuse these pages */
+	if (!NET_IP_ALIGN && len > GOOD_COPY_LEN && tailroom >= shinfo_size) {
+		skb = build_skb(buf, truesize);
+		if (unlikely(!skb))
+			return NULL;
+
+		skb_reserve(skb, p - buf);
+		skb_put(skb, len);
+		goto ok;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	len -= copy;
@@ -481,12 +525,50 @@ static int __virtnet_xdp_xmit_one(struct virtnet_info *vi,
 	return 0;
 }
 
+<<<<<<< HEAD
 static struct send_queue *virtnet_xdp_sq(struct virtnet_info *vi)
 {
 	unsigned int qp;
 
 	qp = vi->curr_queue_pairs - vi->xdp_queue_pairs + smp_processor_id();
 	return &vi->sq[qp];
+=======
+/* when vi->curr_queue_pairs > nr_cpu_ids, the txq/sq is only used for xdp tx on
+ * the current cpu, so it does not need to be locked.
+ *
+ * Here we use marco instead of inline functions because we have to deal with
+ * three issues at the same time: 1. the choice of sq. 2. judge and execute the
+ * lock/unlock of txq 3. make sparse happy. It is difficult for two inline
+ * functions to perfectly solve these three problems at the same time.
+ */
+#define virtnet_xdp_get_sq(vi) ({                                       \
+	struct netdev_queue *txq;                                       \
+	typeof(vi) v = (vi);                                            \
+	unsigned int qp;                                                \
+									\
+	if (v->curr_queue_pairs > nr_cpu_ids) {                         \
+		qp = v->curr_queue_pairs - v->xdp_queue_pairs;          \
+		qp += smp_processor_id();                               \
+		txq = netdev_get_tx_queue(v->dev, qp);                  \
+		__netif_tx_acquire(txq);                                \
+	} else {                                                        \
+		qp = smp_processor_id() % v->curr_queue_pairs;          \
+		txq = netdev_get_tx_queue(v->dev, qp);                  \
+		__netif_tx_lock(txq, raw_smp_processor_id());           \
+	}                                                               \
+	v->sq + qp;                                                     \
+})
+
+#define virtnet_xdp_put_sq(vi, q) {                                     \
+	struct netdev_queue *txq;                                       \
+	typeof(vi) v = (vi);                                            \
+									\
+	txq = netdev_get_tx_queue(v->dev, (q) - v->sq);                 \
+	if (v->curr_queue_pairs > nr_cpu_ids)                           \
+		__netif_tx_release(txq);                                \
+	else                                                            \
+		__netif_tx_unlock(txq);                                 \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int virtnet_xdp_xmit(struct net_device *dev,
@@ -886,7 +968,11 @@ static struct sk_buff *receive_mergeable(struct net_device *dev,
 				put_page(page);
 				head_skb = page_to_skb(vi, rq, xdp_page, offset,
 						       len, PAGE_SIZE, false,
+<<<<<<< HEAD
 						       metasize);
+=======
+						       metasize, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				return head_skb;
 			}
 			break;
@@ -942,7 +1028,11 @@ static struct sk_buff *receive_mergeable(struct net_device *dev,
 	}
 
 	head_skb = page_to_skb(vi, rq, page, offset, len, truesize, !xdp_prog,
+<<<<<<< HEAD
 			       metasize);
+=======
+			       metasize, !!headroom);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	curr_skb = head_skb;
 
 	if (unlikely(!curr_skb))
@@ -2527,7 +2617,11 @@ static int virtnet_set_features(struct net_device *dev,
 	int err;
 
 	if ((dev->features ^ features) & NETIF_F_LRO) {
+<<<<<<< HEAD
 		if (vi->xdp_queue_pairs)
+=======
+		if (vi->xdp_enabled)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -EBUSY;
 
 		if (features & NETIF_F_LRO)

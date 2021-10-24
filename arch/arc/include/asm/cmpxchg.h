@@ -63,7 +63,11 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 
 #endif
 
+<<<<<<< HEAD
 #define cmpxchg(ptr, o, n) ({				\
+=======
+#define arch_cmpxchg(ptr, o, n) ({			\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	(typeof(*(ptr)))__cmpxchg((ptr),		\
 				  (unsigned long)(o),	\
 				  (unsigned long)(n));	\
@@ -75,7 +79,11 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
  *  !LLSC: cmpxchg() has to use an external lock atomic_ops_lock to guarantee
  *         semantics, and this lock also happens to be used by atomic_*()
  */
+<<<<<<< HEAD
 #define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n)))
+=======
+#define arch_atomic_cmpxchg(v, o, n) ((int)arch_cmpxchg(&((v)->counter), (o), (n)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 /*
@@ -116,14 +124,22 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
  *
  * Technically the lock is also needed for UP (boils down to irq save/restore)
  * but we can cheat a bit since cmpxchg() atomic_ops_lock() would cause irqs to
+<<<<<<< HEAD
  * be disabled thus can't possibly be interrpted/preempted/clobbered by xchg()
+=======
+ * be disabled thus can't possibly be interrupted/preempted/clobbered by xchg()
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * Other way around, xchg is one instruction anyways, so can't be interrupted
  * as such
  */
 
 #if !defined(CONFIG_ARC_HAS_LLSC) && defined(CONFIG_SMP)
 
+<<<<<<< HEAD
 #define xchg(ptr, with)			\
+=======
+#define arch_xchg(ptr, with)		\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 ({					\
 	unsigned long flags;		\
 	typeof(*(ptr)) old_val;		\
@@ -136,14 +152,22 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
 
 #else
 
+<<<<<<< HEAD
 #define xchg(ptr, with)  _xchg(ptr, with)
+=======
+#define arch_xchg(ptr, with)  _xchg(ptr, with)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif
 
 /*
  * "atomic" variant of xchg()
  * REQ: It needs to follow the same serialization rules as other atomic_xxx()
+<<<<<<< HEAD
  * Since xchg() doesn't always do that, it would seem that following defintion
+=======
+ * Since xchg() doesn't always do that, it would seem that following definition
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * is incorrect. But here's the rationale:
  *   SMP : Even xchg() takes the atomic_ops_lock, so OK.
  *   LLSC: atomic_ops_lock are not relevant at all (even if SMP, since LLSC
@@ -153,6 +177,10 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
  *         can't be clobbered by others. Thus no serialization required when
  *         atomic_xchg is involved.
  */
+<<<<<<< HEAD
 #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
+=======
+#define arch_atomic_xchg(v, new) (arch_xchg(&((v)->counter), new))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif

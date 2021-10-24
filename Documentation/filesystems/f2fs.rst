@@ -813,6 +813,34 @@ Compression implementation
   * chattr +c file
   * chattr +c dir; touch dir/file
   * mount w/ -o compress_extension=ext; touch file.ext
+<<<<<<< HEAD
+=======
+  * mount w/ -o compress_extension=*; touch any_file
+
+- To disable compression on regular inode, there are two ways:
+
+  * chattr -c file
+  * mount w/ -o nocompress_extension=ext; touch file.ext
+
+- Priority in between FS_COMPR_FL, FS_NOCOMP_FS, extensions:
+
+  * compress_extension=so; nocompress_extension=zip; chattr +c dir; touch
+    dir/foo.so; touch dir/bar.zip; touch dir/baz.txt; then foo.so and baz.txt
+    should be compresse, bar.zip should be non-compressed. chattr +c dir/bar.zip
+    can enable compress on bar.zip.
+  * compress_extension=so; nocompress_extension=zip; chattr -c dir; touch
+    dir/foo.so; touch dir/bar.zip; touch dir/baz.txt; then foo.so should be
+    compresse, bar.zip and baz.txt should be non-compressed.
+    chattr+c dir/bar.zip; chattr+c dir/baz.txt; can enable compress on bar.zip
+    and baz.txt.
+
+- At this point, compression feature doesn't expose compressed space to user
+  directly in order to guarantee potential data updates later to the space.
+  Instead, the main goal is to reduce data writes to flash disk as much as
+  possible, resulting in extending disk life time as well as relaxing IO
+  congestion. Alternatively, we've added ioctl interface to reclaim compressed
+  space and show it to user after putting the immutable bit.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 Compress metadata layout::
 

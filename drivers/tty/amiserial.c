@@ -966,10 +966,23 @@ static int set_serial_info(struct tty_struct *tty, struct serial_struct *ss)
 		tty_unlock(tty);
 		return -EINVAL;
 	}
+<<<<<<< HEAD
   
 	if (!serial_isroot()) {
 		if ((ss->baud_base != state->baud_base) ||
 		    (ss->close_delay != port->close_delay) ||
+=======
+
+	close_delay = msecs_to_jiffies(ss->close_delay * 10);
+	closing_wait = ss->closing_wait;
+	if (closing_wait != ASYNC_CLOSING_WAIT_NONE)
+		closing_wait = msecs_to_jiffies(closing_wait * 10);
+
+	if (!serial_isroot()) {
+		if ((ss->baud_base != state->baud_base) ||
+		    (close_delay != port->close_delay) ||
+		    (closing_wait != port->closing_wait) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		    (ss->xmit_fifo_size != state->xmit_fifo_size) ||
 		    ((ss->flags & ~ASYNC_USR_MASK) !=
 		     (port->flags & ~ASYNC_USR_MASK))) {
@@ -1626,10 +1639,14 @@ static int __exit amiga_serial_remove(struct platform_device *pdev)
 	struct serial_state *state = platform_get_drvdata(pdev);
 
 	/* printk("Unloading %s: version %s\n", serial_name, serial_version); */
+<<<<<<< HEAD
 	error = tty_unregister_driver(serial_driver);
 	if (error)
 		printk("SERIAL: failed to unregister serial driver (%d)\n",
 		       error);
+=======
+	tty_unregister_driver(serial_driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_tty_driver(serial_driver);
 	tty_port_destroy(&state->tport);
 

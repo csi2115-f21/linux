@@ -71,6 +71,35 @@ static void mlx5e_ktls_priv_rx_get(struct mlx5e_ktls_offload_context_rx *priv_rx
 	refcount_inc(&priv_rx->resync.refcnt);
 }
 
+<<<<<<< HEAD
+=======
+struct mlx5e_ktls_resync_resp {
+	/* protects list changes */
+	spinlock_t lock;
+	struct list_head list;
+};
+
+void mlx5e_ktls_rx_resync_destroy_resp_list(struct mlx5e_ktls_resync_resp *resp_list)
+{
+	kvfree(resp_list);
+}
+
+struct mlx5e_ktls_resync_resp *
+mlx5e_ktls_rx_resync_create_resp_list(void)
+{
+	struct mlx5e_ktls_resync_resp *resp_list;
+
+	resp_list = kvzalloc(sizeof(*resp_list), GFP_KERNEL);
+	if (!resp_list)
+		return ERR_PTR(-ENOMEM);
+
+	INIT_LIST_HEAD(&resp_list->list);
+	spin_lock_init(&resp_list->lock);
+
+	return resp_list;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int mlx5e_ktls_create_tir(struct mlx5_core_dev *mdev, u32 *tirn, u32 rqtn)
 {
 	int err, inlen;
@@ -84,7 +113,11 @@ static int mlx5e_ktls_create_tir(struct mlx5_core_dev *mdev, u32 *tirn, u32 rqtn
 
 	tirc = MLX5_ADDR_OF(create_tir_in, in, ctx);
 
+<<<<<<< HEAD
 	MLX5_SET(tirc, tirc, transport_domain, mdev->mlx5e_res.td.tdn);
+=======
+	MLX5_SET(tirc, tirc, transport_domain, mdev->mlx5e_res.hw_objs.td.tdn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	MLX5_SET(tirc, tirc, disp_type, MLX5_TIRC_DISP_TYPE_INDIRECT);
 	MLX5_SET(tirc, tirc, rx_hash_fn, MLX5_RX_HASH_FN_INVERTED_XOR8);
 	MLX5_SET(tirc, tirc, indirect_table, rqtn);

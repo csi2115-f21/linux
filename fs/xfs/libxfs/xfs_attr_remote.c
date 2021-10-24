@@ -673,6 +673,7 @@ xfs_attr_rmtval_invalidate(
  * out-of-line buffer that it is stored on.
  */
 int
+<<<<<<< HEAD
 xfs_attr_rmtval_remove(
 	struct xfs_da_args      *args)
 {
@@ -708,6 +709,10 @@ xfs_attr_rmtval_remove(
 int
 __xfs_attr_rmtval_remove(
 	struct xfs_da_args	*args)
+=======
+__xfs_attr_rmtval_remove(
+	struct xfs_delattr_context	*dac)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int			error, done;
 
@@ -719,11 +724,24 @@ __xfs_attr_rmtval_remove(
 	if (error)
 		return error;
 
+<<<<<<< HEAD
 	error = xfs_defer_finish(&args->trans);
 	if (error)
 		return error;
 
 	if (!done)
+=======
+	/*
+	 * We don't need an explicit state here to pick up where we left off. We
+	 * can figure it out using the !done return code. The actual value of
+	 * attr->xattri_dela_state may be some value reminiscent of the calling
+	 * function, but it's value is irrelevant with in the context of this
+	 * function. Once we are done here, the next state is set as needed by
+	 * the parent
+	 */
+	if (!done) {
+		dac->flags |= XFS_DAC_DEFER_FINISH;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EAGAIN;
 
 	return error;

@@ -181,6 +181,20 @@ static int dvb_usb_init(struct dvb_usb_device *d, short *adapter_nums)
 	dvb_usb_device_power_ctrl(d, 0);
 
 	return 0;
+<<<<<<< HEAD
+=======
+
+err_adapter_init:
+	dvb_usb_adapter_exit(d);
+err_i2c_init:
+	dvb_usb_i2c_exit(d);
+	if (d->priv && d->props.priv_destroy)
+		d->props.priv_destroy(d);
+err_priv_init:
+	kfree(d->priv);
+	d->priv = NULL;
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* determine the name and the state of the just found USB device */

@@ -531,8 +531,13 @@ void mtk_drm_crtc_async_update(struct drm_crtc *crtc, struct drm_plane *plane,
 	if (!mtk_crtc->enabled)
 		return;
 
+<<<<<<< HEAD
 	plane_helper_funcs->atomic_update(plane, new_state);
 	mtk_drm_crtc_hw_config(mtk_crtc);
+=======
+	plane_helper_funcs->atomic_update(plane, state);
+	mtk_drm_crtc_update_config(mtk_crtc, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void mtk_drm_crtc_atomic_enable(struct drm_crtc *crtc,

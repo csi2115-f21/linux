@@ -446,6 +446,29 @@ static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
 #ifdef CONFIG_SLUB_DEBUG
 static unsigned long object_map[BITS_TO_LONGS(MAX_OBJS_PER_PAGE)];
 static DEFINE_SPINLOCK(object_map_lock);
+<<<<<<< HEAD
+=======
+
+#if IS_ENABLED(CONFIG_KUNIT)
+static bool slab_add_kunit_errors(void)
+{
+	struct kunit_resource *resource;
+
+	if (likely(!current->kunit_test))
+		return false;
+
+	resource = kunit_find_named_resource(current->kunit_test, "slab_errors");
+	if (!resource)
+		return false;
+
+	(*(int *)resource->data)++;
+	kunit_put_resource(resource);
+	return true;
+}
+#else
+static inline bool slab_add_kunit_errors(void) { return false; }
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Determine a map of object in use on a page.
@@ -2709,6 +2732,7 @@ redo:
 	 */
 	if (unlikely(!pfmemalloc_match(page, gfpflags))) {
 		deactivate_slab(s, page, c->freelist, c);
+<<<<<<< HEAD
 		goto new_slab;
 	}
 
@@ -2725,6 +2749,24 @@ redo:
 		goto new_slab;
 	}
 
+=======
+		goto new_slab;
+	}
+
+	/* must check again c->freelist in case of cpu migration or IRQ */
+	freelist = c->freelist;
+	if (freelist)
+		goto load_freelist;
+
+	freelist = get_freelist(s, page);
+
+	if (!freelist) {
+		c->page = NULL;
+		stat(s, DEACTIVATE_BYPASS);
+		goto new_slab;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	stat(s, ALLOC_REFILL);
 
 load_freelist:
@@ -3187,6 +3229,19 @@ struct detached_freelist {
 	struct kmem_cache *s;
 };
 
+<<<<<<< HEAD
+=======
+static inline void free_nonslab_page(struct page *page)
+{
+	unsigned int order = compound_order(page);
+
+	VM_BUG_ON_PAGE(!PageCompound(page), page);
+	kfree_hook(page_address(page));
+	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
+	__free_pages(page, order);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * This function progressively scans the array with free objects (with
  * a limited look ahead) and extract objects belonging to the same
@@ -3223,9 +3278,13 @@ int build_detached_freelist(struct kmem_cache *s, size_t size,
 	if (!s) {
 		/* Handle kalloc'ed objects */
 		if (unlikely(!PageSlab(page))) {
+<<<<<<< HEAD
 			BUG_ON(!PageCompound(page));
 			kfree_hook(object);
 			__free_pages(page, compound_order(page));
+=======
+			free_nonslab_page(page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			p[size] = NULL; /* mark object processed */
 			return size;
 		}
@@ -3369,7 +3428,11 @@ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
 	return i;
 error:
 	local_irq_enable();
+<<<<<<< HEAD
 	slab_post_alloc_hook(s, objcg, flags, i, p);
+=======
+	slab_post_alloc_hook(s, objcg, flags, i, p, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__kmem_cache_free_bulk(s, i, p);
 	return 0;
 }
@@ -4201,6 +4264,7 @@ void kfree(const void *x)
 
 	page = virt_to_head_page(x);
 	if (unlikely(!PageSlab(page))) {
+<<<<<<< HEAD
 		unsigned int order = compound_order(page);
 
 		BUG_ON(!PageCompound(page));
@@ -4208,6 +4272,9 @@ void kfree(const void *x)
 		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
 				      -(PAGE_SIZE << order));
 		__free_pages(page, order);
+=======
+		free_nonslab_page(page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
@@ -4541,6 +4608,12 @@ int __kmem_cache_create(struct kmem_cache *s, slab_flags_t flags)
 	err = sysfs_slab_add(s);
 	if (err)
 		__kmem_cache_release(s);
+<<<<<<< HEAD
+=======
+
+	if (s->flags & SLAB_STORE_USER)
+		debugfs_slab_add(s);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return err;
 }
@@ -4820,6 +4893,7 @@ static void process_slab(struct loc_track *t, struct kmem_cache *s,
 		if (!test_bit(__obj_to_index(s, addr, p), map))
 			add_location(t, s, get_track(s, p, alloc));
 	put_map(map);
+<<<<<<< HEAD
 }
 
 static int list_locations(struct kmem_cache *s, char *buf,
@@ -4896,6 +4970,8 @@ static int list_locations(struct kmem_cache *s, char *buf,
 		len += sysfs_emit_at(buf, len, "No data\n");
 
 	return len;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 #endif	/* CONFIG_SLUB_DEBUG */
 
@@ -5814,6 +5890,176 @@ static int __init slab_sysfs_init(void)
 __initcall(slab_sysfs_init);
 #endif /* CONFIG_SYSFS */
 
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_SLUB_DEBUG) && defined(CONFIG_DEBUG_FS)
+static int slab_debugfs_show(struct seq_file *seq, void *v)
+{
+
+	struct location *l;
+	unsigned int idx = *(unsigned int *)v;
+	struct loc_track *t = seq->private;
+
+	if (idx < t->count) {
+		l = &t->loc[idx];
+
+		seq_printf(seq, "%7ld ", l->count);
+
+		if (l->addr)
+			seq_printf(seq, "%pS", (void *)l->addr);
+		else
+			seq_puts(seq, "<not-available>");
+
+		if (l->sum_time != l->min_time) {
+			seq_printf(seq, " age=%ld/%llu/%ld",
+				l->min_time, div_u64(l->sum_time, l->count),
+				l->max_time);
+		} else
+			seq_printf(seq, " age=%ld", l->min_time);
+
+		if (l->min_pid != l->max_pid)
+			seq_printf(seq, " pid=%ld-%ld", l->min_pid, l->max_pid);
+		else
+			seq_printf(seq, " pid=%ld",
+				l->min_pid);
+
+		if (num_online_cpus() > 1 && !cpumask_empty(to_cpumask(l->cpus)))
+			seq_printf(seq, " cpus=%*pbl",
+				 cpumask_pr_args(to_cpumask(l->cpus)));
+
+		if (nr_online_nodes > 1 && !nodes_empty(l->nodes))
+			seq_printf(seq, " nodes=%*pbl",
+				 nodemask_pr_args(&l->nodes));
+
+		seq_puts(seq, "\n");
+	}
+
+	if (!idx && !t->count)
+		seq_puts(seq, "No data\n");
+
+	return 0;
+}
+
+static void slab_debugfs_stop(struct seq_file *seq, void *v)
+{
+}
+
+static void *slab_debugfs_next(struct seq_file *seq, void *v, loff_t *ppos)
+{
+	struct loc_track *t = seq->private;
+
+	v = ppos;
+	++*ppos;
+	if (*ppos <= t->count)
+		return v;
+
+	return NULL;
+}
+
+static void *slab_debugfs_start(struct seq_file *seq, loff_t *ppos)
+{
+	return ppos;
+}
+
+static const struct seq_operations slab_debugfs_sops = {
+	.start  = slab_debugfs_start,
+	.next   = slab_debugfs_next,
+	.stop   = slab_debugfs_stop,
+	.show   = slab_debugfs_show,
+};
+
+static int slab_debug_trace_open(struct inode *inode, struct file *filep)
+{
+
+	struct kmem_cache_node *n;
+	enum track_item alloc;
+	int node;
+	struct loc_track *t = __seq_open_private(filep, &slab_debugfs_sops,
+						sizeof(struct loc_track));
+	struct kmem_cache *s = file_inode(filep)->i_private;
+
+	if (strcmp(filep->f_path.dentry->d_name.name, "alloc_traces") == 0)
+		alloc = TRACK_ALLOC;
+	else
+		alloc = TRACK_FREE;
+
+	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL))
+		return -ENOMEM;
+
+	/* Push back cpu slabs */
+	flush_all(s);
+
+	for_each_kmem_cache_node(s, node, n) {
+		unsigned long flags;
+		struct page *page;
+
+		if (!atomic_long_read(&n->nr_slabs))
+			continue;
+
+		spin_lock_irqsave(&n->list_lock, flags);
+		list_for_each_entry(page, &n->partial, slab_list)
+			process_slab(t, s, page, alloc);
+		list_for_each_entry(page, &n->full, slab_list)
+			process_slab(t, s, page, alloc);
+		spin_unlock_irqrestore(&n->list_lock, flags);
+	}
+
+	return 0;
+}
+
+static int slab_debug_trace_release(struct inode *inode, struct file *file)
+{
+	struct seq_file *seq = file->private_data;
+	struct loc_track *t = seq->private;
+
+	free_loc_track(t);
+	return seq_release_private(inode, file);
+}
+
+static const struct file_operations slab_debugfs_fops = {
+	.open    = slab_debug_trace_open,
+	.read    = seq_read,
+	.llseek  = seq_lseek,
+	.release = slab_debug_trace_release,
+};
+
+static void debugfs_slab_add(struct kmem_cache *s)
+{
+	struct dentry *slab_cache_dir;
+
+	if (unlikely(!slab_debugfs_root))
+		return;
+
+	slab_cache_dir = debugfs_create_dir(s->name, slab_debugfs_root);
+
+	debugfs_create_file("alloc_traces", 0400,
+		slab_cache_dir, s, &slab_debugfs_fops);
+
+	debugfs_create_file("free_traces", 0400,
+		slab_cache_dir, s, &slab_debugfs_fops);
+}
+
+void debugfs_slab_release(struct kmem_cache *s)
+{
+	debugfs_remove_recursive(debugfs_lookup(s->name, slab_debugfs_root));
+}
+
+static int __init slab_debugfs_init(void)
+{
+	struct kmem_cache *s;
+
+	slab_debugfs_root = debugfs_create_dir("slab", NULL);
+
+	list_for_each_entry(s, &slab_caches, list)
+		if (s->flags & SLAB_STORE_USER)
+			debugfs_slab_add(s);
+
+	return 0;
+
+}
+__initcall(slab_debugfs_init);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * The /proc/slabinfo ABI
  */

@@ -1528,10 +1528,17 @@ int otx2_open(struct net_device *netdev)
 
 	if (test_bit(CN10K_LMTST, &pf->hw.cap_flag)) {
 		/* Reserve LMT lines for NPA AURA batch free */
+<<<<<<< HEAD
 		pf->hw.npa_lmt_base = (__force u64 *)pf->hw.lmt_base;
 		/* Reserve LMT lines for NIX TX */
 		pf->hw.nix_lmt_base = (__force u64 *)((u64)pf->hw.npa_lmt_base +
 				      (NIX_LMTID_BASE * LMT_LINE_SIZE));
+=======
+		pf->hw.npa_lmt_base = pf->hw.lmt_base;
+		/* Reserve LMT lines for NIX TX */
+		pf->hw.nix_lmt_base = (u64 *)((u64)pf->hw.npa_lmt_base +
+				      (pf->npa_lmt_lines * LMT_LINE_SIZE));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	err = otx2_init_hw_resources(pf);
@@ -1760,6 +1767,27 @@ static netdev_tx_t otx2_xmit(struct sk_buff *skb, struct net_device *netdev)
 	return NETDEV_TX_OK;
 }
 
+<<<<<<< HEAD
+=======
+static netdev_features_t otx2_fix_features(struct net_device *dev,
+					   netdev_features_t features)
+{
+	/* check if n-tuple filters are ON */
+	if ((features & NETIF_F_HW_TC) && (dev->features & NETIF_F_NTUPLE)) {
+		netdev_info(dev, "Disabling n-tuple filters\n");
+		features &= ~NETIF_F_NTUPLE;
+	}
+
+	/* check if tc hw offload is ON */
+	if ((features & NETIF_F_NTUPLE) && (dev->features & NETIF_F_HW_TC)) {
+		netdev_info(dev, "Disabling TC hardware offload\n");
+		features &= ~NETIF_F_HW_TC;
+	}
+
+	return features;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void otx2_set_rx_mode(struct net_device *netdev)
 {
 	struct otx2_nic *pf = netdev_priv(netdev);
@@ -1822,6 +1850,15 @@ static int otx2_set_features(struct net_device *netdev,
 	if ((changed & NETIF_F_NTUPLE) && !ntuple)
 		otx2_destroy_ntuple_flows(pf);
 
+<<<<<<< HEAD
+=======
+	if ((netdev->features & NETIF_F_HW_TC) > (features & NETIF_F_HW_TC) &&
+	    pf->tc_info.num_entries) {
+		netdev_err(netdev, "Can't disable TC hardware offload while flows are active\n");
+		return -EBUSY;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -2449,6 +2486,13 @@ static int otx2_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 				       NETIF_F_HW_VLAN_STAG_RX;
 	netdev->features |= netdev->hw_features;
 
+<<<<<<< HEAD
+=======
+	/* HW supports tc offload but mutually exclusive with n-tuple filters */
+	if (pf->flags & OTX2_FLAG_TC_FLOWER_SUPPORT)
+		netdev->hw_features |= NETIF_F_HW_TC;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	netdev->gso_max_segs = OTX2_MAX_GSO_SEGS;
 	netdev->watchdog_timeo = OTX2_TX_TIMEOUT;
 
@@ -2470,6 +2514,18 @@ static int otx2_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	otx2_set_ethtool_ops(netdev);
 
+<<<<<<< HEAD
+=======
+	err = otx2_init_tc(pf);
+	if (err)
+		goto err_mcam_flow_del;
+
+	/* Initialize SR-IOV resources */
+	err = otx2_sriov_vfcfg_init(pf);
+	if (err)
+		goto err_pf_sriov_init;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Enable link notifications */
 	otx2_cgx_config_linkevents(pf, true);
 
@@ -2486,8 +2542,13 @@ err_del_mcam_entries:
 err_ptp_destroy:
 	otx2_ptp_destroy(pf);
 err_detach_rsrc:
+<<<<<<< HEAD
 	if (hw->lmt_base)
 		iounmap(hw->lmt_base);
+=======
+	if (test_bit(CN10K_LMTST, &pf->hw.cap_flag))
+		qmem_free(pf->dev, pf->dync_lmt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	otx2_detach_resources(&pf->mbox);
 err_disable_mbox_intr:
 	otx2_disable_mbox_intr(pf);
@@ -2647,9 +2708,14 @@ static void otx2_remove(struct pci_dev *pdev)
 	otx2_ptp_destroy(pf);
 	otx2_mcam_flow_del(pf);
 	otx2_detach_resources(&pf->mbox);
+<<<<<<< HEAD
 	if (pf->hw.lmt_base)
 		iounmap(pf->hw.lmt_base);
 
+=======
+	if (test_bit(CN10K_LMTST, &pf->hw.cap_flag))
+		qmem_free(pf->dev, pf->dync_lmt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	otx2_disable_mbox_intr(pf);
 	otx2_pfaf_mbox_destroy(pf);
 	pci_free_irq_vectors(pf->pdev);

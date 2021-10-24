@@ -586,6 +586,13 @@ __end_interrupts:
 				PROLOG_ADDITION_2REGS)
 	mfspr	r14,SPRN_DEAR
 	mfspr	r15,SPRN_ESR
+<<<<<<< HEAD
+=======
+	std	r14,_DAR(r1)
+	std	r15,_DSISR(r1)
+	ld	r14,PACA_EXGEN+EX_R14(r13)
+	ld	r15,PACA_EXGEN+EX_R15(r13)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	EXCEPTION_COMMON(0x300)
 	INTS_DISABLE
 	b	storage_fault_common
@@ -596,6 +603,13 @@ __end_interrupts:
 				PROLOG_ADDITION_2REGS)
 	li	r15,0
 	mr	r14,r10
+<<<<<<< HEAD
+=======
+	std	r14,_DAR(r1)
+	std	r15,_DSISR(r1)
+	ld	r14,PACA_EXGEN+EX_R14(r13)
+	ld	r15,PACA_EXGEN+EX_R15(r13)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	EXCEPTION_COMMON(0x400)
 	INTS_DISABLE
 	b	storage_fault_common
@@ -610,6 +624,13 @@ __end_interrupts:
 				PROLOG_ADDITION_2REGS)
 	mfspr	r14,SPRN_DEAR
 	mfspr	r15,SPRN_ESR
+<<<<<<< HEAD
+=======
+	std	r14,_DAR(r1)
+	std	r15,_DSISR(r1)
+	ld	r14,PACA_EXGEN+EX_R14(r13)
+	ld	r15,PACA_EXGEN+EX_R15(r13)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	EXCEPTION_COMMON(0x600)
 	b	alignment_more	/* no room, go out of line */
 
@@ -618,6 +639,11 @@ __end_interrupts:
 	NORMAL_EXCEPTION_PROLOG(0x700, BOOKE_INTERRUPT_PROGRAM,
 				PROLOG_ADDITION_1REG)
 	mfspr	r14,SPRN_ESR
+<<<<<<< HEAD
+=======
+	std	r14,_DSISR(r1)
+	ld	r14,PACA_EXGEN+EX_R14(r13)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	EXCEPTION_COMMON(0x700)
 	INTS_DISABLE
 	std	r14,_DSISR(r1)

@@ -43,6 +43,11 @@ struct perf_inject {
 	bool			have_auxtrace;
 	bool			strip;
 	bool			jit_mode;
+<<<<<<< HEAD
+=======
+	bool			in_place_update;
+	bool			in_place_update_dry_run;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	const char		*input_name;
 	struct perf_data	output;
 	u64			bytes_written;
@@ -759,14 +764,22 @@ static int __cmd_inject(struct perf_inject *inject)
 	if (!inject->itrace_synth_opts.set)
 		auxtrace_index__free(&session->auxtrace_index);
 
+<<<<<<< HEAD
 	if (!data_out->is_pipe)
+=======
+	if (!data_out->is_pipe && !inject->in_place_update)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		lseek(fd, output_data_offset, SEEK_SET);
 
 	ret = perf_session__process_events(session);
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	if (!data_out->is_pipe) {
+=======
+	if (!data_out->is_pipe && !inject->in_place_update) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (inject->build_ids)
 			perf_header__set_feat(&session->header,
 					      HEADER_BUILD_ID);
@@ -906,9 +919,17 @@ int cmd_inject(int argc, const char **argv)
 	}
 
 	data.path = inject.input_name;
+<<<<<<< HEAD
 	inject.session = perf_session__new(&data, true, &inject.tool);
 	if (IS_ERR(inject.session))
 		return PTR_ERR(inject.session);
+=======
+	inject.session = perf_session__new(&data, inject.output.is_pipe, &inject.tool);
+	if (IS_ERR(inject.session)) {
+		ret = PTR_ERR(inject.session);
+		goto out_close_output;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (zstd_init(&(inject.session->zstd_data), 0) < 0)
 		pr_warning("Decompression initialization failed.\n");

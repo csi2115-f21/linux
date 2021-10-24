@@ -125,6 +125,18 @@ int init_emergency_isa_pool(void)
 }
 
 /*
+ * highmem version, map in to vec
+ */
+static void bounce_copy_vec(struct bio_vec *to, unsigned char *vfrom)
+{
+	unsigned char *vto;
+
+	vto = kmap_atomic(to->bv_page);
+	memcpy(vto + to->bv_offset, vfrom, to->bv_len);
+	kunmap_atomic(vto);
+}
+
+/*
  * Simple bounce buffer support for highmem pages. Depending on the
  * queue gfp mask set, *to may or may not be a highmem page. kmap it
  * always, it will do the Right Thing
@@ -324,10 +336,17 @@ static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,
 	for (i = 0, to = bio->bi_io_vec; i < bio->bi_vcnt; to++, i++) {
 		struct page *page = to->bv_page;
 
+<<<<<<< HEAD
 		if (page_to_pfn(page) <= q->limits.bounce_pfn)
 			continue;
 
 		to->bv_page = mempool_alloc(pool, q->bounce_gfp);
+=======
+		if (!PageHighMem(page))
+			continue;
+
+		to->bv_page = mempool_alloc(&page_pool, GFP_NOIO);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		inc_zone_page_state(to->bv_page, NR_BOUNCE);
 
 		if (rw == WRITE) {

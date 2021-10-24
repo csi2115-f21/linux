@@ -289,21 +289,47 @@ static int amdgpu_firmware_info(struct drm_amdgpu_info_firmware *fw_info,
 		break;
 	case AMDGPU_INFO_FW_TA:
 		switch (query_fw->index) {
+<<<<<<< HEAD
 		case 0:
 			fw_info->ver = adev->psp.ta_fw_version;
 			fw_info->feature = adev->psp.ta_xgmi_ucode_version;
+=======
+		case TA_FW_TYPE_PSP_XGMI:
+			fw_info->ver = adev->psp.ta_fw_version;
+			fw_info->feature = adev->psp.ta_xgmi_ucode_version;
+			break;
+		case TA_FW_TYPE_PSP_RAS:
+			fw_info->ver = adev->psp.ta_fw_version;
+			fw_info->feature = adev->psp.ta_ras_ucode_version;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case 1:
 			fw_info->ver = adev->psp.ta_fw_version;
+<<<<<<< HEAD
 			fw_info->feature = adev->psp.ta_ras_ucode_version;
+=======
+			fw_info->feature = adev->psp.ta_hdcp_ucode_version;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case 2:
 			fw_info->ver = adev->psp.ta_fw_version;
+<<<<<<< HEAD
 			fw_info->feature = adev->psp.ta_hdcp_ucode_version;
+=======
+			fw_info->feature = adev->psp.ta_dtm_ucode_version;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case 3:
 			fw_info->ver = adev->psp.ta_fw_version;
+<<<<<<< HEAD
 			fw_info->feature = adev->psp.ta_dtm_ucode_version;
+=======
+			fw_info->feature = adev->psp.ta_rap_ucode_version;
+			break;
+		case TA_FW_TYPE_PSP_SECUREDISPLAY:
+			fw_info->ver = adev->psp.ta_fw_version;
+			fw_info->feature = adev->psp.ta_securedisplay_ucode_version;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		default:
 			return -EINVAL;
@@ -1048,7 +1074,12 @@ int amdgpu_driver_open_kms(struct drm_device *dev, struct drm_file *file_priv)
 		dev_warn(adev->dev, "No more PASIDs available!");
 		pasid = 0;
 	}
+<<<<<<< HEAD
 	r = amdgpu_vm_init(adev, &fpriv->vm, AMDGPU_VM_CONTEXT_GFX, pasid);
+=======
+
+	r = amdgpu_vm_init(adev, &fpriv->vm, pasid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (r)
 		goto error_pasid;
 

@@ -868,7 +868,11 @@ int mhi_register_controller(struct mhi_controller *mhi_cntrl,
 
 	if (!mhi_cntrl->runtime_get || !mhi_cntrl->runtime_put ||
 	    !mhi_cntrl->status_cb || !mhi_cntrl->read_reg ||
+<<<<<<< HEAD
 	    !mhi_cntrl->write_reg || !mhi_cntrl->nr_irqs)
+=======
+	    !mhi_cntrl->write_reg || !mhi_cntrl->nr_irqs || !mhi_cntrl->irq)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EINVAL;
 
 	ret = parse_config(mhi_cntrl, config);

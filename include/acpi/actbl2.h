@@ -64,6 +64,23 @@
 
 /*******************************************************************************
  *
+<<<<<<< HEAD
+=======
+ * BDAT - BIOS Data ACPI Table
+ *
+ * Conforms to "BIOS Data ACPI Table", Interface Specification v4.0 Draft 5
+ * Nov 2020
+ *
+ ******************************************************************************/
+
+struct acpi_table_bdat {
+	struct acpi_table_header header;
+	struct acpi_generic_address gas;
+};
+
+/*******************************************************************************
+ *
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * IORT - IO Remapping Table
  *
  * Conforms to "IO Remapping Table System Software on ARM Platforms",

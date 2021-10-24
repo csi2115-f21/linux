@@ -686,8 +686,12 @@ struct drm_i915_gem_object *
 i915_gem_object_create_stolen(struct drm_i915_private *i915,
 			      resource_size_t size)
 {
+<<<<<<< HEAD
 	return i915_gem_object_create_region(i915->mm.regions[INTEL_REGION_STOLEN],
 					     size, I915_BO_ALLOC_CONTIGUOUS);
+=======
+	return i915_gem_object_create_region(i915->mm.stolen_region, size, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int init_stolen(struct intel_memory_region *mem)

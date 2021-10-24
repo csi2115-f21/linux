@@ -286,6 +286,14 @@ static int set_grant_ptes_as_special(pte_t *pte, unsigned long addr, void *data)
 }
 #endif
 
+#ifdef CONFIG_X86
+static int set_grant_ptes_as_special(pte_t *pte, unsigned long addr, void *data)
+{
+	set_pte_at(current->mm, addr, pte, pte_mkspecial(*pte));
+	return 0;
+}
+#endif
+
 int gntdev_map_grant_pages(struct gntdev_grant_map *map)
 {
 	int i, err = 0;
@@ -385,7 +393,11 @@ static int __unmap_grant_pages(struct gntdev_grant_map *map, int offset,
 		pr_debug("unmap handle=%d st=%d\n",
 			map->unmap_ops[offset+i].handle,
 			map->unmap_ops[offset+i].status);
+<<<<<<< HEAD
 		map->unmap_ops[offset+i].handle = -1;
+=======
+		map->unmap_ops[offset+i].handle = INVALID_GRANT_HANDLE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return err;
 }

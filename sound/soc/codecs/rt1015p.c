@@ -130,6 +130,17 @@ static const struct of_device_id rt1015p_device_id[] = {
 MODULE_DEVICE_TABLE(of, rt1015p_device_id);
 #endif
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_ACPI
+static const struct acpi_device_id rt1015p_acpi_match[] = {
+	{ "RTL1015", 0},
+	{ },
+};
+MODULE_DEVICE_TABLE(acpi, rt1015p_acpi_match);
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct platform_driver rt1015p_platform_driver = {
 	.driver = {
 		.name = "rt1015p",

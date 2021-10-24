@@ -5283,7 +5283,12 @@ static int snd_hdsp_create(struct snd_card *card,
 		is_9632 = 1;
 	}
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	pci_set_master(hdsp->pci);
@@ -5291,7 +5296,12 @@ static int snd_hdsp_create(struct snd_card *card,
 	if ((err = pci_request_regions(pci, "hdsp")) < 0)
 		return err;
 	hdsp->port = pci_resource_start(pci, 0);
+<<<<<<< HEAD
 	if ((hdsp->iobase = ioremap(hdsp->port, HDSP_IO_EXTENT)) == NULL) {
+=======
+	hdsp->iobase = ioremap(hdsp->port, HDSP_IO_EXTENT);
+	if (!hdsp->iobase) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dev_err(hdsp->card->dev, "unable to remap region 0x%lx-0x%lx\n",
 			hdsp->port, hdsp->port + HDSP_IO_EXTENT - 1);
 		return -EBUSY;
@@ -5393,7 +5403,12 @@ static int snd_hdsp_free(struct hdsp *hdsp)
 	if (hdsp->port)
 		pci_release_regions(hdsp->pci);
 
+<<<<<<< HEAD
 	pci_disable_device(hdsp->pci);
+=======
+	if (pci_is_enabled(hdsp->pci))
+		pci_disable_device(hdsp->pci);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 

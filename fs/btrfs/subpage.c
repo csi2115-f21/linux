@@ -220,6 +220,111 @@ void btrfs_subpage_clear_error(const struct btrfs_fs_info *fs_info,
 	spin_unlock_irqrestore(&subpage->lock, flags);
 }
 
+<<<<<<< HEAD
+=======
+void btrfs_subpage_set_dirty(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->dirty_bitmap |= tmp;
+	spin_unlock_irqrestore(&subpage->lock, flags);
+	set_page_dirty(page);
+}
+
+/*
+ * Extra clear_and_test function for subpage dirty bitmap.
+ *
+ * Return true if we're the last bits in the dirty_bitmap and clear the
+ * dirty_bitmap.
+ * Return false otherwise.
+ *
+ * NOTE: Callers should manually clear page dirty for true case, as we have
+ * extra handling for tree blocks.
+ */
+bool btrfs_subpage_clear_and_test_dirty(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+	bool last = false;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->dirty_bitmap &= ~tmp;
+	if (subpage->dirty_bitmap == 0)
+		last = true;
+	spin_unlock_irqrestore(&subpage->lock, flags);
+	return last;
+}
+
+void btrfs_subpage_clear_dirty(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	bool last;
+
+	last = btrfs_subpage_clear_and_test_dirty(fs_info, page, start, len);
+	if (last)
+		clear_page_dirty_for_io(page);
+}
+
+void btrfs_subpage_set_writeback(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->writeback_bitmap |= tmp;
+	set_page_writeback(page);
+	spin_unlock_irqrestore(&subpage->lock, flags);
+}
+
+void btrfs_subpage_clear_writeback(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->writeback_bitmap &= ~tmp;
+	if (subpage->writeback_bitmap == 0)
+		end_page_writeback(page);
+	spin_unlock_irqrestore(&subpage->lock, flags);
+}
+
+void btrfs_subpage_set_ordered(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	const u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->ordered_bitmap |= tmp;
+	SetPageOrdered(page);
+	spin_unlock_irqrestore(&subpage->lock, flags);
+}
+
+void btrfs_subpage_clear_ordered(const struct btrfs_fs_info *fs_info,
+		struct page *page, u64 start, u32 len)
+{
+	struct btrfs_subpage *subpage = (struct btrfs_subpage *)page->private;
+	const u16 tmp = btrfs_subpage_calc_bitmap(fs_info, page, start, len);
+	unsigned long flags;
+
+	spin_lock_irqsave(&subpage->lock, flags);
+	subpage->ordered_bitmap &= ~tmp;
+	if (subpage->ordered_bitmap == 0)
+		ClearPageOrdered(page);
+	spin_unlock_irqrestore(&subpage->lock, flags);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Unlike set/clear which is dependent on each page status, for test all bits
  * are tested in the same way.
@@ -276,3 +381,12 @@ bool btrfs_page_test_##name(const struct btrfs_fs_info *fs_info,	\
 IMPLEMENT_BTRFS_PAGE_OPS(uptodate, SetPageUptodate, ClearPageUptodate,
 			 PageUptodate);
 IMPLEMENT_BTRFS_PAGE_OPS(error, SetPageError, ClearPageError, PageError);
+<<<<<<< HEAD
+=======
+IMPLEMENT_BTRFS_PAGE_OPS(dirty, set_page_dirty, clear_page_dirty_for_io,
+			 PageDirty);
+IMPLEMENT_BTRFS_PAGE_OPS(writeback, set_page_writeback, end_page_writeback,
+			 PageWriteback);
+IMPLEMENT_BTRFS_PAGE_OPS(ordered, SetPageOrdered, ClearPageOrdered,
+			 PageOrdered);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

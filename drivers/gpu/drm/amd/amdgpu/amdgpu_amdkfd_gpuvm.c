@@ -433,7 +433,124 @@ static uint64_t get_pte_flags(struct amdgpu_device *adev, struct kgd_mem *mem)
 	return amdgpu_gem_va_map_flags(adev, mapping_flags);
 }
 
+<<<<<<< HEAD
 /* add_bo_to_vm - Add a BO to a VM
+=======
+static void
+kfd_mem_dmaunmap_userptr(struct kgd_mem *mem,
+			 struct kfd_mem_attachment *attachment)
+{
+	enum dma_data_direction direction =
+		mem->alloc_flags & KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE ?
+		DMA_BIDIRECTIONAL : DMA_TO_DEVICE;
+	struct ttm_operation_ctx ctx = {.interruptible = false};
+	struct amdgpu_bo *bo = attachment->bo_va->base.bo;
+	struct amdgpu_device *adev = attachment->adev;
+	struct ttm_tt *ttm = bo->tbo.ttm;
+
+	if (unlikely(!ttm->sg))
+		return;
+
+	amdgpu_bo_placement_from_domain(bo, AMDGPU_GEM_DOMAIN_CPU);
+	ttm_bo_validate(&bo->tbo, &bo->placement, &ctx);
+
+	dma_unmap_sgtable(adev->dev, ttm->sg, direction, 0);
+	sg_free_table(ttm->sg);
+	ttm->sg = NULL;
+}
+
+static void
+kfd_mem_dmaunmap_dmabuf(struct kfd_mem_attachment *attachment)
+{
+	struct ttm_operation_ctx ctx = {.interruptible = true};
+	struct amdgpu_bo *bo = attachment->bo_va->base.bo;
+
+	amdgpu_bo_placement_from_domain(bo, AMDGPU_GEM_DOMAIN_CPU);
+	ttm_bo_validate(&bo->tbo, &bo->placement, &ctx);
+}
+
+static void
+kfd_mem_dmaunmap_attachment(struct kgd_mem *mem,
+			    struct kfd_mem_attachment *attachment)
+{
+	switch (attachment->type) {
+	case KFD_MEM_ATT_SHARED:
+		break;
+	case KFD_MEM_ATT_USERPTR:
+		kfd_mem_dmaunmap_userptr(mem, attachment);
+		break;
+	case KFD_MEM_ATT_DMABUF:
+		kfd_mem_dmaunmap_dmabuf(attachment);
+		break;
+	default:
+		WARN_ON_ONCE(1);
+	}
+}
+
+static int
+kfd_mem_attach_userptr(struct amdgpu_device *adev, struct kgd_mem *mem,
+		       struct amdgpu_bo **bo)
+{
+	unsigned long bo_size = mem->bo->tbo.base.size;
+	struct drm_gem_object *gobj;
+	int ret;
+
+	ret = amdgpu_bo_reserve(mem->bo, false);
+	if (ret)
+		return ret;
+
+	ret = amdgpu_gem_object_create(adev, bo_size, 1,
+				       AMDGPU_GEM_DOMAIN_CPU,
+				       AMDGPU_GEM_CREATE_PREEMPTIBLE,
+				       ttm_bo_type_sg, mem->bo->tbo.base.resv,
+				       &gobj);
+	amdgpu_bo_unreserve(mem->bo);
+	if (ret)
+		return ret;
+
+	*bo = gem_to_amdgpu_bo(gobj);
+	(*bo)->parent = amdgpu_bo_ref(mem->bo);
+
+	return 0;
+}
+
+static int
+kfd_mem_attach_dmabuf(struct amdgpu_device *adev, struct kgd_mem *mem,
+		      struct amdgpu_bo **bo)
+{
+	struct drm_gem_object *gobj;
+	int ret;
+
+	if (!mem->dmabuf) {
+		mem->dmabuf = amdgpu_gem_prime_export(&mem->bo->tbo.base,
+			mem->alloc_flags & KFD_IOC_ALLOC_MEM_FLAGS_WRITABLE ?
+				DRM_RDWR : 0);
+		if (IS_ERR(mem->dmabuf)) {
+			ret = PTR_ERR(mem->dmabuf);
+			mem->dmabuf = NULL;
+			return ret;
+		}
+	}
+
+	gobj = amdgpu_gem_prime_import(adev_to_drm(adev), mem->dmabuf);
+	if (IS_ERR(gobj))
+		return PTR_ERR(gobj);
+
+	/* Import takes an extra reference on the dmabuf. Drop it now to
+	 * avoid leaking it. We only need the one reference in
+	 * kgd_mem->dmabuf.
+	 */
+	dma_buf_put(mem->dmabuf);
+
+	*bo = gem_to_amdgpu_bo(gobj);
+	(*bo)->flags |= AMDGPU_GEM_CREATE_PREEMPTIBLE;
+	(*bo)->parent = amdgpu_bo_ref(mem->bo);
+
+	return 0;
+}
+
+/* kfd_mem_attach - Add a BO to a VM
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * Everything that needs to bo done only once when a BO is first added
  * to a VM. It can later be mapped and unmapped many times without
@@ -792,9 +909,15 @@ static int unmap_bo_from_gpuvm(struct amdgpu_device *adev,
 	return 0;
 }
 
+<<<<<<< HEAD
 static int update_gpuvm_pte(struct amdgpu_device *adev,
 		struct kfd_bo_va_list *entry,
 		struct amdgpu_sync *sync)
+=======
+static int update_gpuvm_pte(struct kgd_mem *mem,
+			    struct kfd_mem_attachment *entry,
+			    struct amdgpu_sync *sync)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 	struct amdgpu_bo_va *bo_va = entry->bo_va;
@@ -809,9 +932,16 @@ static int update_gpuvm_pte(struct amdgpu_device *adev,
 	return amdgpu_sync_fence(sync, bo_va->last_pt_update);
 }
 
+<<<<<<< HEAD
 static int map_bo_to_gpuvm(struct amdgpu_device *adev,
 		struct kfd_bo_va_list *entry, struct amdgpu_sync *sync,
 		bool no_update_pte)
+=======
+static int map_bo_to_gpuvm(struct kgd_mem *mem,
+			   struct kfd_mem_attachment *entry,
+			   struct amdgpu_sync *sync,
+			   bool no_update_pte)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 
@@ -828,7 +958,11 @@ static int map_bo_to_gpuvm(struct amdgpu_device *adev,
 	if (no_update_pte)
 		return 0;
 
+<<<<<<< HEAD
 	ret = update_gpuvm_pte(adev, entry, sync);
+=======
+	ret = update_gpuvm_pte(mem, entry, sync);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		pr_err("update_gpuvm_pte() failed\n");
 		goto update_gpuvm_pte_failed;
@@ -1359,7 +1493,11 @@ int amdgpu_amdkfd_gpuvm_free_memory_of_gpu(
 }
 
 int amdgpu_amdkfd_gpuvm_map_memory_to_gpu(
+<<<<<<< HEAD
 		struct kgd_dev *kgd, struct kgd_mem *mem, void *vm)
+=======
+		struct kgd_dev *kgd, struct kgd_mem *mem, void *drm_priv)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct amdgpu_device *adev = get_amdgpu_device(kgd);
 	struct amdgpu_vm *avm = (struct amdgpu_vm *)vm;
@@ -1461,11 +1599,20 @@ int amdgpu_amdkfd_gpuvm_map_memory_to_gpu(
 				goto map_bo_to_gpuvm_failed;
 			}
 
+<<<<<<< HEAD
 			ret = vm_update_pds(vm, ctx.sync);
 			if (ret) {
 				pr_err("Failed to update page directories\n");
 				goto map_bo_to_gpuvm_failed;
 			}
+=======
+		ret = map_bo_to_gpuvm(mem, entry, ctx.sync,
+				      is_invalid_userptr);
+		if (ret) {
+			pr_err("Failed to map bo to gpuvm\n");
+			goto out_unreserve;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			entry->is_mapped = true;
 			mem->mapped_to_gpu_memory++;
@@ -1912,9 +2059,14 @@ static int validate_invalid_user_pages(struct amdkfd_process_info *process_info)
 			if (!bo_va_entry->is_mapped)
 				continue;
 
+<<<<<<< HEAD
 			ret = update_gpuvm_pte((struct amdgpu_device *)
 					       bo_va_entry->kgd_dev,
 					       bo_va_entry, &sync);
+=======
+			kfd_mem_dmaunmap_attachment(mem, attachment);
+			ret = update_gpuvm_pte(mem, attachment, &sync);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (ret) {
 				pr_err("%s: update PTE failed\n", __func__);
 				/* make sure this gets validated again */
@@ -2115,12 +2267,21 @@ int amdgpu_amdkfd_gpuvm_restore_process_bos(void *info, struct dma_fence **ef)
 			pr_debug("Memory eviction: Sync BO fence failed. Try again\n");
 			goto validate_map_fail;
 		}
+<<<<<<< HEAD
 		list_for_each_entry(bo_va_entry, &mem->bo_va_list,
 				    bo_list) {
 			ret = update_gpuvm_pte((struct amdgpu_device *)
 					      bo_va_entry->kgd_dev,
 					      bo_va_entry,
 					      &sync_obj);
+=======
+		list_for_each_entry(attachment, &mem->attachments, list) {
+			if (!attachment->is_mapped)
+				continue;
+
+			kfd_mem_dmaunmap_attachment(mem, attachment);
+			ret = update_gpuvm_pte(mem, attachment, &sync_obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (ret) {
 				pr_debug("Memory eviction: update PTE failed. Try again\n");
 				goto validate_map_fail;

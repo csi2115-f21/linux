@@ -1194,7 +1194,12 @@ static int anybus_bus_remove(struct device *dev)
 		to_anybuss_client_driver(dev->driver);
 
 	if (adrv->remove)
+<<<<<<< HEAD
 		return adrv->remove(to_anybuss_client(dev));
+=======
+		adrv->remove(to_anybuss_client(dev));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 

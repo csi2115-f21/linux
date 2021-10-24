@@ -1149,9 +1149,16 @@ void afs_fs_store_data(struct afs_operation *op)
 	       (unsigned long long) size, (unsigned long long) pos,
 	       (unsigned long long) i_size);
 
+<<<<<<< HEAD
 	if (upper_32_bits(pos) || upper_32_bits(i_size) || upper_32_bits(size) ||
 	    upper_32_bits(pos + size))
 		return afs_fs_store_data64(op, pos, size, i_size);
+=======
+	if (upper_32_bits(op->store.pos) ||
+	    upper_32_bits(op->store.size) ||
+	    upper_32_bits(op->store.i_size))
+		return afs_fs_store_data64(op);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	call = afs_alloc_flat_call(op->net, &afs_RXFSStoreData,
 				   (4 + 6 + 3) * 4,

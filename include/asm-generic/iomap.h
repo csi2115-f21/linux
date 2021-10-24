@@ -111,6 +111,16 @@ static inline void pci_iounmap(struct pci_dev *dev, void __iomem *addr)
 { }
 #endif
 
+#ifdef CONFIG_PCI
+/* Destroy a virtual mapping cookie for a PCI BAR (memory or IO) */
+struct pci_dev;
+extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+#elif defined(CONFIG_GENERIC_IOMAP)
+struct pci_dev;
+static inline void pci_iounmap(struct pci_dev *dev, void __iomem *addr)
+{ }
+#endif
+
 #include <asm-generic/pci_iomap.h>
 
 #endif

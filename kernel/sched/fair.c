@@ -444,6 +444,7 @@ find_matching_se(struct sched_entity **se, struct sched_entity **pse)
 }
 
 #else	/* !CONFIG_FAIR_GROUP_SCHED */
+<<<<<<< HEAD
 
 static inline struct task_struct *task_of(struct sched_entity *se)
 {
@@ -465,6 +466,8 @@ static inline struct cfs_rq *cfs_rq_of(struct sched_entity *se)
 
 	return &rq->cfs;
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* runqueue "owned" by this group */
 static inline struct cfs_rq *group_cfs_rq(struct sched_entity *grp)
@@ -6156,7 +6159,11 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
 	}
 
 	for_each_cpu_wrap(cpu, cpus, target) {
+<<<<<<< HEAD
 		if (smt) {
+=======
+		if (has_idle_core) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			i = select_idle_core(p, cpu, cpus, &idle_cpu);
 			if ((unsigned int)i < nr_cpumask_bits)
 				return i;

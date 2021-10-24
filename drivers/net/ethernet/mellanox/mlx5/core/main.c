@@ -1181,6 +1181,7 @@ static int mlx5_load(struct mlx5_core_dev *dev)
 	}
 
 	mlx5_sf_dev_table_create(dev);
+	mlx5_lag_add_mdev(dev);
 
 	return 0;
 
@@ -1215,6 +1216,7 @@ err_irq_table:
 
 static void mlx5_unload(struct mlx5_core_dev *dev)
 {
+	mlx5_lag_remove_mdev(dev);
 	mlx5_sf_dev_table_destroy(dev);
 	mlx5_sriov_detach(dev);
 	mlx5_ec_cleanup(dev);
@@ -1265,6 +1267,7 @@ int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
 
 	set_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state);
 
+<<<<<<< HEAD
 	if (boot) {
 		err = mlx5_devlink_register(priv_to_devlink(dev), dev->device);
 		if (err)
@@ -1274,6 +1277,11 @@ int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
 	} else {
 		err = mlx5_attach_device(dev);
 	}
+=======
+	err = mlx5_devlink_register(priv_to_devlink(dev), dev->device);
+	if (err)
+		goto err_devlink_reg;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (err)
 		goto err_register;

@@ -7,6 +7,7 @@
 #ifndef __USB_OPS_LINUX_H__
 #define __USB_OPS_LINUX_H__
 
+<<<<<<< HEAD
 #define VENDOR_CMD_MAX_DATA_LEN	254
 
 #define RTW_USB_CONTROL_MSG_TIMEOUT_TEST	10/* ms */
@@ -41,12 +42,20 @@
 
 unsigned int ffaddr2pipehdl(struct dvobj_priv *pdvobj, u32 addr);
 
+=======
+#define USB_HIGH_SPEED_BULK_SIZE	512
+#define USB_FULL_SPEED_BULK_SIZE	64
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 u8 usb_read8(struct adapter *adapter, u32 addr);
 u16 usb_read16(struct adapter *adapter, u32 addr);
 u32 usb_read32(struct adapter *adapter, u32 addr);
 
 u32 usb_read_port(struct adapter *adapter, u32 addr, struct recv_buf *precvbuf);
+<<<<<<< HEAD
 void usb_read_port_cancel(struct adapter *adapter);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int usb_write8(struct adapter *adapter, u32 addr, u8 val);
 int usb_write16(struct adapter *adapter, u32 addr, u16 val);

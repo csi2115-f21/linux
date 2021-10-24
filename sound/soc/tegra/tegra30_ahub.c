@@ -533,13 +533,17 @@ static int tegra30_ahub_probe(struct platform_device *pdev)
 	void __iomem *regs_apbif, *regs_ahub;
 	int ret = 0;
 
+<<<<<<< HEAD
 	if (ahub)
 		return -ENODEV;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	match = of_match_device(tegra30_ahub_of_match, &pdev->dev);
 	if (!match)
 		return -EINVAL;
 	soc_data = match->data;
+<<<<<<< HEAD
 
 	/*
 	 * The AHUB hosts a register bus: the "configlink". For this to
@@ -562,6 +566,8 @@ static int tegra30_ahub_probe(struct platform_device *pdev)
 		/* just check presence of the reset control in DT */
 		reset_control_put(rst);
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ahub = devm_kzalloc(&pdev->dev, sizeof(struct tegra30_ahub),
 			    GFP_KERNEL);

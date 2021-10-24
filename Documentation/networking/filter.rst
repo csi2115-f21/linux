@@ -327,7 +327,11 @@ Examples for low-level BPF:
   ret #-1
   drop: ret #0
 
+<<<<<<< HEAD
 **icmp random packet sampling, 1 in 4**:
+=======
+**icmp random packet sampling, 1 in 4**::
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
   ldh [12]
   jne #0x800, drop

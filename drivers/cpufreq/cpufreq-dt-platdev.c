@@ -135,6 +135,10 @@ static const struct of_device_id blacklist[] __initconst = {
 	{ .compatible = "qcom,msm8996", },
 	{ .compatible = "qcom,qcs404", },
 	{ .compatible = "qcom,sc7180", },
+<<<<<<< HEAD
+=======
+	{ .compatible = "qcom,sc7280", },
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{ .compatible = "qcom,sdm845", },
 
 	{ .compatible = "st,stih407", },

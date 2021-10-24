@@ -52,6 +52,10 @@
 #include "mmhub_v9_4.h"
 #include "umc_v6_1.h"
 #include "umc_v6_0.h"
+<<<<<<< HEAD
+=======
+#include "hdp_v4_0.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include "ivsrcid/vmc/irqsrcs_vmc_1_0.h"
 
@@ -1110,7 +1114,11 @@ static void gmc_v9_0_set_umc_funcs(struct amdgpu_device *adev)
 		adev->umc.umc_inst_num = UMC_V6_1_UMC_INSTANCE_NUM;
 		adev->umc.channel_offs = UMC_V6_1_PER_CHANNEL_OFFSET_ARCT;
 		adev->umc.channel_idx_tbl = &umc_v6_1_channel_idx_tbl[0][0];
+<<<<<<< HEAD
 		adev->umc.funcs = &umc_v6_1_funcs;
+=======
+		adev->umc.ras_funcs = &umc_v6_1_ras_funcs;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		break;
@@ -1134,6 +1142,14 @@ static void gmc_v9_0_set_gfxhub_funcs(struct amdgpu_device *adev)
 	adev->gfxhub.funcs = &gfxhub_v1_0_funcs;
 }
 
+<<<<<<< HEAD
+=======
+static void gmc_v9_0_set_hdp_ras_funcs(struct amdgpu_device *adev)
+{
+	adev->hdp.ras_funcs = &hdp_v4_0_ras_funcs;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int gmc_v9_0_early_init(void *handle)
 {
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
@@ -1143,6 +1159,10 @@ static int gmc_v9_0_early_init(void *handle)
 	gmc_v9_0_set_umc_funcs(adev);
 	gmc_v9_0_set_mmhub_funcs(adev);
 	gmc_v9_0_set_gfxhub_funcs(adev);
+<<<<<<< HEAD
+=======
+	gmc_v9_0_set_hdp_ras_funcs(adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	adev->gmc.shared_aperture_start = 0x2000000000000000ULL;
 	adev->gmc.shared_aperture_end =

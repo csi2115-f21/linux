@@ -872,8 +872,13 @@ struct vba_vars_st {
 	int PercentMarginOverMinimumRequiredDCFCLK;
 	bool DynamicMetadataSupported[DC__VOLTAGE_STATES][2];
 	enum immediate_flip_requirement ImmediateFlipRequirement;
+<<<<<<< HEAD
 	double DETBufferSizeYThisState[DC__NUM_DPP__MAX];
 	double DETBufferSizeCThisState[DC__NUM_DPP__MAX];
+=======
+	unsigned int DETBufferSizeYThisState[DC__NUM_DPP__MAX];
+	unsigned int DETBufferSizeCThisState[DC__NUM_DPP__MAX];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bool NoUrgentLatencyHiding[DC__NUM_DPP__MAX];
 	bool NoUrgentLatencyHidingPre[DC__NUM_DPP__MAX];
 	int swath_width_luma_ub_this_state[DC__NUM_DPP__MAX];

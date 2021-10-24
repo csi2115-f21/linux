@@ -522,6 +522,57 @@ static int kdb_ss(int argc, const char **argv)
 	return KDB_CMD_SS;
 }
 
+<<<<<<< HEAD
+=======
+static kdbtab_t bptab[] = {
+	{	.cmd_name = "bp",
+		.cmd_func = kdb_bp,
+		.cmd_usage = "[<vaddr>]",
+		.cmd_help = "Set/Display breakpoints",
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS,
+	},
+	{	.cmd_name = "bl",
+		.cmd_func = kdb_bp,
+		.cmd_usage = "[<vaddr>]",
+		.cmd_help = "Display breakpoints",
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS,
+	},
+	{	.cmd_name = "bc",
+		.cmd_func = kdb_bc,
+		.cmd_usage = "<bpnum>",
+		.cmd_help = "Clear Breakpoint",
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL,
+	},
+	{	.cmd_name = "be",
+		.cmd_func = kdb_bc,
+		.cmd_usage = "<bpnum>",
+		.cmd_help = "Enable Breakpoint",
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL,
+	},
+	{	.cmd_name = "bd",
+		.cmd_func = kdb_bc,
+		.cmd_usage = "<bpnum>",
+		.cmd_help = "Disable Breakpoint",
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL,
+	},
+	{	.cmd_name = "ss",
+		.cmd_func = kdb_ss,
+		.cmd_usage = "",
+		.cmd_help = "Single Step",
+		.cmd_minlen = 1,
+		.cmd_flags = KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS,
+	},
+};
+
+static kdbtab_t bphcmd = {
+	.cmd_name = "bph",
+	.cmd_func = kdb_bp,
+	.cmd_usage = "[<vaddr>]",
+	.cmd_help = "[datar [length]|dataw [length]]   Set hw brk",
+	.cmd_flags = KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Initialize the breakpoint table and register	breakpoint commands. */
 
 void __init kdb_initbptab(void)

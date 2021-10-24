@@ -7,7 +7,11 @@
 #include <linux/init.h>
 #include <linux/bio.h>
 #include <linux/blkdev.h>
+<<<<<<< HEAD
 #include <linux/memblock.h>	/* for max_pfn/max_low_pfn */
+=======
+#include <linux/pagemap.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/gcd.h>
 #include <linux/lcm.h>
 #include <linux/jiffies.h>

@@ -345,8 +345,14 @@ static inline enum comp_state do_read(struct rxe_qp *qp,
 
 	ret = copy_data(qp->pd, IB_ACCESS_LOCAL_WRITE,
 			&wqe->dma, payload_addr(pkt),
+<<<<<<< HEAD
 			payload_size(pkt), to_mem_obj, NULL);
 	if (ret)
+=======
+			payload_size(pkt), RXE_TO_MR_OBJ, NULL);
+	if (ret) {
+		wqe->status = IB_WC_LOC_PROT_ERR;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return COMPST_ERROR;
 
 	if (wqe->dma.resid == 0 && (pkt->mask & RXE_END_MASK))
@@ -365,8 +371,14 @@ static inline enum comp_state do_atomic(struct rxe_qp *qp,
 
 	ret = copy_data(qp->pd, IB_ACCESS_LOCAL_WRITE,
 			&wqe->dma, &atomic_orig,
+<<<<<<< HEAD
 			sizeof(u64), to_mem_obj, NULL);
 	if (ret)
+=======
+			sizeof(u64), RXE_TO_MR_OBJ, NULL);
+	if (ret) {
+		wqe->status = IB_WC_LOC_PROT_ERR;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return COMPST_ERROR;
 	else
 		return COMPST_COMP_ACK;

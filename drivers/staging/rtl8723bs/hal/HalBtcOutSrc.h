@@ -112,6 +112,7 @@ extern u32 		GLBtcDbgType[];
 #define CL_SPRINTF	snprintf
 #define CL_PRINTF	DCMD_Printf
 
+<<<<<<< HEAD
 /*  The following is for dbgview print */
 #if DBG
 #define BTC_PRINT(dbgtype, dbgflag, printstr)\
@@ -165,6 +166,9 @@ extern u32 		GLBtcDbgType[];
 #endif
 
 typedef struct _BTC_BOARD_INFO {
+=======
+struct btc_board_info {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*  The following is some board information */
 	u8 btChipType;
 	u8 pgAntNum;	/*  pg ant number */
@@ -497,7 +501,11 @@ typedef struct _BTC_COEXIST {
 	bool bStopCoexDm;
 	bool bManualControl;
 	u8 *cliBuf;
+<<<<<<< HEAD
 	BTC_STATISTICS statistics;
+=======
+	struct btc_statistics statistics;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 pwrModeVal[10];
 
 	/*  function pointers */
@@ -552,6 +560,10 @@ void EXhalbtcoutsrc_Periodical(PBTC_COEXIST pBtCoexist);
 void EXhalbtcoutsrc_SetChipType(u8 chipType);
 void EXhalbtcoutsrc_SetAntNum(u8 type, u8 antNum);
 void EXhalbtcoutsrc_SetSingleAntPath(u8 singleAntPath);
+<<<<<<< HEAD
 void EXhalbtcoutsrc_DisplayBtCoexInfo(PBTC_COEXIST pBtCoexist);
+=======
+void EXhalbtcoutsrc_DisplayBtCoexInfo(struct btc_coexist *pBtCoexist);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif

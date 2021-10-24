@@ -221,6 +221,18 @@ enum x86_intercept_stage;
 #define DR7_FIXED_1	0x00000400
 #define DR7_VOLATILE	0xffff2bff
 
+<<<<<<< HEAD
+=======
+#define KVM_GUESTDBG_VALID_MASK \
+	(KVM_GUESTDBG_ENABLE | \
+	KVM_GUESTDBG_SINGLESTEP | \
+	KVM_GUESTDBG_USE_HW_BP | \
+	KVM_GUESTDBG_USE_SW_BP | \
+	KVM_GUESTDBG_INJECT_BP | \
+	KVM_GUESTDBG_INJECT_DB)
+
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define PFERR_PRESENT_BIT 0
 #define PFERR_WRITE_BIT 1
 #define PFERR_USER_BIT 2
@@ -396,7 +408,11 @@ struct kvm_mmu {
 	u32 pkru_mask;
 
 	u64 *pae_root;
+<<<<<<< HEAD
 	u64 *lm_root;
+=======
+	u64 *pml4_root;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * check zero bits on shadow page table entries, these
@@ -963,7 +979,11 @@ struct kvm_arch {
 	struct kvm_apic_map *apic_map;
 	atomic_t apic_map_dirty;
 
+<<<<<<< HEAD
 	bool apic_access_page_done;
+=======
+	bool apic_access_memslot_enabled;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long apicv_inhibit_reasons;
 
 	gpa_t wall_clock;
@@ -1079,6 +1099,7 @@ struct kvm_arch {
 };
 
 struct kvm_vm_stat {
+<<<<<<< HEAD
 	ulong mmu_shadow_zapped;
 	ulong mmu_pte_write;
 	ulong mmu_pde_zapped;
@@ -1090,6 +1111,19 @@ struct kvm_vm_stat {
 	ulong lpages;
 	ulong nx_lpage_splits;
 	ulong max_mmu_page_hash_collisions;
+=======
+	struct kvm_vm_stat_generic generic;
+	u64 mmu_shadow_zapped;
+	u64 mmu_pte_write;
+	u64 mmu_pde_zapped;
+	u64 mmu_flooded;
+	u64 mmu_recycled;
+	u64 mmu_cache_miss;
+	u64 mmu_unsync;
+	u64 lpages;
+	u64 nx_lpage_splits;
+	u64 max_mmu_page_hash_collisions;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct kvm_vcpu_stat {
@@ -1419,8 +1453,11 @@ void kvm_mmu_zap_collapsible_sptes(struct kvm *kvm,
 				   const struct kvm_memory_slot *memslot);
 void kvm_mmu_slot_leaf_clear_dirty(struct kvm *kvm,
 				   struct kvm_memory_slot *memslot);
+<<<<<<< HEAD
 void kvm_mmu_slot_largepage_remove_write_access(struct kvm *kvm,
 					struct kvm_memory_slot *memslot);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void kvm_mmu_zap_all(struct kvm *kvm);
 void kvm_mmu_invalidate_mmio_sptes(struct kvm *kvm, u64 gen);
 unsigned long kvm_mmu_calculate_default_mmu_pages(struct kvm *kvm);
@@ -1689,6 +1726,34 @@ enum {
 #define kvm_memslots_for_spte_role(kvm, role) __kvm_memslots(kvm, (role).smm)
 
 asmlinkage void kvm_spurious_fault(void);
+<<<<<<< HEAD
+=======
+
+/*
+ * Hardware virtualization extension instructions may fault if a
+ * reboot turns off virtualization while processes are running.
+ * Usually after catching the fault we just panic; during reboot
+ * instead the instruction is ignored.
+ */
+#define __kvm_handle_fault_on_reboot(insn)				\
+	"666: \n\t"							\
+	insn "\n\t"							\
+	"jmp	668f \n\t"						\
+	"667: \n\t"							\
+	"1: \n\t"							\
+	".pushsection .discard.instr_begin \n\t"			\
+	".long 1b - . \n\t"						\
+	".popsection \n\t"						\
+	"call	kvm_spurious_fault \n\t"				\
+	"1: \n\t"							\
+	".pushsection .discard.instr_end \n\t"				\
+	".long 1b - . \n\t"						\
+	".popsection \n\t"						\
+	"668: \n\t"							\
+	_ASM_EXTABLE(666b, 667b)
+
+#define KVM_ARCH_WANT_MMU_NOTIFIER
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Hardware virtualization extension instructions may fault if a

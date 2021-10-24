@@ -54,6 +54,7 @@ EXPORT_SYMBOL_GPL(hyperv_pcpu_output_arg);
 u32 hv_max_vp_index;
 EXPORT_SYMBOL_GPL(hv_max_vp_index);
 
+<<<<<<< HEAD
 void *hv_alloc_hyperv_page(void)
 {
 	BUILD_BUG_ON(PAGE_SIZE != HV_HYP_PAGE_SIZE);
@@ -76,6 +77,8 @@ void hv_free_hyperv_page(unsigned long addr)
 }
 EXPORT_SYMBOL_GPL(hv_free_hyperv_page);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hv_cpu_init(unsigned int cpu)
 {
 	u64 msr_vp_index;
@@ -96,9 +99,15 @@ static int hv_cpu_init(unsigned int cpu)
 		output_arg = (void **)this_cpu_ptr(hyperv_pcpu_output_arg);
 		*output_arg = page_address(pg + 1);
 	}
+<<<<<<< HEAD
 
 	hv_get_vp_index(msr_vp_index);
 
+=======
+
+	msr_vp_index = hv_get_register(HV_REGISTER_VP_INDEX);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hv_vp_index[smp_processor_id()] = msr_vp_index;
 
 	if (msr_vp_index > hv_max_vp_index)
@@ -223,6 +232,7 @@ static int hv_cpu_die(unsigned int cpu)
 	unsigned long flags;
 	void **input_arg;
 	void *pg;
+<<<<<<< HEAD
 
 	local_irq_save(flags);
 	input_arg = (void **)this_cpu_ptr(hyperv_pcpu_input_arg);
@@ -232,6 +242,17 @@ static int hv_cpu_die(unsigned int cpu)
 	if (hv_root_partition) {
 		void **output_arg;
 
+=======
+
+	local_irq_save(flags);
+	input_arg = (void **)this_cpu_ptr(hyperv_pcpu_input_arg);
+	pg = *input_arg;
+	*input_arg = NULL;
+
+	if (hv_root_partition) {
+		void **output_arg;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		output_arg = (void **)this_cpu_ptr(hyperv_pcpu_output_arg);
 		*output_arg = NULL;
 	}

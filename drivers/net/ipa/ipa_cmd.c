@@ -175,21 +175,39 @@ bool ipa_cmd_table_valid(struct ipa *ipa, const struct ipa_mem *mem,
 			    : field_max(IP_FLTRT_FLAGS_NHASH_ADDR_FMASK);
 	if (mem->offset > offset_max ||
 	    ipa->mem_offset > offset_max - mem->offset) {
+<<<<<<< HEAD
 		dev_err(dev, "IPv%c %s%s table region offset too large "
 			      "(0x%04x + 0x%04x > 0x%04x)\n",
 			      ipv6 ? '6' : '4', hashed ? "hashed " : "",
 			      route ? "route" : "filter",
 			      ipa->mem_offset, mem->offset, offset_max);
+=======
+		dev_err(dev, "IPv%c %s%s table region offset too large\n",
+			ipv6 ? '6' : '4', hashed ? "hashed " : "",
+			route ? "route" : "filter");
+		dev_err(dev, "    (0x%04x + 0x%04x > 0x%04x)\n",
+			ipa->mem_offset, mem->offset, offset_max);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	}
 
 	if (mem->offset > ipa->mem_size ||
 	    mem->size > ipa->mem_size - mem->offset) {
+<<<<<<< HEAD
 		dev_err(dev, "IPv%c %s%s table region out of range "
 			      "(0x%04x + 0x%04x > 0x%04x)\n",
 			      ipv6 ? '6' : '4', hashed ? "hashed " : "",
 			      route ? "route" : "filter",
 			      mem->offset, mem->size, ipa->mem_size);
+=======
+		dev_err(dev, "IPv%c %s%s table region out of range\n",
+			ipv6 ? '6' : '4', hashed ? "hashed " : "",
+			route ? "route" : "filter");
+		dev_err(dev, "    (0x%04x + 0x%04x > 0x%04x)\n",
+			mem->offset, mem->size, ipa->mem_size);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	}
 

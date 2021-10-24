@@ -1031,6 +1031,50 @@ static struct clk_hw *clk_register_cktim(struct device *dev, const char *name,
 	return hw;
 }
 
+<<<<<<< HEAD
+=======
+/* The divider of RTC clock concerns only ck_hse clock */
+#define HSE_RTC 3
+
+static unsigned long clk_divider_rtc_recalc_rate(struct clk_hw *hw,
+						 unsigned long parent_rate)
+{
+	if (clk_hw_get_parent(hw) == clk_hw_get_parent_by_index(hw, HSE_RTC))
+		return clk_divider_ops.recalc_rate(hw, parent_rate);
+
+	return parent_rate;
+}
+
+static int clk_divider_rtc_set_rate(struct clk_hw *hw, unsigned long rate,
+				    unsigned long parent_rate)
+{
+	if (clk_hw_get_parent(hw) == clk_hw_get_parent_by_index(hw, HSE_RTC))
+		return clk_divider_ops.set_rate(hw, rate, parent_rate);
+
+	return parent_rate;
+}
+
+static int clk_divider_rtc_determine_rate(struct clk_hw *hw, struct clk_rate_request *req)
+{
+	unsigned long best_parent_rate = req->best_parent_rate;
+
+	if (req->best_parent_hw == clk_hw_get_parent_by_index(hw, HSE_RTC)) {
+		req->rate = clk_divider_ops.round_rate(hw, req->rate, &best_parent_rate);
+		req->best_parent_rate = best_parent_rate;
+	} else {
+		req->rate = best_parent_rate;
+	}
+
+	return 0;
+}
+
+static const struct clk_ops rtc_div_clk_ops = {
+	.recalc_rate	= clk_divider_rtc_recalc_rate,
+	.set_rate	= clk_divider_rtc_set_rate,
+	.determine_rate = clk_divider_rtc_determine_rate
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct stm32_pll_cfg {
 	u32 offset;
 };

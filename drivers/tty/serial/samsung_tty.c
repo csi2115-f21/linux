@@ -58,7 +58,12 @@
 
 struct s3c24xx_uart_info {
 	char			*name;
+<<<<<<< HEAD
 	unsigned int		type;
+=======
+	enum s3c24xx_port_type	type;
+	unsigned int		port_type;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int		fifosize;
 	unsigned long		rx_fifomask;
 	unsigned long		rx_fifoshift;
@@ -1215,6 +1220,48 @@ static int s3c64xx_serial_startup(struct uart_port *port)
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+static int apple_s5l_serial_startup(struct uart_port *port)
+{
+	struct s3c24xx_uart_port *ourport = to_ourport(port);
+	unsigned long flags;
+	unsigned int ufcon;
+	int ret;
+
+	wr_regl(port, S3C2410_UTRSTAT, APPLE_S5L_UTRSTAT_ALL_FLAGS);
+
+	ret = request_irq(port->irq, apple_serial_handle_irq, 0,
+			  s3c24xx_serial_portname(port), ourport);
+	if (ret) {
+		dev_err(port->dev, "cannot get irq %d\n", port->irq);
+		return ret;
+	}
+
+	/* For compatibility with s3c24xx Soc's */
+	ourport->rx_enabled = 1;
+	ourport->tx_enabled = 0;
+
+	spin_lock_irqsave(&port->lock, flags);
+
+	ufcon = rd_regl(port, S3C2410_UFCON);
+	ufcon |= S3C2410_UFCON_RESETRX | S5PV210_UFCON_RXTRIG8;
+	if (!uart_console(port))
+		ufcon |= S3C2410_UFCON_RESETTX;
+	wr_regl(port, S3C2410_UFCON, ufcon);
+
+	enable_rx_pio(ourport);
+
+	spin_unlock_irqrestore(&port->lock, flags);
+
+	/* Enable Rx Interrupt */
+	s3c24xx_set_bit(port, APPLE_S5L_UCON_RXTHRESH_ENA, S3C2410_UCON);
+	s3c24xx_set_bit(port, APPLE_S5L_UCON_RXTO_ENA, S3C2410_UCON);
+
+	return ret;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* power power management control */
 
 static void s3c24xx_serial_pm(struct uart_port *port, unsigned int level,
@@ -2520,7 +2567,12 @@ static struct s3c24xx_serial_drv_data s5pv210_serial_drv_data = {
 #define EXYNOS_COMMON_SERIAL_DRV_DATA				\
 	.info = &(struct s3c24xx_uart_info) {			\
 		.name		= "Samsung Exynos UART",	\
+<<<<<<< HEAD
 		.type		= PORT_S3C6400,			\
+=======
+		.type		= TYPE_S3C6400,			\
+		.port_type	= PORT_S3C6400,			\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		.has_divslot	= 1,				\
 		.rx_fifomask	= S5PV210_UFSTAT_RXMASK,	\
 		.rx_fifoshift	= S5PV210_UFSTAT_RXSHIFT,	\
@@ -2551,6 +2603,38 @@ static struct s3c24xx_serial_drv_data exynos5433_serial_drv_data = {
 
 #define EXYNOS4210_SERIAL_DRV_DATA ((kernel_ulong_t)&exynos4210_serial_drv_data)
 #define EXYNOS5433_SERIAL_DRV_DATA ((kernel_ulong_t)&exynos5433_serial_drv_data)
+<<<<<<< HEAD
+=======
+#else
+#define EXYNOS4210_SERIAL_DRV_DATA (kernel_ulong_t)NULL
+#define EXYNOS5433_SERIAL_DRV_DATA (kernel_ulong_t)NULL
+#endif
+
+#ifdef CONFIG_ARCH_APPLE
+static struct s3c24xx_serial_drv_data s5l_serial_drv_data = {
+	.info = &(struct s3c24xx_uart_info) {
+		.name		= "Apple S5L UART",
+		.type		= TYPE_APPLE_S5L,
+		.port_type	= PORT_8250,
+		.fifosize	= 16,
+		.rx_fifomask	= S3C2410_UFSTAT_RXMASK,
+		.rx_fifoshift	= S3C2410_UFSTAT_RXSHIFT,
+		.rx_fifofull	= S3C2410_UFSTAT_RXFULL,
+		.tx_fifofull	= S3C2410_UFSTAT_TXFULL,
+		.tx_fifomask	= S3C2410_UFSTAT_TXMASK,
+		.tx_fifoshift	= S3C2410_UFSTAT_TXSHIFT,
+		.def_clk_sel	= S3C2410_UCON_CLKSEL0,
+		.num_clks	= 1,
+		.clksel_mask	= 0,
+		.clksel_shift	= 0,
+	},
+	.def_cfg = &(struct s3c2410_uartcfg) {
+		.ucon		= APPLE_S5L_UCON_DEFAULT,
+		.ufcon		= S3C2410_UFCON_DEFAULT,
+	},
+};
+#define S5L_SERIAL_DRV_DATA ((kernel_ulong_t)&s5l_serial_drv_data)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 #define EXYNOS4210_SERIAL_DRV_DATA (kernel_ulong_t)NULL
 #define EXYNOS5433_SERIAL_DRV_DATA (kernel_ulong_t)NULL
@@ -2578,6 +2662,12 @@ static const struct platform_device_id s3c24xx_serial_driver_ids[] = {
 	}, {
 		.name		= "exynos5433-uart",
 		.driver_data	= EXYNOS5433_SERIAL_DRV_DATA,
+<<<<<<< HEAD
+=======
+	}, {
+		.name		= "s5l-uart",
+		.driver_data	= S5L_SERIAL_DRV_DATA,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	},
 	{ },
 };
@@ -2599,6 +2689,11 @@ static const struct of_device_id s3c24xx_uart_dt_match[] = {
 		.data = (void *)EXYNOS4210_SERIAL_DRV_DATA },
 	{ .compatible = "samsung,exynos5433-uart",
 		.data = (void *)EXYNOS5433_SERIAL_DRV_DATA },
+<<<<<<< HEAD
+=======
+	{ .compatible = "apple,s5l-uart",
+		.data = (void *)S5L_SERIAL_DRV_DATA },
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{},
 };
 MODULE_DEVICE_TABLE(of, s3c24xx_uart_dt_match);

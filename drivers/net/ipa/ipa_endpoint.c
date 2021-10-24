@@ -266,7 +266,11 @@ ipa_endpoint_init_ctrl(struct ipa_endpoint *endpoint, bool suspend_delay)
 	 * if (endpoint->toward_ipa)
 	 * 	assert(ipa->version != IPA_VERSION_4.2);
 	 * else
+<<<<<<< HEAD
 	 * 	assert(ipa->version == IPA_VERSION_3_5_1);
+=======
+	 *	assert(ipa->version < IPA_VERSION_4_0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 */
 	mask = endpoint->toward_ipa ? ENDP_DELAY_FMASK : ENDP_SUSPEND_FMASK;
 
@@ -1568,8 +1572,15 @@ void ipa_endpoint_suspend_one(struct ipa_endpoint *endpoint)
 		(void)ipa_endpoint_program_suspend(endpoint, true);
 	}
 
+<<<<<<< HEAD
 	/* IPA v3.5.1 doesn't use channel stop for suspend */
 	stop_channel = endpoint->ipa->version != IPA_VERSION_3_5_1;
+=======
+	/* Starting with IPA v4.0, endpoints are suspended by stopping the
+	 * underlying GSI channel rather than using endpoint suspend mode.
+	 */
+	stop_channel = endpoint->ipa->version >= IPA_VERSION_4_0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = gsi_channel_suspend(gsi, endpoint->channel_id, stop_channel);
 	if (ret)
 		dev_err(dev, "error %d suspending channel %u\n", ret,
@@ -1589,8 +1600,15 @@ void ipa_endpoint_resume_one(struct ipa_endpoint *endpoint)
 	if (!endpoint->toward_ipa)
 		(void)ipa_endpoint_program_suspend(endpoint, false);
 
+<<<<<<< HEAD
 	/* IPA v3.5.1 doesn't use channel start for resume */
 	start_channel = endpoint->ipa->version != IPA_VERSION_3_5_1;
+=======
+	/* Starting with IPA v4.0, the underlying GSI channel must be
+	 * restarted for resume.
+	 */
+	start_channel = endpoint->ipa->version >= IPA_VERSION_4_0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = gsi_channel_resume(gsi, endpoint->channel_id, start_channel);
 	if (ret)
 		dev_err(dev, "error %d resuming channel %u\n", ret,

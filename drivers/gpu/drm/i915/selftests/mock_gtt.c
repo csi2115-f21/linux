@@ -74,7 +74,11 @@ struct i915_ppgtt *mock_ppgtt(struct drm_i915_private *i915, const char *name)
 	ppgtt->vm.i915 = i915;
 	ppgtt->vm.total = round_down(U64_MAX, PAGE_SIZE);
 	ppgtt->vm.file = ERR_PTR(-ENODEV);
+<<<<<<< HEAD
 	ppgtt->vm.dma = &i915->drm.pdev->dev;
+=======
+	ppgtt->vm.dma = i915->drm.dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	i915_address_space_init(&ppgtt->vm, VM_CLASS_PPGTT);
 

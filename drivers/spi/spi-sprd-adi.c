@@ -210,7 +210,11 @@ static int sprd_adi_read(struct sprd_adi *sadi, u32 reg_paddr, u32 *read_val)
 	 * address. Then we can check the returned register address to validate
 	 * data.
 	 */
+<<<<<<< HEAD
 	rd_addr = (val & RD_ADDR_MASK ) >> RD_ADDR_SHIFT;
+=======
+	rd_addr = (val & RD_ADDR_MASK) >> RD_ADDR_SHIFT;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (rd_addr != (reg_paddr & REG_ADDR_LOW_MASK)) {
 		dev_err(sadi->dev, "read error, reg addr = 0x%x, val = 0x%x\n",

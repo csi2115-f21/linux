@@ -20,6 +20,8 @@ typedef struct _BT_COEXIST {
 
 void DBG_BT_INFO(u8 *dbgmsg);
 
+void DBG_BT_INFO(u8 *dbgmsg);
+
 void hal_btcoex_SetBTCoexist(struct adapter *padapter, u8 bBtExist);
 bool hal_btcoex_IsBtExist(struct adapter *padapter);
 bool hal_btcoex_IsBtDisabled(struct adapter *);
@@ -53,7 +55,10 @@ u8 hal_btcoex_LpsVal(struct adapter *);
 u32 hal_btcoex_GetRaMask(struct adapter *);
 void hal_btcoex_RecordPwrMode(struct adapter *padapter, u8 *pCmdBuf, u8 cmdLen);
 void hal_btcoex_DisplayBtCoexInfo(struct adapter *, u8 *pbuf, u32 bufsize);
+<<<<<<< HEAD
 void hal_btcoex_SetDBG(struct adapter *, u32 *pDbgModule);
 u32 hal_btcoex_GetDBG(struct adapter *, u8 *pStrBuf, u32 bufSize);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /*  !__HAL_BTCOEX_H__ */

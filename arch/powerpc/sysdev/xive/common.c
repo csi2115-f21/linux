@@ -63,8 +63,24 @@ static const struct xive_ops *xive_ops;
 static struct irq_domain *xive_irq_domain;
 
 #ifdef CONFIG_SMP
+<<<<<<< HEAD
 /* The IPIs all use the same logical irq number */
 static u32 xive_ipi_irq;
+=======
+/* The IPIs use the same logical irq number when on the same chip */
+static struct xive_ipi_desc {
+	unsigned int irq;
+	char name[16];
+} *xive_ipis;
+
+/*
+ * Use early_cpu_to_node() for hot-plugged CPUs
+ */
+static unsigned int xive_ipi_cpu_to_irq(unsigned int cpu)
+{
+	return xive_ipis[early_cpu_to_node(cpu)].irq;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 /* Xive state for each CPU */
@@ -289,6 +305,23 @@ int xmon_xive_get_irq_config(u32 hw_irq, struct irq_data *d)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+void xmon_xive_get_irq_all(void)
+{
+	unsigned int i;
+	struct irq_desc *desc;
+
+	for_each_irq_desc(i, desc) {
+		struct irq_data *d = irq_desc_get_irq_data(desc);
+		unsigned int hwirq = (unsigned int)irqd_to_hwirq(d);
+
+		if (d->domain == xive_irq_domain)
+			xmon_xive_get_irq_config(hwirq, d);
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* CONFIG_XMON */
 
 static unsigned int xive_get_irq(void)
@@ -1069,6 +1102,7 @@ static struct irq_chip xive_ipi_chip = {
 
 static void __init xive_request_ipi(void)
 {
+<<<<<<< HEAD
 	unsigned int virq;
 
 	/*
@@ -1085,6 +1119,79 @@ static void __init xive_request_ipi(void)
 
 	WARN_ON(request_irq(virq, xive_muxed_ipi_action,
 			    IRQF_PERCPU | IRQF_NO_THREAD, "IPI", NULL));
+=======
+	struct xive_ipi_alloc_info *info = arg;
+	int i;
+
+	for (i = 0; i < nr_irqs; i++) {
+		irq_domain_set_info(domain, virq + i, info->hwirq + i, &xive_ipi_chip,
+				    domain->host_data, handle_percpu_irq,
+				    NULL, NULL);
+	}
+	return 0;
+}
+
+static const struct irq_domain_ops xive_ipi_irq_domain_ops = {
+	.alloc  = xive_ipi_irq_domain_alloc,
+};
+
+static int __init xive_request_ipi(void)
+{
+	struct fwnode_handle *fwnode;
+	struct irq_domain *ipi_domain;
+	unsigned int node;
+	int ret = -ENOMEM;
+
+	fwnode = irq_domain_alloc_named_fwnode("XIVE-IPI");
+	if (!fwnode)
+		goto out;
+
+	ipi_domain = irq_domain_create_linear(fwnode, nr_node_ids,
+					      &xive_ipi_irq_domain_ops, NULL);
+	if (!ipi_domain)
+		goto out_free_fwnode;
+
+	xive_ipis = kcalloc(nr_node_ids, sizeof(*xive_ipis), GFP_KERNEL | __GFP_NOFAIL);
+	if (!xive_ipis)
+		goto out_free_domain;
+
+	for_each_node(node) {
+		struct xive_ipi_desc *xid = &xive_ipis[node];
+		struct xive_ipi_alloc_info info = { node };
+
+		/* Skip nodes without CPUs */
+		if (cpumask_empty(cpumask_of_node(node)))
+			continue;
+
+		/*
+		 * Map one IPI interrupt per node for all cpus of that node.
+		 * Since the HW interrupt number doesn't have any meaning,
+		 * simply use the node number.
+		 */
+		ret = irq_domain_alloc_irqs(ipi_domain, 1, node, &info);
+		if (ret < 0)
+			goto out_free_xive_ipis;
+		xid->irq = ret;
+
+		snprintf(xid->name, sizeof(xid->name), "IPI-%d", node);
+
+		ret = request_irq(xid->irq, xive_muxed_ipi_action,
+				  IRQF_PERCPU | IRQF_NO_THREAD, xid->name, NULL);
+
+		WARN(ret < 0, "Failed to request IPI %d: %d\n", xid->irq, ret);
+	}
+
+	return ret;
+
+out_free_xive_ipis:
+	kfree(xive_ipis);
+out_free_domain:
+	irq_domain_remove(ipi_domain);
+out_free_fwnode:
+	irq_domain_free_fwnode(fwnode);
+out:
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int xive_setup_cpu_ipi(unsigned int cpu)
@@ -1640,6 +1747,7 @@ static int xive_core_debug_show(struct seq_file *m, void *private)
 
 	for_each_irq_desc(i, desc) {
 		struct irq_data *d = irq_desc_get_irq_data(desc);
+<<<<<<< HEAD
 		unsigned int hw_irq;
 
 		if (!d)
@@ -1650,6 +1758,11 @@ static int xive_core_debug_show(struct seq_file *m, void *private)
 		/* IPIs are special (HW number 0) */
 		if (hw_irq != XIVE_IPI_HW_IRQ)
 			xive_debug_show_irq(m, hw_irq, d);
+=======
+
+		if (d->domain == xive_irq_domain)
+			xive_debug_show_irq(m, d);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return 0;
 }

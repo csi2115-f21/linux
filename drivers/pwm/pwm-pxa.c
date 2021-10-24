@@ -196,18 +196,27 @@ static int pwm_probe(struct platform_device *pdev)
 	if (IS_ERR(pwm->mmio_base))
 		return PTR_ERR(pwm->mmio_base);
 
+<<<<<<< HEAD
 	ret = pwmchip_add(&pwm->chip);
+=======
+	ret = pwmchip_add(&pc->chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret < 0) {
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 		return ret;
 	}
 
+<<<<<<< HEAD
 	platform_set_drvdata(pdev, pwm);
+=======
+	platform_set_drvdata(pdev, pc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
 static int pwm_remove(struct platform_device *pdev)
 {
+<<<<<<< HEAD
 	struct pxa_pwm_chip *chip;
 
 	chip = platform_get_drvdata(pdev);
@@ -215,6 +224,13 @@ static int pwm_remove(struct platform_device *pdev)
 		return -ENODEV;
 
 	return pwmchip_remove(&chip->chip);
+=======
+	struct pxa_pwm_chip *pc;
+
+	pc = platform_get_drvdata(pdev);
+
+	return pwmchip_remove(&pc->chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct platform_driver pwm_driver = {

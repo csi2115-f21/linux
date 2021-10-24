@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-only
 /aarch64/get-reg-list
+<<<<<<< HEAD
 /aarch64/get-reg-list-sve
+=======
+/aarch64/vgic_init
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /s390x/memop
 /s390x/resets
 /s390x/sync_regs_test
@@ -36,5 +40,9 @@
 /hardware_disable_test
 /kvm_create_max_vcpus
 /memslot_modification_stress_test
+<<<<<<< HEAD
+=======
+/memslot_perf_test
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /set_memory_region_test
 /steal_time

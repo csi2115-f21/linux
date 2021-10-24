@@ -89,7 +89,10 @@ typedef struct page *pgtable_t;
 #endif
 
 #ifdef CONFIG_MMU
+<<<<<<< HEAD
 extern unsigned long va_pa_offset;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern unsigned long pfn_base;
 #define ARCH_PFN_OFFSET		(pfn_base)
 #else
@@ -97,8 +100,68 @@ extern unsigned long pfn_base;
 #define ARCH_PFN_OFFSET		(PAGE_OFFSET >> PAGE_SHIFT)
 #endif /* CONFIG_MMU */
 
+<<<<<<< HEAD
 #define __pa_to_va_nodebug(x)	((void *)((unsigned long) (x) + va_pa_offset))
 #define __va_to_pa_nodebug(x)	((unsigned long)(x) - va_pa_offset)
+=======
+struct kernel_mapping {
+	unsigned long virt_addr;
+	uintptr_t phys_addr;
+	uintptr_t size;
+	/* Offset between linear mapping virtual address and kernel load address */
+	unsigned long va_pa_offset;
+#ifdef CONFIG_64BIT
+	/* Offset between kernel mapping virtual address and kernel load address */
+	unsigned long va_kernel_pa_offset;
+#endif
+	unsigned long va_kernel_xip_pa_offset;
+#ifdef CONFIG_XIP_KERNEL
+	uintptr_t xiprom;
+	uintptr_t xiprom_sz;
+#endif
+};
+
+extern struct kernel_mapping kernel_map;
+extern phys_addr_t phys_ram_base;
+
+#ifdef CONFIG_64BIT
+#define is_kernel_mapping(x)	\
+	((x) >= kernel_map.virt_addr && (x) < (kernel_map.virt_addr + kernel_map.size))
+#define is_linear_mapping(x)	\
+	((x) >= PAGE_OFFSET && (x) < kernel_map.virt_addr)
+
+#define linear_mapping_pa_to_va(x)	((void *)((unsigned long)(x) + kernel_map.va_pa_offset))
+#define kernel_mapping_pa_to_va(y)	({						\
+	unsigned long _y = y;								\
+	(IS_ENABLED(CONFIG_XIP_KERNEL) && _y < phys_ram_base) ?					\
+		(void *)((unsigned long)(_y) + kernel_map.va_kernel_xip_pa_offset) :		\
+		(void *)((unsigned long)(_y) + kernel_map.va_kernel_pa_offset + XIP_OFFSET);	\
+	})
+#define __pa_to_va_nodebug(x)		linear_mapping_pa_to_va(x)
+
+#define linear_mapping_va_to_pa(x)	((unsigned long)(x) - kernel_map.va_pa_offset)
+#define kernel_mapping_va_to_pa(y) ({						\
+	unsigned long _y = y;							\
+	(_y < kernel_map.virt_addr + XIP_OFFSET) ?					\
+		((unsigned long)(_y) - kernel_map.va_kernel_xip_pa_offset) :		\
+		((unsigned long)(_y) - kernel_map.va_kernel_pa_offset - XIP_OFFSET);	\
+	})
+
+#define __va_to_pa_nodebug(x)	({						\
+	unsigned long _x = x;							\
+	is_linear_mapping(_x) ?							\
+		linear_mapping_va_to_pa(_x) : kernel_mapping_va_to_pa(_x);	\
+	})
+#else
+#define is_kernel_mapping(x)	\
+	((x) >= kernel_map.virt_addr && (x) < (kernel_map.virt_addr + kernel_map.size))
+#define is_linear_mapping(x)	\
+	((x) >= PAGE_OFFSET)
+
+#define __pa_to_va_nodebug(x)  ((void *)((unsigned long) (x) + kernel_map.va_pa_offset))
+#define __va_to_pa_nodebug(x)  ((unsigned long)(x) - kernel_map.va_pa_offset)
+#endif /* CONFIG_64BIT */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_DEBUG_VIRTUAL
 extern phys_addr_t __virt_to_phys(unsigned long x);

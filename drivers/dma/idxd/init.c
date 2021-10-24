@@ -180,8 +180,23 @@ static int idxd_setup_internals(struct idxd_device *idxd)
 		idxd->groups[i].tc_b = -1;
 	}
 
+<<<<<<< HEAD
 	idxd->wqs = devm_kcalloc(dev, idxd->max_wqs, sizeof(struct idxd_wq),
 				 GFP_KERNEL);
+=======
+	idxd_mask_error_interrupts(idxd);
+	pci_free_irq_vectors(pdev);
+}
+
+static int idxd_setup_wqs(struct idxd_device *idxd)
+{
+	struct device *dev = &idxd->pdev->dev;
+	struct idxd_wq *wq;
+	int i, rc;
+
+	idxd->wqs = kcalloc_node(idxd->max_wqs, sizeof(struct idxd_wq *),
+				 GFP_KERNEL, dev_to_node(dev));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!idxd->wqs)
 		return -ENOMEM;
 
@@ -195,10 +210,24 @@ static int idxd_setup_internals(struct idxd_device *idxd)
 
 		wq->id = i;
 		wq->idxd = idxd;
+<<<<<<< HEAD
+=======
+		device_initialize(&wq->conf_dev);
+		wq->conf_dev.parent = &idxd->conf_dev;
+		wq->conf_dev.bus = &dsa_bus_type;
+		wq->conf_dev.type = &idxd_wq_device_type;
+		rc = dev_set_name(&wq->conf_dev, "wq%d.%d", idxd->id, wq->id);
+		if (rc < 0) {
+			put_device(&wq->conf_dev);
+			goto err;
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mutex_init(&wq->wq_lock);
 		wq->idxd_cdev.minor = -1;
 		wq->max_xfer_bytes = idxd->max_xfer_bytes;
 		wq->max_batch_size = idxd->max_batch_size;
+<<<<<<< HEAD
 		wq->wqcfg = devm_kzalloc(dev, idxd->wqcfg_size, GFP_KERNEL);
 		if (!wq->wqcfg)
 			return -ENOMEM;
@@ -209,11 +238,169 @@ static int idxd_setup_internals(struct idxd_device *idxd)
 		idxd->engines[i].id = i;
 	}
 
+=======
+		wq->wqcfg = kzalloc_node(idxd->wqcfg_size, GFP_KERNEL, dev_to_node(dev));
+		if (!wq->wqcfg) {
+			put_device(&wq->conf_dev);
+			rc = -ENOMEM;
+			goto err;
+		}
+		idxd->wqs[i] = wq;
+	}
+
+	return 0;
+
+ err:
+	while (--i >= 0)
+		put_device(&idxd->wqs[i]->conf_dev);
+	return rc;
+}
+
+static int idxd_setup_engines(struct idxd_device *idxd)
+{
+	struct idxd_engine *engine;
+	struct device *dev = &idxd->pdev->dev;
+	int i, rc;
+
+	idxd->engines = kcalloc_node(idxd->max_engines, sizeof(struct idxd_engine *),
+				     GFP_KERNEL, dev_to_node(dev));
+	if (!idxd->engines)
+		return -ENOMEM;
+
+	for (i = 0; i < idxd->max_engines; i++) {
+		engine = kzalloc_node(sizeof(*engine), GFP_KERNEL, dev_to_node(dev));
+		if (!engine) {
+			rc = -ENOMEM;
+			goto err;
+		}
+
+		engine->id = i;
+		engine->idxd = idxd;
+		device_initialize(&engine->conf_dev);
+		engine->conf_dev.parent = &idxd->conf_dev;
+		engine->conf_dev.bus = &dsa_bus_type;
+		engine->conf_dev.type = &idxd_engine_device_type;
+		rc = dev_set_name(&engine->conf_dev, "engine%d.%d", idxd->id, engine->id);
+		if (rc < 0) {
+			put_device(&engine->conf_dev);
+			goto err;
+		}
+
+		idxd->engines[i] = engine;
+	}
+
+	return 0;
+
+ err:
+	while (--i >= 0)
+		put_device(&idxd->engines[i]->conf_dev);
+	return rc;
+}
+
+static int idxd_setup_groups(struct idxd_device *idxd)
+{
+	struct device *dev = &idxd->pdev->dev;
+	struct idxd_group *group;
+	int i, rc;
+
+	idxd->groups = kcalloc_node(idxd->max_groups, sizeof(struct idxd_group *),
+				    GFP_KERNEL, dev_to_node(dev));
+	if (!idxd->groups)
+		return -ENOMEM;
+
+	for (i = 0; i < idxd->max_groups; i++) {
+		group = kzalloc_node(sizeof(*group), GFP_KERNEL, dev_to_node(dev));
+		if (!group) {
+			rc = -ENOMEM;
+			goto err;
+		}
+
+		group->id = i;
+		group->idxd = idxd;
+		device_initialize(&group->conf_dev);
+		group->conf_dev.parent = &idxd->conf_dev;
+		group->conf_dev.bus = &dsa_bus_type;
+		group->conf_dev.type = &idxd_group_device_type;
+		rc = dev_set_name(&group->conf_dev, "group%d.%d", idxd->id, group->id);
+		if (rc < 0) {
+			put_device(&group->conf_dev);
+			goto err;
+		}
+
+		idxd->groups[i] = group;
+		group->tc_a = -1;
+		group->tc_b = -1;
+	}
+
+	return 0;
+
+ err:
+	while (--i >= 0)
+		put_device(&idxd->groups[i]->conf_dev);
+	return rc;
+}
+
+static void idxd_cleanup_internals(struct idxd_device *idxd)
+{
+	int i;
+
+	for (i = 0; i < idxd->max_groups; i++)
+		put_device(&idxd->groups[i]->conf_dev);
+	for (i = 0; i < idxd->max_engines; i++)
+		put_device(&idxd->engines[i]->conf_dev);
+	for (i = 0; i < idxd->max_wqs; i++)
+		put_device(&idxd->wqs[i]->conf_dev);
+	destroy_workqueue(idxd->wq);
+}
+
+static int idxd_setup_internals(struct idxd_device *idxd)
+{
+	struct device *dev = &idxd->pdev->dev;
+	int rc, i;
+
+	init_waitqueue_head(&idxd->cmd_waitq);
+
+	if (idxd->hw.cmd_cap & BIT(IDXD_CMD_REQUEST_INT_HANDLE)) {
+		idxd->int_handles = kcalloc_node(idxd->max_wqs, sizeof(int), GFP_KERNEL,
+						 dev_to_node(dev));
+		if (!idxd->int_handles)
+			return -ENOMEM;
+	}
+
+	rc = idxd_setup_wqs(idxd);
+	if (rc < 0)
+		goto err_wqs;
+
+	rc = idxd_setup_engines(idxd);
+	if (rc < 0)
+		goto err_engine;
+
+	rc = idxd_setup_groups(idxd);
+	if (rc < 0)
+		goto err_group;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	idxd->wq = create_workqueue(dev_name(dev));
 	if (!idxd->wq)
 		return -ENOMEM;
 
 	return 0;
+<<<<<<< HEAD
+=======
+
+ err_wkq_create:
+	for (i = 0; i < idxd->max_groups; i++)
+		put_device(&idxd->groups[i]->conf_dev);
+ err_group:
+	for (i = 0; i < idxd->max_engines; i++)
+		put_device(&idxd->engines[i]->conf_dev);
+ err_engine:
+	for (i = 0; i < idxd->max_wqs; i++)
+		put_device(&idxd->wqs[i]->conf_dev);
+ err_wqs:
+	kfree(idxd->int_handles);
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void idxd_read_table_offsets(struct idxd_device *idxd)
@@ -293,6 +480,24 @@ static struct idxd_device *idxd_alloc(struct pci_dev *pdev)
 		return NULL;
 
 	idxd->pdev = pdev;
+<<<<<<< HEAD
+=======
+	idxd->data = data;
+	idxd->id = ida_alloc(&idxd_ida, GFP_KERNEL);
+	if (idxd->id < 0)
+		return NULL;
+
+	device_initialize(&idxd->conf_dev);
+	idxd->conf_dev.parent = dev;
+	idxd->conf_dev.bus = &dsa_bus_type;
+	idxd->conf_dev.type = idxd->data->dev_type;
+	rc = dev_set_name(&idxd->conf_dev, "%s%d", idxd->data->name_prefix, idxd->id);
+	if (rc < 0) {
+		put_device(&idxd->conf_dev);
+		return NULL;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_init(&idxd->dev_lock);
 
 	return idxd;
@@ -420,6 +625,7 @@ static int idxd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	dev_dbg(dev, "Set DMA masks\n");
 	rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
+<<<<<<< HEAD
 	if (rc)
 		rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
 	if (rc)
@@ -427,6 +633,15 @@ static int idxd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	rc = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
 	if (rc)
+=======
+	if (rc)
+		rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+	if (rc)
+		goto err;
+
+	rc = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+	if (rc)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rc = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
 	if (rc)
 		return rc;
@@ -458,6 +673,19 @@ static int idxd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		 idxd->hw.version);
 
 	return 0;
+<<<<<<< HEAD
+=======
+
+ err_dev_register:
+	idxd_cleanup(idxd);
+ err:
+	pci_iounmap(pdev, idxd->reg_base);
+ err_iomap:
+	put_device(&idxd->conf_dev);
+ err_idxd_alloc:
+	pci_disable_device(pdev);
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void idxd_flush_pending_llist(struct idxd_irq_entry *ie)
@@ -522,9 +750,27 @@ static void idxd_remove(struct pci_dev *pdev)
 	idxd_shutdown(pdev);
 	if (device_pasid_enabled(idxd))
 		idxd_disable_system_pasid(idxd);
+<<<<<<< HEAD
 	mutex_lock(&idxd_idr_lock);
 	idr_remove(&idxd_idrs[idxd->type], idxd->id);
 	mutex_unlock(&idxd_idr_lock);
+=======
+	idxd_unregister_devices(idxd);
+
+	for (i = 0; i < msixcnt; i++) {
+		irq_entry = &idxd->irq_entries[i];
+		free_irq(irq_entry->vector, irq_entry);
+	}
+	idxd_msix_perm_clear(idxd);
+	idxd_release_int_handles(idxd);
+	pci_free_irq_vectors(pdev);
+	pci_iounmap(pdev, idxd->reg_base);
+	iommu_dev_disable_feature(&pdev->dev, IOMMU_DEV_FEAT_SVA);
+	pci_disable_device(pdev);
+	destroy_workqueue(idxd->wq);
+	perfmon_pmu_remove(idxd);
+	device_unregister(&idxd->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct pci_driver idxd_pci_driver = {
@@ -553,8 +799,12 @@ static int __init idxd_init_module(void)
 	else
 		support_enqcmd = true;
 
+<<<<<<< HEAD
 	for (i = 0; i < IDXD_TYPE_MAX; i++)
 		idr_init(&idxd_idrs[i]);
+=======
+	perfmon_init();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	err = idxd_register_bus_type();
 	if (err < 0)
@@ -586,8 +836,16 @@ module_init(idxd_init_module);
 
 static void __exit idxd_exit_module(void)
 {
+<<<<<<< HEAD
 	pci_unregister_driver(&idxd_pci_driver);
 	idxd_cdev_remove();
 	idxd_unregister_bus_type();
+=======
+	idxd_unregister_driver();
+	pci_unregister_driver(&idxd_pci_driver);
+	idxd_cdev_remove();
+	idxd_unregister_bus_type();
+	perfmon_exit();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 module_exit(idxd_exit_module);

@@ -4653,10 +4653,17 @@ static u32 netif_receive_generic_xdp(struct sk_buff *skb,
 	void *orig_data, *orig_data_end, *hard_start;
 	struct netdev_rx_queue *rxqueue;
 	u32 metalen, act = XDP_DROP;
+<<<<<<< HEAD
 	u32 mac_len, frame_sz;
 	__be16 orig_eth_type;
 	struct ethhdr *eth;
 	bool orig_bcast;
+=======
+	bool orig_bcast, orig_host;
+	u32 mac_len, frame_sz;
+	__be16 orig_eth_type;
+	struct ethhdr *eth;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int off;
 
 	/* Reinjected packets coming from act_mirred or similar should
@@ -5889,6 +5896,22 @@ static struct list_head *gro_list_prepare(struct napi_struct *napi,
 			diffs = memcmp(skb_mac_header(p),
 				       skb_mac_header(skb),
 				       maclen);
+<<<<<<< HEAD
+=======
+
+		diffs |= skb_get_nfct(p) ^ skb_get_nfct(skb);
+#if IS_ENABLED(CONFIG_SKB_EXTENSIONS) && IS_ENABLED(CONFIG_NET_TC_SKB_EXT)
+		if (!diffs) {
+			struct tc_skb_ext *skb_ext = skb_ext_find(skb, TC_SKB_EXT);
+			struct tc_skb_ext *p_ext = skb_ext_find(p, TC_SKB_EXT);
+
+			diffs |= (!!p_ext) ^ (!!skb_ext);
+			if (!diffs && unlikely(skb_ext))
+				diffs |= p_ext->chain ^ skb_ext->chain;
+		}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		NAPI_GRO_CB(p)->same_flow = !diffs;
 	}
 
@@ -6152,6 +6175,10 @@ static void napi_reuse_skb(struct napi_struct *napi, struct sk_buff *skb)
 	skb_shinfo(skb)->gso_type = 0;
 	skb->truesize = SKB_TRUESIZE(skb_end_offset(skb));
 	skb_ext_reset(skb);
+<<<<<<< HEAD
+=======
+	nf_reset_ct(skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	napi->skb = skb;
 }

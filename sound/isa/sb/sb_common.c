@@ -238,7 +238,12 @@ int snd_sbdsp_create(struct snd_card *card,
 	if (hardware == SB_HW_ALS4000)
 		goto __skip_allocation;
 	
+<<<<<<< HEAD
 	if ((chip->res_port = request_region(port, 16, "SoundBlaster")) == NULL) {
+=======
+	chip->res_port = request_region(port, 16, "SoundBlaster");
+	if (!chip->res_port) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_printk(KERN_ERR "sb: can't grab port 0x%lx\n", port);
 		snd_sbdsp_free(chip);
 		return -EBUSY;
@@ -267,11 +272,21 @@ int snd_sbdsp_create(struct snd_card *card,
       __skip_allocation:
 	chip->card = card;
 	chip->hardware = hardware;
+<<<<<<< HEAD
 	if ((err = snd_sbdsp_probe(chip)) < 0) {
 		snd_sbdsp_free(chip);
 		return err;
 	}
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_sbdsp_probe(chip);
+	if (err < 0) {
+		snd_sbdsp_free(chip);
+		return err;
+	}
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_sbdsp_free(chip);
 		return err;
 	}

@@ -24,9 +24,20 @@ struct nf_generic_net {
 
 struct nf_tcp_net {
 	unsigned int timeouts[TCP_CONNTRACK_TIMEOUT_MAX];
+<<<<<<< HEAD
 	int tcp_loose;
 	int tcp_be_liberal;
 	int tcp_max_retrans;
+=======
+	u8 tcp_loose;
+	u8 tcp_be_liberal;
+	u8 tcp_max_retrans;
+	u8 tcp_ignore_invalid_rst;
+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
+	unsigned int offload_timeout;
+	unsigned int offload_pickup;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum udp_conntrack {
@@ -37,6 +48,13 @@ enum udp_conntrack {
 
 struct nf_udp_net {
 	unsigned int timeouts[UDP_CT_MAX];
+<<<<<<< HEAD
+=======
+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
+	unsigned int offload_timeout;
+	unsigned int offload_pickup;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct nf_icmp_net {

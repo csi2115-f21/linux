@@ -16,6 +16,11 @@ struct target {
 	bool	     uses_mmap;
 	bool	     default_per_cpu;
 	bool	     per_thread;
+<<<<<<< HEAD
+=======
+	bool	     use_bpf;
+	const char   *attr_map;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum target_errno {

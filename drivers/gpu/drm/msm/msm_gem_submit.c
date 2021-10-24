@@ -50,6 +50,14 @@ static struct msm_gem_submit *submit_create(struct drm_device *dev,
 	submit->cmd = (void *)&submit->bos[nr_bos];
 	submit->queue = queue;
 	submit->ring = gpu->rb[queue->prio];
+<<<<<<< HEAD
+
+	/* initially, until copy_from_user() and bo lookup succeeds: */
+	submit->nr_bos = 0;
+	submit->nr_cmds = 0;
+=======
+	submit->fault_dumped = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* initially, until copy_from_user() and bo lookup succeeds: */
 	submit->nr_bos = 0;

@@ -266,7 +266,12 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	};
 
 	*rcs5535au = NULL;
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(32))) {
@@ -286,7 +291,12 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	cs5535au->pci = pci;
 	cs5535au->irq = -1;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "CS5535 Audio")) < 0) {
+=======
+	err = pci_request_regions(pci, "CS5535 Audio");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(cs5535au);
 		goto pcifail;
 	}
@@ -304,8 +314,13 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	card->sync_irq = cs5535au->irq;
 	pci_set_master(pci);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL,
 				  cs5535au, &ops)) < 0)
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, cs5535au, &ops);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto sndfail;
 
 	*rcs5535au = cs5535au;
@@ -340,6 +355,7 @@ static int snd_cs5535audio_probe(struct pci_dev *pci,
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
 	if ((err = snd_cs5535audio_create(card, pci, &cs5535au)) < 0)
 		goto probefail_out;
 
@@ -349,6 +365,20 @@ static int snd_cs5535audio_probe(struct pci_dev *pci,
 		goto probefail_out;
 
 	if ((err = snd_cs5535audio_pcm(cs5535au)) < 0)
+=======
+	err = snd_cs5535audio_create(card, pci, &cs5535au);
+	if (err < 0)
+		goto probefail_out;
+
+	card->private_data = cs5535au;
+
+	err = snd_cs5535audio_mixer(cs5535au);
+	if (err < 0)
+		goto probefail_out;
+
+	err = snd_cs5535audio_pcm(cs5535au);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto probefail_out;
 
 	strcpy(card->driver, DRIVER_NAME);
@@ -358,7 +388,12 @@ static int snd_cs5535audio_probe(struct pci_dev *pci,
 		card->shortname, card->driver,
 		cs5535au->port, cs5535au->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0)
+=======
+	err = snd_card_register(card);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto probefail_out;
 
 	pci_set_drvdata(pci, card);

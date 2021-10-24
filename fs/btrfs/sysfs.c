@@ -360,6 +360,23 @@ static ssize_t supported_rescue_options_show(struct kobject *kobj,
 BTRFS_ATTR(static_feature, supported_rescue_options,
 	   supported_rescue_options_show);
 
+<<<<<<< HEAD
+=======
+static ssize_t supported_sectorsizes_show(struct kobject *kobj,
+					  struct kobj_attribute *a,
+					  char *buf)
+{
+	ssize_t ret = 0;
+
+	/* Only sectorsize == PAGE_SIZE is now supported */
+	ret += scnprintf(buf + ret, PAGE_SIZE - ret, "%lu\n", PAGE_SIZE);
+
+	return ret;
+}
+BTRFS_ATTR(static_feature, supported_sectorsizes,
+	   supported_sectorsizes_show);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct attribute *btrfs_supported_static_feature_attrs[] = {
 	BTRFS_ATTR_PTR(static_feature, rmdir_subvol),
 	BTRFS_ATTR_PTR(static_feature, supported_checksums),
@@ -965,6 +982,43 @@ static ssize_t btrfs_read_policy_store(struct kobject *kobj,
 }
 BTRFS_ATTR_RW(, read_policy, btrfs_read_policy_show, btrfs_read_policy_store);
 
+<<<<<<< HEAD
+=======
+static ssize_t btrfs_bg_reclaim_threshold_show(struct kobject *kobj,
+					       struct kobj_attribute *a,
+					       char *buf)
+{
+	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
+	ssize_t ret;
+
+	ret = scnprintf(buf, PAGE_SIZE, "%d\n", fs_info->bg_reclaim_threshold);
+
+	return ret;
+}
+
+static ssize_t btrfs_bg_reclaim_threshold_store(struct kobject *kobj,
+						struct kobj_attribute *a,
+						const char *buf, size_t len)
+{
+	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
+	int thresh;
+	int ret;
+
+	ret = kstrtoint(buf, 10, &thresh);
+	if (ret)
+		return ret;
+
+	if (thresh <= 50 || thresh > 100)
+		return -EINVAL;
+
+	fs_info->bg_reclaim_threshold = thresh;
+
+	return len;
+}
+BTRFS_ATTR_RW(, bg_reclaim_threshold, btrfs_bg_reclaim_threshold_show,
+	      btrfs_bg_reclaim_threshold_store);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct attribute *btrfs_attrs[] = {
 	BTRFS_ATTR_PTR(, label),
 	BTRFS_ATTR_PTR(, nodesize),
@@ -1418,6 +1472,37 @@ static ssize_t btrfs_devinfo_writeable_show(struct kobject *kobj,
 }
 BTRFS_ATTR(devid, writeable, btrfs_devinfo_writeable_show);
 
+<<<<<<< HEAD
+=======
+static ssize_t btrfs_devinfo_error_stats_show(struct kobject *kobj,
+		struct kobj_attribute *a, char *buf)
+{
+	struct btrfs_device *device = container_of(kobj, struct btrfs_device,
+						   devid_kobj);
+
+	if (!device->dev_stats_valid)
+		return scnprintf(buf, PAGE_SIZE, "invalid\n");
+
+	/*
+	 * Print all at once so we get a snapshot of all values from the same
+	 * time. Keep them in sync and in order of definition of
+	 * btrfs_dev_stat_values.
+	 */
+	return scnprintf(buf, PAGE_SIZE,
+		"write_errs %d\n"
+		"read_errs %d\n"
+		"flush_errs %d\n"
+		"corruption_errs %d\n"
+		"generation_errs %d\n",
+		btrfs_dev_stat_read(device, BTRFS_DEV_STAT_WRITE_ERRS),
+		btrfs_dev_stat_read(device, BTRFS_DEV_STAT_READ_ERRS),
+		btrfs_dev_stat_read(device, BTRFS_DEV_STAT_FLUSH_ERRS),
+		btrfs_dev_stat_read(device, BTRFS_DEV_STAT_CORRUPTION_ERRS),
+		btrfs_dev_stat_read(device, BTRFS_DEV_STAT_GENERATION_ERRS));
+}
+BTRFS_ATTR(devid, error_stats, btrfs_devinfo_error_stats_show);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct attribute *devid_attrs[] = {
 	BTRFS_ATTR_PTR(devid, in_fs_metadata),
 	BTRFS_ATTR_PTR(devid, missing),

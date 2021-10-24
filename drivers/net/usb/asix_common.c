@@ -494,6 +494,7 @@ void asix_mdio_write(struct net_device *netdev, int phy_id, int loc, int val)
 		ret = asix_read_cmd(dev, AX_CMD_STATMNGSTS_REG,
 				    0, 0, 1, &smsr, 0);
 	} while (!(smsr & AX_HOST_EN) && (i++ < 30) && (ret != -ENODEV));
+<<<<<<< HEAD
 	if (ret == -ENODEV) {
 		mutex_unlock(&dev->phy_mutex);
 		return;
@@ -502,6 +503,19 @@ void asix_mdio_write(struct net_device *netdev, int phy_id, int loc, int val)
 	asix_write_cmd(dev, AX_CMD_WRITE_MII_REG, phy_id,
 		       (__u16)loc, 2, &res, 0);
 	asix_set_hw_mii(dev, 0);
+=======
+
+	if (ret == -ENODEV)
+		goto out;
+
+	ret = asix_write_cmd(dev, AX_CMD_WRITE_MII_REG, phy_id, (__u16)loc, 2,
+			     &res, 0);
+	if (ret < 0)
+		goto out;
+
+	ret = asix_set_hw_mii(dev, 0);
+out:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&dev->phy_mutex);
 }
 

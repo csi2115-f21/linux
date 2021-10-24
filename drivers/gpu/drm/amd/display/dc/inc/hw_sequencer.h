@@ -232,7 +232,13 @@ struct hw_sequencer_funcs {
 			const struct tg_color *solid_color,
 			int width, int height, int offset);
 
+<<<<<<< HEAD
 	void (*set_hubp_blank)(const struct dc *dc,
+=======
+	void (*z10_restore)(struct dc *dc);
+
+	void (*update_visual_confirm_color)(struct dc *dc,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			struct pipe_ctx *pipe_ctx,
 			bool blank_enable);
 };

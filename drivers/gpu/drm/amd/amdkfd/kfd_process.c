@@ -668,7 +668,11 @@ static int kfd_process_alloc_gpuvm(struct kfd_process_device *pdd,
 	if (err)
 		goto err_alloc_mem;
 
+<<<<<<< HEAD
 	err = amdgpu_amdkfd_gpuvm_map_memory_to_gpu(kdev->kgd, mem, pdd->vm);
+=======
+	err = amdgpu_amdkfd_gpuvm_map_memory_to_gpu(kdev->kgd, mem, pdd->drm_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_map_mem;
 

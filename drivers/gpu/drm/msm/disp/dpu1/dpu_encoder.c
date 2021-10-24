@@ -273,21 +273,36 @@ int dpu_encoder_helper_wait_for_irq(struct dpu_encoder_phys *phys_enc,
 
 	/* return EWOULDBLOCK since we know the wait isn't necessary */
 	if (phys_enc->enable_state == DPU_ENC_DISABLED) {
+<<<<<<< HEAD
 		DRM_ERROR("encoder is disabled id=%u, intr=%d, hw=%d, irq=%d",
 			  DRMID(phys_enc->parent), intr_idx, irq->hw_idx,
+=======
+		DRM_ERROR("encoder is disabled id=%u, intr=%d, irq=%d",
+			  DRMID(phys_enc->parent), intr_idx,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			  irq->irq_idx);
 		return -EWOULDBLOCK;
 	}
 
 	if (irq->irq_idx < 0) {
+<<<<<<< HEAD
 		DRM_DEBUG_KMS("skip irq wait id=%u, intr=%d, hw=%d, irq=%s",
 			      DRMID(phys_enc->parent), intr_idx, irq->hw_idx,
+=======
+		DRM_DEBUG_KMS("skip irq wait id=%u, intr=%d, irq=%s",
+			      DRMID(phys_enc->parent), intr_idx,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			      irq->name);
 		return 0;
 	}
 
+<<<<<<< HEAD
 	DRM_DEBUG_KMS("id=%u, intr=%d, hw=%d, irq=%d, pp=%d, pending_cnt=%d",
 		      DRMID(phys_enc->parent), intr_idx, irq->hw_idx,
+=======
+	DRM_DEBUG_KMS("id=%u, intr=%d, irq=%d, pp=%d, pending_cnt=%d",
+		      DRMID(phys_enc->parent), intr_idx,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		      irq->irq_idx, phys_enc->hw_pp->idx - PINGPONG_0,
 		      atomic_read(wait_info->atomic_cnt));
 
@@ -303,7 +318,11 @@ int dpu_encoder_helper_wait_for_irq(struct dpu_encoder_phys *phys_enc,
 			unsigned long flags;
 
 			DRM_DEBUG_KMS("irq not triggered id=%u, intr=%d, "
+<<<<<<< HEAD
 				      "hw=%d, irq=%d, pp=%d, atomic_cnt=%d",
+=======
+				      "irq=%d, pp=%d, atomic_cnt=%d",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				      DRMID(phys_enc->parent), intr_idx,
 				      irq->hw_idx, irq->irq_idx,
 				      phys_enc->hw_pp->idx - PINGPONG_0,
@@ -315,7 +334,11 @@ int dpu_encoder_helper_wait_for_irq(struct dpu_encoder_phys *phys_enc,
 		} else {
 			ret = -ETIMEDOUT;
 			DRM_DEBUG_KMS("irq timeout id=%u, intr=%d, "
+<<<<<<< HEAD
 				      "hw=%d, irq=%d, pp=%d, atomic_cnt=%d",
+=======
+				      "irq=%d, pp=%d, atomic_cnt=%d",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				      DRMID(phys_enc->parent), intr_idx,
 				      irq->hw_idx, irq->irq_idx,
 				      phys_enc->hw_pp->idx - PINGPONG_0,

@@ -3928,7 +3928,11 @@ sas_device_handle_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(sas_device_handle);
 
 /**
+<<<<<<< HEAD
  * sas_ncq_io_prio_show - send prioritized io commands to device
+=======
+ * sas_ncq_prio_enable_show - send prioritized io commands to device
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @dev: pointer to embedded device
  * @attr: ?
  * @buf: the buffer returned

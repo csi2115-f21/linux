@@ -306,7 +306,11 @@ fail_and_free:
 #endif
 
 	if (ip6_parse_tlv(tlvprocdestopt_lst, skb,
+<<<<<<< HEAD
 			  init_net.ipv6.sysctl.max_dst_opts_cnt)) {
+=======
+			  net->ipv6.sysctl.max_dst_opts_cnt)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		skb->transport_header += extlen;
 		opt = IP6CB(skb);
 #if IS_ENABLED(CONFIG_IPV6_MIP6)
@@ -1036,7 +1040,11 @@ fail_and_free:
 
 	opt->flags |= IP6SKB_HOPBYHOP;
 	if (ip6_parse_tlv(tlvprochopopt_lst, skb,
+<<<<<<< HEAD
 			  init_net.ipv6.sysctl.max_hbh_opts_cnt)) {
+=======
+			  net->ipv6.sysctl.max_hbh_opts_cnt)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		skb->transport_header += extlen;
 		opt = IP6CB(skb);
 		opt->nhoff = sizeof(struct ipv6hdr);

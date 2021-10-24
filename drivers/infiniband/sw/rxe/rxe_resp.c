@@ -484,7 +484,11 @@ static enum resp_states send_data_in(struct rxe_qp *qp, void *data_addr,
 	int err;
 
 	err = copy_data(qp->pd, IB_ACCESS_LOCAL_WRITE, &qp->resp.wqe->dma,
+<<<<<<< HEAD
 			data_addr, data_len, to_mem_obj, NULL);
+=======
+			data_addr, data_len, RXE_TO_MR_OBJ, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(err))
 		return (err == -ENOSPC) ? RESPST_ERR_LENGTH
 					: RESPST_ERR_MALFORMED_WQE;
@@ -499,8 +503,13 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
 	int	err;
 	int data_len = payload_size(pkt);
 
+<<<<<<< HEAD
 	err = rxe_mem_copy(qp->resp.mr, qp->resp.va, payload_addr(pkt),
 			   data_len, to_mem_obj, NULL);
+=======
+	err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
+			  payload_addr(pkt), data_len, RXE_TO_MR_OBJ, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err) {
 		rc = RESPST_ERR_RKEY_VIOLATION;
 		goto out;
@@ -700,8 +709,13 @@ static enum resp_states read_reply(struct rxe_qp *qp,
 	if (!skb)
 		return RESPST_ERR_RNR;
 
+<<<<<<< HEAD
 	err = rxe_mem_copy(res->read.mr, res->read.va, payload_addr(&ack_pkt),
 			   payload, from_mem_obj, &icrc);
+=======
+	err = rxe_mr_copy(res->read.mr, res->read.va, payload_addr(&ack_pkt),
+			  payload, RXE_FROM_MR_OBJ, &icrc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		pr_err("Failed copying memory\n");
 

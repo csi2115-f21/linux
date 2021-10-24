@@ -78,7 +78,26 @@ struct vm_mem_backing_src_alias {
 	enum vm_mem_backing_src_type type;
 };
 
+<<<<<<< HEAD
 void backing_src_help(void);
 enum vm_mem_backing_src_type parse_backing_src_type(const char *type_name);
+=======
+bool thp_configured(void);
+size_t get_trans_hugepagesz(void);
+size_t get_def_hugetlb_pagesz(void);
+const struct vm_mem_backing_src_alias *vm_mem_backing_src_alias(uint32_t i);
+size_t get_backing_src_pagesz(uint32_t i);
+void backing_src_help(void);
+enum vm_mem_backing_src_type parse_backing_src_type(const char *type_name);
+
+/*
+ * Whether or not the given source type is shared memory (as opposed to
+ * anonymous).
+ */
+static inline bool backing_src_is_shared(enum vm_mem_backing_src_type t)
+{
+	return vm_mem_backing_src_alias(t)->flag & MAP_SHARED;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* SELFTEST_KVM_TEST_UTIL_H */

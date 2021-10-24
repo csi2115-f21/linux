@@ -34,7 +34,10 @@ struct qos_priv {
 };
 
 #include <rtw_mlme.h>
+<<<<<<< HEAD
 #include <rtw_debug.h>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <rtw_rf.h>
 #include <rtw_event.h>
 #include <rtw_led.h>
@@ -150,7 +153,11 @@ struct adapter {
 
 	u8	hw_init_completed;
 
+<<<<<<< HEAD
 	void *cmdThread;
+=======
+	struct task_struct *cmdThread;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct  net_device *pnetdev;
 	struct  net_device *pmondev;
 

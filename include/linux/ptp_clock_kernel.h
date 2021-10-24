@@ -186,6 +186,35 @@ struct ptp_clock_event {
 	};
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * scaled_ppm_to_ppb() - convert scaled ppm to ppb
+ *
+ * @ppm:    Parts per million, but with a 16 bit binary fractional field
+ */
+static inline long scaled_ppm_to_ppb(long ppm)
+{
+	/*
+	 * The 'freq' field in the 'struct timex' is in parts per
+	 * million, but with a 16 bit binary fractional field.
+	 *
+	 * We want to calculate
+	 *
+	 *    ppb = scaled_ppm * 1000 / 2^16
+	 *
+	 * which simplifies to
+	 *
+	 *    ppb = scaled_ppm * 125 / 2^13
+	 */
+	s64 ppb = 1 + ppm;
+
+	ppb *= 125;
+	ppb >>= 13;
+	return (long)ppb;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #if IS_REACHABLE(CONFIG_PTP_1588_CLOCK)
 
 /**
@@ -286,6 +315,30 @@ int ptp_schedule_worker(struct ptp_clock *ptp, unsigned long delay);
  */
 void ptp_cancel_worker_sync(struct ptp_clock *ptp);
 
+<<<<<<< HEAD
+=======
+/**
+ * ptp_get_vclocks_index() - get all vclocks index on pclock, and
+ *                           caller is responsible to free memory
+ *                           of vclock_index
+ *
+ * @pclock_index: phc index of ptp pclock.
+ * @vclock_index: pointer to pointer of vclock index.
+ *
+ * return number of vclocks.
+ */
+int ptp_get_vclocks_index(int pclock_index, int **vclock_index);
+
+/**
+ * ptp_convert_timestamp() - convert timestamp to a ptp vclock time
+ *
+ * @hwtstamps:    skb_shared_hwtstamps structure pointer
+ * @vclock_index: phc index of ptp vclock.
+ */
+void ptp_convert_timestamp(struct skb_shared_hwtstamps *hwtstamps,
+			   int vclock_index);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 static inline struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
 						   struct device *parent)
@@ -305,6 +358,14 @@ static inline int ptp_schedule_worker(struct ptp_clock *ptp,
 { return -EOPNOTSUPP; }
 static inline void ptp_cancel_worker_sync(struct ptp_clock *ptp)
 { }
+<<<<<<< HEAD
+=======
+static inline int ptp_get_vclocks_index(int pclock_index, int **vclock_index)
+{ return 0; }
+static inline void ptp_convert_timestamp(struct skb_shared_hwtstamps *hwtstamps,
+					 int vclock_index)
+{ }
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif
 

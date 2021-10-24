@@ -552,6 +552,35 @@ static int live_pin_rewind(void *arg)
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static int engine_lock_reset_tasklet(struct intel_engine_cs *engine)
+{
+	tasklet_disable(&engine->execlists.tasklet);
+	local_bh_disable();
+
+	if (test_and_set_bit(I915_RESET_ENGINE + engine->id,
+			     &engine->gt->reset.flags)) {
+		local_bh_enable();
+		tasklet_enable(&engine->execlists.tasklet);
+
+		intel_gt_set_wedged(engine->gt);
+		return -EBUSY;
+	}
+
+	return 0;
+}
+
+static void engine_unlock_reset_tasklet(struct intel_engine_cs *engine)
+{
+	clear_and_wake_up_bit(I915_RESET_ENGINE + engine->id,
+			      &engine->gt->reset.flags);
+
+	local_bh_enable();
+	tasklet_enable(&engine->execlists.tasklet);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int live_hold_reset(void *arg)
 {
 	struct intel_gt *gt = arg;
@@ -609,7 +638,11 @@ static int live_hold_reset(void *arg)
 		}
 		tasklet_disable(&engine->execlists.tasklet);
 
+<<<<<<< HEAD
 		engine->execlists.tasklet.func(engine->execlists.tasklet.data);
+=======
+		engine->execlists.tasklet.callback(&engine->execlists.tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		GEM_BUG_ON(execlists_active(&engine->execlists) != rq);
 
 		i915_request_get(rq);
@@ -1874,7 +1907,11 @@ static int live_late_preempt(void *arg)
 			goto err_wedged;
 		}
 
+<<<<<<< HEAD
 		attr.priority = I915_USER_PRIORITY(I915_PRIORITY_MAX);
+=======
+		attr.priority = I915_PRIORITY_MAX;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		engine->schedule(rq, &attr);
 
 		if (!igt_wait_for_spinner(&spin_hi, rq)) {
@@ -4610,7 +4647,11 @@ static int reset_virtual_engine(struct intel_gt *gt,
 	}
 	tasklet_disable(&engine->execlists.tasklet);
 
+<<<<<<< HEAD
 	engine->execlists.tasklet.func(engine->execlists.tasklet.data);
+=======
+	engine->execlists.tasklet.callback(&engine->execlists.tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	GEM_BUG_ON(execlists_active(&engine->execlists) != rq);
 
 	/* Fake a preemption event; failed of course */

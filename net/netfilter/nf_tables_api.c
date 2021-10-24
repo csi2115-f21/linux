@@ -2853,6 +2853,10 @@ nla_put_failure:
 static void nf_tables_rule_notify(const struct nft_ctx *ctx,
 				  const struct nft_rule *rule, int event)
 {
+<<<<<<< HEAD
+=======
+	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct sk_buff *skb;
 	int err;
 	char *buf = kasprintf(GFP_KERNEL, "%s:%llu;%s:%llu",
@@ -3081,7 +3085,11 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
 		return -ENOMEM;
 
 	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
+<<<<<<< HEAD
 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
+=======
+				       info->nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				       family, table, chain, rule, NULL);
 	if (err < 0)
 		goto err_fill_rule_info;
@@ -3331,7 +3339,19 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
 		expr = nft_expr_next(expr);
 	}
 
+<<<<<<< HEAD
 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+=======
+	if (chain->flags & NFT_CHAIN_HW_OFFLOAD) {
+		flow = nft_flow_rule_create(net, rule);
+		if (IS_ERR(flow)) {
+			err = PTR_ERR(flow);
+			goto err_release_rule;
+		}
+	}
+
+	if (info->nlh->nlmsg_flags & NLM_F_REPLACE) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
 		if (trans == NULL) {
 			err = -ENOMEM;
@@ -3342,6 +3362,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
 			nft_trans_destroy(trans);
 			goto err2;
 		}
+<<<<<<< HEAD
+=======
+		err = nft_delrule(&ctx, old_rule);
+		if (err < 0) {
+			nft_trans_destroy(trans);
+			goto err_destroy_flow_rule;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		list_add_tail_rcu(&rule->list, &old_rule->list);
 	} else {
@@ -3898,6 +3926,10 @@ static void nf_tables_set_notify(const struct nft_ctx *ctx,
 				 const struct nft_set *set, int event,
 			         gfp_t gfp_flags)
 {
+<<<<<<< HEAD
+=======
+	struct nftables_pernet *nft_net = nft_pernet(ctx->net);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct sk_buff *skb;
 	u32 portid = ctx->portid;
 	int err;
@@ -4295,8 +4327,15 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
 	size = 0;
 	if (ops->privsize != NULL)
 		size = ops->privsize(nla, &desc);
+<<<<<<< HEAD
 
 	set = kvzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
+=======
+	alloc_size = sizeof(*set) + size + udlen;
+	if (alloc_size < size)
+		return -ENOMEM;
+	set = kvzalloc(alloc_size, GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!set)
 		return -ENOMEM;
 
@@ -8145,9 +8184,17 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
 			nf_tables_setelem_notify(&trans->ctx, te->set,
 						 &te->elem,
 						 NFT_MSG_DELSETELEM, 0);
+<<<<<<< HEAD
 			te->set->ops->remove(net, te->set, &te->elem);
 			atomic_dec(&te->set->nelems);
 			te->set->ndeact--;
+=======
+			nft_setelem_remove(net, te->set, &te->elem);
+			if (!nft_setelem_is_catchall(te->set, &te->elem)) {
+				atomic_dec(&te->set->nelems);
+				te->set->ndeact--;
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case NFT_MSG_NEWOBJ:
 			if (nft_trans_obj_update(trans)) {
@@ -9089,6 +9136,10 @@ static void __nft_release_tables(struct net *net, u32 nlpid)
 static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
 			    void *ptr)
 {
+<<<<<<< HEAD
+=======
+	struct nftables_pernet *nft_net;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct netlink_notify *n = ptr;
 	struct nft_table *table, *nt;
 	struct net *net = n->net;
@@ -9097,8 +9148,14 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
 	if (event != NETLINK_URELEASE || n->protocol != NETLINK_NETFILTER)
 		return NOTIFY_DONE;
 
+<<<<<<< HEAD
 	mutex_lock(&net->nft.commit_mutex);
 	list_for_each_entry(table, &net->nft.tables, list) {
+=======
+	nft_net = nft_pernet(net);
+	mutex_lock(&nft_net->commit_mutex);
+	list_for_each_entry(table, &nft_net->tables, list) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (nft_table_has_owner(table) &&
 		    n->portid == table->nlpid) {
 			__nft_release_hook(net, table);
@@ -9107,7 +9164,11 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
 	}
 	if (release) {
 		synchronize_rcu();
+<<<<<<< HEAD
 		list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
+=======
+		list_for_each_entry_safe(table, nt, &nft_net->tables, list) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (nft_table_has_owner(table) &&
 			    n->portid == table->nlpid)
 				__nft_release_table(net, table);

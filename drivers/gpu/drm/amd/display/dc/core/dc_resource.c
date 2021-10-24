@@ -1149,8 +1149,31 @@ bool resource_build_scaling_params(struct pipe_ctx *pipe_ctx)
 	pipe_ctx->plane_res.scl_data.format = convert_pixel_format_to_dalsurface(
 			pipe_ctx->plane_state->format);
 
+<<<<<<< HEAD
+=======
+	/* Timing borders are part of vactive that we are also supposed to skip in addition
+	 * to any stream dst offset. Since dm logic assumes dst is in addressable
+	 * space we need to add the the left and top borders to dst offsets temporarily.
+	 * TODO: fix in DM, stream dst is supposed to be in vactive
+	 */
+	pipe_ctx->stream->dst.x += timing->h_border_left;
+	pipe_ctx->stream->dst.y += timing->v_border_top;
+
+	/* Calculate H and V active size */
+	pipe_ctx->plane_res.scl_data.h_active = timing->h_addressable +
+			timing->h_border_left + timing->h_border_right;
+	pipe_ctx->plane_res.scl_data.v_active = timing->v_addressable +
+		timing->v_border_top + timing->v_border_bottom;
+	if (pipe_ctx->next_odm_pipe || pipe_ctx->prev_odm_pipe)
+		pipe_ctx->plane_res.scl_data.h_active /= get_num_odm_splits(pipe_ctx) + 1;
+
+	/* depends on h_active */
+	calculate_recout(pipe_ctx);
+	/* depends on pixel format */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	calculate_scaling_ratios(pipe_ctx);
 
+<<<<<<< HEAD
 	calculate_viewport(pipe_ctx);
 
 	if (pipe_ctx->plane_res.scl_data.viewport.height < MIN_VIEWPORT_SIZE ||
@@ -1165,6 +1188,10 @@ bool resource_build_scaling_params(struct pipe_ctx *pipe_ctx)
 	calculate_recout(pipe_ctx);
 
 	/**
+=======
+	/*
+	 * LB calculations depend on vp size, h/v_active and scaling ratios
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 * Setting line buffer pixel depth to 24bpp yields banding
 	 * on certain displays, such as the Sharp 4k
 	 */

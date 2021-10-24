@@ -16,6 +16,43 @@
 #include "string-stream.h"
 #include "try-catch-impl.h"
 
+<<<<<<< HEAD
+=======
+#if IS_BUILTIN(CONFIG_KUNIT)
+/*
+ * Fail the current test and print an error message to the log.
+ */
+void __kunit_fail_current_test(const char *file, int line, const char *fmt, ...)
+{
+	va_list args;
+	int len;
+	char *buffer;
+
+	if (!current->kunit_test)
+		return;
+
+	kunit_set_failure(current->kunit_test);
+
+	/* kunit_err() only accepts literals, so evaluate the args first. */
+	va_start(args, fmt);
+	len = vsnprintf(NULL, 0, fmt, args) + 1;
+	va_end(args);
+
+	buffer = kunit_kmalloc(current->kunit_test, len, GFP_KERNEL);
+	if (!buffer)
+		return;
+
+	va_start(args, fmt);
+	vsnprintf(buffer, len, fmt, args);
+	va_end(args);
+
+	kunit_err(current->kunit_test, "%s:%d: %s", file, line, buffer);
+	kunit_kfree(current->kunit_test, buffer);
+}
+EXPORT_SYMBOL_GPL(__kunit_fail_current_test);
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Append formatted message to log, size of which is limited to
  * KUNIT_LOG_SIZE bytes (including null terminating byte).
@@ -343,7 +380,15 @@ static void kunit_run_case_catch_errors(struct kunit_suite *suite,
 	context.test_case = test_case;
 	kunit_try_catch_run(try_catch, &context);
 
+<<<<<<< HEAD
 	test_case->success = test->success;
+=======
+	/* Propagate the parameter result to the test case. */
+	if (test->status == KUNIT_FAILURE)
+		test_case->status = KUNIT_FAILURE;
+	else if (test_case->status != KUNIT_FAILURE && test->status == KUNIT_SUCCESS)
+		test_case->status = KUNIT_SUCCESS;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int kunit_run_tests(struct kunit_suite *suite)
@@ -355,7 +400,11 @@ int kunit_run_tests(struct kunit_suite *suite)
 
 	kunit_suite_for_each_test_case(suite, test_case) {
 		struct kunit test = { .param_value = NULL, .param_index = 0 };
+<<<<<<< HEAD
 		bool test_success = true;
+=======
+		test_case->status = KUNIT_SKIPPED;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (test_case->generate_params) {
 			/* Get initial param. */
@@ -387,9 +436,16 @@ int kunit_run_tests(struct kunit_suite *suite)
 			}
 		} while (test.param_value);
 
+<<<<<<< HEAD
 		kunit_print_ok_not_ok(&test, true, test_success,
 				      kunit_test_case_num(suite, test_case),
 				      test_case->name);
+=======
+		kunit_print_ok_not_ok(&test, true, test_case->status,
+				      kunit_test_case_num(suite, test_case),
+				      test_case->name,
+				      test.status_comment);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	kunit_print_subtest_end(suite);

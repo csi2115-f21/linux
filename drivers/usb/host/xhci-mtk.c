@@ -577,7 +577,11 @@ disable_ldos:
 	xhci_mtk_ldos_disable(mtk);
 
 disable_pm:
+<<<<<<< HEAD
 	pm_runtime_put_sync(dev);
+=======
+	pm_runtime_put_sync_autosuspend(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pm_runtime_disable(dev);
 	return ret;
 }

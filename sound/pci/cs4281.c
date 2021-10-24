@@ -1309,7 +1309,12 @@ static int snd_cs4281_create(struct snd_card *card,
 	};
 
 	*rchip = NULL;
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
 	if (chip == NULL) {
@@ -1327,7 +1332,12 @@ static int snd_cs4281_create(struct snd_card *card,
 	}
 	chip->dual_codec = dual_codec;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "CS4281")) < 0) {
+=======
+	err = pci_request_regions(pci, "CS4281");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -1357,7 +1367,12 @@ static int snd_cs4281_create(struct snd_card *card,
 		return tmp;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_cs4281_free(chip);
 		return err;
 	}
@@ -1882,12 +1897,18 @@ static int snd_cs4281_probe(struct pci_dev *pci,
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
 	if ((err = snd_cs4281_create(card, pci, &chip, dual_codec[dev])) < 0) {
+=======
+	err = snd_cs4281_create(card, pci, &chip, dual_codec[dev]);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	card->private_data = chip;
 
+<<<<<<< HEAD
 	if ((err = snd_cs4281_mixer(chip)) < 0) {
 		snd_card_free(card);
 		return err;
@@ -1901,13 +1922,37 @@ static int snd_cs4281_probe(struct pci_dev *pci,
 		return err;
 	}
 	if ((err = snd_opl3_new(card, OPL3_HW_OPL3_CS4281, &opl3)) < 0) {
+=======
+	err = snd_cs4281_mixer(chip);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_cs4281_pcm(chip, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_cs4281_midi(chip, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_opl3_new(card, OPL3_HW_OPL3_CS4281, &opl3);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	opl3->private_data = chip;
 	opl3->command = snd_cs4281_opl3_command;
 	snd_opl3_init(opl3);
+<<<<<<< HEAD
 	if ((err = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+	err = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1919,7 +1964,12 @@ static int snd_cs4281_probe(struct pci_dev *pci,
 		chip->ba0_addr,
 		chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

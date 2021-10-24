@@ -1865,9 +1865,12 @@ static int create_root_hv_pci_bus(struct hv_pcibus_device *hbus)
 					    &hbus->resources_for_children);
 	if (!hbus->pci_bus)
 		return -ENODEV;
+<<<<<<< HEAD
 
 	hbus->pci_bus->msi = &hbus->msi_chip;
 	hbus->pci_bus->msi->dev = &hbus->hdev->device;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pci_lock_rescan_remove();
 	pci_scan_child_bus(hbus->pci_bus);
@@ -3260,9 +3263,22 @@ static int hv_pci_bus_exit(struct hv_device *hdev, bool keep_devs)
 
 	if (!keep_devs) {
 		/* Delete any children which might still exist. */
+<<<<<<< HEAD
 		dr = kzalloc(sizeof(*dr), GFP_KERNEL);
 		if (dr && hv_pci_start_relations_work(hbus, dr))
 			kfree(dr);
+=======
+		spin_lock_irqsave(&hbus->device_list_lock, flags);
+		list_for_each_entry_safe(hpdev, tmp, &hbus->children, list_entry) {
+			list_del(&hpdev->list_entry);
+			if (hpdev->pci_slot)
+				pci_destroy_slot(hpdev->pci_slot);
+			/* For the two refs got in new_pcichild_device() */
+			put_pcichild(hpdev);
+			put_pcichild(hpdev);
+		}
+		spin_unlock_irqrestore(&hbus->device_list_lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = hv_send_resources_released(hdev);
@@ -3324,9 +3340,12 @@ static int hv_pci_remove(struct hv_device *hdev)
 	hv_pci_free_bridge_windows(hbus);
 	irq_domain_remove(hbus->irq_domain);
 	irq_domain_free_fwnode(hbus->sysdata.fwnode);
+<<<<<<< HEAD
 	put_hvpcibus(hbus);
 	wait_for_completion(&hbus->remove_event);
 	destroy_workqueue(hbus->wq);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	hv_put_dom_num(hbus->sysdata.domain);
 

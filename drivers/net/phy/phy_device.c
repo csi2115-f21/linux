@@ -1762,6 +1762,12 @@ int phy_loopback(struct phy_device *phydev, bool enable)
 	struct phy_driver *phydrv = to_phy_driver(phydev->mdio.dev.driver);
 	int ret = 0;
 
+<<<<<<< HEAD
+=======
+	if (!phydrv)
+		return -ENODEV;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_lock(&phydev->lock);
 
 	if (enable && phydev->loopback_enabled) {
@@ -1774,7 +1780,11 @@ int phy_loopback(struct phy_device *phydev, bool enable)
 		goto out;
 	}
 
+<<<<<<< HEAD
 	if (phydev->drv && phydrv->set_loopback)
+=======
+	if (phydrv->set_loopback)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = phydrv->set_loopback(phydev, enable);
 	else
 		ret = -EOPNOTSUPP;

@@ -232,6 +232,11 @@ static void intel_context_set_gem(struct intel_context *ce,
 	if (ctx->sched.priority >= I915_PRIORITY_NORMAL &&
 	    intel_engine_has_timeslices(ce->engine))
 		__set_bit(CONTEXT_USE_SEMAPHORES, &ce->flags);
+<<<<<<< HEAD
+=======
+
+	intel_context_set_watchdog_us(ce, ctx->watchdog.timeout_us);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void __free_engines(struct i915_gem_engines *e, unsigned int count)
@@ -385,6 +390,7 @@ static bool __cancel_engine(struct intel_engine_cs *engine)
 	 */
 	return intel_engine_pulse(engine) == 0;
 }
+<<<<<<< HEAD
 
 static bool
 __active_engine(struct i915_request *rq, struct intel_engine_cs **active)
@@ -522,6 +528,113 @@ static void kill_context(struct i915_gem_context *ctx)
 	spin_unlock_irq(&ctx->stale.lock);
 }
 
+=======
+
+static struct intel_engine_cs *active_engine(struct intel_context *ce)
+{
+	struct intel_engine_cs *engine = NULL;
+	struct i915_request *rq;
+
+	if (intel_context_has_inflight(ce))
+		return intel_context_inflight(ce);
+
+	if (!ce->timeline)
+		return NULL;
+
+	/*
+	 * rq->link is only SLAB_TYPESAFE_BY_RCU, we need to hold a reference
+	 * to the request to prevent it being transferred to a new timeline
+	 * (and onto a new timeline->requests list).
+	 */
+	rcu_read_lock();
+	list_for_each_entry_reverse(rq, &ce->timeline->requests, link) {
+		bool found;
+
+		/* timeline is already completed upto this point? */
+		if (!i915_request_get_rcu(rq))
+			break;
+
+		/* Check with the backend if the request is inflight */
+		found = true;
+		if (likely(rcu_access_pointer(rq->timeline) == ce->timeline))
+			found = i915_request_active_engine(rq, &engine);
+
+		i915_request_put(rq);
+		if (found)
+			break;
+	}
+	rcu_read_unlock();
+
+	return engine;
+}
+
+static void kill_engines(struct i915_gem_engines *engines, bool ban)
+{
+	struct i915_gem_engines_iter it;
+	struct intel_context *ce;
+
+	/*
+	 * Map the user's engine back to the actual engines; one virtual
+	 * engine will be mapped to multiple engines, and using ctx->engine[]
+	 * the same engine may be have multiple instances in the user's map.
+	 * However, we only care about pending requests, so only include
+	 * engines on which there are incomplete requests.
+	 */
+	for_each_gem_engine(ce, engines, it) {
+		struct intel_engine_cs *engine;
+
+		if (ban && intel_context_set_banned(ce))
+			continue;
+
+		/*
+		 * Check the current active state of this context; if we
+		 * are currently executing on the GPU we need to evict
+		 * ourselves. On the other hand, if we haven't yet been
+		 * submitted to the GPU or if everything is complete,
+		 * we have nothing to do.
+		 */
+		engine = active_engine(ce);
+
+		/* First attempt to gracefully cancel the context */
+		if (engine && !__cancel_engine(engine) && ban)
+			/*
+			 * If we are unable to send a preemptive pulse to bump
+			 * the context from the GPU, we have to resort to a full
+			 * reset. We hope the collateral damage is worth it.
+			 */
+			__reset_context(engines->ctx, engine);
+	}
+}
+
+static void kill_context(struct i915_gem_context *ctx)
+{
+	bool ban = (!i915_gem_context_is_persistent(ctx) ||
+		    !ctx->i915->params.enable_hangcheck);
+	struct i915_gem_engines *pos, *next;
+
+	spin_lock_irq(&ctx->stale.lock);
+	GEM_BUG_ON(!i915_gem_context_is_closed(ctx));
+	list_for_each_entry_safe(pos, next, &ctx->stale.engines, link) {
+		if (!i915_sw_fence_await(&pos->fence)) {
+			list_del_init(&pos->link);
+			continue;
+		}
+
+		spin_unlock_irq(&ctx->stale.lock);
+
+		kill_engines(pos, ban);
+
+		spin_lock_irq(&ctx->stale.lock);
+		GEM_BUG_ON(i915_sw_fence_signaled(&pos->fence));
+		list_safe_reset_next(pos, next, link);
+		list_del_init(&pos->link); /* decouple from FENCE_COMPLETE */
+
+		i915_sw_fence_complete(&pos->fence);
+	}
+	spin_unlock_irq(&ctx->stale.lock);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void engines_idle_release(struct i915_gem_context *ctx,
 				 struct i915_gem_engines *engines)
 {
@@ -679,7 +792,11 @@ __create_context(struct drm_i915_private *i915)
 
 	kref_init(&ctx->ref);
 	ctx->i915 = i915;
+<<<<<<< HEAD
 	ctx->sched.priority = I915_USER_PRIORITY(I915_PRIORITY_NORMAL);
+=======
+	ctx->sched.priority = I915_PRIORITY_NORMAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_init(&ctx->mutex);
 	INIT_LIST_HEAD(&ctx->link);
 
@@ -736,6 +853,7 @@ __context_engines_await(const struct i915_gem_context *ctx,
 
 		if (likely(engines == rcu_access_pointer(ctx->engines)))
 			break;
+<<<<<<< HEAD
 
 		i915_sw_fence_complete(&engines->fence);
 	} while (1);
@@ -811,6 +929,83 @@ static void __set_timeline(struct intel_timeline **dst,
 
 static int __apply_timeline(struct intel_context *ce, void *timeline)
 {
+=======
+
+		i915_sw_fence_complete(&engines->fence);
+	} while (1);
+	rcu_read_unlock();
+
+	return engines;
+}
+
+static int
+context_apply_all(struct i915_gem_context *ctx,
+		  int (*fn)(struct intel_context *ce, void *data),
+		  void *data)
+{
+	struct i915_gem_engines_iter it;
+	struct i915_gem_engines *e;
+	struct intel_context *ce;
+	int err = 0;
+
+	e = __context_engines_await(ctx, NULL);
+	for_each_gem_engine(ce, e, it) {
+		err = fn(ce, data);
+		if (err)
+			break;
+	}
+	i915_sw_fence_complete(&e->fence);
+
+	return err;
+}
+
+static int __apply_ppgtt(struct intel_context *ce, void *vm)
+{
+	i915_vm_put(ce->vm);
+	ce->vm = i915_vm_get(vm);
+	return 0;
+}
+
+static struct i915_address_space *
+__set_ppgtt(struct i915_gem_context *ctx, struct i915_address_space *vm)
+{
+	struct i915_address_space *old;
+
+	old = rcu_replace_pointer(ctx->vm,
+				  i915_vm_open(vm),
+				  lockdep_is_held(&ctx->mutex));
+	GEM_BUG_ON(old && i915_vm_is_4lvl(vm) != i915_vm_is_4lvl(old));
+
+	context_apply_all(ctx, __apply_ppgtt, vm);
+
+	return old;
+}
+
+static void __assign_ppgtt(struct i915_gem_context *ctx,
+			   struct i915_address_space *vm)
+{
+	if (vm == rcu_access_pointer(ctx->vm))
+		return;
+
+	vm = __set_ppgtt(ctx, vm);
+	if (vm)
+		i915_vm_close(vm);
+}
+
+static void __set_timeline(struct intel_timeline **dst,
+			   struct intel_timeline *src)
+{
+	struct intel_timeline *old = *dst;
+
+	*dst = src ? intel_timeline_get(src) : NULL;
+
+	if (old)
+		intel_timeline_put(old);
+}
+
+static int __apply_timeline(struct intel_context *ce, void *timeline)
+{
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__set_timeline(&ce->timeline, timeline);
 	return 0;
 }
@@ -822,6 +1017,7 @@ static void __assign_timeline(struct i915_gem_context *ctx,
 	context_apply_all(ctx, __apply_timeline, timeline);
 }
 
+<<<<<<< HEAD
 static struct i915_gem_context *
 i915_gem_create_context(struct drm_i915_private *i915, unsigned int flags)
 {
@@ -1137,9 +1333,223 @@ err:
 
 		if (err)
 			break;
+=======
+static int __apply_watchdog(struct intel_context *ce, void *timeout_us)
+{
+	return intel_context_set_watchdog_us(ce, (uintptr_t)timeout_us);
+}
+
+static int
+__set_watchdog(struct i915_gem_context *ctx, unsigned long timeout_us)
+{
+	int ret;
+
+	ret = context_apply_all(ctx, __apply_watchdog,
+				(void *)(uintptr_t)timeout_us);
+	if (!ret)
+		ctx->watchdog.timeout_us = timeout_us;
+
+	return ret;
+}
+
+static void __set_default_fence_expiry(struct i915_gem_context *ctx)
+{
+	struct drm_i915_private *i915 = ctx->i915;
+	int ret;
+
+	if (!IS_ACTIVE(CONFIG_DRM_I915_REQUEST_TIMEOUT) ||
+	    !i915->params.request_timeout_ms)
+		return;
+
+	/* Default expiry for user fences. */
+	ret = __set_watchdog(ctx, i915->params.request_timeout_ms * 1000);
+	if (ret)
+		drm_notice(&i915->drm,
+			   "Failed to configure default fence expiry! (%d)",
+			   ret);
+}
+
+static struct i915_gem_context *
+i915_gem_create_context(struct drm_i915_private *i915, unsigned int flags)
+{
+	struct i915_gem_context *ctx;
+
+	if (flags & I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE &&
+	    !HAS_EXECLISTS(i915))
+		return ERR_PTR(-EINVAL);
+
+	ctx = __create_context(i915);
+	if (IS_ERR(ctx))
+		return ctx;
+
+	if (HAS_FULL_PPGTT(i915)) {
+		struct i915_ppgtt *ppgtt;
+
+		ppgtt = i915_ppgtt_create(&i915->gt);
+		if (IS_ERR(ppgtt)) {
+			drm_dbg(&i915->drm, "PPGTT setup failed (%ld)\n",
+				PTR_ERR(ppgtt));
+			context_close(ctx);
+			return ERR_CAST(ppgtt);
+		}
+
+		mutex_lock(&ctx->mutex);
+		__assign_ppgtt(ctx, &ppgtt->vm);
+		mutex_unlock(&ctx->mutex);
+
+		i915_vm_put(&ppgtt->vm);
+	}
+
+	if (flags & I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE) {
+		struct intel_timeline *timeline;
+
+		timeline = intel_timeline_create(&i915->gt);
+		if (IS_ERR(timeline)) {
+			context_close(ctx);
+			return ERR_CAST(timeline);
+		}
+
+		__assign_timeline(ctx, timeline);
+		intel_timeline_put(timeline);
+	}
+
+	__set_default_fence_expiry(ctx);
+
+	trace_i915_context_create(ctx);
+
+	return ctx;
+}
+
+static void init_contexts(struct i915_gem_contexts *gc)
+{
+	spin_lock_init(&gc->lock);
+	INIT_LIST_HEAD(&gc->list);
+}
+
+void i915_gem_init__contexts(struct drm_i915_private *i915)
+{
+	init_contexts(&i915->gem.contexts);
+}
+
+static int gem_context_register(struct i915_gem_context *ctx,
+				struct drm_i915_file_private *fpriv,
+				u32 *id)
+{
+	struct drm_i915_private *i915 = ctx->i915;
+	struct i915_address_space *vm;
+	int ret;
+
+	ctx->file_priv = fpriv;
+
+	mutex_lock(&ctx->mutex);
+	vm = i915_gem_context_vm(ctx);
+	if (vm)
+		WRITE_ONCE(vm->file, fpriv); /* XXX */
+	mutex_unlock(&ctx->mutex);
+
+	ctx->pid = get_task_pid(current, PIDTYPE_PID);
+	snprintf(ctx->name, sizeof(ctx->name), "%s[%d]",
+		 current->comm, pid_nr(ctx->pid));
+
+	/* And finally expose ourselves to userspace via the idr */
+	ret = xa_alloc(&fpriv->context_xa, id, ctx, xa_limit_32b, GFP_KERNEL);
+	if (ret)
+		goto err_pid;
+
+	spin_lock(&i915->gem.contexts.lock);
+	list_add_tail(&ctx->link, &i915->gem.contexts.list);
+	spin_unlock(&i915->gem.contexts.lock);
+
+	return 0;
+
+err_pid:
+	put_pid(fetch_and_zero(&ctx->pid));
+	return ret;
+}
+
+int i915_gem_context_open(struct drm_i915_private *i915,
+			  struct drm_file *file)
+{
+	struct drm_i915_file_private *file_priv = file->driver_priv;
+	struct i915_gem_context *ctx;
+	int err;
+	u32 id;
+
+	xa_init_flags(&file_priv->context_xa, XA_FLAGS_ALLOC);
+
+	/* 0 reserved for invalid/unassigned ppgtt */
+	xa_init_flags(&file_priv->vm_xa, XA_FLAGS_ALLOC1);
+
+	ctx = i915_gem_create_context(i915, 0);
+	if (IS_ERR(ctx)) {
+		err = PTR_ERR(ctx);
+		goto err;
+	}
+
+	err = gem_context_register(ctx, file_priv, &id);
+	if (err < 0)
+		goto err_ctx;
+
+	GEM_BUG_ON(id);
+	return 0;
+
+err_ctx:
+	context_close(ctx);
+err:
+	xa_destroy(&file_priv->vm_xa);
+	xa_destroy(&file_priv->context_xa);
+	return err;
+}
+
+void i915_gem_context_close(struct drm_file *file)
+{
+	struct drm_i915_file_private *file_priv = file->driver_priv;
+	struct i915_address_space *vm;
+	struct i915_gem_context *ctx;
+	unsigned long idx;
+
+	xa_for_each(&file_priv->context_xa, idx, ctx)
+		context_close(ctx);
+	xa_destroy(&file_priv->context_xa);
+
+	xa_for_each(&file_priv->vm_xa, idx, vm)
+		i915_vm_put(vm);
+	xa_destroy(&file_priv->vm_xa);
+}
+
+int i915_gem_vm_create_ioctl(struct drm_device *dev, void *data,
+			     struct drm_file *file)
+{
+	struct drm_i915_private *i915 = to_i915(dev);
+	struct drm_i915_gem_vm_control *args = data;
+	struct drm_i915_file_private *file_priv = file->driver_priv;
+	struct i915_ppgtt *ppgtt;
+	u32 id;
+	int err;
+
+	if (!HAS_FULL_PPGTT(i915))
+		return -ENODEV;
+
+	if (args->flags)
+		return -EINVAL;
+
+	ppgtt = i915_ppgtt_create(&i915->gt);
+	if (IS_ERR(ppgtt))
+		return PTR_ERR(ppgtt);
+
+	ppgtt->vm.file = file_priv;
+
+	if (args->extensions) {
+		err = i915_user_extensions(u64_to_user_ptr(args->extensions),
+					   NULL, 0,
+					   ppgtt);
+		if (err)
+			goto err_put;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	i915_sw_fence_complete(&e->fence);
 
+<<<<<<< HEAD
 	cb->task = err ? NULL : task; /* caller needs to unwind instead */
 	cb->data = data;
 
@@ -1185,6 +1595,377 @@ static void set_ppgtt_barrier(void *data)
 	struct i915_address_space *old = data;
 
 	if (INTEL_GEN(old->i915) < 8)
+		gen6_ppgtt_unpin_all(i915_vm_to_ppgtt(old));
+
+	i915_vm_close(old);
+}
+
+static int pin_ppgtt_update(struct intel_context *ce, struct i915_gem_ww_ctx *ww, void *data)
+{
+	struct i915_address_space *vm = ce->vm;
+
+	if (!HAS_LOGICAL_RING_CONTEXTS(vm->i915))
+		/* ppGTT is not part of the legacy context image */
+		return gen6_ppgtt_pin(i915_vm_to_ppgtt(vm), ww);
+
+	return 0;
+}
+
+static int emit_ppgtt_update(struct i915_request *rq, void *data)
+{
+	struct i915_address_space *vm = rq->context->vm;
+	struct intel_engine_cs *engine = rq->engine;
+	u32 base = engine->mmio_base;
+	u32 *cs;
+	int i;
+
+	if (i915_vm_is_4lvl(vm)) {
+		struct i915_ppgtt *ppgtt = i915_vm_to_ppgtt(vm);
+		const dma_addr_t pd_daddr = px_dma(ppgtt->pd);
+
+		cs = intel_ring_begin(rq, 6);
+		if (IS_ERR(cs))
+			return PTR_ERR(cs);
+
+		*cs++ = MI_LOAD_REGISTER_IMM(2);
+
+		*cs++ = i915_mmio_reg_offset(GEN8_RING_PDP_UDW(base, 0));
+		*cs++ = upper_32_bits(pd_daddr);
+		*cs++ = i915_mmio_reg_offset(GEN8_RING_PDP_LDW(base, 0));
+		*cs++ = lower_32_bits(pd_daddr);
+
+		*cs++ = MI_NOOP;
+		intel_ring_advance(rq, cs);
+	} else if (HAS_LOGICAL_RING_CONTEXTS(engine->i915)) {
+		struct i915_ppgtt *ppgtt = i915_vm_to_ppgtt(vm);
+		int err;
+
+		/* Magic required to prevent forcewake errors! */
+		err = engine->emit_flush(rq, EMIT_INVALIDATE);
+		if (err)
+			return err;
+
+		cs = intel_ring_begin(rq, 4 * GEN8_3LVL_PDPES + 2);
+		if (IS_ERR(cs))
+			return PTR_ERR(cs);
+
+		*cs++ = MI_LOAD_REGISTER_IMM(2 * GEN8_3LVL_PDPES) | MI_LRI_FORCE_POSTED;
+		for (i = GEN8_3LVL_PDPES; i--; ) {
+			const dma_addr_t pd_daddr = i915_page_dir_dma_addr(ppgtt, i);
+
+			*cs++ = i915_mmio_reg_offset(GEN8_RING_PDP_UDW(base, i));
+			*cs++ = upper_32_bits(pd_daddr);
+			*cs++ = i915_mmio_reg_offset(GEN8_RING_PDP_LDW(base, i));
+			*cs++ = lower_32_bits(pd_daddr);
+		}
+		*cs++ = MI_NOOP;
+		intel_ring_advance(rq, cs);
+=======
+	err = xa_alloc(&file_priv->vm_xa, &id, &ppgtt->vm,
+		       xa_limit_32b, GFP_KERNEL);
+	if (err)
+		goto err_put;
+
+	GEM_BUG_ON(id == 0); /* reserved for invalid/unassigned ppgtt */
+	args->vm_id = id;
+	return 0;
+
+err_put:
+	i915_vm_put(&ppgtt->vm);
+	return err;
+}
+
+int i915_gem_vm_destroy_ioctl(struct drm_device *dev, void *data,
+			      struct drm_file *file)
+{
+	struct drm_i915_file_private *file_priv = file->driver_priv;
+	struct drm_i915_gem_vm_control *args = data;
+	struct i915_address_space *vm;
+
+	if (args->flags)
+		return -EINVAL;
+
+	if (args->extensions)
+		return -EINVAL;
+
+	vm = xa_erase(&file_priv->vm_xa, args->vm_id);
+	if (!vm)
+		return -ENOENT;
+
+	i915_vm_put(vm);
+	return 0;
+}
+
+struct context_barrier_task {
+	struct i915_active base;
+	void (*task)(void *data);
+	void *data;
+};
+
+static void cb_retire(struct i915_active *base)
+{
+	struct context_barrier_task *cb = container_of(base, typeof(*cb), base);
+
+	if (cb->task)
+		cb->task(cb->data);
+
+	i915_active_fini(&cb->base);
+	kfree(cb);
+}
+
+I915_SELFTEST_DECLARE(static intel_engine_mask_t context_barrier_inject_fault);
+static int context_barrier_task(struct i915_gem_context *ctx,
+				intel_engine_mask_t engines,
+				bool (*skip)(struct intel_context *ce, void *data),
+				int (*pin)(struct intel_context *ce, struct i915_gem_ww_ctx *ww, void *data),
+				int (*emit)(struct i915_request *rq, void *data),
+				void (*task)(void *data),
+				void *data)
+{
+	struct context_barrier_task *cb;
+	struct i915_gem_engines_iter it;
+	struct i915_gem_engines *e;
+	struct i915_gem_ww_ctx ww;
+	struct intel_context *ce;
+	int err = 0;
+
+	GEM_BUG_ON(!task);
+
+	cb = kmalloc(sizeof(*cb), GFP_KERNEL);
+	if (!cb)
+		return -ENOMEM;
+
+	i915_active_init(&cb->base, NULL, cb_retire, 0);
+	err = i915_active_acquire(&cb->base);
+	if (err) {
+		kfree(cb);
+		return err;
+	}
+
+	e = __context_engines_await(ctx, NULL);
+	if (!e) {
+		i915_active_release(&cb->base);
+		return -ENOENT;
+	}
+
+	for_each_gem_engine(ce, e, it) {
+		struct i915_request *rq;
+
+		if (I915_SELFTEST_ONLY(context_barrier_inject_fault &
+				       ce->engine->mask)) {
+			err = -ENXIO;
+			break;
+		}
+
+		if (!(ce->engine->mask & engines))
+			continue;
+
+		if (skip && skip(ce, data))
+			continue;
+
+		i915_gem_ww_ctx_init(&ww, true);
+retry:
+		err = intel_context_pin_ww(ce, &ww);
+		if (err)
+			goto err;
+
+		if (pin)
+			err = pin(ce, &ww, data);
+		if (err)
+			goto err_unpin;
+
+		rq = i915_request_create(ce);
+		if (IS_ERR(rq)) {
+			err = PTR_ERR(rq);
+			goto err_unpin;
+		}
+
+		err = 0;
+		if (emit)
+			err = emit(rq, data);
+		if (err == 0)
+			err = i915_active_add_request(&cb->base, rq);
+
+		i915_request_add(rq);
+err_unpin:
+		intel_context_unpin(ce);
+err:
+		if (err == -EDEADLK) {
+			err = i915_gem_ww_ctx_backoff(&ww);
+			if (!err)
+				goto retry;
+		}
+		i915_gem_ww_ctx_fini(&ww);
+
+		if (err)
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+	i915_sw_fence_complete(&e->fence);
+
+	cb->task = err ? NULL : task; /* caller needs to unwind instead */
+	cb->data = data;
+
+	i915_active_release(&cb->base);
+
+	return err;
+}
+
+<<<<<<< HEAD
+static bool skip_ppgtt_update(struct intel_context *ce, void *data)
+{
+	if (HAS_LOGICAL_RING_CONTEXTS(ce->engine->i915))
+		return !ce->state;
+	else
+		return !atomic_read(&ce->pin_count);
+}
+
+static int set_ppgtt(struct drm_i915_file_private *file_priv,
+		     struct i915_gem_context *ctx,
+		     struct drm_i915_gem_context_param *args)
+{
+	struct i915_address_space *vm, *old;
+	int err;
+
+	if (args->size)
+		return -EINVAL;
+
+	if (!rcu_access_pointer(ctx->vm))
+		return -ENODEV;
+
+	if (upper_32_bits(args->value))
+		return -ENOENT;
+
+	rcu_read_lock();
+	vm = xa_load(&file_priv->vm_xa, args->value);
+	if (vm && !kref_get_unless_zero(&vm->ref))
+		vm = NULL;
+	rcu_read_unlock();
+	if (!vm)
+		return -ENOENT;
+
+	err = mutex_lock_interruptible(&ctx->mutex);
+	if (err)
+		goto out;
+
+	if (i915_gem_context_is_closed(ctx)) {
+		err = -ENOENT;
+		goto unlock;
+	}
+
+	if (vm == rcu_access_pointer(ctx->vm))
+		goto unlock;
+
+	old = __set_ppgtt(ctx, vm);
+
+	/* Teardown the existing obj:vma cache, it will have to be rebuilt. */
+	lut_close(ctx);
+
+	/*
+	 * We need to flush any requests using the current ppgtt before
+	 * we release it as the requests do not hold a reference themselves,
+	 * only indirectly through the context.
+	 */
+	err = context_barrier_task(ctx, ALL_ENGINES,
+				   skip_ppgtt_update,
+				   pin_ppgtt_update,
+				   emit_ppgtt_update,
+				   set_ppgtt_barrier,
+				   old);
+	if (err) {
+		i915_vm_close(__set_ppgtt(ctx, old));
+		i915_vm_close(old);
+		lut_close(ctx); /* force a rebuild of the old obj:vma cache */
+	}
+
+unlock:
+	mutex_unlock(&ctx->mutex);
+out:
+	i915_vm_put(vm);
+	return err;
+}
+
+static int __apply_ringsize(struct intel_context *ce, void *sz)
+{
+	return intel_context_set_ring_size(ce, (unsigned long)sz);
+}
+
+static int set_ringsize(struct i915_gem_context *ctx,
+			struct drm_i915_gem_context_param *args)
+{
+	if (!HAS_LOGICAL_RING_CONTEXTS(ctx->i915))
+		return -ENODEV;
+
+	if (args->size)
+		return -EINVAL;
+
+	if (!IS_ALIGNED(args->value, I915_GTT_PAGE_SIZE))
+		return -EINVAL;
+
+	if (args->value < I915_GTT_PAGE_SIZE)
+		return -EINVAL;
+
+	if (args->value > 128 * I915_GTT_PAGE_SIZE)
+		return -EINVAL;
+
+	return context_apply_all(ctx,
+				 __apply_ringsize,
+				 __intel_context_ring_size(args->value));
+}
+
+static int __get_ringsize(struct intel_context *ce, void *arg)
+{
+	long sz;
+
+	sz = intel_context_get_ring_size(ce);
+	GEM_BUG_ON(sz > INT_MAX);
+
+	return sz; /* stop on first engine */
+}
+
+static int get_ringsize(struct i915_gem_context *ctx,
+			struct drm_i915_gem_context_param *args)
+{
+	int sz;
+
+=======
+static int get_ppgtt(struct drm_i915_file_private *file_priv,
+		     struct i915_gem_context *ctx,
+		     struct drm_i915_gem_context_param *args)
+{
+	struct i915_address_space *vm;
+	int err;
+	u32 id;
+
+	if (!rcu_access_pointer(ctx->vm))
+		return -ENODEV;
+
+	rcu_read_lock();
+	vm = context_get_vm_rcu(ctx);
+	rcu_read_unlock();
+	if (!vm)
+		return -ENODEV;
+
+	err = xa_alloc(&file_priv->vm_xa, &id, vm, xa_limit_32b, GFP_KERNEL);
+	if (err)
+		goto err_put;
+
+	i915_vm_open(vm);
+
+	GEM_BUG_ON(id == 0); /* reserved for invalid/unassigned ppgtt */
+	args->value = id;
+	args->size = 0;
+
+err_put:
+	i915_vm_put(vm);
+	return err;
+}
+
+static void set_ppgtt_barrier(void *data)
+{
+	struct i915_address_space *old = data;
+
+	if (GRAPHICS_VER(old->i915) < 8)
 		gen6_ppgtt_unpin_all(i915_vm_to_ppgtt(old));
 
 	i915_vm_close(old);
@@ -1336,11 +2117,23 @@ static int __apply_ringsize(struct intel_context *ce, void *sz)
 static int set_ringsize(struct i915_gem_context *ctx,
 			struct drm_i915_gem_context_param *args)
 {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!HAS_LOGICAL_RING_CONTEXTS(ctx->i915))
 		return -ENODEV;
 
 	if (args->size)
 		return -EINVAL;
+<<<<<<< HEAD
+
+	sz = context_apply_all(ctx, __get_ringsize, NULL);
+	if (sz < 0)
+		return sz;
+
+	args->value = sz;
+	return 0;
+}
+
+=======
 
 	if (!IS_ALIGNED(args->value, I915_GTT_PAGE_SIZE))
 		return -EINVAL;
@@ -1385,6 +2178,7 @@ static int get_ringsize(struct i915_gem_context *ctx,
 	return 0;
 }
 
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int
 i915_gem_user_to_context_sseu(struct intel_gt *gt,
 			      const struct drm_i915_gem_context_param_sseu *user,
@@ -1497,7 +2291,11 @@ static int set_sseu(struct i915_gem_context *ctx,
 	if (args->size < sizeof(user_sseu))
 		return -EINVAL;
 
+<<<<<<< HEAD
 	if (!IS_GEN(i915, 11))
+=======
+	if (GRAPHICS_VER(i915) != 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENODEV;
 
 	if (copy_from_user(&user_sseu, u64_to_user_ptr(args->value),
@@ -1959,7 +2757,11 @@ static int set_priority(struct i915_gem_context *ctx,
 	    !capable(CAP_SYS_NICE))
 		return -EPERM;
 
+<<<<<<< HEAD
 	ctx->sched.priority = I915_USER_PRIORITY(priority);
+=======
+	ctx->sched.priority = priority;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	context_apply_all(ctx, __apply_priority, ctx);
 
 	return 0;

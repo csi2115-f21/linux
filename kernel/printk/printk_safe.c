@@ -16,7 +16,11 @@
 #include "internal.h"
 
 /*
+<<<<<<< HEAD
  * printk() could not take logbuf_lock in NMI context. Instead,
+=======
+ * In NMI and safe mode, printk() avoids taking locks. Instead,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * it uses an alternative implementation that temporary stores
  * the strings into a per-CPU buffer. The content of the buffer
  * is later flushed into the main ring buffer via IRQ work.
@@ -267,6 +271,7 @@ void printk_safe_flush(void)
 void printk_safe_flush_on_panic(void)
 {
 	/*
+<<<<<<< HEAD
 	 * Make sure that we could access the main ring buffer.
 	 * Do not risk a double release when more CPUs are up.
 	 */
@@ -278,6 +283,11 @@ void printk_safe_flush_on_panic(void)
 		raw_spin_lock_init(&logbuf_lock);
 	}
 
+=======
+	 * Make sure that we could access the safe buffers.
+	 * Do not risk a double release when more CPUs are up.
+	 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (raw_spin_is_locked(&safe_read_lock)) {
 		if (num_online_cpus() > 1)
 			return;
@@ -319,9 +329,13 @@ void noinstr printk_nmi_exit(void)
  * reordering.
  *
  * It has effect only when called in NMI context. Then printk()
+<<<<<<< HEAD
  * will try to store the messages into the main logbuf directly
  * and use the per-CPU buffers only as a fallback when the lock
  * is not available.
+=======
+ * will store the messages into the main logbuf directly.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 void printk_nmi_direct_enter(void)
 {
@@ -379,17 +393,31 @@ __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
 	 * Try to use the main logbuf even in NMI. But avoid calling console
 	 * drivers that might have their own locks.
 	 */
+<<<<<<< HEAD
 	if ((this_cpu_read(printk_context) & PRINTK_NMI_DIRECT_CONTEXT_MASK) &&
 	    raw_spin_trylock(&logbuf_lock)) {
+=======
+	if ((this_cpu_read(printk_context) & PRINTK_NMI_DIRECT_CONTEXT_MASK)) {
+		unsigned long flags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		int len;
 
+		printk_safe_enter_irqsave(flags);
 		len = vprintk_store(0, LOGLEVEL_DEFAULT, NULL, fmt, args);
+<<<<<<< HEAD
 		raw_spin_unlock(&logbuf_lock);
+=======
+		printk_safe_exit_irqrestore(flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		defer_console_output();
 		return len;
 	}
 
+<<<<<<< HEAD
 	/* Use extra buffer in NMI when logbuf_lock is taken or in safe mode. */
+=======
+	/* Use extra buffer in NMI. */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (this_cpu_read(printk_context) & PRINTK_NMI_CONTEXT_MASK)
 		return vprintk_nmi(fmt, args);
 
@@ -400,6 +428,10 @@ __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
 	/* No obstacles. */
 	return vprintk_default(fmt, args);
 }
+<<<<<<< HEAD
+=======
+EXPORT_SYMBOL(vprintk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void __init printk_safe_init(void)
 {

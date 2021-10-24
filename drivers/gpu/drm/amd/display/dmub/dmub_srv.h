@@ -279,6 +279,14 @@ struct dmub_srv_hw_funcs {
 			       union dmub_gpint_data_register reg);
 
 	uint32_t (*get_gpint_response)(struct dmub_srv *dmub);
+<<<<<<< HEAD
+=======
+
+	void (*send_inbox0_cmd)(struct dmub_srv *dmub, union dmub_inbox0_data_register data);
+	uint32_t (*get_current_time)(struct dmub_srv *dmub);
+
+	void (*get_diagnostic_data)(struct dmub_srv *dmub, struct dmub_diagnostic_data *dmub_oca);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**

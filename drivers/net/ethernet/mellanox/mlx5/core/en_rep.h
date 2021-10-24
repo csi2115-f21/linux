@@ -89,6 +89,10 @@ struct mlx5_rep_uplink_priv {
 	struct mapping_ctx *tunnel_enc_opts_mapping;
 
 	struct mlx5_tc_ct_priv *ct_priv;
+<<<<<<< HEAD
+=======
+	struct mlx5_esw_psample *esw_psample;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* support eswitch vports bonding */
 	struct mlx5e_rep_bond *bond;

@@ -51,9 +51,13 @@ int snd_free_sgbuf_pages(struct snd_dma_buffer *dmab)
 
 #define MAX_ALLOC_PAGES		32
 
+<<<<<<< HEAD
 void *snd_malloc_sgbuf_pages(struct device *device,
 			     size_t size, struct snd_dma_buffer *dmab,
 			     size_t *res_size)
+=======
+static int snd_dma_sg_alloc(struct snd_dma_buffer *dmab, size_t size)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct snd_sg_buf *sgbuf;
 	unsigned int i, pages, chunk, maxpages;
@@ -66,8 +70,13 @@ void *snd_malloc_sgbuf_pages(struct device *device,
 	dmab->area = NULL;
 	dmab->addr = 0;
 	dmab->private_data = sgbuf = kzalloc(sizeof(*sgbuf), GFP_KERNEL);
+<<<<<<< HEAD
 	if (! sgbuf)
 		return NULL;
+=======
+	if (!sgbuf)
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (dmab->dev.type == SNDRV_DMA_TYPE_DEV_UC_SG) {
 		type = SNDRV_DMA_TYPE_DEV_UC;
 #ifdef pgprot_noncached
@@ -124,6 +133,7 @@ void *snd_malloc_sgbuf_pages(struct device *device,
 	dmab->area = vmap(sgbuf->page_table, sgbuf->pages, VM_MAP, prot);
 	if (! dmab->area)
 		goto _failed;
+<<<<<<< HEAD
 	if (res_size)
 		*res_size = sgbuf->size;
 	return dmab->area;
@@ -131,6 +141,13 @@ void *snd_malloc_sgbuf_pages(struct device *device,
  _failed:
 	snd_free_sgbuf_pages(dmab); /* free the table */
 	return NULL;
+=======
+	return 0;
+
+ _failed:
+	snd_dma_sg_free(dmab); /* free the table */
+	return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -160,4 +177,15 @@ unsigned int snd_sgbuf_get_chunk_size(struct snd_dma_buffer *dmab,
 	/* ok, all on continuous pages */
 	return size;
 }
+<<<<<<< HEAD
 EXPORT_SYMBOL(snd_sgbuf_get_chunk_size);
+=======
+
+const struct snd_malloc_ops snd_dma_sg_ops = {
+	.alloc = snd_dma_sg_alloc,
+	.free = snd_dma_sg_free,
+	.get_addr = snd_dma_sg_get_addr,
+	.get_page = snd_dma_sg_get_page,
+	.get_chunk_size = snd_dma_sg_get_chunk_size,
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

@@ -583,7 +583,11 @@ static const struct net_device_ops ax88772_netdev_ops = {
 	.ndo_get_stats64	= dev_get_tstats64,
 	.ndo_set_mac_address 	= asix_set_mac_address,
 	.ndo_validate_addr	= eth_validate_addr,
+<<<<<<< HEAD
 	.ndo_do_ioctl		= asix_ioctl,
+=======
+	.ndo_do_ioctl		= phy_do_ioctl_running,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.ndo_set_rx_mode        = asix_set_multicast,
 };
 
@@ -674,12 +678,70 @@ static int asix_resume(struct usb_interface *intf)
 	return usbnet_resume(intf);
 }
 
+<<<<<<< HEAD
+=======
+static int ax88772_init_mdio(struct usbnet *dev)
+{
+	struct asix_common_private *priv = dev->driver_priv;
+
+	priv->mdio = devm_mdiobus_alloc(&dev->udev->dev);
+	if (!priv->mdio)
+		return -ENOMEM;
+
+	priv->mdio->priv = dev;
+	priv->mdio->read = &asix_mdio_bus_read;
+	priv->mdio->write = &asix_mdio_bus_write;
+	priv->mdio->name = "Asix MDIO Bus";
+	/* mii bus name is usb-<usb bus number>-<usb device number> */
+	snprintf(priv->mdio->id, MII_BUS_ID_SIZE, "usb-%03d:%03d",
+		 dev->udev->bus->busnum, dev->udev->devnum);
+
+	return devm_mdiobus_register(&dev->udev->dev, priv->mdio);
+}
+
+static int ax88772_init_phy(struct usbnet *dev)
+{
+	struct asix_common_private *priv = dev->driver_priv;
+	int ret;
+
+	ret = asix_read_phy_addr(dev, true);
+	if (ret < 0)
+		return ret;
+
+	priv->phy_addr = ret;
+
+	snprintf(priv->phy_name, sizeof(priv->phy_name), PHY_ID_FMT,
+		 priv->mdio->id, priv->phy_addr);
+
+	priv->phydev = phy_connect(dev->net, priv->phy_name, &asix_adjust_link,
+				   PHY_INTERFACE_MODE_INTERNAL);
+	if (IS_ERR(priv->phydev)) {
+		netdev_err(dev->net, "Could not connect to PHY device %s\n",
+			   priv->phy_name);
+		ret = PTR_ERR(priv->phydev);
+		return ret;
+	}
+
+	phy_suspend(priv->phydev);
+	priv->phydev->mac_managed_pm = 1;
+
+	phy_attached_info(priv->phydev);
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int ax88772_bind(struct usbnet *dev, struct usb_interface *intf)
 {
 	int ret, i;
 	u8 buf[ETH_ALEN] = {0}, chipcode = 0;
 	u32 phyid;
 	struct asix_common_private *priv;
+<<<<<<< HEAD
+=======
+	int ret, i;
+	u32 phyid;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	usbnet_get_endpoints(dev, intf);
 
@@ -746,11 +808,19 @@ static int ax88772_bind(struct usbnet *dev, struct usb_interface *intf)
 		dev->rx_urb_size = 2048;
 	}
 
+<<<<<<< HEAD
 	dev->driver_priv = kzalloc(sizeof(struct asix_common_private), GFP_KERNEL);
 	if (!dev->driver_priv)
 		return -ENOMEM;
 
 	priv = dev->driver_priv;
+=======
+	priv = devm_kzalloc(&dev->udev->dev, sizeof(*priv), GFP_KERNEL);
+	if (!priv)
+		return -ENOMEM;
+
+	dev->driver_priv = priv;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	priv->presvd_phy_bmcr = 0;
 	priv->presvd_phy_advertise = 0;
@@ -767,8 +837,15 @@ static int ax88772_bind(struct usbnet *dev, struct usb_interface *intf)
 
 static void ax88772_unbind(struct usbnet *dev, struct usb_interface *intf)
 {
+<<<<<<< HEAD
 	asix_rx_fixup_common_free(dev->driver_priv);
 	kfree(dev->driver_priv);
+=======
+	struct asix_common_private *priv = dev->driver_priv;
+
+	phy_disconnect(priv->phydev);
+	asix_rx_fixup_common_free(dev->driver_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct ethtool_ops ax88178_ethtool_ops = {

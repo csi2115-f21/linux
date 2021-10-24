@@ -566,6 +566,86 @@ static void dm_crtc_high_irq(void *interrupt_params)
 	spin_unlock_irqrestore(&adev_to_drm(adev)->event_lock, flags);
 }
 
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+#if defined(CONFIG_DRM_AMD_SECURE_DISPLAY)
+/**
+ * dm_dcn_vertical_interrupt0_high_irq() - Handles OTG Vertical interrupt0 for
+ * DCN generation ASICs
+ * @interrupt_params: interrupt parameters
+ *
+ * Used to set crc window/read out crc value at vertical line 0 position
+ */
+static void dm_dcn_vertical_interrupt0_high_irq(void *interrupt_params)
+{
+	struct common_irq_params *irq_params = interrupt_params;
+	struct amdgpu_device *adev = irq_params->adev;
+	struct amdgpu_crtc *acrtc;
+
+	acrtc = get_crtc_by_otg_inst(adev, irq_params->irq_src - IRQ_TYPE_VLINE0);
+
+	if (!acrtc)
+		return;
+
+	amdgpu_dm_crtc_handle_crc_window_irq(&acrtc->base);
+}
+#endif
+
+/**
+ * dm_dmub_outbox1_low_irq() - Handles Outbox interrupt
+ * @interrupt_params: used for determining the Outbox instance
+ *
+ * Handles the Outbox Interrupt
+ * event handler.
+ */
+#define DMUB_TRACE_MAX_READ 64
+static void dm_dmub_outbox1_low_irq(void *interrupt_params)
+{
+	struct dmub_notification notify;
+	struct common_irq_params *irq_params = interrupt_params;
+	struct amdgpu_device *adev = irq_params->adev;
+	struct amdgpu_display_manager *dm = &adev->dm;
+	struct dmcub_trace_buf_entry entry = { 0 };
+	uint32_t count = 0;
+
+	if (dc_enable_dmub_notifications(adev->dm.dc)) {
+		if (irq_params->irq_src == DC_IRQ_SOURCE_DMCUB_OUTBOX) {
+			do {
+				dc_stat_get_dmub_notification(adev->dm.dc, &notify);
+			} while (notify.pending_notification);
+
+			if (adev->dm.dmub_notify)
+				memcpy(adev->dm.dmub_notify, &notify, sizeof(struct dmub_notification));
+			if (notify.type == DMUB_NOTIFICATION_AUX_REPLY)
+				complete(&adev->dm.dmub_aux_transfer_done);
+			// TODO : HPD Implementation
+
+		} else {
+			DRM_ERROR("DM: Failed to receive correct outbox IRQ !");
+		}
+	}
+
+
+	do {
+		if (dc_dmub_srv_get_dmub_outbox0_msg(dm->dc, &entry)) {
+			trace_amdgpu_dmub_trace_high_irq(entry.trace_code, entry.tick_count,
+							entry.param0, entry.param1);
+
+			DRM_DEBUG_DRIVER("trace_code:%u, tick_count:%u, param0:%u, param1:%u\n",
+				 entry.trace_code, entry.tick_count, entry.param0, entry.param1);
+		} else
+			break;
+
+		count++;
+
+	} while (count <= DMUB_TRACE_MAX_READ);
+
+	ASSERT(count <= DMUB_TRACE_MAX_READ);
+}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int dm_set_clockgating_state(void *handle,
 		  enum amd_clockgating_state state)
 {
@@ -957,6 +1037,7 @@ static void event_mall_stutter(struct work_struct *work)
 
 	DRM_DEBUG_DRIVER("Allow idle optimizations (MALL): %d\n", dm->active_vblank_irq_count == 0);
 
+<<<<<<< HEAD
 
 	mutex_unlock(&dm->dc_lock);
 }
@@ -977,6 +1058,27 @@ static struct vblank_workqueue *vblank_create_workqueue(struct amdgpu_device *ad
 	for (i = 0; i < max_caps; i++)
 		INIT_WORK(&vblank_work[i].mall_work, event_mall_stutter);
 
+=======
+	mutex_unlock(&dm->dc_lock);
+}
+
+static struct vblank_workqueue *vblank_create_workqueue(struct amdgpu_device *adev, struct dc *dc)
+{
+
+	int max_caps = dc->caps.max_links;
+	struct vblank_workqueue *vblank_work;
+	int i = 0;
+
+	vblank_work = kcalloc(max_caps, sizeof(*vblank_work), GFP_KERNEL);
+	if (ZERO_OR_NULL_PTR(vblank_work)) {
+		kfree(vblank_work);
+		return NULL;
+	}
+
+	for (i = 0; i < max_caps; i++)
+		INIT_WORK(&vblank_work[i].mall_work, event_mall_stutter);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return vblank_work;
 }
 #endif
@@ -1191,9 +1293,26 @@ static void amdgpu_dm_fini(struct amdgpu_device *adev)
 	if (adev->dm.dc)
 		dc_deinit_callbacks(adev->dm.dc);
 #endif
+<<<<<<< HEAD
 	if (adev->dm.dc->ctx->dmub_srv) {
 		dc_dmub_srv_destroy(&adev->dm.dc->ctx->dmub_srv);
 		adev->dm.dc->ctx->dmub_srv = NULL;
+=======
+
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+	if (adev->dm.vblank_workqueue) {
+		adev->dm.vblank_workqueue->dm = NULL;
+		kfree(adev->dm.vblank_workqueue);
+		adev->dm.vblank_workqueue = NULL;
+	}
+#endif
+
+	dc_dmub_srv_destroy(&adev->dm.dc->ctx->dmub_srv);
+
+	if (dc_enable_dmub_notifications(adev->dm.dc)) {
+		kfree(adev->dm.dmub_notify);
+		adev->dm.dmub_notify = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (adev->dm.dmub_bo)
@@ -3244,16 +3363,28 @@ static u32 convert_brightness_to_user(const struct amdgpu_dm_backlight_caps *cap
 				 max - min);
 }
 
+<<<<<<< HEAD
 static int amdgpu_dm_backlight_update_status(struct backlight_device *bd)
+=======
+static int amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
+					 u32 user_brightness)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct amdgpu_display_manager *dm = bl_get_data(bd);
 	struct amdgpu_dm_backlight_caps caps;
+<<<<<<< HEAD
 	struct dc_link *link = NULL;
 	u32 brightness;
+=======
+	struct dc_link *link[AMDGPU_DM_MAX_NUM_EDP];
+	u32 brightness[AMDGPU_DM_MAX_NUM_EDP];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bool rc;
+	int i;
 
 	amdgpu_dm_update_backlight_caps(dm);
 	caps = dm->backlight_caps;
+<<<<<<< HEAD
 
 	link = (struct dc_link *)dm->backlight_link;
 
@@ -3265,16 +3396,85 @@ static int amdgpu_dm_backlight_update_status(struct backlight_device *bd)
 	rc = dc_link_set_backlight_level(dm->backlight_link, brightness, 0);
 
 	return rc ? 0 : 1;
+=======
+
+	for (i = 0; i < dm->num_of_edps; i++) {
+		dm->brightness[i] = user_brightness;
+		brightness[i] = convert_brightness_from_user(&caps, dm->brightness[i]);
+		link[i] = (struct dc_link *)dm->backlight_link[i];
+	}
+
+	/* Change brightness based on AUX property */
+	if (caps.aux_support) {
+		for (i = 0; i < dm->num_of_edps; i++) {
+			rc = dc_link_set_backlight_level_nits(link[i], true, brightness[i],
+				AUX_BL_DEFAULT_TRANSITION_TIME_MS);
+			if (!rc) {
+				DRM_DEBUG("DM: Failed to update backlight via AUX on eDP[%d]\n", i);
+				break;
+			}
+		}
+	} else {
+		for (i = 0; i < dm->num_of_edps; i++) {
+			rc = dc_link_set_backlight_level(dm->backlight_link[i], brightness[i], 0);
+			if (!rc) {
+				DRM_DEBUG("DM: Failed to update backlight on eDP[%d]\n", i);
+				break;
+			}
+		}
+	}
+
+	return rc ? 0 : 1;
+}
+
+static int amdgpu_dm_backlight_update_status(struct backlight_device *bd)
+{
+	struct amdgpu_display_manager *dm = bl_get_data(bd);
+
+	amdgpu_dm_backlight_set_level(dm, bd->props.brightness);
+
+	return 0;
+}
+
+static u32 amdgpu_dm_backlight_get_level(struct amdgpu_display_manager *dm)
+{
+	struct amdgpu_dm_backlight_caps caps;
+
+	amdgpu_dm_update_backlight_caps(dm);
+	caps = dm->backlight_caps;
+
+	if (caps.aux_support) {
+		struct dc_link *link = (struct dc_link *)dm->backlight_link[0];
+		u32 avg, peak;
+		bool rc;
+
+		rc = dc_link_get_backlight_level_nits(link, &avg, &peak);
+		if (!rc)
+			return dm->brightness[0];
+		return convert_brightness_to_user(&caps, avg);
+	} else {
+		int ret = dc_link_get_backlight_level(dm->backlight_link[0]);
+
+		if (ret == DC_ERROR_UNEXPECTED)
+			return dm->brightness[0];
+		return convert_brightness_to_user(&caps, ret);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int amdgpu_dm_backlight_get_brightness(struct backlight_device *bd)
 {
 	struct amdgpu_display_manager *dm = bl_get_data(bd);
+<<<<<<< HEAD
 	int ret = dc_link_get_backlight_level(dm->backlight_link);
 
 	if (ret == DC_ERROR_UNEXPECTED)
 		return bd->props.brightness;
 	return convert_brightness_to_user(&dm->backlight_caps, ret);
+=======
+
+	return amdgpu_dm_backlight_get_level(dm);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct backlight_ops amdgpu_dm_backlight_ops = {
@@ -3288,8 +3488,14 @@ amdgpu_dm_register_backlight_device(struct amdgpu_display_manager *dm)
 {
 	char bl_name[16];
 	struct backlight_properties props = { 0 };
+	int i;
 
 	amdgpu_dm_update_backlight_caps(dm);
+<<<<<<< HEAD
+=======
+	for (i = 0; i < dm->num_of_edps; i++)
+		dm->brightness[i] = AMDGPU_MAX_BL_LEVEL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	props.max_brightness = AMDGPU_MAX_BL_LEVEL;
 	props.brightness = AMDGPU_MAX_BL_LEVEL;
@@ -3366,10 +3572,20 @@ static void register_backlight_device(struct amdgpu_display_manager *dm,
 		 * DM initialization because not having a backlight control
 		 * is better then a black screen.
 		 */
+<<<<<<< HEAD
 		amdgpu_dm_register_backlight_device(dm);
 
 		if (dm->backlight_dev)
 			dm->backlight_link = link;
+=======
+		if (!dm->backlight_dev)
+			amdgpu_dm_register_backlight_device(dm);
+
+		if (dm->backlight_dev) {
+			dm->backlight_link[dm->num_of_edps] = link;
+			dm->num_of_edps++;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 #endif
 }
@@ -6961,11 +7177,124 @@ static void amdgpu_dm_connector_ddc_get_modes(struct drm_connector *connector,
 		 */
 		drm_mode_sort(&connector->probed_modes);
 		amdgpu_dm_get_native_mode(connector);
+<<<<<<< HEAD
+=======
+
+		/* Freesync capabilities are reset by calling
+		 * drm_add_edid_modes() and need to be
+		 * restored here.
+		 */
+		amdgpu_dm_update_freesync_caps(connector, edid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		amdgpu_dm_connector->num_modes = 0;
 	}
 }
 
+<<<<<<< HEAD
+=======
+static bool is_duplicate_mode(struct amdgpu_dm_connector *aconnector,
+			      struct drm_display_mode *mode)
+{
+	struct drm_display_mode *m;
+
+	list_for_each_entry (m, &aconnector->base.probed_modes, head) {
+		if (drm_mode_equal(m, mode))
+			return true;
+	}
+
+	return false;
+}
+
+static uint add_fs_modes(struct amdgpu_dm_connector *aconnector)
+{
+	const struct drm_display_mode *m;
+	struct drm_display_mode *new_mode;
+	uint i;
+	uint32_t new_modes_count = 0;
+
+	/* Standard FPS values
+	 *
+	 * 23.976   - TV/NTSC
+	 * 24 	    - Cinema
+	 * 25 	    - TV/PAL
+	 * 29.97    - TV/NTSC
+	 * 30 	    - TV/NTSC
+	 * 48 	    - Cinema HFR
+	 * 50 	    - TV/PAL
+	 * 60 	    - Commonly used
+	 * 48,72,96 - Multiples of 24
+	 */
+	const uint32_t common_rates[] = { 23976, 24000, 25000, 29970, 30000,
+					 48000, 50000, 60000, 72000, 96000 };
+
+	/*
+	 * Find mode with highest refresh rate with the same resolution
+	 * as the preferred mode. Some monitors report a preferred mode
+	 * with lower resolution than the highest refresh rate supported.
+	 */
+
+	m = get_highest_refresh_rate_mode(aconnector, true);
+	if (!m)
+		return 0;
+
+	for (i = 0; i < ARRAY_SIZE(common_rates); i++) {
+		uint64_t target_vtotal, target_vtotal_diff;
+		uint64_t num, den;
+
+		if (drm_mode_vrefresh(m) * 1000 < common_rates[i])
+			continue;
+
+		if (common_rates[i] < aconnector->min_vfreq * 1000 ||
+		    common_rates[i] > aconnector->max_vfreq * 1000)
+			continue;
+
+		num = (unsigned long long)m->clock * 1000 * 1000;
+		den = common_rates[i] * (unsigned long long)m->htotal;
+		target_vtotal = div_u64(num, den);
+		target_vtotal_diff = target_vtotal - m->vtotal;
+
+		/* Check for illegal modes */
+		if (m->vsync_start + target_vtotal_diff < m->vdisplay ||
+		    m->vsync_end + target_vtotal_diff < m->vsync_start ||
+		    m->vtotal + target_vtotal_diff < m->vsync_end)
+			continue;
+
+		new_mode = drm_mode_duplicate(aconnector->base.dev, m);
+		if (!new_mode)
+			goto out;
+
+		new_mode->vtotal += (u16)target_vtotal_diff;
+		new_mode->vsync_start += (u16)target_vtotal_diff;
+		new_mode->vsync_end += (u16)target_vtotal_diff;
+		new_mode->type &= ~DRM_MODE_TYPE_PREFERRED;
+		new_mode->type |= DRM_MODE_TYPE_DRIVER;
+
+		if (!is_duplicate_mode(aconnector, new_mode)) {
+			drm_mode_probed_add(&aconnector->base, new_mode);
+			new_modes_count += 1;
+		} else
+			drm_mode_destroy(aconnector->base.dev, new_mode);
+	}
+ out:
+	return new_modes_count;
+}
+
+static void amdgpu_dm_connector_add_freesync_modes(struct drm_connector *connector,
+						   struct edid *edid)
+{
+	struct amdgpu_dm_connector *amdgpu_dm_connector =
+		to_amdgpu_dm_connector(connector);
+
+	if (!(amdgpu_freesync_vid_mode && edid))
+		return;
+
+	if (amdgpu_dm_connector->max_vfreq - amdgpu_dm_connector->min_vfreq > 10)
+		amdgpu_dm_connector->num_modes +=
+			add_fs_modes(amdgpu_dm_connector);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
 {
 	struct amdgpu_dm_connector *amdgpu_dm_connector =
@@ -8007,7 +8336,17 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
 		else if ((acrtc_state->update_type == UPDATE_TYPE_FAST) &&
 				acrtc_state->stream->link->psr_settings.psr_feature_enabled &&
 				!acrtc_state->stream->link->psr_settings.psr_allow_active) {
+<<<<<<< HEAD
 			amdgpu_dm_psr_enable(acrtc_state->stream);
+=======
+			struct amdgpu_dm_connector *aconn = (struct amdgpu_dm_connector *)
+					acrtc_state->stream->dm_stream_context;
+
+			if (aconn->psr_skip_count > 0)
+				aconn->psr_skip_count--;
+			else
+				amdgpu_dm_psr_enable(acrtc_state->stream);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		mutex_unlock(&dm->dc_lock);
@@ -8460,6 +8799,15 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
 	/* Update audio instances for each connector. */
 	amdgpu_dm_commit_audio(dev, state);
 
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_BACKLIGHT_CLASS_DEVICE) ||		\
+	defined(CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE)
+	/* restore the backlight level */
+	if (dm->backlight_dev && (amdgpu_dm_backlight_get_level(dm) != dm->brightness[0]))
+		amdgpu_dm_backlight_set_level(dm, dm->brightness[0]);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * send vblank event on all events not handled in flip and
 	 * mark consumed event for drm_atomic_helper_commit_hw_done
@@ -8799,6 +9147,27 @@ static int dm_update_crtc_state(struct amdgpu_display_manager *dm,
 		if (!dm_old_crtc_state->stream)
 			goto skip_modeset;
 
+<<<<<<< HEAD
+=======
+		if (amdgpu_freesync_vid_mode && dm_new_crtc_state->stream &&
+		    is_timing_unchanged_for_freesync(new_crtc_state,
+						     old_crtc_state)) {
+			new_crtc_state->mode_changed = false;
+			DRM_DEBUG_DRIVER(
+				"Mode change not required for front porch change, "
+				"setting mode_changed to %d",
+				new_crtc_state->mode_changed);
+
+			set_freesync_fixed_config(dm_new_crtc_state);
+
+			goto skip_modeset;
+		} else if (amdgpu_freesync_vid_mode && aconnector &&
+			   is_freesync_video_mode(&new_crtc_state->mode,
+						  aconnector)) {
+			set_freesync_fixed_config(dm_new_crtc_state);
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = dm_atomic_get_state(state, &dm_state);
 		if (ret)
 			goto fail;
@@ -9682,6 +10051,84 @@ static bool is_dp_capable_without_timing_msa(struct dc *dc,
 
 	return capable;
 }
+<<<<<<< HEAD
+=======
+
+static bool parse_edid_cea(struct amdgpu_dm_connector *aconnector,
+		uint8_t *edid_ext, int len,
+		struct amdgpu_hdmi_vsdb_info *vsdb_info)
+{
+	int i;
+	struct amdgpu_device *adev = drm_to_adev(aconnector->base.dev);
+	struct dc *dc = adev->dm.dc;
+
+	/* send extension block to DMCU for parsing */
+	for (i = 0; i < len; i += 8) {
+		bool res;
+		int offset;
+
+		/* send 8 bytes a time */
+		if (!dc_edid_parser_send_cea(dc, i, len, &edid_ext[i], 8))
+			return false;
+
+		if (i+8 == len) {
+			/* EDID block sent completed, expect result */
+			int version, min_rate, max_rate;
+
+			res = dc_edid_parser_recv_amd_vsdb(dc, &version, &min_rate, &max_rate);
+			if (res) {
+				/* amd vsdb found */
+				vsdb_info->freesync_supported = 1;
+				vsdb_info->amd_vsdb_version = version;
+				vsdb_info->min_refresh_rate_hz = min_rate;
+				vsdb_info->max_refresh_rate_hz = max_rate;
+				return true;
+			}
+			/* not amd vsdb */
+			return false;
+		}
+
+		/* check for ack*/
+		res = dc_edid_parser_recv_cea_ack(dc, &offset);
+		if (!res)
+			return false;
+	}
+
+	return false;
+}
+
+static int parse_hdmi_amd_vsdb(struct amdgpu_dm_connector *aconnector,
+		struct edid *edid, struct amdgpu_hdmi_vsdb_info *vsdb_info)
+{
+	uint8_t *edid_ext = NULL;
+	int i;
+	bool valid_vsdb_found = false;
+
+	/*----- drm_find_cea_extension() -----*/
+	/* No EDID or EDID extensions */
+	if (edid == NULL || edid->extensions == 0)
+		return -ENODEV;
+
+	/* Find CEA extension */
+	for (i = 0; i < edid->extensions; i++) {
+		edid_ext = (uint8_t *)edid + EDID_LENGTH * (i + 1);
+		if (edid_ext[0] == CEA_EXT)
+			break;
+	}
+
+	if (i == edid->extensions)
+		return -ENODEV;
+
+	/*----- cea_db_offsets() -----*/
+	if (edid_ext[0] != CEA_EXT)
+		return -ENODEV;
+
+	valid_vsdb_found = parse_edid_cea(aconnector, edid_ext, EDID_LENGTH, vsdb_info);
+
+	return valid_vsdb_found ? i : -ENODEV;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
 					struct edid *edid)
 {

@@ -13,6 +13,10 @@
 #include <linux/pagevec.h>
 #include <linux/prefetch.h>
 #include <linux/cleancache.h>
+<<<<<<< HEAD
+=======
+#include "misc.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "extent_io.h"
 #include "extent-io-tree.h"
 #include "extent_map.h"
@@ -2703,13 +2707,115 @@ blk_status_t btrfs_submit_read_repair(struct inode *inode,
 		free_io_failure(failure_tree, tree, failrec);
 		bio_put(repair_bio);
 	}
+<<<<<<< HEAD
 	return status;
+=======
+	return blk_status_to_errno(status);
+}
+
+static void end_page_read(struct page *page, bool uptodate, u64 start, u32 len)
+{
+	struct btrfs_fs_info *fs_info = btrfs_sb(page->mapping->host->i_sb);
+
+	ASSERT(page_offset(page) <= start &&
+	       start + len <= page_offset(page) + PAGE_SIZE);
+
+	if (uptodate) {
+		btrfs_page_set_uptodate(fs_info, page, start, len);
+	} else {
+		btrfs_page_clear_uptodate(fs_info, page, start, len);
+		btrfs_page_set_error(fs_info, page, start, len);
+	}
+
+	if (fs_info->sectorsize == PAGE_SIZE)
+		unlock_page(page);
+	else
+		btrfs_subpage_end_reader(fs_info, page, start, len);
+}
+
+static blk_status_t submit_read_repair(struct inode *inode,
+				      struct bio *failed_bio, u32 bio_offset,
+				      struct page *page, unsigned int pgoff,
+				      u64 start, u64 end, int failed_mirror,
+				      unsigned int error_bitmap,
+				      submit_bio_hook_t *submit_bio_hook)
+{
+	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
+	const u32 sectorsize = fs_info->sectorsize;
+	const int nr_bits = (end + 1 - start) >> fs_info->sectorsize_bits;
+	int error = 0;
+	int i;
+
+	BUG_ON(bio_op(failed_bio) == REQ_OP_WRITE);
+
+	/* We're here because we had some read errors or csum mismatch */
+	ASSERT(error_bitmap);
+
+	/*
+	 * We only get called on buffered IO, thus page must be mapped and bio
+	 * must not be cloned.
+	 */
+	ASSERT(page->mapping && !bio_flagged(failed_bio, BIO_CLONED));
+
+	/* Iterate through all the sectors in the range */
+	for (i = 0; i < nr_bits; i++) {
+		const unsigned int offset = i * sectorsize;
+		struct extent_state *cached = NULL;
+		bool uptodate = false;
+		int ret;
+
+		if (!(error_bitmap & (1U << i))) {
+			/*
+			 * This sector has no error, just end the page read
+			 * and unlock the range.
+			 */
+			uptodate = true;
+			goto next;
+		}
+
+		ret = btrfs_repair_one_sector(inode, failed_bio,
+				bio_offset + offset,
+				page, pgoff + offset, start + offset,
+				failed_mirror, submit_bio_hook);
+		if (!ret) {
+			/*
+			 * We have submitted the read repair, the page release
+			 * will be handled by the endio function of the
+			 * submitted repair bio.
+			 * Thus we don't need to do any thing here.
+			 */
+			continue;
+		}
+		/*
+		 * Repair failed, just record the error but still continue.
+		 * Or the remaining sectors will not be properly unlocked.
+		 */
+		if (!error)
+			error = ret;
+next:
+		end_page_read(page, uptodate, start + offset, sectorsize);
+		if (uptodate)
+			set_extent_uptodate(&BTRFS_I(inode)->io_tree,
+					start + offset,
+					start + offset + sectorsize - 1,
+					&cached, GFP_ATOMIC);
+		unlock_extent_cached_atomic(&BTRFS_I(inode)->io_tree,
+				start + offset,
+				start + offset + sectorsize - 1,
+				&cached);
+	}
+	return errno_to_blk_status(error);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* lots and lots of room for performance fixes in the end_bio funcs */
 
 void end_extent_writepage(struct page *page, int err, u64 start, u64 end)
 {
+<<<<<<< HEAD
+=======
+	struct btrfs_inode *inode;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int uptodate = (err == 0);
 	int ret = 0;
 
@@ -3111,17 +3217,35 @@ struct bio *btrfs_bio_clone_partial(struct bio *orig, int offset, int size)
  *
  * Return true if successfully page added. Otherwise, return false.
  */
+<<<<<<< HEAD
 static bool btrfs_bio_add_page(struct bio *bio, struct page *page,
 			       u64 disk_bytenr, unsigned int size,
 			       unsigned int pg_offset,
 			       unsigned long prev_bio_flags,
 			       unsigned long bio_flags)
 {
+=======
+static bool btrfs_bio_add_page(struct btrfs_bio_ctrl *bio_ctrl,
+			       struct page *page,
+			       u64 disk_bytenr, unsigned int size,
+			       unsigned int pg_offset,
+			       unsigned long bio_flags)
+{
+	struct bio *bio = bio_ctrl->bio;
+	u32 bio_size = bio->bi_iter.bi_size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	const sector_t sector = disk_bytenr >> SECTOR_SHIFT;
 	bool contig;
 	int ret;
 
+<<<<<<< HEAD
 	if (prev_bio_flags != bio_flags)
+=======
+	ASSERT(bio);
+	/* The limit should be calculated when bio_ctrl->bio is allocated */
+	ASSERT(bio_ctrl->len_to_oe_boundary && bio_ctrl->len_to_stripe_boundary);
+	if (bio_ctrl->bio_flags != bio_flags)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 
 	if (prev_bio_flags & EXTENT_BIO_COMPRESSED)
@@ -3130,6 +3254,7 @@ static bool btrfs_bio_add_page(struct bio *bio, struct page *page,
 		contig = bio_end_sector(bio) == sector;
 	if (!contig)
 		return false;
+<<<<<<< HEAD
 
 	if (btrfs_bio_fits_in_stripe(page, size, bio, bio_flags))
 		return false;
@@ -3147,6 +3272,77 @@ static bool btrfs_bio_add_page(struct bio *bio, struct page *page,
 	return ret == size;
 }
 
+=======
+
+	if (bio_size + size > bio_ctrl->len_to_oe_boundary ||
+	    bio_size + size > bio_ctrl->len_to_stripe_boundary)
+		return false;
+
+	if (bio_op(bio) == REQ_OP_ZONE_APPEND)
+		ret = bio_add_zone_append_page(bio, page, size, pg_offset);
+	else
+		ret = bio_add_page(bio, page, size, pg_offset);
+
+	return ret == size;
+}
+
+static int calc_bio_boundaries(struct btrfs_bio_ctrl *bio_ctrl,
+			       struct btrfs_inode *inode)
+{
+	struct btrfs_fs_info *fs_info = inode->root->fs_info;
+	struct btrfs_io_geometry geom;
+	struct btrfs_ordered_extent *ordered;
+	struct extent_map *em;
+	u64 logical = (bio_ctrl->bio->bi_iter.bi_sector << SECTOR_SHIFT);
+	int ret;
+
+	/*
+	 * Pages for compressed extent are never submitted to disk directly,
+	 * thus it has no real boundary, just set them to U32_MAX.
+	 *
+	 * The split happens for real compressed bio, which happens in
+	 * btrfs_submit_compressed_read/write().
+	 */
+	if (bio_ctrl->bio_flags & EXTENT_BIO_COMPRESSED) {
+		bio_ctrl->len_to_oe_boundary = U32_MAX;
+		bio_ctrl->len_to_stripe_boundary = U32_MAX;
+		return 0;
+	}
+	em = btrfs_get_chunk_map(fs_info, logical, fs_info->sectorsize);
+	if (IS_ERR(em))
+		return PTR_ERR(em);
+	ret = btrfs_get_io_geometry(fs_info, em, btrfs_op(bio_ctrl->bio),
+				    logical, &geom);
+	free_extent_map(em);
+	if (ret < 0) {
+		return ret;
+	}
+	if (geom.len > U32_MAX)
+		bio_ctrl->len_to_stripe_boundary = U32_MAX;
+	else
+		bio_ctrl->len_to_stripe_boundary = (u32)geom.len;
+
+	if (!btrfs_is_zoned(fs_info) ||
+	    bio_op(bio_ctrl->bio) != REQ_OP_ZONE_APPEND) {
+		bio_ctrl->len_to_oe_boundary = U32_MAX;
+		return 0;
+	}
+
+	ASSERT(fs_info->max_zone_append_size > 0);
+	/* Ordered extent not yet created, so we're good */
+	ordered = btrfs_lookup_ordered_extent(inode, logical);
+	if (!ordered) {
+		bio_ctrl->len_to_oe_boundary = U32_MAX;
+		return 0;
+	}
+
+	bio_ctrl->len_to_oe_boundary = min_t(u32, U32_MAX,
+		ordered->disk_bytenr + ordered->disk_num_bytes - logical);
+	btrfs_put_ordered_extent(ordered);
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * @opf:	bio REQ_OP_* and REQ_* flags as one value
  * @wbc:	optional writeback control for io accounting
@@ -3181,6 +3377,7 @@ static int submit_extent_page(unsigned int opf,
 
 	ASSERT(bio_ret);
 
+<<<<<<< HEAD
 	if (*bio_ret) {
 		bio = *bio_ret;
 		if (force_bio_submit ||
@@ -3192,11 +3389,25 @@ static int submit_extent_page(unsigned int opf,
 				return ret;
 			}
 			bio = NULL;
+=======
+	ASSERT(pg_offset < PAGE_SIZE && size <= PAGE_SIZE &&
+	       pg_offset + size <= PAGE_SIZE);
+	if (bio_ctrl->bio) {
+		bio = bio_ctrl->bio;
+		if (force_bio_submit ||
+		    !btrfs_bio_add_page(bio_ctrl, page, disk_bytenr, io_size,
+					pg_offset, bio_flags)) {
+			ret = submit_one_bio(bio, mirror_num, bio_ctrl->bio_flags);
+			bio_ctrl->bio = NULL;
+			if (ret < 0)
+				return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			if (wbc)
 				wbc_account_cgroup_owner(wbc, page, io_size);
 			return 0;
 		}
+<<<<<<< HEAD
 	}
 
 	bio = btrfs_bio_alloc(disk_bytenr);
@@ -3230,6 +3441,37 @@ static int submit_extent_page(unsigned int opf,
 	}
 
 	*bio_ret = bio;
+=======
+	}
+
+	bio = btrfs_bio_alloc(disk_bytenr);
+	bio_add_page(bio, page, io_size, pg_offset);
+	bio->bi_end_io = end_io_func;
+	bio->bi_private = tree;
+	bio->bi_write_hint = page->mapping->host->i_write_hint;
+	bio->bi_opf = opf;
+	if (wbc) {
+		struct block_device *bdev;
+
+		bdev = fs_info->fs_devices->latest_bdev;
+		bio_set_dev(bio, bdev);
+		wbc_init_bio(wbc, bio);
+		wbc_account_cgroup_owner(wbc, page, io_size);
+	}
+	if (btrfs_is_zoned(fs_info) && bio_op(bio) == REQ_OP_ZONE_APPEND) {
+		struct btrfs_device *device;
+
+		device = btrfs_zoned_get_device(fs_info, disk_bytenr, io_size);
+		if (IS_ERR(device))
+			return PTR_ERR(device);
+
+		btrfs_io_bio(bio)->device = device;
+	}
+
+	bio_ctrl->bio = bio;
+	bio_ctrl->bio_flags = bio_flags;
+	ret = calc_bio_boundaries(bio_ctrl, inode);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -3665,7 +3907,10 @@ static noinline_for_stack int __extent_writepage_io(struct btrfs_inode *inode,
 				 int *nr_ret)
 {
 	struct btrfs_fs_info *fs_info = inode->root->fs_info;
+<<<<<<< HEAD
 	struct extent_io_tree *tree = &inode->io_tree;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u64 start = page_offset(page);
 	u64 end = start + PAGE_SIZE - 1;
 	u64 cur = start;
@@ -3699,7 +3944,12 @@ static noinline_for_stack int __extent_writepage_io(struct btrfs_inode *inode,
 		u32 iosize;
 
 		if (cur >= i_size) {
+<<<<<<< HEAD
 			btrfs_writepage_endio_finish_ordered(page, cur, end, 1);
+=======
+			btrfs_writepage_endio_finish_ordered(inode, page, cur,
+							     end, 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		}
 		em = btrfs_get_extent(inode, NULL, 0, cur, end - cur + 1);
@@ -3737,8 +3987,13 @@ static noinline_for_stack int __extent_writepage_io(struct btrfs_inode *inode,
 			if (compressed)
 				nr++;
 			else
+<<<<<<< HEAD
 				btrfs_writepage_endio_finish_ordered(page, cur,
 							cur + iosize - 1, 1);
+=======
+				btrfs_writepage_endio_finish_ordered(inode,
+						page, cur, cur + iosize - 1, 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			cur += iosize;
 			continue;
 		}
@@ -4564,8 +4819,13 @@ int extent_write_locked_range(struct inode *inode, u64 start, u64 end,
 		if (clear_page_dirty_for_io(page))
 			ret = __extent_writepage(page, &wbc_writepages, &epd);
 		else {
+<<<<<<< HEAD
 			btrfs_writepage_endio_finish_ordered(page, start,
 						    start + PAGE_SIZE - 1, 1);
+=======
+			btrfs_writepage_endio_finish_ordered(BTRFS_I(inode),
+					page, start, start + PAGE_SIZE - 1, 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			unlock_page(page);
 		}
 		put_page(page);

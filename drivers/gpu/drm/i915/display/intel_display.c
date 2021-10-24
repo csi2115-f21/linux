@@ -1013,7 +1013,14 @@ void intel_enable_pipe(const struct intel_crtc_state *new_crtc_state)
 		/* FIXME: assert CPU port conditions for SNB+ */
 	}
 
+<<<<<<< HEAD
 	trace_intel_pipe_enable(crtc);
+=======
+	/* Wa_22012358565:adlp */
+	if (DISPLAY_VER(dev_priv) == 13)
+		intel_de_rmw(dev_priv, PIPE_ARB_CTL(pipe),
+			     0, PIPE_ARB_USE_PROG_SLOTS);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	reg = PIPECONF(cpu_transcoder);
 	val = intel_de_read(dev_priv, reg);
@@ -1423,9 +1430,20 @@ intel_pin_and_fence_fb_obj(struct drm_framebuffer *fb,
 	if (HAS_GMCH(dev_priv))
 		pinctl |= PIN_MAPPABLE;
 
+<<<<<<< HEAD
 	vma = i915_gem_object_pin_to_display_plane(obj,
 						   alignment, view, pinctl);
 	if (IS_ERR(vma))
+=======
+	i915_gem_ww_ctx_init(&ww, true);
+retry:
+	ret = i915_gem_object_lock(obj, &ww);
+	if (!ret && phys_cursor)
+		ret = i915_gem_object_attach_phys(obj, alignment);
+	if (!ret)
+		ret = i915_gem_object_pin_pages(obj);
+	if (ret)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto err;
 
 	if (uses_fence && i915_vma_is_map_and_fenceable(vma)) {
@@ -2945,6 +2963,7 @@ skl_check_main_ccs_coordinates(struct intel_plane_state *plane_state,
 	return true;
 }
 
+<<<<<<< HEAD
 unsigned int
 intel_plane_fence_y_offset(const struct intel_plane_state *plane_state)
 {
@@ -3491,10 +3510,29 @@ u32 skl_plane_ctl_crtc(const struct intel_crtc_state *crtc_state)
 
 	if (INTEL_GEN(dev_priv) >= 10 || IS_GEMINILAKE(dev_priv))
 		return plane_ctl;
+=======
+static void
+intel_find_initial_plane_obj(struct intel_crtc *intel_crtc,
+			     struct intel_initial_plane_config *plane_config)
+{
+	struct drm_device *dev = intel_crtc->base.dev;
+	struct drm_i915_private *dev_priv = to_i915(dev);
+	struct drm_crtc *c;
+	struct drm_plane *primary = intel_crtc->base.primary;
+	struct drm_plane_state *plane_state = primary->state;
+	struct intel_plane *intel_plane = to_intel_plane(primary);
+	struct intel_plane_state *intel_state =
+		to_intel_plane_state(plane_state);
+	struct intel_crtc_state *crtc_state =
+		to_intel_crtc_state(intel_crtc->base.state);
+	struct drm_framebuffer *fb;
+	struct i915_vma *vma;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (crtc_state->gamma_enable)
 		plane_ctl |= PLANE_CTL_PIPE_GAMMA_ENABLE;
 
+<<<<<<< HEAD
 	if (crtc_state->csc_enable)
 		plane_ctl |= PLANE_CTL_PIPE_CSC_ENABLE;
 
@@ -3510,9 +3548,55 @@ u32 skl_plane_ctl(const struct intel_crtc_state *crtc_state,
 	unsigned int rotation = plane_state->hw.rotation;
 	const struct drm_intel_sprite_colorkey *key = &plane_state->ckey;
 	u32 plane_ctl;
+=======
+	if (intel_alloc_initial_plane_obj(intel_crtc, plane_config)) {
+		fb = &plane_config->fb->base;
+		vma = plane_config->vma;
+		goto valid_fb;
+	}
+
+	/*
+	 * Failed to alloc the obj, check to see if we should share
+	 * an fb with another CRTC instead
+	 */
+	for_each_crtc(dev, c) {
+		struct intel_plane_state *state;
+
+		if (c == &intel_crtc->base)
+			continue;
+
+		if (!to_intel_crtc_state(c->state)->uapi.active)
+			continue;
+
+		state = to_intel_plane_state(c->primary->state);
+		if (!state->ggtt_vma)
+			continue;
+
+		if (intel_plane_ggtt_offset(state) == plane_config->base) {
+			fb = state->hw.fb;
+			vma = state->ggtt_vma;
+			goto valid_fb;
+		}
+	}
+
+	/*
+	 * We've failed to reconstruct the BIOS FB.  Current display state
+	 * indicates that the primary plane is visible, but has a NULL FB,
+	 * which will lead to problems later if we don't fix it up.  The
+	 * simplest solution is to just disable the primary plane now and
+	 * pretend the BIOS never had it enabled.
+	 */
+	intel_plane_disable_noatomic(intel_crtc, intel_plane);
+	if (crtc_state->bigjoiner) {
+		struct intel_crtc *slave =
+			crtc_state->bigjoiner_linked_crtc;
+		intel_plane_disable_noatomic(slave, to_intel_plane(slave->base.primary));
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	plane_ctl = PLANE_CTL_ENABLE;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) < 10 && !IS_GEMINILAKE(dev_priv)) {
 		plane_ctl |= skl_plane_ctl_alpha(plane_state);
 		plane_ctl |= PLANE_CTL_PLANE_GAMMA_DISABLE;
@@ -3527,11 +3611,34 @@ u32 skl_plane_ctl(const struct intel_crtc_state *crtc_state,
 	plane_ctl |= skl_plane_ctl_format(fb->format->format);
 	plane_ctl |= skl_plane_ctl_tiling(fb->modifier);
 	plane_ctl |= skl_plane_ctl_rotate(rotation & DRM_MODE_ROTATE_MASK);
+=======
+valid_fb:
+	plane_state->rotation = plane_config->rotation;
+	intel_fb_fill_view(to_intel_framebuffer(fb), plane_state->rotation,
+			   &intel_state->view);
+
+	__i915_vma_pin(vma);
+	intel_state->ggtt_vma = i915_vma_get(vma);
+	if (intel_plane_uses_fence(intel_state) && i915_vma_pin_fence(vma) == 0)
+		if (vma->fence)
+			intel_state->flags |= PLANE_HAS_FENCE;
+
+	plane_state->src_x = 0;
+	plane_state->src_y = 0;
+	plane_state->src_w = fb->width << 16;
+	plane_state->src_h = fb->height << 16;
+
+	plane_state->crtc_x = 0;
+	plane_state->crtc_y = 0;
+	plane_state->crtc_w = fb->width;
+	plane_state->crtc_h = fb->height;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (INTEL_GEN(dev_priv) >= 10)
 		plane_ctl |= cnl_plane_ctl_flip(rotation &
 						DRM_MODE_REFLECT_MASK);
 
+<<<<<<< HEAD
 	if (key->flags & I915_SET_COLORKEY_DESTINATION)
 		plane_ctl |= PLANE_CTL_KEY_ENABLE_DESTINATION;
 	else if (key->flags & I915_SET_COLORKEY_SOURCE)
@@ -3539,12 +3646,21 @@ u32 skl_plane_ctl(const struct intel_crtc_state *crtc_state,
 
 	return plane_ctl;
 }
+=======
+	plane_state->fb = fb;
+	drm_framebuffer_get(fb);
+
+	plane_state->crtc = &intel_crtc->base;
+	intel_plane_copy_uapi_to_hw_state(intel_state, intel_state,
+					  intel_crtc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 u32 glk_plane_color_ctl_crtc(const struct intel_crtc_state *crtc_state)
 {
 	struct drm_i915_private *dev_priv = to_i915(crtc_state->uapi.crtc->dev);
 	u32 plane_color_ctl = 0;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 11)
 		return plane_color_ctl;
 
@@ -3555,6 +3671,10 @@ u32 glk_plane_color_ctl_crtc(const struct intel_crtc_state *crtc_state)
 		plane_color_ctl |= PLANE_COLOR_PIPE_CSC_ENABLE;
 
 	return plane_color_ctl;
+=======
+	atomic_or(to_intel_plane(primary)->frontbuffer_bit,
+		  &to_intel_frontbuffer(fb)->bits);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 u32 glk_plane_color_ctl(const struct intel_crtc_state *crtc_state,
@@ -3774,6 +3894,24 @@ static void icl_set_pipe_chicken(struct intel_crtc *crtc)
 	 * across pipe
 	 */
 	tmp |= PIXEL_ROUNDING_TRUNC_FB_PASSTHRU;
+<<<<<<< HEAD
+=======
+
+	/*
+	 * "The underrun recovery mechanism should be disabled
+	 *  when the following is enabled for this pipe:
+	 *  WiDi
+	 *  Downscaling (this includes YUV420 fullblend)
+	 *  COG
+	 *  DSC
+	 *  PSR2"
+	 *
+	 * FIXME: enable whenever possible...
+	 */
+	if (IS_ALDERLAKE_P(dev_priv))
+		tmp |= UNDERRUN_RECOVERY_DISABLE;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	intel_de_write(dev_priv, PIPE_CHICKEN(pipe), tmp);
 }
 
@@ -5515,7 +5653,11 @@ static void hsw_crtc_enable(struct intel_atomic_state *state,
 	crtc->active = true;
 
 	/* Display WA #1180: WaDisableScalarClockGating: glk, cnl */
+<<<<<<< HEAD
 	psl_clkgate_wa = (IS_GEMINILAKE(dev_priv) || IS_CANNONLAKE(dev_priv)) &&
+=======
+	psl_clkgate_wa = DISPLAY_VER(dev_priv) == 10 &&
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		new_crtc_state->pch_pfit.enabled;
 	if (psl_clkgate_wa)
 		glk_pipe_scaler_clock_gating_wa(dev_priv, pipe, true);
@@ -5537,13 +5679,21 @@ static void hsw_crtc_enable(struct intel_atomic_state *state,
 
 	hsw_set_linetime_wm(new_crtc_state);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 11)
+=======
+	if (DISPLAY_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		icl_set_pipe_chicken(crtc);
 
 	if (dev_priv->display.initial_watermarks)
 		dev_priv->display.initial_watermarks(state, crtc);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 11)
+=======
+	if (DISPLAY_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		icl_pipe_mbus_enable(crtc);
 
 	if (new_crtc_state->bigjoiner_slave) {
@@ -5680,6 +5830,11 @@ bool intel_phy_is_combo(struct drm_i915_private *dev_priv, enum phy phy)
 {
 	if (phy == PHY_NONE)
 		return false;
+<<<<<<< HEAD
+=======
+	else if (IS_ALDERLAKE_S(dev_priv))
+		return phy <= PHY_E;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else if (IS_DG1(dev_priv) || IS_ROCKETLAKE(dev_priv))
 		return phy <= PHY_D;
 	else if (IS_JSL_EHL(dev_priv))
@@ -5692,9 +5847,15 @@ bool intel_phy_is_combo(struct drm_i915_private *dev_priv, enum phy phy)
 
 bool intel_phy_is_tc(struct drm_i915_private *dev_priv, enum phy phy)
 {
+<<<<<<< HEAD
 	if (IS_DG1(dev_priv) || IS_ROCKETLAKE(dev_priv))
 		return false;
 	else if (INTEL_GEN(dev_priv) >= 12)
+=======
+	if (IS_ALDERLAKE_P(dev_priv))
+		return phy >= PHY_F && phy <= PHY_I;
+	else if (IS_TIGERLAKE(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return phy >= PHY_D && phy <= PHY_I;
 	else if (INTEL_GEN(dev_priv) >= 11 && !IS_JSL_EHL(dev_priv))
 		return phy >= PHY_C && phy <= PHY_F;
@@ -12777,7 +12938,11 @@ static void intel_pipe_fastset(const struct intel_crtc_state *old_crtc_state,
 	    IS_BROADWELL(dev_priv) || IS_HASWELL(dev_priv))
 		hsw_set_linetime_wm(new_crtc_state);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 11)
+=======
+	if (DISPLAY_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		icl_set_pipe_chicken(crtc);
 }
 
@@ -13910,7 +14075,24 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 	if (!HAS_DISPLAY(dev_priv))
 		return;
 
+<<<<<<< HEAD
 	if (IS_DG1(dev_priv) || IS_ROCKETLAKE(dev_priv)) {
+=======
+	if (IS_ALDERLAKE_P(dev_priv)) {
+		intel_ddi_init(dev_priv, PORT_A);
+		intel_ddi_init(dev_priv, PORT_B);
+		intel_ddi_init(dev_priv, PORT_TC1);
+		intel_ddi_init(dev_priv, PORT_TC2);
+		intel_ddi_init(dev_priv, PORT_TC3);
+		intel_ddi_init(dev_priv, PORT_TC4);
+	} else if (IS_ALDERLAKE_S(dev_priv)) {
+		intel_ddi_init(dev_priv, PORT_A);
+		intel_ddi_init(dev_priv, PORT_TC1);
+		intel_ddi_init(dev_priv, PORT_TC2);
+		intel_ddi_init(dev_priv, PORT_TC3);
+		intel_ddi_init(dev_priv, PORT_TC4);
+	} else if (IS_DG1(dev_priv) || IS_ROCKETLAKE(dev_priv)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		intel_ddi_init(dev_priv, PORT_A);
 		intel_ddi_init(dev_priv, PORT_B);
 		intel_ddi_init(dev_priv, PORT_TC1);
@@ -13958,6 +14140,22 @@ static void intel_setup_outputs(struct drm_i915_private *dev_priv)
 		intel_ddi_init(dev_priv, PORT_C);
 
 		vlv_dsi_init(dev_priv);
+<<<<<<< HEAD
+=======
+	} else if (DISPLAY_VER(dev_priv) == 10) {
+		intel_ddi_init(dev_priv, PORT_A);
+		intel_ddi_init(dev_priv, PORT_B);
+		intel_ddi_init(dev_priv, PORT_C);
+		intel_ddi_init(dev_priv, PORT_D);
+		intel_ddi_init(dev_priv, PORT_E);
+		intel_ddi_init(dev_priv, PORT_F);
+	} else if (DISPLAY_VER(dev_priv) >= 9) {
+		intel_ddi_init(dev_priv, PORT_A);
+		intel_ddi_init(dev_priv, PORT_B);
+		intel_ddi_init(dev_priv, PORT_C);
+		intel_ddi_init(dev_priv, PORT_D);
+		intel_ddi_init(dev_priv, PORT_E);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else if (HAS_DDI(dev_priv)) {
 		int found;
 
@@ -14351,6 +14549,17 @@ intel_user_framebuffer_create(struct drm_device *dev,
 	if (!obj)
 		return ERR_PTR(-ENOENT);
 
+<<<<<<< HEAD
+=======
+	/* object is backed with LMEM for discrete */
+	i915 = to_i915(obj->base.dev);
+	if (HAS_LMEM(i915) && !i915_gem_object_is_lmem(obj)) {
+		/* object is "remote", not in local memory */
+		i915_gem_object_put(obj);
+		return ERR_PTR(-EREMOTE);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	fb = intel_framebuffer_create(obj, &mode_cmd);
 	i915_gem_object_put(obj);
 
@@ -15474,8 +15683,11 @@ static void intel_modeset_readout_hw_state(struct drm_device *dev)
 
 	readout_plane_state(dev_priv);
 
+<<<<<<< HEAD
 	intel_dpll_readout_hw_state(dev_priv);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for_each_intel_encoder(dev, encoder) {
 		pipe = 0;
 

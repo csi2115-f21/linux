@@ -167,6 +167,7 @@ int dwmac4_dma_interrupt(void __iomem *ioaddr,
 	/* TX/RX NORMAL interrupts */
 	if (likely(intr_status & DMA_CHAN_STATUS_NIS)) {
 		x->normal_irq_n++;
+<<<<<<< HEAD
 		if (likely(intr_status & DMA_CHAN_STATUS_RI)) {
 			x->rx_normal_irq_n++;
 			ret |= handle_rx;
@@ -179,6 +180,19 @@ int dwmac4_dma_interrupt(void __iomem *ioaddr,
 		if (unlikely(intr_status & DMA_CHAN_STATUS_ERI))
 			x->rx_early_irq++;
 	}
+=======
+	if (likely(intr_status & DMA_CHAN_STATUS_RI)) {
+		x->rx_normal_irq_n++;
+		ret |= handle_rx;
+	}
+	if (likely(intr_status & (DMA_CHAN_STATUS_TI |
+		DMA_CHAN_STATUS_TBU))) {
+		x->tx_normal_irq_n++;
+		ret |= handle_tx;
+	}
+	if (unlikely(intr_status & DMA_CHAN_STATUS_ERI))
+		x->rx_early_irq++;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	writel(intr_status & intr_en, ioaddr + DMA_CHAN_STATUS(chan));
 	return ret;

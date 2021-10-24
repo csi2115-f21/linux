@@ -2130,8 +2130,13 @@ static int selinux_ptrace_access_check(struct task_struct *child,
 static int selinux_ptrace_traceme(struct task_struct *parent)
 {
 	return avc_has_perm(&selinux_state,
+<<<<<<< HEAD
 			    task_sid(parent), current_sid(), SECCLASS_PROCESS,
 			    PROCESS__PTRACE, NULL);
+=======
+			    task_sid_subj(parent), task_sid_obj(current),
+			    SECCLASS_PROCESS, PROCESS__PTRACE, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int selinux_capget(struct task_struct *target, kernel_cap_t *effective,
@@ -6152,7 +6157,11 @@ static int selinux_msg_queue_msgrcv(struct kern_ipc_perm *msq, struct msg_msg *m
 	struct ipc_security_struct *isec;
 	struct msg_security_struct *msec;
 	struct common_audit_data ad;
+<<<<<<< HEAD
 	u32 sid = task_sid(target);
+=======
+	u32 sid = task_sid_subj(target);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int rc;
 
 	isec = selinux_ipc(msq);

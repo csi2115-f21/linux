@@ -22,8 +22,12 @@ static void afs_invalidatepage(struct page *page, unsigned int offset,
 			       unsigned int length);
 static int afs_releasepage(struct page *page, gfp_t gfp_flags);
 
+<<<<<<< HEAD
 static int afs_readpages(struct file *filp, struct address_space *mapping,
 			 struct list_head *pages, unsigned nr_pages);
+=======
+static void afs_readahead(struct readahead_control *ractl);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 const struct file_operations afs_file_operations = {
 	.open		= afs_open,
@@ -269,10 +273,37 @@ int afs_fetch_data(struct afs_vnode *vnode, struct key *key, struct afs_read *re
 	return afs_do_sync_operation(op);
 }
 
+<<<<<<< HEAD
 /*
  * read page from file, directory or symlink, given a key to use
  */
 int afs_page_filler(void *data, struct page *page)
+=======
+static void afs_req_issue_op(struct netfs_read_subrequest *subreq)
+{
+	struct afs_vnode *vnode = AFS_FS_I(subreq->rreq->inode);
+	struct afs_read *fsreq;
+
+	fsreq = afs_alloc_read(GFP_NOFS);
+	if (!fsreq)
+		return netfs_subreq_terminated(subreq, -ENOMEM, false);
+
+	fsreq->subreq	= subreq;
+	fsreq->pos	= subreq->start + subreq->transferred;
+	fsreq->len	= subreq->len   - subreq->transferred;
+	fsreq->key	= subreq->rreq->netfs_priv;
+	fsreq->vnode	= vnode;
+	fsreq->iter	= &fsreq->def_iter;
+
+	iov_iter_xarray(&fsreq->def_iter, READ,
+			&fsreq->vnode->vfs_inode.i_mapping->i_pages,
+			fsreq->pos, fsreq->len);
+
+	afs_fetch_data(fsreq->vnode, fsreq);
+}
+
+static int afs_symlink_readpage(struct page *page)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct inode *inode = page->mapping->host;
 	struct afs_vnode *vnode = AFS_FS_I(inode);

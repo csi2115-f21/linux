@@ -167,7 +167,10 @@ static void rsnd_ssi_status_check(struct rsnd_mod *mod,
 
 static u32 rsnd_ssi_multi_secondaries(struct rsnd_dai_stream *io)
 {
+<<<<<<< HEAD
 	struct rsnd_mod *mod;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	enum rsnd_mod_type types[] = {
 		RSND_MOD_SSIM1,
 		RSND_MOD_SSIM2,

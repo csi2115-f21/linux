@@ -45,6 +45,8 @@
 
 #define __ex(x) __kvm_handle_fault_on_reboot(x)
 
+#define __ex(x) __kvm_handle_fault_on_reboot(x)
+
 MODULE_AUTHOR("Qumranet");
 MODULE_LICENSE("GPL");
 
@@ -448,6 +450,11 @@ static int has_svm(void)
 
 	if (sev_active()) {
 		pr_info("KVM is unsupported when running as an SEV guest\n");
+		return 0;
+	}
+
+	if (pgtable_l5_enabled()) {
+		pr_info("KVM doesn't yet support 5-level paging on AMD SVM\n");
 		return 0;
 	}
 
@@ -973,12 +980,33 @@ static __init int svm_hardware_setup(void)
 		kvm_enable_efer_bits(EFER_SVME | EFER_LMSLE);
 	}
 
+<<<<<<< HEAD
 	if (IS_ENABLED(CONFIG_KVM_AMD_SEV) && sev) {
 		sev_hardware_setup();
 	} else {
 		sev = false;
 		sev_es = false;
 	}
+=======
+	/*
+	 * KVM's MMU doesn't support using 2-level paging for itself, and thus
+	 * NPT isn't supported if the host is using 2-level paging since host
+	 * CR4 is unchanged on VMRUN.
+	 */
+	if (!IS_ENABLED(CONFIG_X86_64) && !IS_ENABLED(CONFIG_X86_PAE))
+		npt_enabled = false;
+
+	if (!boot_cpu_has(X86_FEATURE_NPT))
+		npt_enabled = false;
+
+	kvm_configure_mmu(npt_enabled, get_max_npt_level(), PG_LEVEL_1G);
+	pr_info("kvm: Nested Paging %sabled\n", npt_enabled ? "en" : "dis");
+
+	/* Note, SEV setup consumes npt_enabled. */
+	sev_hardware_setup();
+
+	svm_hv_hardware_setup();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	svm_adjust_mmio_mask();
 
@@ -1117,7 +1145,11 @@ static void init_vmcb(struct vcpu_svm *svm)
 	struct vmcb_control_area *control = &svm->vmcb->control;
 	struct vmcb_save_area *save = &svm->vmcb->save;
 
+<<<<<<< HEAD
 	svm->vcpu.arch.hflags = 0;
+=======
+	vcpu->arch.hflags = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	svm_set_intercept(svm, INTERCEPT_CR0_READ);
 	svm_set_intercept(svm, INTERCEPT_CR3_READ);
@@ -1200,18 +1232,32 @@ static void init_vmcb(struct vcpu_svm *svm)
 	init_sys_seg(&save->ldtr, SEG_TYPE_LDT);
 	init_sys_seg(&save->tr, SEG_TYPE_BUSY_TSS16);
 
+<<<<<<< HEAD
 	svm_set_efer(&svm->vcpu, 0);
 	save->dr6 = 0xffff0ff0;
 	kvm_set_rflags(&svm->vcpu, X86_EFLAGS_FIXED);
 	save->rip = 0x0000fff0;
 	svm->vcpu.arch.regs[VCPU_REGS_RIP] = save->rip;
+=======
+	svm_set_cr4(vcpu, 0);
+	svm_set_efer(vcpu, 0);
+	save->dr6 = 0xffff0ff0;
+	kvm_set_rflags(vcpu, X86_EFLAGS_FIXED);
+	save->rip = 0x0000fff0;
+	vcpu->arch.regs[VCPU_REGS_RIP] = save->rip;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * svm_set_cr0() sets PG and WP and clears NW and CD on save->cr0.
 	 * It also updates the guest-visible cr0 value.
 	 */
+<<<<<<< HEAD
 	svm_set_cr0(&svm->vcpu, X86_CR0_NW | X86_CR0_CD | X86_CR0_ET);
 	kvm_mmu_reset_context(&svm->vcpu);
+=======
+	svm_set_cr0(vcpu, X86_CR0_NW | X86_CR0_CD | X86_CR0_ET);
+	kvm_mmu_reset_context(vcpu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	save->cr4 = X86_CR4_PAE;
 	/* rdx = ?? */
@@ -1230,8 +1276,14 @@ static void init_vmcb(struct vcpu_svm *svm)
 	svm->asid_generation = 0;
 	svm->asid = 0;
 
+<<<<<<< HEAD
 	svm->nested.vmcb12_gpa = 0;
 	svm->vcpu.arch.hflags = 0;
+=======
+	svm->nested.vmcb12_gpa = INVALID_GPA;
+	svm->nested.last_vmcb12_gpa = INVALID_GPA;
+	vcpu->arch.hflags = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!kvm_pause_in_guest(svm->vcpu.kvm)) {
 		control->pause_filter_count = pause_filter_count;
@@ -1289,12 +1341,28 @@ static void svm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
 	svm->virt_spec_ctrl = 0;
 
 	if (!init_event) {
+<<<<<<< HEAD
 		svm->vcpu.arch.apic_base = APIC_DEFAULT_PHYS_BASE |
 					   MSR_IA32_APICBASE_ENABLE;
 		if (kvm_vcpu_is_reset_bsp(&svm->vcpu))
 			svm->vcpu.arch.apic_base |= MSR_IA32_APICBASE_BSP;
 	}
 	init_vmcb(svm);
+=======
+		vcpu->arch.apic_base = APIC_DEFAULT_PHYS_BASE |
+				       MSR_IA32_APICBASE_ENABLE;
+		if (kvm_vcpu_is_reset_bsp(vcpu))
+			vcpu->arch.apic_base |= MSR_IA32_APICBASE_BSP;
+	}
+	init_vmcb(vcpu);
+
+	kvm_cpuid(vcpu, &eax, &dummy, &dummy, &dummy, false);
+	kvm_rdx_write(vcpu, eax);
+
+	if (kvm_vcpu_apicv_active(vcpu) && !init_event)
+		avic_update_vapic_bar(svm, APIC_DEFAULT_PHYS_BASE);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kvm_cpuid(vcpu, &eax, &dummy, &dummy, &dummy, false);
 	kvm_rdx_write(vcpu, eax);
@@ -1562,7 +1630,11 @@ static void svm_clear_vintr(struct vcpu_svm *svm)
 	/* Drop int_ctl fields related to VINTR injection.  */
 	svm->vmcb->control.int_ctl &= mask;
 	if (is_guest_mode(&svm->vcpu)) {
+<<<<<<< HEAD
 		svm->nested.hsave->control.int_ctl &= mask;
+=======
+		svm->vmcb01.ptr->control.int_ctl &= mask;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		WARN_ON((svm->vmcb->control.int_ctl & V_TPR_MASK) !=
 			(svm->nested.ctl.int_ctl & V_TPR_MASK));
@@ -2052,7 +2124,11 @@ static int shutdown_interception(struct vcpu_svm *svm)
 	 * so reinitialize it.
 	 */
 	clear_page(svm->vmcb);
+<<<<<<< HEAD
 	init_vmcb(svm);
+=======
+	init_vmcb(vcpu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kvm_run->exit_reason = KVM_EXIT_SHUTDOWN;
 	return 0;
@@ -3027,7 +3103,11 @@ static int interrupt_window_interception(struct vcpu_svm *svm)
 	 * In this case AVIC was temporarily disabled for
 	 * requesting the IRQ window and we have to re-enable it.
 	 */
+<<<<<<< HEAD
 	svm_toggle_avic_for_irq_window(&svm->vcpu, true);
+=======
+	svm_toggle_avic_for_irq_window(vcpu, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	++svm->vcpu.stat.irq_window_exits;
 	return 1;
@@ -3309,7 +3389,11 @@ static int svm_handle_invalid_exit(struct kvm_vcpu *vcpu, u64 exit_code)
 
 int svm_invoke_exit_handler(struct vcpu_svm *svm, u64 exit_code)
 {
+<<<<<<< HEAD
 	if (svm_handle_invalid_exit(&svm->vcpu, exit_code))
+=======
+	if (svm_handle_invalid_exit(vcpu, exit_code))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0;
 
 #ifdef CONFIG_RETPOLINE
@@ -3843,7 +3927,11 @@ static __no_kcsan fastpath_t svm_vcpu_run(struct kvm_vcpu *vcpu)
 		smp_send_reschedule(vcpu->cpu);
 	}
 
+<<<<<<< HEAD
 	pre_svm_run(svm);
+=======
+	pre_svm_run(vcpu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	sync_lapic_to_cr8(vcpu);
 
@@ -4317,6 +4405,7 @@ static int svm_pre_enter_smm(struct kvm_vcpu *vcpu, char *smstate)
 		put_smstate(u64, smstate, 0x7ed8, 1);
 		/* FEE0h - SVM Guest VMCB Physical Address */
 		put_smstate(u64, smstate, 0x7ee0, svm->nested.vmcb12_gpa);
+<<<<<<< HEAD
 
 		svm->vmcb->save.rax = vcpu->arch.regs[VCPU_REGS_RAX];
 		svm->vmcb->save.rsp = vcpu->arch.regs[VCPU_REGS_RSP];
@@ -4325,6 +4414,39 @@ static int svm_pre_enter_smm(struct kvm_vcpu *vcpu, char *smstate)
 		ret = nested_svm_vmexit(svm);
 		if (ret)
 			return ret;
+=======
+
+		svm->vmcb->save.rax = vcpu->arch.regs[VCPU_REGS_RAX];
+		svm->vmcb->save.rsp = vcpu->arch.regs[VCPU_REGS_RSP];
+		svm->vmcb->save.rip = vcpu->arch.regs[VCPU_REGS_RIP];
+
+		ret = nested_svm_vmexit(svm);
+		if (ret)
+			return ret;
+
+		/*
+		 * KVM uses VMCB01 to store L1 host state while L2 runs but
+		 * VMCB01 is going to be used during SMM and thus the state will
+		 * be lost. Temporary save non-VMLOAD/VMSAVE state to the host save
+		 * area pointed to by MSR_VM_HSAVE_PA. APM guarantees that the
+		 * format of the area is identical to guest save area offsetted
+		 * by 0x400 (matches the offset of 'struct vmcb_save_area'
+		 * within 'struct vmcb'). Note: HSAVE area may also be used by
+		 * L1 hypervisor to save additional host context (e.g. KVM does
+		 * that, see svm_prepare_guest_switch()) which must be
+		 * preserved.
+		 */
+		if (kvm_vcpu_map(vcpu, gpa_to_gfn(svm->nested.hsave_msr),
+				 &map_save) == -EINVAL)
+			return 1;
+
+		BUILD_BUG_ON(offsetof(struct vmcb, save) != 0x400);
+
+		svm_copy_vmrun_state(map_save.hva + 0x400,
+				     &svm->vmcb01.ptr->save);
+
+		kvm_vcpu_unmap(vcpu, &map_save, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return 0;
 }
@@ -4332,6 +4454,7 @@ static int svm_pre_enter_smm(struct kvm_vcpu *vcpu, char *smstate)
 static int svm_pre_leave_smm(struct kvm_vcpu *vcpu, const char *smstate)
 {
 	struct vcpu_svm *svm = to_svm(vcpu);
+<<<<<<< HEAD
 	struct kvm_host_map map;
 	int ret = 0;
 
@@ -4356,6 +4479,50 @@ static int svm_pre_leave_smm(struct kvm_vcpu *vcpu, const char *smstate)
 
 			ret = enter_svm_guest_mode(svm, vmcb12_gpa, map.hva);
 			kvm_vcpu_unmap(&svm->vcpu, &map, true);
+=======
+	struct kvm_host_map map, map_save;
+	int ret = 0;
+
+	if (guest_cpuid_has(vcpu, X86_FEATURE_LM)) {
+		u64 saved_efer = GET_SMSTATE(u64, smstate, 0x7ed0);
+		u64 guest = GET_SMSTATE(u64, smstate, 0x7ed8);
+		u64 vmcb12_gpa = GET_SMSTATE(u64, smstate, 0x7ee0);
+		struct vmcb *vmcb12;
+
+		if (guest) {
+			if (!guest_cpuid_has(vcpu, X86_FEATURE_SVM))
+				return 1;
+
+			if (!(saved_efer & EFER_SVME))
+				return 1;
+
+			if (kvm_vcpu_map(vcpu,
+					 gpa_to_gfn(vmcb12_gpa), &map) == -EINVAL)
+				return 1;
+
+			if (svm_allocate_nested(svm))
+				return 1;
+
+			vmcb12 = map.hva;
+
+			nested_load_control_from_vmcb12(svm, &vmcb12->control);
+
+			ret = enter_svm_guest_mode(vcpu, vmcb12_gpa, vmcb12);
+			kvm_vcpu_unmap(vcpu, &map, true);
+
+			/*
+			 * Restore L1 host state from L1 HSAVE area as VMCB01 was
+			 * used during SMM (see svm_enter_smm())
+			 */
+			if (kvm_vcpu_map(vcpu, gpa_to_gfn(svm->nested.hsave_msr),
+					 &map_save) == -EINVAL)
+				return 1;
+
+			svm_copy_vmrun_state(&svm->vmcb01.ptr->save,
+					     map_save.hva + 0x400);
+
+			kvm_vcpu_unmap(vcpu, &map_save, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 

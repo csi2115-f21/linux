@@ -51,8 +51,13 @@ static const struct rhashtable_params br_sg_port_rht_params = {
 
 static void br_multicast_start_querier(struct net_bridge *br,
 				       struct bridge_mcast_own_query *query);
+<<<<<<< HEAD
 static void br_multicast_add_router(struct net_bridge *br,
 				    struct net_bridge_port *port);
+=======
+static void br_ip4_multicast_add_router(struct net_bridge *br,
+					struct net_bridge_port *port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void br_ip4_multicast_leave_group(struct net_bridge *br,
 					 struct net_bridge_port *port,
 					 __be32 group,
@@ -60,7 +65,14 @@ static void br_ip4_multicast_leave_group(struct net_bridge *br,
 					 const unsigned char *src);
 static void br_multicast_port_group_rexmit(struct timer_list *t);
 
+<<<<<<< HEAD
 static void __del_port_router(struct net_bridge_port *p);
+=======
+static void
+br_multicast_rport_del_notify(struct net_bridge_port *p, bool deleted);
+static void br_ip6_multicast_add_router(struct net_bridge *br,
+					struct net_bridge_port *port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #if IS_ENABLED(CONFIG_IPV6)
 static void br_ip6_multicast_leave_group(struct net_bridge *br,
 					 struct net_bridge_port *port,
@@ -1351,26 +1363,88 @@ static int br_ip6_multicast_add_group(struct net_bridge *br,
 
 	return br_multicast_add_group(br, port, &br_group, src, filter_mode,
 				      mldv1);
+<<<<<<< HEAD
+}
+=======
 }
 #endif
 
+static bool br_multicast_rport_del(struct hlist_node *rlist)
+{
+	if (hlist_unhashed(rlist))
+		return false;
+
+	hlist_del_init_rcu(rlist);
+	return true;
+}
+
+static bool br_ip4_multicast_rport_del(struct net_bridge_port *p)
+{
+	return br_multicast_rport_del(&p->ip4_rlist);
+}
+
+static bool br_ip6_multicast_rport_del(struct net_bridge_port *p)
+{
+#if IS_ENABLED(CONFIG_IPV6)
+	return br_multicast_rport_del(&p->ip6_rlist);
+#else
+	return false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+#endif
+
+<<<<<<< HEAD
 static void br_multicast_router_expired(struct timer_list *t)
 {
 	struct net_bridge_port *port =
 			from_timer(port, t, multicast_router_timer);
 	struct net_bridge *br = port->br;
+=======
+static void br_multicast_router_expired(struct net_bridge_port *port,
+					struct timer_list *t,
+					struct hlist_node *rlist)
+{
+	struct net_bridge *br = port->br;
+	bool del;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_lock(&br->multicast_lock);
 	if (port->multicast_router == MDB_RTR_TYPE_DISABLED ||
 	    port->multicast_router == MDB_RTR_TYPE_PERM ||
+<<<<<<< HEAD
 	    timer_pending(&port->multicast_router_timer))
 		goto out;
 
 	__del_port_router(port);
+=======
+	    timer_pending(t))
+		goto out;
+
+	del = br_multicast_rport_del(rlist);
+	br_multicast_rport_del_notify(port, del);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	spin_unlock(&br->multicast_lock);
 }
 
+<<<<<<< HEAD
+=======
+static void br_ip4_multicast_router_expired(struct timer_list *t)
+{
+	struct net_bridge_port *port = from_timer(port, t, ip4_mc_router_timer);
+
+	br_multicast_router_expired(port, t, &port->ip4_rlist);
+}
+
+#if IS_ENABLED(CONFIG_IPV6)
+static void br_ip6_multicast_router_expired(struct timer_list *t)
+{
+	struct net_bridge_port *port = from_timer(port, t, ip6_mc_router_timer);
+
+	br_multicast_router_expired(port, t, &port->ip6_rlist);
+}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void br_mc_router_state_change(struct net_bridge *p,
 				      bool is_mc_router)
 {
@@ -1384,6 +1458,7 @@ static void br_mc_router_state_change(struct net_bridge *p,
 	switchdev_port_attr_set(p->dev, &attr, NULL);
 }
 
+<<<<<<< HEAD
 static void br_multicast_local_router_expired(struct timer_list *t)
 {
 	struct net_bridge *br = from_timer(br, t, multicast_router_timer);
@@ -1392,11 +1467,39 @@ static void br_multicast_local_router_expired(struct timer_list *t)
 	if (br->multicast_router == MDB_RTR_TYPE_DISABLED ||
 	    br->multicast_router == MDB_RTR_TYPE_PERM ||
 	    timer_pending(&br->multicast_router_timer))
+=======
+static void br_multicast_local_router_expired(struct net_bridge *br,
+					      struct timer_list *timer)
+{
+	spin_lock(&br->multicast_lock);
+	if (br->multicast_router == MDB_RTR_TYPE_DISABLED ||
+	    br->multicast_router == MDB_RTR_TYPE_PERM ||
+	    br_ip4_multicast_is_router(br) ||
+	    br_ip6_multicast_is_router(br))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out;
 
 	br_mc_router_state_change(br, false);
 out:
 	spin_unlock(&br->multicast_lock);
+<<<<<<< HEAD
+=======
+}
+
+static void br_ip4_multicast_local_router_expired(struct timer_list *t)
+{
+	struct net_bridge *br = from_timer(br, t, ip4_mc_router_timer);
+
+	br_multicast_local_router_expired(br, t);
+}
+
+#if IS_ENABLED(CONFIG_IPV6)
+static void br_ip6_multicast_local_router_expired(struct timer_list *t)
+{
+	struct net_bridge *br = from_timer(br, t, ip6_mc_router_timer);
+
+	br_multicast_local_router_expired(br, t);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void br_multicast_querier_expired(struct net_bridge *br,
@@ -1607,6 +1710,7 @@ static void br_mc_disabled_update(struct net_device *dev, bool value)
 
 int br_multicast_add_port(struct net_bridge_port *port)
 {
+<<<<<<< HEAD
 	port->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
 	port->multicast_eht_hosts_limit = BR_MCAST_DEFAULT_EHT_HOSTS_LIMIT;
 
@@ -1620,6 +1724,29 @@ int br_multicast_add_port(struct net_bridge_port *port)
 #endif
 	br_mc_disabled_update(port->dev,
 			      br_opt_get(port->br, BROPT_MULTICAST_ENABLED));
+=======
+	int err;
+
+	port->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
+	port->multicast_eht_hosts_limit = BR_MCAST_DEFAULT_EHT_HOSTS_LIMIT;
+
+	timer_setup(&port->ip4_mc_router_timer,
+		    br_ip4_multicast_router_expired, 0);
+	timer_setup(&port->ip4_own_query.timer,
+		    br_ip4_multicast_port_query_expired, 0);
+#if IS_ENABLED(CONFIG_IPV6)
+	timer_setup(&port->ip6_mc_router_timer,
+		    br_ip6_multicast_router_expired, 0);
+	timer_setup(&port->ip6_own_query.timer,
+		    br_ip6_multicast_port_query_expired, 0);
+#endif
+	err = br_mc_disabled_update(port->dev,
+				    br_opt_get(port->br,
+					       BROPT_MULTICAST_ENABLED),
+				    NULL);
+	if (err && err != -EOPNOTSUPP)
+		return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	port->mcast_stats = netdev_alloc_pcpu_stats(struct bridge_mcast_stats);
 	if (!port->mcast_stats)
@@ -1642,7 +1769,14 @@ void br_multicast_del_port(struct net_bridge_port *port)
 	hlist_move_list(&br->mcast_gc_list, &deleted_head);
 	spin_unlock_bh(&br->multicast_lock);
 	br_multicast_gc(&deleted_head);
+<<<<<<< HEAD
 	del_timer_sync(&port->multicast_router_timer);
+=======
+	del_timer_sync(&port->ip4_mc_router_timer);
+#if IS_ENABLED(CONFIG_IPV6)
+	del_timer_sync(&port->ip6_mc_router_timer);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	free_percpu(port->mcast_stats);
 }
 
@@ -1666,9 +1800,16 @@ static void __br_multicast_enable_port(struct net_bridge_port *port)
 #if IS_ENABLED(CONFIG_IPV6)
 	br_multicast_enable(&port->ip6_own_query);
 #endif
+<<<<<<< HEAD
 	if (port->multicast_router == MDB_RTR_TYPE_PERM &&
 	    hlist_unhashed(&port->rlist))
 		br_multicast_add_router(br, port);
+=======
+	if (port->multicast_router == MDB_RTR_TYPE_PERM) {
+		br_ip4_multicast_add_router(br, port);
+		br_ip6_multicast_add_router(br, port);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void br_multicast_enable_port(struct net_bridge_port *port)
@@ -1685,12 +1826,17 @@ void br_multicast_disable_port(struct net_bridge_port *port)
 	struct net_bridge *br = port->br;
 	struct net_bridge_port_group *pg;
 	struct hlist_node *n;
+<<<<<<< HEAD
+=======
+	bool del = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_lock(&br->multicast_lock);
 	hlist_for_each_entry_safe(pg, n, &port->mglist, mglist)
 		if (!(pg->flags & MDB_PG_FLAGS_PERMANENT))
 			br_multicast_find_del_pg(br, pg);
 
+<<<<<<< HEAD
 	__del_port_router(port);
 
 	del_timer(&port->multicast_router_timer);
@@ -1698,6 +1844,17 @@ void br_multicast_disable_port(struct net_bridge_port *port)
 #if IS_ENABLED(CONFIG_IPV6)
 	del_timer(&port->ip6_own_query.timer);
 #endif
+=======
+	del |= br_ip4_multicast_rport_del(port);
+	del_timer(&port->ip4_mc_router_timer);
+	del_timer(&port->ip4_own_query.timer);
+	del |= br_ip6_multicast_rport_del(port);
+#if IS_ENABLED(CONFIG_IPV6)
+	del_timer(&port->ip6_mc_router_timer);
+	del_timer(&port->ip6_own_query.timer);
+#endif
+	br_multicast_rport_del_notify(port, del);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_unlock(&br->multicast_lock);
 }
 
@@ -2577,6 +2734,7 @@ static bool br_ip4_multicast_select_querier(struct net_bridge *br,
 
 update:
 	br->ip4_querier.addr.src.ip4 = saddr;
+<<<<<<< HEAD
 
 	/* update protected by general multicast_lock by caller */
 	rcu_assign_pointer(br->ip4_querier.port, port);
@@ -2622,7 +2780,38 @@ static bool br_multicast_select_querier(struct net_bridge *br,
 	}
 
 	return false;
+=======
+
+	/* update protected by general multicast_lock by caller */
+	rcu_assign_pointer(br->ip4_querier.port, port);
+
+	return true;
 }
+
+#if IS_ENABLED(CONFIG_IPV6)
+static bool br_ip6_multicast_select_querier(struct net_bridge *br,
+					    struct net_bridge_port *port,
+					    struct in6_addr *saddr)
+{
+	if (!timer_pending(&br->ip6_own_query.timer) &&
+	    !timer_pending(&br->ip6_other_query.timer))
+		goto update;
+
+	if (ipv6_addr_cmp(saddr, &br->ip6_querier.addr.src.ip6) <= 0)
+		goto update;
+
+	return false;
+
+update:
+	br->ip6_querier.addr.src.ip6 = *saddr;
+
+	/* update protected by general multicast_lock by caller */
+	rcu_assign_pointer(br->ip6_querier.port, port);
+
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+}
+#endif
 
 static void
 br_multicast_update_query_timer(struct net_bridge *br,
@@ -2648,6 +2837,7 @@ static void br_port_mc_router_state_change(struct net_bridge_port *p,
 	switchdev_port_attr_set(p->dev, &attr, NULL);
 }
 
+<<<<<<< HEAD
 /*
  * Add port to router_list
  *  list is maintained ordered by pointer value
@@ -2655,12 +2845,36 @@ static void br_port_mc_router_state_change(struct net_bridge_port *p,
  */
 static void br_multicast_add_router(struct net_bridge *br,
 				    struct net_bridge_port *port)
+=======
+static struct net_bridge_port *
+br_multicast_rport_from_node(struct net_bridge *br,
+			     struct hlist_head *mc_router_list,
+			     struct hlist_node *rlist)
+{
+#if IS_ENABLED(CONFIG_IPV6)
+	if (mc_router_list == &br->ip6_mc_router_list)
+		return hlist_entry(rlist, struct net_bridge_port, ip6_rlist);
+#endif
+	return hlist_entry(rlist, struct net_bridge_port, ip4_rlist);
+}
+
+static struct hlist_node *
+br_multicast_get_rport_slot(struct net_bridge *br,
+			    struct net_bridge_port *port,
+			    struct hlist_head *mc_router_list)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct net_bridge_port *p;
 	struct hlist_node *slot = NULL;
 
+<<<<<<< HEAD
 	if (!hlist_unhashed(&port->rlist))
 		return;
+=======
+	hlist_for_each(rlist, mc_router_list) {
+		p = br_multicast_rport_from_node(br, mc_router_list, rlist);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	hlist_for_each_entry(p, &br->router_list, rlist) {
 		if ((unsigned long) port >= (unsigned long) p)
@@ -2668,6 +2882,7 @@ static void br_multicast_add_router(struct net_bridge *br,
 		slot = &p->rlist;
 	}
 
+<<<<<<< HEAD
 	if (slot)
 		hlist_add_behind_rcu(&port->rlist, slot);
 	else
@@ -2678,6 +2893,32 @@ static void br_multicast_add_router(struct net_bridge *br,
 
 static void br_multicast_mark_router(struct net_bridge *br,
 				     struct net_bridge_port *port)
+=======
+	return slot;
+}
+
+static bool br_multicast_no_router_otherpf(struct net_bridge_port *port,
+					   struct hlist_node *rnode)
+{
+#if IS_ENABLED(CONFIG_IPV6)
+	if (rnode != &port->ip6_rlist)
+		return hlist_unhashed(&port->ip6_rlist);
+	else
+		return hlist_unhashed(&port->ip4_rlist);
+#else
+	return true;
+#endif
+}
+
+/* Add port to router_list
+ *  list is maintained ordered by pointer value
+ *  and locked by br->multicast_lock and RCU
+ */
+static void br_multicast_add_router(struct net_bridge *br,
+				    struct net_bridge_port *port,
+				    struct hlist_node *rlist,
+				    struct hlist_head *mc_router_list)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned long now = jiffies;
 
@@ -2691,12 +2932,17 @@ static void br_multicast_mark_router(struct net_bridge *br,
 		return;
 	}
 
+<<<<<<< HEAD
 	if (port->multicast_router == MDB_RTR_TYPE_DISABLED ||
 	    port->multicast_router == MDB_RTR_TYPE_PERM)
 		return;
+=======
+	slot = br_multicast_get_rport_slot(br, port, mc_router_list);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	br_multicast_add_router(br, port);
 
+<<<<<<< HEAD
 	mod_timer(&port->multicast_router_timer,
 		  now + br->multicast_querier_interval);
 }
@@ -2714,6 +2960,130 @@ static void br_multicast_query_received(struct net_bridge *br,
 	br_multicast_mark_router(br, port);
 }
 
+=======
+	/* For backwards compatibility for now, only notify if we
+	 * switched from no IPv4/IPv6 multicast router to a new
+	 * IPv4 or IPv6 multicast router.
+	 */
+	if (br_multicast_no_router_otherpf(port, rlist)) {
+		br_rtr_notify(br->dev, port, RTM_NEWMDB);
+		br_port_mc_router_state_change(port, true);
+	}
+}
+
+/* Add port to router_list
+ *  list is maintained ordered by pointer value
+ *  and locked by br->multicast_lock and RCU
+ */
+static void br_ip4_multicast_add_router(struct net_bridge *br,
+					struct net_bridge_port *port)
+{
+	br_multicast_add_router(br, port, &port->ip4_rlist,
+				&br->ip4_mc_router_list);
+}
+
+/* Add port to router_list
+ *  list is maintained ordered by pointer value
+ *  and locked by br->multicast_lock and RCU
+ */
+static void br_ip6_multicast_add_router(struct net_bridge *br,
+					struct net_bridge_port *port)
+{
+#if IS_ENABLED(CONFIG_IPV6)
+	br_multicast_add_router(br, port, &port->ip6_rlist,
+				&br->ip6_mc_router_list);
+#endif
+}
+
+static void br_multicast_mark_router(struct net_bridge *br,
+				     struct net_bridge_port *port,
+				     struct timer_list *timer,
+				     struct hlist_node *rlist,
+				     struct hlist_head *mc_router_list)
+{
+	unsigned long now = jiffies;
+
+	if (!port) {
+		if (br->multicast_router == MDB_RTR_TYPE_TEMP_QUERY) {
+			if (!br_ip4_multicast_is_router(br) &&
+			    !br_ip6_multicast_is_router(br))
+				br_mc_router_state_change(br, true);
+			mod_timer(timer, now + br->multicast_querier_interval);
+		}
+		return;
+	}
+
+	if (port->multicast_router == MDB_RTR_TYPE_DISABLED ||
+	    port->multicast_router == MDB_RTR_TYPE_PERM)
+		return;
+
+	br_multicast_add_router(br, port, rlist, mc_router_list);
+	mod_timer(timer, now + br->multicast_querier_interval);
+}
+
+static void br_ip4_multicast_mark_router(struct net_bridge *br,
+					 struct net_bridge_port *port)
+{
+	struct timer_list *timer = &br->ip4_mc_router_timer;
+	struct hlist_node *rlist = NULL;
+
+	if (port) {
+		timer = &port->ip4_mc_router_timer;
+		rlist = &port->ip4_rlist;
+	}
+
+	br_multicast_mark_router(br, port, timer, rlist,
+				 &br->ip4_mc_router_list);
+}
+
+static void br_ip6_multicast_mark_router(struct net_bridge *br,
+					 struct net_bridge_port *port)
+{
+#if IS_ENABLED(CONFIG_IPV6)
+	struct timer_list *timer = &br->ip6_mc_router_timer;
+	struct hlist_node *rlist = NULL;
+
+	if (port) {
+		timer = &port->ip6_mc_router_timer;
+		rlist = &port->ip6_rlist;
+	}
+
+	br_multicast_mark_router(br, port, timer, rlist,
+				 &br->ip6_mc_router_list);
+#endif
+}
+
+static void
+br_ip4_multicast_query_received(struct net_bridge *br,
+				struct net_bridge_port *port,
+				struct bridge_mcast_other_query *query,
+				struct br_ip *saddr,
+				unsigned long max_delay)
+{
+	if (!br_ip4_multicast_select_querier(br, port, saddr->src.ip4))
+		return;
+
+	br_multicast_update_query_timer(br, query, max_delay);
+	br_ip4_multicast_mark_router(br, port);
+}
+
+#if IS_ENABLED(CONFIG_IPV6)
+static void
+br_ip6_multicast_query_received(struct net_bridge *br,
+				struct net_bridge_port *port,
+				struct bridge_mcast_other_query *query,
+				struct br_ip *saddr,
+				unsigned long max_delay)
+{
+	if (!br_ip6_multicast_select_querier(br, port, &saddr->src.ip6))
+		return;
+
+	br_multicast_update_query_timer(br, query, max_delay);
+	br_ip6_multicast_mark_router(br, port);
+}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void br_ip4_multicast_query(struct net_bridge *br,
 				   struct net_bridge_port *port,
 				   struct sk_buff *skb,
@@ -2761,8 +3131,13 @@ static void br_ip4_multicast_query(struct net_bridge *br,
 		saddr.proto = htons(ETH_P_IP);
 		saddr.src.ip4 = iph->saddr;
 
+<<<<<<< HEAD
 		br_multicast_query_received(br, port, &br->ip4_other_query,
 					    &saddr, max_delay);
+=======
+		br_ip4_multicast_query_received(br, port, &br->ip4_other_query,
+						&saddr, max_delay);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out;
 	}
 
@@ -2849,8 +3224,13 @@ static int br_ip6_multicast_query(struct net_bridge *br,
 		saddr.proto = htons(ETH_P_IPV6);
 		saddr.src.ip6 = ipv6_hdr(skb)->saddr;
 
+<<<<<<< HEAD
 		br_multicast_query_received(br, port, &br->ip6_other_query,
 					    &saddr, max_delay);
+=======
+		br_ip6_multicast_query_received(br, port, &br->ip6_other_query,
+						&saddr, max_delay);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out;
 	} else if (!group) {
 		goto out;
@@ -3080,7 +3460,13 @@ static void br_multicast_pim(struct net_bridge *br,
 	    pim_hdr_type(pimhdr) != PIM_TYPE_HELLO)
 		return;
 
+<<<<<<< HEAD
 	br_multicast_mark_router(br, port);
+=======
+	spin_lock(&br->multicast_lock);
+	br_ip4_multicast_mark_router(br, port);
+	spin_unlock(&br->multicast_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int br_ip4_multicast_mrd_rcv(struct net_bridge *br,
@@ -3091,7 +3477,13 @@ static int br_ip4_multicast_mrd_rcv(struct net_bridge *br,
 	    igmp_hdr(skb)->type != IGMP_MRDISC_ADV)
 		return -ENOMSG;
 
+<<<<<<< HEAD
 	br_multicast_mark_router(br, port);
+=======
+	spin_lock(&br->multicast_lock);
+	br_ip4_multicast_mark_router(br, port);
+	spin_unlock(&br->multicast_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -3152,9 +3544,15 @@ static int br_multicast_ipv4_rcv(struct net_bridge *br,
 }
 
 #if IS_ENABLED(CONFIG_IPV6)
+<<<<<<< HEAD
 static int br_ip6_multicast_mrd_rcv(struct net_bridge *br,
 				    struct net_bridge_port *port,
 				    struct sk_buff *skb)
+=======
+static void br_ip6_multicast_mrd_rcv(struct net_bridge *br,
+				     struct net_bridge_port *port,
+				     struct sk_buff *skb)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 
@@ -3170,7 +3568,13 @@ static int br_ip6_multicast_mrd_rcv(struct net_bridge *br,
 
 	br_multicast_mark_router(br, port);
 
+<<<<<<< HEAD
 	return 0;
+=======
+	spin_lock(&br->multicast_lock);
+	br_ip6_multicast_mark_router(br, port);
+	spin_unlock(&br->multicast_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int br_multicast_ipv6_rcv(struct net_bridge *br,
@@ -3187,6 +3591,7 @@ static int br_multicast_ipv6_rcv(struct net_bridge *br,
 	if (err == -ENOMSG) {
 		if (!ipv6_addr_is_ll_all_nodes(&ipv6_hdr(skb)->daddr))
 			BR_INPUT_SKB_CB(skb)->mrouters_only = 1;
+<<<<<<< HEAD
 
 		if (ipv6_addr_is_all_snoopers(&ipv6_hdr(skb)->daddr)) {
 			err = br_ip6_multicast_mrd_rcv(br, port, skb);
@@ -3196,6 +3601,11 @@ static int br_multicast_ipv6_rcv(struct net_bridge *br,
 				return err;
 			}
 		}
+=======
+		if (err == -ENODATA &&
+		    ipv6_addr_is_all_snoopers(&ipv6_hdr(skb)->daddr))
+			br_ip6_multicast_mrd_rcv(br, port, skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		return 0;
 	} else if (err < 0) {
@@ -3302,6 +3712,7 @@ static void br_multicast_gc_work(struct work_struct *work)
 void br_multicast_init(struct net_bridge *br)
 {
 	br->hash_max = BR_MULTICAST_DEFAULT_HASH_MAX;
+<<<<<<< HEAD
 
 	br->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
 	br->multicast_last_member_count = 2;
@@ -3314,6 +3725,20 @@ void br_multicast_init(struct net_bridge *br)
 	br->multicast_querier_interval = 255 * HZ;
 	br->multicast_membership_interval = 260 * HZ;
 
+=======
+
+	br->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
+	br->multicast_last_member_count = 2;
+	br->multicast_startup_query_count = 2;
+
+	br->multicast_last_member_interval = HZ;
+	br->multicast_query_response_interval = 10 * HZ;
+	br->multicast_startup_query_interval = 125 * HZ / 4;
+	br->multicast_query_interval = 125 * HZ;
+	br->multicast_querier_interval = 255 * HZ;
+	br->multicast_membership_interval = 260 * HZ;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	br->ip4_other_query.delay_time = 0;
 	br->ip4_querier.port = NULL;
 	br->multicast_igmp_version = 2;
@@ -3326,13 +3751,23 @@ void br_multicast_init(struct net_bridge *br)
 	br_opt_toggle(br, BROPT_HAS_IPV6_ADDR, true);
 
 	spin_lock_init(&br->multicast_lock);
+<<<<<<< HEAD
 	timer_setup(&br->multicast_router_timer,
 		    br_multicast_local_router_expired, 0);
+=======
+	timer_setup(&br->ip4_mc_router_timer,
+		    br_ip4_multicast_local_router_expired, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	timer_setup(&br->ip4_other_query.timer,
 		    br_ip4_multicast_querier_expired, 0);
 	timer_setup(&br->ip4_own_query.timer,
 		    br_ip4_multicast_query_expired, 0);
 #if IS_ENABLED(CONFIG_IPV6)
+<<<<<<< HEAD
+=======
+	timer_setup(&br->ip6_mc_router_timer,
+		    br_ip6_multicast_local_router_expired, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	timer_setup(&br->ip6_other_query.timer,
 		    br_ip6_multicast_querier_expired, 0);
 	timer_setup(&br->ip6_own_query.timer,
@@ -3426,10 +3861,18 @@ void br_multicast_open(struct net_bridge *br)
 
 void br_multicast_stop(struct net_bridge *br)
 {
+<<<<<<< HEAD
 	del_timer_sync(&br->multicast_router_timer);
 	del_timer_sync(&br->ip4_other_query.timer);
 	del_timer_sync(&br->ip4_own_query.timer);
 #if IS_ENABLED(CONFIG_IPV6)
+=======
+	del_timer_sync(&br->ip4_mc_router_timer);
+	del_timer_sync(&br->ip4_other_query.timer);
+	del_timer_sync(&br->ip4_own_query.timer);
+#if IS_ENABLED(CONFIG_IPV6)
+	del_timer_sync(&br->ip6_mc_router_timer);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	del_timer_sync(&br->ip6_other_query.timer);
 	del_timer_sync(&br->ip6_own_query.timer);
 #endif
@@ -3463,7 +3906,14 @@ int br_multicast_set_router(struct net_bridge *br, unsigned long val)
 	case MDB_RTR_TYPE_DISABLED:
 	case MDB_RTR_TYPE_PERM:
 		br_mc_router_state_change(br, val == MDB_RTR_TYPE_PERM);
+<<<<<<< HEAD
 		del_timer(&br->multicast_router_timer);
+=======
+		del_timer(&br->ip4_mc_router_timer);
+#if IS_ENABLED(CONFIG_IPV6)
+		del_timer(&br->ip6_mc_router_timer);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		br->multicast_router = val;
 		err = 0;
 		break;
@@ -3480,11 +3930,30 @@ int br_multicast_set_router(struct net_bridge *br, unsigned long val)
 	return err;
 }
 
+<<<<<<< HEAD
 static void __del_port_router(struct net_bridge_port *p)
+=======
+static void
+br_multicast_rport_del_notify(struct net_bridge_port *p, bool deleted)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (hlist_unhashed(&p->rlist))
 		return;
+<<<<<<< HEAD
 	hlist_del_init_rcu(&p->rlist);
+=======
+
+	/* For backwards compatibility for now, only notify if there is
+	 * no multicast router anymore for both IPv4 and IPv6.
+	 */
+	if (!hlist_unhashed(&p->ip4_rlist))
+		return;
+#if IS_ENABLED(CONFIG_IPV6)
+	if (!hlist_unhashed(&p->ip6_rlist))
+		return;
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	br_rtr_notify(p->br->dev, p, RTM_DELMDB);
 	br_port_mc_router_state_change(p, false);
 
@@ -3502,15 +3971,27 @@ int br_multicast_set_port_router(struct net_bridge_port *p, unsigned long val)
 	spin_lock(&br->multicast_lock);
 	if (p->multicast_router == val) {
 		/* Refresh the temp router port timer */
+<<<<<<< HEAD
 		if (p->multicast_router == MDB_RTR_TYPE_TEMP)
 			mod_timer(&p->multicast_router_timer,
 				  now + br->multicast_querier_interval);
+=======
+		if (p->multicast_router == MDB_RTR_TYPE_TEMP) {
+			mod_timer(&p->ip4_mc_router_timer,
+				  now + br->multicast_querier_interval);
+#if IS_ENABLED(CONFIG_IPV6)
+			mod_timer(&p->ip6_mc_router_timer,
+				  now + br->multicast_querier_interval);
+#endif
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = 0;
 		goto unlock;
 	}
 	switch (val) {
 	case MDB_RTR_TYPE_DISABLED:
 		p->multicast_router = MDB_RTR_TYPE_DISABLED;
+<<<<<<< HEAD
 		__del_port_router(p);
 		del_timer(&p->multicast_router_timer);
 		break;
@@ -3526,6 +4007,35 @@ int br_multicast_set_port_router(struct net_bridge_port *p, unsigned long val)
 	case MDB_RTR_TYPE_TEMP:
 		p->multicast_router = MDB_RTR_TYPE_TEMP;
 		br_multicast_mark_router(br, p);
+=======
+		del |= br_ip4_multicast_rport_del(p);
+		del_timer(&p->ip4_mc_router_timer);
+		del |= br_ip6_multicast_rport_del(p);
+#if IS_ENABLED(CONFIG_IPV6)
+		del_timer(&p->ip6_mc_router_timer);
+#endif
+		br_multicast_rport_del_notify(p, del);
+		break;
+	case MDB_RTR_TYPE_TEMP_QUERY:
+		p->multicast_router = MDB_RTR_TYPE_TEMP_QUERY;
+		del |= br_ip4_multicast_rport_del(p);
+		del |= br_ip6_multicast_rport_del(p);
+		br_multicast_rport_del_notify(p, del);
+		break;
+	case MDB_RTR_TYPE_PERM:
+		p->multicast_router = MDB_RTR_TYPE_PERM;
+		del_timer(&p->ip4_mc_router_timer);
+		br_ip4_multicast_add_router(br, p);
+#if IS_ENABLED(CONFIG_IPV6)
+		del_timer(&p->ip6_mc_router_timer);
+#endif
+		br_ip6_multicast_add_router(br, p);
+		break;
+	case MDB_RTR_TYPE_TEMP:
+		p->multicast_router = MDB_RTR_TYPE_TEMP;
+		br_ip4_multicast_mark_router(br, p);
+		br_ip6_multicast_mark_router(br, p);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		goto unlock;
@@ -3624,7 +4134,11 @@ bool br_multicast_router(const struct net_device *dev)
 	bool is_router;
 
 	spin_lock_bh(&br->multicast_lock);
+<<<<<<< HEAD
 	is_router = br_multicast_is_router(br);
+=======
+	is_router = br_multicast_is_router(br, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_unlock_bh(&br->multicast_lock);
 	return is_router;
 }
@@ -3845,6 +4359,64 @@ unlock:
 }
 EXPORT_SYMBOL_GPL(br_multicast_has_querier_adjacent);
 
+<<<<<<< HEAD
+=======
+/**
+ * br_multicast_has_router_adjacent - Checks for a router behind a bridge port
+ * @dev: The bridge port adjacent to which to check for a multicast router
+ * @proto: The protocol family to check for: IGMP -> ETH_P_IP, MLD -> ETH_P_IPV6
+ *
+ * Checks whether the given interface has a bridge on top and if so returns
+ * true if a multicast router is behind one of the other ports of this
+ * bridge. Otherwise returns false.
+ */
+bool br_multicast_has_router_adjacent(struct net_device *dev, int proto)
+{
+	struct net_bridge_port *port, *p;
+	bool ret = false;
+
+	rcu_read_lock();
+	port = br_port_get_check_rcu(dev);
+	if (!port)
+		goto unlock;
+
+	switch (proto) {
+	case ETH_P_IP:
+		hlist_for_each_entry_rcu(p, &port->br->ip4_mc_router_list,
+					 ip4_rlist) {
+			if (p == port)
+				continue;
+
+			ret = true;
+			goto unlock;
+		}
+		break;
+#if IS_ENABLED(CONFIG_IPV6)
+	case ETH_P_IPV6:
+		hlist_for_each_entry_rcu(p, &port->br->ip6_mc_router_list,
+					 ip6_rlist) {
+			if (p == port)
+				continue;
+
+			ret = true;
+			goto unlock;
+		}
+		break;
+#endif
+	default:
+		/* when compiled without IPv6 support, be conservative and
+		 * always assume presence of an IPv6 multicast router
+		 */
+		ret = true;
+	}
+
+unlock:
+	rcu_read_unlock();
+	return ret;
+}
+EXPORT_SYMBOL_GPL(br_multicast_has_router_adjacent);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void br_mcast_stats_add(struct bridge_mcast_stats __percpu *stats,
 			       const struct sk_buff *skb, u8 type, u8 dir)
 {

@@ -1398,9 +1398,21 @@ static int fsl_spdif_probe(struct platform_device *pdev)
 
 	ret = devm_snd_soc_register_component(&pdev->dev, &fsl_spdif_component,
 					      &spdif_priv->cpu_dai_drv, 1);
+<<<<<<< HEAD
 	if (ret) {
 		dev_err(&pdev->dev, "failed to register DAI: %d\n", ret);
 		return ret;
+=======
+	if (ret) {
+		dev_err(&pdev->dev, "failed to register DAI: %d\n", ret);
+		goto err_pm_disable;
+	}
+
+	ret = imx_pcm_dma_init(pdev, IMX_SPDIF_DMABUF_SIZE);
+	if (ret) {
+		dev_err_probe(&pdev->dev, ret, "imx_pcm_dma_init failed\n");
+		goto err_pm_disable;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = imx_pcm_dma_init(pdev, IMX_SPDIF_DMABUF_SIZE);

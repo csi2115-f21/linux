@@ -52,6 +52,13 @@ struct can_priv {
 	u32 bitrate_max;
 	struct can_clock clock;
 
+<<<<<<< HEAD
+=======
+	unsigned int termination_const_cnt;
+	const u16 *termination_const;
+	u16 termination;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	enum can_state state;
 
 	/* CAN controller features - see include/uapi/linux/can/netlink.h */

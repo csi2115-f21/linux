@@ -126,7 +126,11 @@ static int tcc_offset_update(int tcc)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int tcc_offset_save;
+=======
+static unsigned int tcc_offset_save;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static ssize_t tcc_offset_degree_celsius_store(struct device *dev,
 				struct device_attribute *attr, const char *buf,
@@ -373,6 +377,7 @@ static int int3401_add(struct platform_device *pdev)
 	platform_set_drvdata(pdev, proc_priv);
 	proc_thermal_emum_mode = PROC_THERMAL_PLATFORM_DEV;
 
+<<<<<<< HEAD
 	dev_info(&pdev->dev, "Creating sysfs group for PROC_THERMAL_PLATFORM_DEV\n");
 
 	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_tcc_offset_degree_celsius.attr);
@@ -389,6 +394,9 @@ static int int3401_add(struct platform_device *pdev)
 static int int3401_remove(struct platform_device *pdev)
 {
 	proc_thermal_remove(platform_get_drvdata(pdev));
+=======
+	tcc_offset_update(tcc_offset_save);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

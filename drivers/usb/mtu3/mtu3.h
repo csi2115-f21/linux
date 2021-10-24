@@ -197,8 +197,13 @@ struct mtu3_gpd_ring {
 *		notifier callback which is atomic context
 * @vbus_event : event of vbus detecion notifier
 * @id_nb : notifier for iddig(idpin) detection
+<<<<<<< HEAD
 * @id_work : work of iddig detection notifier
 * @id_event : event of iddig detecion notifier
+=======
+* @dr_work : work for drd mode switch, used to avoid sleep in atomic context
+* @desired_role : role desired to switch
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 * @role_sw : use USB Role Switch to support dual-role switch, can't use
 *		extcon at the same time, and extcon is deprecated.
 * @role_sw_used : true when the USB Role Switch is used.
@@ -213,8 +218,13 @@ struct otg_switch_mtk {
 	struct work_struct vbus_work;
 	unsigned long vbus_event;
 	struct notifier_block id_nb;
+<<<<<<< HEAD
 	struct work_struct id_work;
 	unsigned long id_event;
+=======
+	struct work_struct dr_work;
+	enum usb_role desired_role;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct usb_role_switch *role_sw;
 	bool role_sw_used;
 	bool is_u3_drd;

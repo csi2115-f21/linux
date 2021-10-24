@@ -1643,6 +1643,10 @@ int cifs_unlink(struct inode *dir, struct dentry *dentry)
 		goto unlink_out;
 	}
 
+<<<<<<< HEAD
+=======
+	cifs_close_all_deferred_files(tcon);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (cap_unix(tcon->ses) && (CIFS_UNIX_POSIX_PATH_OPS_CAP &
 				le64_to_cpu(tcon->fsUnixInfo.Capability))) {
 		rc = CIFSPOSIXDelFile(xid, tcon, full_path,
@@ -2109,6 +2113,10 @@ cifs_rename2(struct user_namespace *mnt_userns, struct inode *source_dir,
 		goto cifs_rename_exit;
 	}
 
+<<<<<<< HEAD
+=======
+	cifs_close_all_deferred_files(tcon);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rc = cifs_do_rename(xid, source_dentry, from_name, target_dentry,
 			    to_name);
 

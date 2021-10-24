@@ -396,6 +396,7 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
 	err = rxe_qp_chk_init(rxe, init);
 	if (err)
 		goto err1;
+<<<<<<< HEAD
 
 	qp = rxe_alloc(&rxe->qp_pool);
 	if (!qp) {
@@ -411,6 +412,25 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
 		qp->is_user = 1;
 	}
 
+=======
+
+	qp = rxe_alloc(&rxe->qp_pool);
+	if (!qp) {
+		err = -ENOMEM;
+		goto err1;
+	}
+
+	if (udata) {
+		if (udata->inlen) {
+			err = -EINVAL;
+			goto err2;
+		}
+		qp->is_user = true;
+	} else {
+		qp->is_user = false;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rxe_add_index(qp);
 
 	err = rxe_qp_from_init(rxe, qp, pd, init, uresp, ibpd, udata);

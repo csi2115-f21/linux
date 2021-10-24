@@ -834,9 +834,17 @@ unsigned int OnBeacon(struct adapter *padapter, union recv_frame *precv_frame)
 			if (psta) {
 				ret = rtw_check_bcn_info(padapter, pframe, len);
 				if (!ret) {
+<<<<<<< HEAD
 						DBG_871X_LEVEL(_drv_always_, "ap has changed, disconnect now\n ");
 						receive_disconnect(padapter, pmlmeinfo->network.MacAddress, 0);
 						return _SUCCESS;
+=======
+					netdev_dbg(padapter->pnetdev,
+						   "ap has changed, disconnect now\n ");
+					receive_disconnect(padapter,
+							   pmlmeinfo->network.MacAddress, 0);
+					return _SUCCESS;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				}
 				/* update WMM, ERP in the beacon */
 				/* todo: the timer is used instead of the number of the beacon received */
@@ -3311,9 +3319,14 @@ void issue_assocreq(struct adapter *padapter)
 		/*  Check if the AP's supported rates are also supported by STA. */
 		for (j = 0; j < sta_bssrate_len; j++) {
 			 /*  Avoid the proprietary data rate (22Mbps) of Handlink WSG-4000 AP */
+<<<<<<< HEAD
 			if ((pmlmeinfo->network.SupportedRates[i]|IEEE80211_BASIC_RATE_MASK)
 					== (sta_bssrate[j]|IEEE80211_BASIC_RATE_MASK)) {
 				/* DBG_871X("match i = %d, j =%d\n", i, j); */
+=======
+			if ((pmlmeinfo->network.SupportedRates[i] | IEEE80211_BASIC_RATE_MASK)
+					== (sta_bssrate[j] | IEEE80211_BASIC_RATE_MASK))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				break;
 			} else {
 				/* DBG_871X("not match: %02X != %02X\n", (pmlmeinfo->network.SupportedRates[i]|IEEE80211_BASIC_RATE_MASK), (sta_bssrate[j]|IEEE80211_BASIC_RATE_MASK)); */
@@ -3326,7 +3339,10 @@ void issue_assocreq(struct adapter *padapter)
 		} else {
 			/*  the rate is supported by STA */
 			bssrate[index++] = pmlmeinfo->network.SupportedRates[i];
+<<<<<<< HEAD
 		}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	bssrate_len = index;
@@ -4465,8 +4481,12 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 
 	/*  checking SSID */
 	p = rtw_get_ie(bssid->IEs + ie_offset, WLAN_EID_SSID, &len, bssid->IELength - ie_offset);
+<<<<<<< HEAD
 	if (p == NULL) {
 		DBG_871X("marc: cannot find SSID for survey event\n");
+=======
+	if (!p)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	}
 
@@ -4474,7 +4494,11 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 		if (len > NDIS_802_11_LENGTH_SSID) {
 			DBG_871X("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
+<<<<<<< HEAD
 		}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->Ssid.Ssid, (p + 2), *(p + 1));
 		bssid->Ssid.SsidLength = *(p + 1);
 	} else
@@ -4489,7 +4513,11 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 		if (len > NDIS_802_11_LENGTH_RATES_EX) {
 			DBG_871X("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
+<<<<<<< HEAD
 		}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->SupportedRates, (p + 2), len);
 		i = len;
 	}
@@ -4499,7 +4527,11 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 		if (len > (NDIS_802_11_LENGTH_RATES_EX-i)) {
 			DBG_871X("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
+<<<<<<< HEAD
 		}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->SupportedRates + i, (p + 2), len);
 	}
 
@@ -4565,6 +4597,7 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 			pmlmepriv->num_sta_no_ht++;
 	}
 
+<<<<<<< HEAD
 	#if defined(DBG_RX_SIGNAL_DISPLAY_SSID_MONITORED) & 1
 	if (strcmp(bssid->Ssid.Ssid, DBG_RX_SIGNAL_DISPLAY_SSID_MONITORED) == 0) {
 		DBG_871X("Receiving %s(%pM, DSConfig:%u) from ch%u with ss:%3u, sq:%3u, RawRSSI:%3ld\n"
@@ -4575,6 +4608,8 @@ u8 collect_bss_info(struct adapter *padapter, union recv_frame *precv_frame, str
 	}
 	#endif
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*  mark bss info receiving from nearby channel as SignalQuality 101 */
 	if (bssid->Configuration.DSConfig != rtw_get_oper_ch(padapter))
 		bssid->PhyInfo.SignalQuality = 101;
@@ -5702,9 +5737,12 @@ void linked_status_chk(struct adapter *padapter)
 			{
 				if (rx_chk != _SUCCESS) {
 					if (pmlmeext->retry == 0) {
+<<<<<<< HEAD
 						#ifdef DBG_EXPIRATION_CHK
 						DBG_871X("issue_probereq to trigger probersp, retry =%d\n", pmlmeext->retry);
 						#endif
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						issue_probereq_ex(padapter, &pmlmeinfo->network.Ssid, pmlmeinfo->network.MacAddress, 0, 0, 0, 0);
 						issue_probereq_ex(padapter, &pmlmeinfo->network.Ssid, pmlmeinfo->network.MacAddress, 0, 0, 0, 0);
 						issue_probereq_ex(padapter, &pmlmeinfo->network.Ssid, pmlmeinfo->network.MacAddress, 0, 0, 0, 0);
@@ -5722,8 +5760,14 @@ void linked_status_chk(struct adapter *padapter)
 			if (rx_chk == _FAIL) {
 				pmlmeext->retry++;
 				if (pmlmeext->retry > rx_chk_limit) {
+<<<<<<< HEAD
 					DBG_871X_LEVEL(_drv_always_, FUNC_ADPT_FMT" disconnect or roaming\n",
 						FUNC_ADPT_ARG(padapter));
+=======
+					netdev_dbg(padapter->pnetdev,
+						   FUNC_ADPT_FMT " disconnect or roaming\n",
+						   FUNC_ADPT_ARG(padapter));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					receive_disconnect(padapter, pmlmeinfo->network.MacAddress
 						, WLAN_REASON_EXPIRATION_CHK);
 					return;

@@ -269,6 +269,34 @@ static void mlx5_lag_remove_devices(struct mlx5_lag *ldev)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void mlx5_disable_lag(struct mlx5_lag *ldev)
+{
+	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
+	struct mlx5_core_dev *dev1 = ldev->pf[MLX5_LAG_P2].dev;
+	bool roce_lag;
+	int err;
+
+	roce_lag = __mlx5_lag_is_roce(ldev);
+
+	if (roce_lag) {
+		if (!(dev0->priv.flags & MLX5_PRIV_FLAGS_DISABLE_ALL_ADEV)) {
+			dev0->priv.flags |= MLX5_PRIV_FLAGS_DISABLE_IB_ADEV;
+			mlx5_rescan_drivers_locked(dev0);
+		}
+		mlx5_nic_vport_disable_roce(dev1);
+	}
+
+	err = mlx5_deactivate_lag(ldev);
+	if (err)
+		return;
+
+	if (roce_lag)
+		mlx5_lag_add_devices(ldev);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void mlx5_do_bond(struct mlx5_lag *ldev)
 {
 	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
@@ -280,9 +308,13 @@ static void mlx5_do_bond(struct mlx5_lag *ldev)
 	if (!mlx5_lag_is_ready(ldev))
 		return;
 
+<<<<<<< HEAD
 	spin_lock(&lag_lock);
 	tracker = ldev->tracker;
 	spin_unlock(&lag_lock);
+=======
+	tracker = ldev->tracker;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	do_bond = tracker.is_bonded && mlx5_lag_check_prereq(ldev);
 
@@ -558,7 +590,11 @@ static void mlx5_lag_dev_remove_pf(struct mlx5_lag *ldev,
 }
 
 /* Must be called with intf_mutex held */
+<<<<<<< HEAD
 void mlx5_lag_add(struct mlx5_core_dev *dev, struct net_device *netdev)
+=======
+static void __mlx5_lag_dev_add_mdev(struct mlx5_core_dev *dev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mlx5_lag *ldev = NULL;
 	struct mlx5_core_dev *tmp_dev;
@@ -579,10 +615,21 @@ void mlx5_lag_add(struct mlx5_core_dev *dev, struct net_device *netdev)
 			mlx5_core_err(dev, "Failed to alloc lag dev\n");
 			return;
 		}
+<<<<<<< HEAD
 	}
 
 	if (mlx5_lag_dev_add_pf(ldev, dev, netdev) < 0)
 		return;
+=======
+	} else {
+		mlx5_ldev_get(ldev);
+	}
+
+	mlx5_ldev_add_mdev(ldev, dev);
+
+	return;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	for (i = 0; i < MLX5_MAX_PORTS; i++)
 		if (!ldev->pf[i].dev)
@@ -591,6 +638,7 @@ void mlx5_lag_add(struct mlx5_core_dev *dev, struct net_device *netdev)
 	if (i >= MLX5_MAX_PORTS)
 		ldev->flags |= MLX5_LAG_FLAG_READY;
 
+<<<<<<< HEAD
 	if (!ldev->nb.notifier_call) {
 		ldev->nb.notifier_call = mlx5_lag_netdev_event;
 		if (register_netdevice_notifier_net(&init_net, &ldev->nb)) {
@@ -605,6 +653,19 @@ void mlx5_lag_add(struct mlx5_core_dev *dev, struct net_device *netdev)
 			      err);
 
 	return;
+=======
+	mlx5_dev_list_lock();
+	mlx5_ldev_remove_mdev(ldev, dev);
+	mlx5_dev_list_unlock();
+	mlx5_ldev_put(ldev);
+}
+
+void mlx5_lag_add_mdev(struct mlx5_core_dev *dev)
+{
+	mlx5_dev_list_lock();
+	__mlx5_lag_dev_add_mdev(dev);
+	mlx5_dev_list_unlock();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* Must be called with intf_mutex held */
@@ -618,7 +679,15 @@ void mlx5_lag_remove(struct mlx5_core_dev *dev)
 		return;
 
 	if (__mlx5_lag_is_active(ldev))
+<<<<<<< HEAD
 		mlx5_deactivate_lag(ldev);
+=======
+		mlx5_disable_lag(ldev);
+
+	mlx5_ldev_remove_netdev(ldev, netdev);
+	ldev->flags &= ~MLX5_LAG_FLAG_READY;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mlx5_lag_dev_remove_pf(ldev, dev);
 
@@ -628,6 +697,7 @@ void mlx5_lag_remove(struct mlx5_core_dev *dev)
 		if (ldev->pf[i].dev)
 			break;
 
+<<<<<<< HEAD
 	if (i == MLX5_MAX_PORTS) {
 		if (ldev->nb.notifier_call) {
 			unregister_netdevice_notifier_net(&init_net, &ldev->nb);
@@ -637,6 +707,10 @@ void mlx5_lag_remove(struct mlx5_core_dev *dev)
 		cancel_delayed_work_sync(&ldev->bond_work);
 		mlx5_lag_dev_free(ldev);
 	}
+=======
+	if (i >= MLX5_MAX_PORTS)
+		ldev->flags |= MLX5_LAG_FLAG_READY;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
@@ -686,7 +760,11 @@ void mlx5_lag_update(struct mlx5_core_dev *dev)
 	struct mlx5_lag *ldev;
 
 	mlx5_dev_list_lock();
+<<<<<<< HEAD
 	ldev = mlx5_lag_dev_get(dev);
+=======
+	ldev = mlx5_lag_dev(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!ldev)
 		goto unlock;
 

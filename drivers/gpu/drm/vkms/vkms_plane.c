@@ -95,13 +95,21 @@ static void vkms_plane_atomic_update(struct drm_plane *plane,
 				     struct drm_plane_state *old_state)
 {
 	struct vkms_plane_state *vkms_plane_state;
+<<<<<<< HEAD
 	struct drm_framebuffer *fb = plane->state->fb;
+=======
+	struct drm_framebuffer *fb = new_state->fb;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct vkms_composer *composer;
 
 	if (!plane->state->crtc || !fb)
 		return;
 
+<<<<<<< HEAD
 	vkms_plane_state = to_vkms_plane_state(plane->state);
+=======
+	vkms_plane_state = to_vkms_plane_state(new_state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	composer = vkms_plane_state->composer;
 	memcpy(&composer->src, &plane->state->src, sizeof(struct drm_rect));
@@ -159,7 +167,11 @@ static int vkms_prepare_fb(struct drm_plane *plane,
 	if (ret)
 		DRM_ERROR("vmap failed: %d\n", ret);
 
+<<<<<<< HEAD
 	return drm_gem_fb_prepare_fb(plane, state);
+=======
+	return drm_gem_plane_helper_prepare_fb(plane, state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void vkms_cleanup_fb(struct drm_plane *plane,

@@ -109,6 +109,7 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 		max_buffer_size[dev] = 32;
 	else if (max_buffer_size[dev] > 1024)
 		max_buffer_size[dev] = 1024;
+<<<<<<< HEAD
 	if ((err = snd_emu10k1_create(card, pci, extin[dev], extout[dev],
 				      (long)max_buffer_size[dev] * 1024 * 1024,
 				      enable_ir[dev], subsystem[dev],
@@ -121,6 +122,24 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 	if ((err = snd_emu10k1_pcm_mic(emu, 1)) < 0)
 		goto error;
 	if ((err = snd_emu10k1_pcm_efx(emu, 2)) < 0)
+=======
+	err = snd_emu10k1_create(card, pci, extin[dev], extout[dev],
+				 (long)max_buffer_size[dev] * 1024 * 1024,
+				 enable_ir[dev], subsystem[dev],
+				 &emu);
+	if (err < 0)
+		goto error;
+	card->private_data = emu;
+	emu->delay_pcm_irq = delay_pcm_irq[dev] & 0x1f;
+	err = snd_emu10k1_pcm(emu, 0);
+	if (err < 0)
+		goto error;
+	err = snd_emu10k1_pcm_mic(emu, 1);
+	if (err < 0)
+		goto error;
+	err = snd_emu10k1_pcm_efx(emu, 2);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto error;
 	/* This stores the periods table. */
 	if (emu->card_capabilities->ca0151_chip) { /* P16V */	
@@ -130,6 +149,7 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 			goto error;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_emu10k1_mixer(emu, 0, 3)) < 0)
 		goto error;
 	
@@ -150,6 +170,35 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 			goto error;
 	}
 	if ((err = snd_emu10k1_fx8010_new(emu, 0)) < 0)
+=======
+	err = snd_emu10k1_mixer(emu, 0, 3);
+	if (err < 0)
+		goto error;
+	
+	err = snd_emu10k1_timer(emu, 0);
+	if (err < 0)
+		goto error;
+
+	err = snd_emu10k1_pcm_multi(emu, 3);
+	if (err < 0)
+		goto error;
+	if (emu->card_capabilities->ca0151_chip) { /* P16V */
+		err = snd_p16v_pcm(emu, 4);
+		if (err < 0)
+			goto error;
+	}
+	if (emu->audigy) {
+		err = snd_emu10k1_audigy_midi(emu);
+		if (err < 0)
+			goto error;
+	} else {
+		err = snd_emu10k1_midi(emu);
+		if (err < 0)
+			goto error;
+	}
+	err = snd_emu10k1_fx8010_new(emu, 0);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto error;
 #ifdef ENABLE_SYNTH
 	if (snd_seq_device_new(card, 1, SNDRV_SEQ_DEV_ID_EMU10K1_SYNTH,
@@ -176,7 +225,12 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 		 "%s (rev.%d, serial:0x%x) at 0x%lx, irq %i",
 		 card->shortname, emu->revision, emu->serial, emu->port, emu->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0)
+=======
+	err = snd_card_register(card);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto error;
 
 	if (emu->card_capabilities->emu_model)

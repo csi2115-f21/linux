@@ -396,7 +396,24 @@ get_collective_mode(struct hl_device *hdev, u32 queue_id)
 	return HL_COLLECTIVE_NOT_SUPPORTED;
 }
 
+<<<<<<< HEAD
 static int gaudi_get_fixed_properties(struct hl_device *hdev)
+=======
+static inline void set_default_power_values(struct hl_device *hdev)
+{
+	struct asic_fixed_properties *prop = &hdev->asic_prop;
+
+	if (hdev->card_type == cpucp_card_type_pmc) {
+		prop->max_power_default = MAX_POWER_DEFAULT_PMC;
+		prop->dc_power_default = DC_POWER_DEFAULT_PMC;
+	} else {
+		prop->max_power_default = MAX_POWER_DEFAULT_PCI;
+		prop->dc_power_default = DC_POWER_DEFAULT_PCI;
+	}
+}
+
+static int gaudi_set_fixed_properties(struct hl_device *hdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct asic_fixed_properties *prop = &hdev->asic_prop;
 	u32 num_sync_stream_queues = 0;
@@ -536,6 +553,10 @@ static int gaudi_get_fixed_properties(struct hl_device *hdev)
 	prop->fw_security_disabled = true;
 	prop->fw_security_status_valid = false;
 	prop->hard_reset_done_by_fw = false;
+<<<<<<< HEAD
+=======
+	prop->gic_interrupts_enable = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -1629,6 +1650,11 @@ static int gaudi_sw_init(struct hl_device *hdev)
 	hdev->supports_sync_stream = true;
 	hdev->supports_coresight = true;
 	hdev->supports_staged_submission = true;
+<<<<<<< HEAD
+=======
+
+	gaudi_set_pci_memory_regions(hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 
@@ -3917,6 +3943,12 @@ static void gaudi_hw_fini(struct hl_device *hdev, bool hard_reset)
 		cpu_timeout_ms = GAUDI_CPU_RESET_WAIT_MSEC;
 	}
 
+<<<<<<< HEAD
+=======
+	driver_performs_reset = !!(!hdev->asic_prop.fw_security_enabled &&
+					!hdev->asic_prop.hard_reset_done_by_fw);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Set device to handle FLR by H/W as we will put the device CPU to
 	 * halt mode
 	 */
@@ -5684,18 +5716,39 @@ release_cb:
 static int gaudi_schedule_register_memset(struct hl_device *hdev,
 		u32 hw_queue_id, u64 reg_base, u32 num_regs, u32 val)
 {
+<<<<<<< HEAD
 	struct hl_ctx *ctx = hdev->compute_ctx;
+=======
+	struct hl_ctx *ctx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct hl_pending_cb *pending_cb;
 	struct packet_msg_long *pkt;
 	u32 cb_size, ctl;
 	struct hl_cb *cb;
+<<<<<<< HEAD
 	int i;
+=======
+	int i, rc;
+
+	mutex_lock(&hdev->fpriv_list_lock);
+	ctx = hdev->compute_ctx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* If no compute context available or context is going down
 	 * memset registers directly
 	 */
+<<<<<<< HEAD
 	if (!ctx || kref_read(&ctx->refcount) == 0)
 		return gaudi_memset_registers(hdev, reg_base, num_regs, val);
+=======
+	if (!ctx || kref_read(&ctx->refcount) == 0) {
+		rc = gaudi_memset_registers(hdev, reg_base, num_regs, val);
+		mutex_unlock(&hdev->fpriv_list_lock);
+		return rc;
+	}
+
+	mutex_unlock(&hdev->fpriv_list_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	cb_size = (sizeof(*pkt) * num_regs) +
 			sizeof(struct packet_msg_prot) * 2;
@@ -6819,6 +6872,149 @@ enable_clk_gate:
 	return rc;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * gaudi_queue_idx_dec - decrement queue index (pi/ci) and handle wrap
+ *
+ * @idx: the current pi/ci value
+ * @q_len: the queue length (power of 2)
+ *
+ * @return the cyclically decremented index
+ */
+static inline u32 gaudi_queue_idx_dec(u32 idx, u32 q_len)
+{
+	u32 mask = q_len - 1;
+
+	/*
+	 * modular decrement is equivalent to adding (queue_size -1)
+	 * later we take LSBs to make sure the value is in the
+	 * range [0, queue_len - 1]
+	 */
+	return (idx + q_len - 1) & mask;
+}
+
+/**
+ * gaudi_print_sw_config_stream_data - print SW config stream data
+ *
+ * @hdev: pointer to the habanalabs device structure
+ * @stream: the QMAN's stream
+ * @qman_base: base address of QMAN registers block
+ */
+static void gaudi_print_sw_config_stream_data(struct hl_device *hdev, u32 stream,
+						u64 qman_base)
+{
+	u64 cq_ptr_lo, cq_ptr_hi, cq_tsize, cq_ptr;
+	u32 cq_ptr_lo_off, size;
+
+	cq_ptr_lo_off = mmTPC0_QM_CQ_PTR_LO_1 - mmTPC0_QM_CQ_PTR_LO_0;
+
+	cq_ptr_lo = qman_base + (mmTPC0_QM_CQ_PTR_LO_0 - mmTPC0_QM_BASE) +
+						stream * cq_ptr_lo_off;
+	cq_ptr_hi = cq_ptr_lo +
+				(mmTPC0_QM_CQ_PTR_HI_0 - mmTPC0_QM_CQ_PTR_LO_0);
+	cq_tsize = cq_ptr_lo +
+				(mmTPC0_QM_CQ_TSIZE_0 - mmTPC0_QM_CQ_PTR_LO_0);
+
+	cq_ptr = (((u64) RREG32(cq_ptr_hi)) << 32) | RREG32(cq_ptr_lo);
+	size = RREG32(cq_tsize);
+	dev_info(hdev->dev, "stop on err: stream: %u, addr: %#llx, size: %x\n",
+							stream, cq_ptr, size);
+}
+
+/**
+ * gaudi_print_last_pqes_on_err - print last PQEs on error
+ *
+ * @hdev: pointer to the habanalabs device structure
+ * @qid_base: first QID of the QMAN (out of 4 streams)
+ * @stream: the QMAN's stream
+ * @qman_base: base address of QMAN registers block
+ * @pr_sw_conf: if true print the SW config stream data (CQ PTR and SIZE)
+ */
+static void gaudi_print_last_pqes_on_err(struct hl_device *hdev, u32 qid_base,
+						u32 stream, u64 qman_base,
+						bool pr_sw_conf)
+{
+	u32 ci, qm_ci_stream_off, queue_len;
+	struct hl_hw_queue *q;
+	u64 pq_ci;
+	int i;
+
+	q = &hdev->kernel_queues[qid_base + stream];
+
+	qm_ci_stream_off = mmTPC0_QM_PQ_CI_1 - mmTPC0_QM_PQ_CI_0;
+	pq_ci = qman_base + (mmTPC0_QM_PQ_CI_0 - mmTPC0_QM_BASE) +
+						stream * qm_ci_stream_off;
+
+	queue_len = (q->queue_type == QUEUE_TYPE_INT) ?
+					q->int_queue_len : HL_QUEUE_LENGTH;
+
+	hdev->asic_funcs->hw_queues_lock(hdev);
+
+	if (pr_sw_conf)
+		gaudi_print_sw_config_stream_data(hdev, stream, qman_base);
+
+	ci = RREG32(pq_ci);
+
+	/* we should start printing form ci -1 */
+	ci = gaudi_queue_idx_dec(ci, queue_len);
+
+	for (i = 0; i < PQ_FETCHER_CACHE_SIZE; i++) {
+		struct hl_bd *bd;
+		u64 addr;
+		u32 len;
+
+		bd = q->kernel_address;
+		bd += ci;
+
+		len = le32_to_cpu(bd->len);
+		/* len 0 means uninitialized entry- break */
+		if (!len)
+			break;
+
+		addr = le64_to_cpu(bd->ptr);
+
+		dev_info(hdev->dev, "stop on err PQE(stream %u): ci: %u, addr: %#llx, size: %x\n",
+							stream, ci, addr, len);
+
+		/* get previous ci, wrap if needed */
+		ci = gaudi_queue_idx_dec(ci, queue_len);
+	}
+
+	hdev->asic_funcs->hw_queues_unlock(hdev);
+}
+
+/**
+ * print_qman_data_on_err - extract QMAN data on error
+ *
+ * @hdev: pointer to the habanalabs device structure
+ * @qid_base: first QID of the QMAN (out of 4 streams)
+ * @stream: the QMAN's stream
+ * @qman_base: base address of QMAN registers block
+ *
+ * This function attempt to exatract as much data as possible on QMAN error.
+ * On upper CP print the SW config stream data and last 8 PQEs.
+ * On lower CP print SW config data and last PQEs of ALL 4 upper CPs
+ */
+static void print_qman_data_on_err(struct hl_device *hdev, u32 qid_base,
+						u32 stream, u64 qman_base)
+{
+	u32 i;
+
+	if (stream != QMAN_STREAMS) {
+		gaudi_print_last_pqes_on_err(hdev, qid_base, stream, qman_base,
+									true);
+		return;
+	}
+
+	gaudi_print_sw_config_stream_data(hdev, stream, qman_base);
+
+	for (i = 0; i < QMAN_STREAMS; i++)
+		gaudi_print_last_pqes_on_err(hdev, qid_base, i, qman_base,
+									false);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void gaudi_handle_qman_err_generic(struct hl_device *hdev,
 					  const char *qm_name,
 					  u64 glbl_sts_addr,
@@ -7423,8 +7619,12 @@ static void gaudi_handle_eqe(struct hl_device *hdev,
 			dev_err(hdev->dev, "hard reset required due to %s\n",
 				gaudi_irq_map_table[event_type].name);
 
+<<<<<<< HEAD
 			if (hdev->hard_reset_on_fw_events)
 				hl_device_reset(hdev, true, false);
+=======
+			goto reset_device;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			hl_fw_unmask_irq(hdev, event_type);
 		}
@@ -7446,8 +7646,12 @@ static void gaudi_handle_eqe(struct hl_device *hdev,
 			dev_err(hdev->dev, "hard reset required due to %s\n",
 				gaudi_irq_map_table[event_type].name);
 
+<<<<<<< HEAD
 			if (hdev->hard_reset_on_fw_events)
 				hl_device_reset(hdev, true, false);
+=======
+			goto reset_device;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			hl_fw_unmask_irq(hdev, event_type);
 		}
@@ -7557,6 +7761,17 @@ static void gaudi_handle_eqe(struct hl_device *hdev,
 				event_type);
 		break;
 	}
+<<<<<<< HEAD
+=======
+
+	return;
+
+reset_device:
+	if (hdev->hard_reset_on_fw_events)
+		hl_device_reset(hdev, HL_RESET_HARD);
+	else
+		hl_fw_unmask_irq(hdev, event_type);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void *gaudi_get_events_stat(struct hl_device *hdev, bool aggregate,
@@ -8510,7 +8725,35 @@ static int gaudi_block_mmap(struct hl_device *hdev,
 
 static void gaudi_enable_events_from_fw(struct hl_device *hdev)
 {
+<<<<<<< HEAD
 	WREG32(mmGIC_DISTRIBUTOR__5_GICD_SETSPI_NSR, GAUDI_EVENT_INTS_REGISTER);
+=======
+	struct cpu_dyn_regs *dyn_regs =
+			&hdev->fw_loader.dynamic_loader.comm_desc.cpu_dyn_regs;
+	u32 irq_handler_offset = hdev->asic_prop.gic_interrupts_enable ?
+			mmGIC_DISTRIBUTOR__5_GICD_SETSPI_NSR :
+			le32_to_cpu(dyn_regs->gic_host_ints_irq);
+
+	WREG32(irq_handler_offset,
+		gaudi_irq_map_table[GAUDI_EVENT_INTS_REGISTER].cpu_id);
+}
+
+static int gaudi_map_pll_idx_to_fw_idx(u32 pll_idx)
+{
+	switch (pll_idx) {
+	case HL_GAUDI_CPU_PLL: return CPU_PLL;
+	case HL_GAUDI_PCI_PLL: return PCI_PLL;
+	case HL_GAUDI_NIC_PLL: return NIC_PLL;
+	case HL_GAUDI_DMA_PLL: return DMA_PLL;
+	case HL_GAUDI_MESH_PLL: return MESH_PLL;
+	case HL_GAUDI_MME_PLL: return MME_PLL;
+	case HL_GAUDI_TPC_PLL: return TPC_PLL;
+	case HL_GAUDI_IF_PLL: return IF_PLL;
+	case HL_GAUDI_SRAM_PLL: return SRAM_PLL;
+	case HL_GAUDI_HBM_PLL: return HBM_PLL;
+	default: return -EINVAL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct hl_asic_funcs gaudi_funcs = {
@@ -8595,7 +8838,14 @@ static const struct hl_asic_funcs gaudi_funcs = {
 	.ack_protection_bits_errors = gaudi_ack_protection_bits_errors,
 	.get_hw_block_id = gaudi_get_hw_block_id,
 	.hw_block_mmap = gaudi_block_mmap,
+<<<<<<< HEAD
 	.enable_events_from_fw = gaudi_enable_events_from_fw
+=======
+	.enable_events_from_fw = gaudi_enable_events_from_fw,
+	.map_pll_idx_to_fw_idx = gaudi_map_pll_idx_to_fw_idx,
+	.init_firmware_loader = gaudi_init_firmware_loader,
+	.init_cpu_scrambler_dram = gaudi_init_scrambler_hbm
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**

@@ -379,8 +379,13 @@ static int pcan_usb_get_device_id(struct peak_usb_device *dev, u32 *device_id)
 	err = pcan_usb_wait_rsp(dev, PCAN_USB_CMD_DEVID, PCAN_USB_GET, args);
 	if (err)
 		netdev_err(dev->netdev, "getting device id failure: %d\n", err);
+<<<<<<< HEAD
 	else if (device_id)
 		*device_id = args[0];
+=======
+
+	*device_id = args[0];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return err;
 }
@@ -718,7 +723,11 @@ static int pcan_usb_decode_data(struct pcan_usb_msg_context *mc, u8 status_len)
 		if ((mc->ptr + 4) > mc->end)
 			goto decode_failed;
 
+<<<<<<< HEAD
 		memcpy(&tmp32, mc->ptr, 4);
+=======
+		cf->can_id = get_unaligned_le32(mc->ptr) >> 3 | CAN_EFF_FLAG;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mc->ptr += 4;
 
 		cf->can_id = (le32_to_cpu(tmp32) >> 3) | CAN_EFF_FLAG;
@@ -728,7 +737,11 @@ static int pcan_usb_decode_data(struct pcan_usb_msg_context *mc, u8 status_len)
 		if ((mc->ptr + 2) > mc->end)
 			goto decode_failed;
 
+<<<<<<< HEAD
 		memcpy(&tmp16, mc->ptr, 2);
+=======
+		cf->can_id = get_unaligned_le16(mc->ptr) >> 5;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mc->ptr += 2;
 
 		cf->can_id = le16_to_cpu(tmp16) >> 5;
@@ -845,6 +858,7 @@ static int pcan_usb_encode_msg(struct peak_usb_device *dev, struct sk_buff *skb,
 
 	/* can id */
 	if (cf->can_id & CAN_EFF_FLAG) {
+<<<<<<< HEAD
 		__le32 tmp32 = cpu_to_le32((cf->can_id & CAN_ERR_MASK) << 3);
 
 		*pc |= PCAN_USB_STATUSLEN_EXT_ID;
@@ -854,6 +868,17 @@ static int pcan_usb_encode_msg(struct peak_usb_device *dev, struct sk_buff *skb,
 		__le16 tmp16 = cpu_to_le16((cf->can_id & CAN_ERR_MASK) << 5);
 
 		memcpy(++pc, &tmp16, 2);
+=======
+		*pc |= PCAN_USB_STATUSLEN_EXT_ID;
+		pc++;
+
+		put_unaligned_le32((cf->can_id & CAN_ERR_MASK) << 3, pc);
+		pc += 4;
+	} else {
+		pc++;
+
+		put_unaligned_le16((cf->can_id & CAN_ERR_MASK) << 5, pc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pc += 2;
 	}
 

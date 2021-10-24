@@ -276,6 +276,52 @@ static inline void dump_stack(void)
 static inline void printk_safe_flush(void)
 {
 }
+<<<<<<< HEAD
+=======
+
+static inline void printk_safe_flush(void)
+{
+}
+
+static inline void printk_safe_flush_on_panic(void)
+{
+}
+#endif
+
+#ifdef CONFIG_SMP
+extern int __printk_cpu_trylock(void);
+extern void __printk_wait_on_cpu_lock(void);
+extern void __printk_cpu_unlock(void);
+
+/**
+ * printk_cpu_lock_irqsave() - Acquire the printk cpu-reentrant spinning
+ *                             lock and disable interrupts.
+ * @flags: Stack-allocated storage for saving local interrupt state,
+ *         to be passed to printk_cpu_unlock_irqrestore().
+ *
+ * If the lock is owned by another CPU, spin until it becomes available.
+ * Interrupts are restored while spinning.
+ */
+#define printk_cpu_lock_irqsave(flags)		\
+	for (;;) {				\
+		local_irq_save(flags);		\
+		if (__printk_cpu_trylock())	\
+			break;			\
+		local_irq_restore(flags);	\
+		__printk_wait_on_cpu_lock();	\
+	}
+
+/**
+ * printk_cpu_unlock_irqrestore() - Release the printk cpu-reentrant spinning
+ *                                  lock and restore interrupts.
+ * @flags: Caller's saved interrupt state, from printk_cpu_lock_irqsave().
+ */
+#define printk_cpu_unlock_irqrestore(flags)	\
+	do {					\
+		__printk_cpu_unlock();		\
+		local_irq_restore(flags);	\
+	} while (0)				\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline void printk_safe_flush_on_panic(void)
 {

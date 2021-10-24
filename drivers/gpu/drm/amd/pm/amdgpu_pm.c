@@ -2169,7 +2169,11 @@ out:
 
 static struct amdgpu_device_attr amdgpu_device_attrs[] = {
 	AMDGPU_DEVICE_ATTR_RW(power_dpm_state,				ATTR_FLAG_BASIC|ATTR_FLAG_ONEVF),
+<<<<<<< HEAD
 	AMDGPU_DEVICE_ATTR_RW(power_dpm_force_performance_level,	ATTR_FLAG_BASIC),
+=======
+	AMDGPU_DEVICE_ATTR_RW(power_dpm_force_performance_level,	ATTR_FLAG_BASIC|ATTR_FLAG_ONEVF),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	AMDGPU_DEVICE_ATTR_RO(pp_num_states,				ATTR_FLAG_BASIC),
 	AMDGPU_DEVICE_ATTR_RO(pp_cur_state,				ATTR_FLAG_BASIC),
 	AMDGPU_DEVICE_ATTR_RW(pp_force_state,				ATTR_FLAG_BASIC),
@@ -2259,6 +2263,17 @@ static int default_attr_update(struct amdgpu_device *adev, struct amdgpu_device_
 			dev_attr->attr.mode &= ~S_IWUGO;
 			dev_attr->store = NULL;
 		}
+<<<<<<< HEAD
+=======
+	}
+
+	if (DEVICE_ATTR_IS(pp_dpm_dcefclk)) {
+		/* SMU MP1 does not support dcefclk level setting */
+		if (asic_type >= CHIP_NAVI10) {
+			dev_attr->attr.mode &= ~S_IWUGO;
+			dev_attr->store = NULL;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 #undef DEVICE_ATTR_IS
@@ -2528,7 +2543,11 @@ static ssize_t amdgpu_hwmon_get_pwm1_enable(struct device *dev,
 	pm_runtime_mark_last_busy(adev_to_drm(adev)->dev);
 	pm_runtime_put_autosuspend(adev_to_drm(adev)->dev);
 
+<<<<<<< HEAD
 	return sprintf(buf, "%i\n", pwm_mode);
+=======
+	return sprintf(buf, "%u\n", pwm_mode);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t amdgpu_hwmon_set_pwm1_enable(struct device *dev,
@@ -2624,9 +2643,13 @@ static ssize_t amdgpu_hwmon_set_pwm1(struct device *dev,
 
 	value = (value * 100) / 255;
 
+<<<<<<< HEAD
 	if (is_support_sw_smu(adev))
 		err = smu_set_fan_speed_percent(&adev->smu, value);
 	else if (adev->powerplay.pp_funcs->set_fan_speed_percent)
+=======
+	if (adev->powerplay.pp_funcs->set_fan_speed_percent)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = amdgpu_dpm_set_fan_speed_percent(adev, value);
 	else
 		err = -EINVAL;
@@ -2657,9 +2680,13 @@ static ssize_t amdgpu_hwmon_get_pwm1(struct device *dev,
 		return err;
 	}
 
+<<<<<<< HEAD
 	if (is_support_sw_smu(adev))
 		err = smu_get_fan_speed_percent(&adev->smu, &speed);
 	else if (adev->powerplay.pp_funcs->get_fan_speed_percent)
+=======
+	if (adev->powerplay.pp_funcs->get_fan_speed_percent)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = amdgpu_dpm_get_fan_speed_percent(adev, &speed);
 	else
 		err = -EINVAL;

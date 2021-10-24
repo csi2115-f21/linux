@@ -833,6 +833,7 @@ static int pci_epf_test_bind(struct pci_epf *epf)
 		return -EINVAL;
 
 	epc_features = pci_epc_get_features(epc, epf->func_no);
+<<<<<<< HEAD
 	if (epc_features) {
 		linkup_notifier = epc_features->linkup_notifier;
 		core_init_notifier = epc_features->core_init_notifier;
@@ -840,6 +841,11 @@ static int pci_epf_test_bind(struct pci_epf *epf)
 		if (test_reg_bar < 0)
 			return -EINVAL;
 		pci_epf_configure_bar(epf, epc_features);
+=======
+	if (!epc_features) {
+		dev_err(&epf->dev, "epc_features not implemented\n");
+		return -EOPNOTSUPP;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	epf_test->test_reg_bar = test_reg_bar;

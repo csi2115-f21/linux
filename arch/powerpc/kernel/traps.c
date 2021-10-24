@@ -428,7 +428,11 @@ void hv_nmi_check_nonrecoverable(struct pt_regs *regs)
 	return;
 
 nonrecoverable:
+<<<<<<< HEAD
 	regs->msr &= ~MSR_RI;
+=======
+	regs_set_return_msr(regs, regs->msr & ~MSR_RI);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 }
 DEFINE_INTERRUPT_HANDLER_NMI(system_reset_exception)
@@ -550,8 +554,13 @@ static inline int check_io_access(struct pt_regs *regs)
 			printk(KERN_DEBUG "%s bad port %lx at %p\n",
 			       (*nip & 0x100)? "OUT to": "IN from",
 			       regs->gpr[rb] - _IO_BASE, nip);
+<<<<<<< HEAD
 			regs->msr |= MSR_RI;
 			regs->nip = extable_fixup(entry);
+=======
+			regs_set_return_msr(regs, regs->msr | MSR_RI);
+			regs_set_return_ip(regs, extable_fixup(entry));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return 1;
 		}
 	}
@@ -1469,7 +1478,11 @@ static void do_program_check(struct pt_regs *regs)
 
 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
 		    report_bug(bugaddr, regs) == BUG_TRAP_TYPE_WARN) {
+<<<<<<< HEAD
 			regs->nip += 4;
+=======
+			regs_add_return_ip(regs, 4);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return;
 		}
 		_exception(SIGTRAP, regs, TRAP_BRKPT, regs->nip);

@@ -194,6 +194,11 @@ enum nix_scheduler {
 #define NIX_CHAN_CGX_LMAC_CHX(a, b, c)	(0x800 + 0x100 * (a) + 0x10 * (b) + (c))
 #define NIX_CHAN_LBK_CHX(a, b)		(0 + 0x100 * (a) + (b))
 #define NIX_CHAN_SDP_CH_START		(0x700ull)
+<<<<<<< HEAD
+=======
+
+#define SDP_CHANNELS			256
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define SDP_CHANNELS			256
 

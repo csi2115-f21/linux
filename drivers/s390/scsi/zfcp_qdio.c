@@ -69,6 +69,33 @@ static void zfcp_qdio_int_req(struct ccw_device *cdev, unsigned int qdio_err,
 	if (unlikely(qdio_err)) {
 		zfcp_qdio_handler_error(qdio, "qdireq1", qdio_err);
 		return;
+<<<<<<< HEAD
+=======
+	}
+}
+
+static void zfcp_qdio_request_tasklet(struct tasklet_struct *tasklet)
+{
+	struct zfcp_qdio *qdio = from_tasklet(qdio, tasklet, request_tasklet);
+	struct ccw_device *cdev = qdio->adapter->ccw_device;
+	unsigned int start, error;
+	int completed;
+
+	completed = qdio_inspect_queue(cdev, 0, false, &start, &error);
+	if (completed > 0) {
+		if (error) {
+			zfcp_qdio_handler_error(qdio, "qdreqt1", error);
+		} else {
+			/* cleanup all SBALs being program-owned now */
+			zfcp_qdio_zero_sbals(qdio->req_q, start, completed);
+
+			spin_lock_irq(&qdio->stat_lock);
+			zfcp_qdio_account(qdio);
+			spin_unlock_irq(&qdio->stat_lock);
+			atomic_add(completed, &qdio->req_q_free);
+			wake_up(&qdio->req_q_wq);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* cleanup all SBALs being program-owned now */

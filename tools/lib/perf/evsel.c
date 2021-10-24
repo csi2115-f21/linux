@@ -38,6 +38,10 @@ void perf_evsel__delete(struct perf_evsel *evsel)
 }
 
 #define FD(e, x, y) (*(int *) xyarray__entry(e->fd, x, y))
+<<<<<<< HEAD
+=======
+#define MMAP(e, x, y) (e->mmap ? ((struct perf_mmap *) xyarray__entry(e->mmap, x, y)) : NULL)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int perf_evsel__alloc_fd(struct perf_evsel *evsel, int ncpus, int nthreads)
 {
@@ -63,6 +67,35 @@ sys_perf_event_open(struct perf_event_attr *attr,
 	return syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
 }
 
+<<<<<<< HEAD
+=======
+static int get_group_fd(struct perf_evsel *evsel, int cpu, int thread, int *group_fd)
+{
+	struct perf_evsel *leader = evsel->leader;
+	int fd;
+
+	if (evsel == leader) {
+		*group_fd = -1;
+		return 0;
+	}
+
+	/*
+	 * Leader must be already processed/open,
+	 * if not it's a bug.
+	 */
+	if (!leader->fd)
+		return -ENOTCONN;
+
+	fd = FD(leader, cpu, thread);
+	if (fd == -1)
+		return -EBADF;
+
+	*group_fd = fd;
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int perf_evsel__open(struct perf_evsel *evsel, struct perf_cpu_map *cpus,
 		     struct perf_thread_map *threads)
 {
@@ -98,7 +131,15 @@ int perf_evsel__open(struct perf_evsel *evsel, struct perf_cpu_map *cpus,
 
 	for (cpu = 0; cpu < cpus->nr; cpu++) {
 		for (thread = 0; thread < threads->nr; thread++) {
+<<<<<<< HEAD
 			int fd;
+=======
+			int fd, group_fd;
+
+			err = get_group_fd(evsel, cpu, thread, &group_fd);
+			if (err < 0)
+				return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			fd = sys_perf_event_open(&evsel->attr,
 						 threads->map[thread].pid,
@@ -156,6 +197,75 @@ void perf_evsel__close_cpu(struct perf_evsel *evsel, int cpu)
 	perf_evsel__close_fd_cpu(evsel, cpu);
 }
 
+<<<<<<< HEAD
+=======
+void perf_evsel__munmap(struct perf_evsel *evsel)
+{
+	int cpu, thread;
+
+	if (evsel->fd == NULL || evsel->mmap == NULL)
+		return;
+
+	for (cpu = 0; cpu < xyarray__max_x(evsel->fd); cpu++) {
+		for (thread = 0; thread < xyarray__max_y(evsel->fd); thread++) {
+			int fd = FD(evsel, cpu, thread);
+			struct perf_mmap *map = MMAP(evsel, cpu, thread);
+
+			if (fd < 0)
+				continue;
+
+			perf_mmap__munmap(map);
+		}
+	}
+
+	xyarray__delete(evsel->mmap);
+	evsel->mmap = NULL;
+}
+
+int perf_evsel__mmap(struct perf_evsel *evsel, int pages)
+{
+	int ret, cpu, thread;
+	struct perf_mmap_param mp = {
+		.prot = PROT_READ | PROT_WRITE,
+		.mask = (pages * page_size) - 1,
+	};
+
+	if (evsel->fd == NULL || evsel->mmap)
+		return -EINVAL;
+
+	if (perf_evsel__alloc_mmap(evsel, xyarray__max_x(evsel->fd), xyarray__max_y(evsel->fd)) < 0)
+		return -ENOMEM;
+
+	for (cpu = 0; cpu < xyarray__max_x(evsel->fd); cpu++) {
+		for (thread = 0; thread < xyarray__max_y(evsel->fd); thread++) {
+			int fd = FD(evsel, cpu, thread);
+			struct perf_mmap *map = MMAP(evsel, cpu, thread);
+
+			if (fd < 0)
+				continue;
+
+			perf_mmap__init(map, NULL, false, NULL);
+
+			ret = perf_mmap__mmap(map, &mp, fd, cpu);
+			if (ret) {
+				perf_evsel__munmap(evsel);
+				return ret;
+			}
+		}
+	}
+
+	return 0;
+}
+
+void *perf_evsel__mmap_base(struct perf_evsel *evsel, int cpu, int thread)
+{
+	if (FD(evsel, cpu, thread) < 0 || MMAP(evsel, cpu, thread) == NULL)
+		return NULL;
+
+	return MMAP(evsel, cpu, thread)->base;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int perf_evsel__read_size(struct perf_evsel *evsel)
 {
 	u64 read_format = evsel->attr.read_format;
@@ -191,6 +301,13 @@ int perf_evsel__read(struct perf_evsel *evsel, int cpu, int thread,
 	if (FD(evsel, cpu, thread) < 0)
 		return -EINVAL;
 
+<<<<<<< HEAD
+=======
+	if (MMAP(evsel, cpu, thread) &&
+	    !perf_mmap__read_self(MMAP(evsel, cpu, thread), count))
+		return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (readn(FD(evsel, cpu, thread), count->values, size) <= 0)
 		return -errno;
 

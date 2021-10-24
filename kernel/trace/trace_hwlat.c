@@ -293,7 +293,11 @@ static void move_to_next_cpu(void)
 
 	get_online_cpus();
 	cpumask_and(current_mask, cpu_online_mask, tr->tracing_cpumask);
+<<<<<<< HEAD
 	next_cpu = cpumask_next(smp_processor_id(), current_mask);
+=======
+	next_cpu = cpumask_next(raw_smp_processor_id(), current_mask);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_online_cpus();
 
 	if (next_cpu >= nr_cpu_ids)
@@ -351,8 +355,38 @@ static int kthread_fn(void *data)
 	return 0;
 }
 
+<<<<<<< HEAD
 /**
  * start_kthread - Kick off the hardware latency sampling/detector kthread
+=======
+/*
+ * stop_stop_kthread - Inform the hardware latency sampling/detector kthread to stop
+ *
+ * This kicks the running hardware latency sampling/detector kernel thread and
+ * tells it to stop sampling now. Use this on unload and at system shutdown.
+ */
+static void stop_single_kthread(void)
+{
+	struct hwlat_kthread_data *kdata = get_cpu_data();
+	struct task_struct *kthread;
+
+	get_online_cpus();
+	kthread = kdata->kthread;
+
+	if (!kthread)
+		goto out_put_cpus;
+
+	kthread_stop(kthread);
+	kdata->kthread = NULL;
+
+out_put_cpus:
+	put_online_cpus();
+}
+
+
+/*
+ * start_single_kthread - Kick off the hardware latency sampling/detector kthread
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * This starts the kernel thread that will sit and sample the CPU timestamp
  * counter (TSC or similar) and look for potential hardware latencies.
@@ -363,6 +397,7 @@ static int start_kthread(struct trace_array *tr)
 	struct task_struct *kthread;
 	int next_cpu;
 
+<<<<<<< HEAD
 	if (hwlat_kthread)
 		return 0;
 
@@ -371,10 +406,19 @@ static int start_kthread(struct trace_array *tr)
 	cpumask_and(current_mask, cpu_online_mask, tr->tracing_cpumask);
 	put_online_cpus();
 	next_cpu = cpumask_first(current_mask);
+=======
+	get_online_cpus();
+	if (kdata->kthread)
+		goto out_put_cpus;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kthread = kthread_create(kthread_fn, NULL, "hwlatd");
 	if (IS_ERR(kthread)) {
 		pr_err(BANNER "could not start sampling thread\n");
+<<<<<<< HEAD
+=======
+		put_online_cpus();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	}
 
@@ -385,6 +429,11 @@ static int start_kthread(struct trace_array *tr)
 	hwlat_kthread = kthread;
 	wake_up_process(kthread);
 
+<<<<<<< HEAD
+=======
+out_put_cpus:
+	put_online_cpus();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -396,10 +445,19 @@ static int start_kthread(struct trace_array *tr)
  */
 static void stop_kthread(void)
 {
+<<<<<<< HEAD
 	if (!hwlat_kthread)
 		return;
 	kthread_stop(hwlat_kthread);
 	hwlat_kthread = NULL;
+=======
+	unsigned int cpu;
+
+	get_online_cpus();
+	for_each_online_cpu(cpu)
+		stop_cpu_kthread(cpu);
+	put_online_cpus();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -420,11 +478,49 @@ static ssize_t hwlat_read(struct file *filp, char __user *ubuf,
 	u64 val;
 	int len;
 
+<<<<<<< HEAD
 	if (!entry)
 		return -EFAULT;
 
 	if (cnt > sizeof(buf))
 		cnt = sizeof(buf);
+=======
+	kthread = kthread_create_on_cpu(kthread_fn, NULL, cpu, comm);
+	if (IS_ERR(kthread)) {
+		pr_err(BANNER "could not start sampling thread\n");
+		return -ENOMEM;
+	}
+
+	per_cpu(hwlat_per_cpu_data, cpu).kthread = kthread;
+	wake_up_process(kthread);
+
+	return 0;
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+static void hwlat_hotplug_workfn(struct work_struct *dummy)
+{
+	struct trace_array *tr = hwlat_trace;
+	unsigned int cpu = smp_processor_id();
+
+	mutex_lock(&trace_types_lock);
+	mutex_lock(&hwlat_data.lock);
+	get_online_cpus();
+
+	if (!hwlat_busy || hwlat_data.thread_mode != MODE_PER_CPU)
+		goto out_unlock;
+
+	if (!cpumask_test_cpu(cpu, tr->tracing_cpumask))
+		goto out_unlock;
+
+	start_cpu_kthread(cpu);
+
+out_unlock:
+	put_online_cpus();
+	mutex_unlock(&hwlat_data.lock);
+	mutex_unlock(&trace_types_lock);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	val = *entry;
 
@@ -452,8 +548,38 @@ static ssize_t
 hwlat_width_write(struct file *filp, const char __user *ubuf,
 		  size_t cnt, loff_t *ppos)
 {
+<<<<<<< HEAD
 	u64 val;
 	int err;
+=======
+	struct cpumask *current_mask = &save_cpumask;
+	unsigned int cpu;
+	int retval;
+
+	get_online_cpus();
+	/*
+	 * Run only on CPUs in which hwlat is allowed to run.
+	 */
+	cpumask_and(current_mask, cpu_online_mask, tr->tracing_cpumask);
+
+	for_each_online_cpu(cpu)
+		per_cpu(hwlat_per_cpu_data, cpu).kthread = NULL;
+
+	for_each_cpu(cpu, current_mask) {
+		retval = start_cpu_kthread(cpu);
+		if (retval)
+			goto out_error;
+	}
+	put_online_cpus();
+
+	return 0;
+
+out_error:
+	put_online_cpus();
+	stop_per_cpu_kthreads();
+	return retval;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	err = kstrtoull_from_user(ubuf, cnt, 10, &val);
 	if (err)

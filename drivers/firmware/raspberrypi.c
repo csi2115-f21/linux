@@ -293,7 +293,18 @@ struct rpi_firmware *rpi_firmware_get(struct device_node *firmware_node)
 	if (!pdev)
 		return NULL;
 
+<<<<<<< HEAD
 	return platform_get_drvdata(pdev);
+=======
+	fw = platform_get_drvdata(pdev);
+	if (!fw)
+		return NULL;
+
+	if (!kref_get_unless_zero(&fw->consumers))
+		return NULL;
+
+	return fw;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(rpi_firmware_get);
 

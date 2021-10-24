@@ -448,14 +448,23 @@ parse_lfp_backlight(struct drm_i915_private *dev_priv,
 		return;
 	}
 
+<<<<<<< HEAD
 	dev_priv->vbt.backlight.type = INTEL_BACKLIGHT_DISPLAY_DDI;
+=======
+	i915->vbt.backlight.type = INTEL_BACKLIGHT_DISPLAY_DDI;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (bdb->version >= 191 &&
 	    get_blocksize(backlight_data) >= sizeof(*backlight_data)) {
 		const struct lfp_backlight_control_method *method;
 
 		method = &backlight_data->backlight_control[panel_type];
+<<<<<<< HEAD
 		dev_priv->vbt.backlight.type = method->type;
 		dev_priv->vbt.backlight.controller = method->controller;
+=======
+		i915->vbt.backlight.type = method->type;
+		i915->vbt.backlight.controller = method->controller;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	dev_priv->vbt.backlight.pwm_freq_hz = entry->pwm_freq_hz;
@@ -1721,9 +1730,118 @@ static enum port dvo_port_to_port(struct drm_i915_private *dev_priv,
 					  dvo_port);
 }
 
+<<<<<<< HEAD
 static void parse_ddi_port(struct drm_i915_private *dev_priv,
 			   struct display_device_data *devdata,
 			   u8 bdb_version)
+=======
+static int parse_bdb_230_dp_max_link_rate(const int vbt_max_link_rate)
+{
+	switch (vbt_max_link_rate) {
+	default:
+	case BDB_230_VBT_DP_MAX_LINK_RATE_DEF:
+		return 0;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_UHBR20:
+		return 2000000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_UHBR13P5:
+		return 1350000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_UHBR10:
+		return 1000000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_HBR3:
+		return 810000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_HBR2:
+		return 540000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_HBR:
+		return 270000;
+	case BDB_230_VBT_DP_MAX_LINK_RATE_LBR:
+		return 162000;
+	}
+}
+
+static int parse_bdb_216_dp_max_link_rate(const int vbt_max_link_rate)
+{
+	switch (vbt_max_link_rate) {
+	default:
+	case BDB_216_VBT_DP_MAX_LINK_RATE_HBR3:
+		return 810000;
+	case BDB_216_VBT_DP_MAX_LINK_RATE_HBR2:
+		return 540000;
+	case BDB_216_VBT_DP_MAX_LINK_RATE_HBR:
+		return 270000;
+	case BDB_216_VBT_DP_MAX_LINK_RATE_LBR:
+		return 162000;
+	}
+}
+
+static void sanitize_device_type(struct intel_bios_encoder_data *devdata,
+				 enum port port)
+{
+	struct drm_i915_private *i915 = devdata->i915;
+	bool is_hdmi;
+
+	if (port != PORT_A || DISPLAY_VER(i915) >= 12)
+		return;
+
+	if (!(devdata->child.device_type & DEVICE_TYPE_TMDS_DVI_SIGNALING))
+		return;
+
+	is_hdmi = !(devdata->child.device_type & DEVICE_TYPE_NOT_HDMI_OUTPUT);
+
+	drm_dbg_kms(&i915->drm, "VBT claims port A supports DVI%s, ignoring\n",
+		    is_hdmi ? "/HDMI" : "");
+
+	devdata->child.device_type &= ~DEVICE_TYPE_TMDS_DVI_SIGNALING;
+	devdata->child.device_type |= DEVICE_TYPE_NOT_HDMI_OUTPUT;
+}
+
+static bool
+intel_bios_encoder_supports_crt(const struct intel_bios_encoder_data *devdata)
+{
+	return devdata->child.device_type & DEVICE_TYPE_ANALOG_OUTPUT;
+}
+
+bool
+intel_bios_encoder_supports_dvi(const struct intel_bios_encoder_data *devdata)
+{
+	return devdata->child.device_type & DEVICE_TYPE_TMDS_DVI_SIGNALING;
+}
+
+bool
+intel_bios_encoder_supports_hdmi(const struct intel_bios_encoder_data *devdata)
+{
+	return intel_bios_encoder_supports_dvi(devdata) &&
+		(devdata->child.device_type & DEVICE_TYPE_NOT_HDMI_OUTPUT) == 0;
+}
+
+bool
+intel_bios_encoder_supports_dp(const struct intel_bios_encoder_data *devdata)
+{
+	return devdata->child.device_type & DEVICE_TYPE_DISPLAYPORT_OUTPUT;
+}
+
+static bool
+intel_bios_encoder_supports_edp(const struct intel_bios_encoder_data *devdata)
+{
+	return intel_bios_encoder_supports_dp(devdata) &&
+		devdata->child.device_type & DEVICE_TYPE_INTERNAL_CONNECTOR;
+}
+
+static bool is_port_valid(struct drm_i915_private *i915, enum port port)
+{
+	/*
+	 * On some ICL/CNL SKUs port F is not present, but broken VBTs mark
+	 * the port as present. Only try to initialize port F for the
+	 * SKUs that may actually have it.
+	 */
+	if (port == PORT_F && (IS_ICELAKE(i915) || IS_CANNONLAKE(i915)))
+		return IS_ICL_WITH_PORT_F(i915) || IS_CNL_WITH_PORT_F(i915);
+
+	return true;
+}
+
+static void parse_ddi_port(struct drm_i915_private *i915,
+			   struct intel_bios_encoder_data *devdata)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	const struct child_device_config *child = &devdata->child;
 	struct ddi_vbt_port_info *info;
@@ -1832,6 +1950,7 @@ static void parse_ddi_port(struct drm_i915_private *dev_priv,
 		info->max_tmds_clock = max_tmds_clock;
 	}
 
+<<<<<<< HEAD
 	/* Parse the I_boost config for SKL and above */
 	if (bdb_version >= 196 && child->iboost) {
 		info->dp_boost_level = translate_iboost(child->dp_iboost_level);
@@ -1843,6 +1962,27 @@ static void parse_ddi_port(struct drm_i915_private *dev_priv,
 			    "VBT HDMI boost level for port %c: %d\n",
 			    port_name(port), info->hdmi_boost_level);
 	}
+=======
+	/* I_boost config for SKL and above */
+	dp_boost_level = intel_bios_encoder_dp_boost_level(devdata);
+	if (dp_boost_level)
+		drm_dbg_kms(&i915->drm,
+			    "Port %c VBT (e)DP boost level: %d\n",
+			    port_name(port), dp_boost_level);
+
+	hdmi_boost_level = intel_bios_encoder_hdmi_boost_level(devdata);
+	if (hdmi_boost_level)
+		drm_dbg_kms(&i915->drm,
+			    "Port %c VBT HDMI boost level: %d\n",
+			    port_name(port), hdmi_boost_level);
+
+	/* DP max link rate for CNL+ */
+	if (i915->vbt.version >= 216) {
+		if (i915->vbt.version >= 230)
+			info->dp_max_link_rate = parse_bdb_230_dp_max_link_rate(child->dp_max_link_rate);
+		else
+			info->dp_max_link_rate = parse_bdb_216_dp_max_link_rate(child->dp_max_link_rate);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* DP max link rate for CNL+ */
 	if (bdb_version >= 216) {

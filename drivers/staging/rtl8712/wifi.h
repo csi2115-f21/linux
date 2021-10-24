@@ -35,6 +35,8 @@
 
 #define P80211CAPTURE_VERSION	0x80211001
 
+#define P80211CAPTURE_VERSION	0x80211001
+
 enum WIFI_FRAME_TYPE {
 	WIFI_MGT_TYPE  =	(0),
 	WIFI_CTRL_TYPE =	(BIT(2)),
@@ -115,6 +117,7 @@ enum WIFI_REG_DOMAIN {
 	DOMAIN_MAX
 };
 
+<<<<<<< HEAD
 #define _TO_DS_		BIT(8)
 #define _FROM_DS_	BIT(9)
 #define _MORE_FRAG_	BIT(10)
@@ -123,6 +126,21 @@ enum WIFI_REG_DOMAIN {
 #define _MORE_DATA_	BIT(13)
 #define _PRIVACY_	BIT(14)
 #define _ORDER_		BIT(15)
+=======
+enum WIFI_REG_DOMAIN {
+	DOMAIN_FCC	= 1,
+	DOMAIN_IC	= 2,
+	DOMAIN_ETSI	= 3,
+	DOMAIN_SPAIN	= 4,
+	DOMAIN_FRANCE	= 5,
+	DOMAIN_MKK	= 6,
+	DOMAIN_ISRAEL	= 7,
+	DOMAIN_MKK1	= 8,
+	DOMAIN_MKK2	= 9,
+	DOMAIN_MKK3	= 10,
+	DOMAIN_MAX
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define SetToDs(pbuf) ({ \
 	*(__le16 *)(pbuf) |= cpu_to_le16(_TO_DS_); \
@@ -335,6 +353,7 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
  *		Below is for the security related definition
  *-----------------------------------------------------------------------------
  */
+<<<<<<< HEAD
 #define _RESERVED_FRAME_TYPE_	0
 #define _SKB_FRAME_TYPE_	2
 #define _PRE_ALLOCMEM_		1
@@ -348,6 +367,8 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 #define _ACKCTSLNG_		14	/*14 bytes long, including crclng */
 #define _CRCLNG_		4
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define _ASOCREQ_IE_OFFSET_	4	/* excluding wlan_hdr */
 #define	_ASOCRSP_IE_OFFSET_	6
 #define _REASOCREQ_IE_OFFSET_	10
@@ -360,6 +381,7 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 
 #define _FIXED_IE_LENGTH_	_BEACON_IE_OFFSET_
 
+<<<<<<< HEAD
 #define _SSID_IE_		0
 #define _SUPPORTEDRATES_IE_	1
 #define _DSSET_IE_		3
@@ -375,6 +397,8 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 
 #define	_RESERVED47_		47
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* ---------------------------------------------------------------------------
  *			Below is the fixed elements...
  * ---------------------------------------------------------------------------
@@ -393,6 +417,7 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 #define AUTH_ODD_TO				0
 #define AUTH_EVEN_TO			1
 
+<<<<<<< HEAD
 #define WLAN_ETHCONV_ENCAP		1
 #define WLAN_ETHCONV_RFC1042	2
 #define WLAN_ETHCONV_8021h		3
@@ -404,6 +429,8 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 #define cap_Privacy BIT(4)
 #define cap_ShortPremble BIT(5)
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*-----------------------------------------------------------------------------
  *			Below is the definition for 802.11i / 802.1x
  *------------------------------------------------------------------------------

@@ -121,7 +121,11 @@ skl_dram_get_dimm_info(struct drm_i915_private *i915,
 		       struct dram_dimm_info *dimm,
 		       int channel, char dimm_name, u16 val)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 10) {
+=======
+	if (GRAPHICS_VER(i915) >= 10) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dimm->size = cnl_get_dimm_size(val);
 		dimm->width = cnl_get_dimm_width(val);
 		dimm->ranks = cnl_get_dimm_ranks(val);
@@ -495,10 +499,17 @@ void intel_dram_detect(struct drm_i915_private *i915)
 	 */
 	dram_info->wm_lv_0_adjust_needed = !IS_GEN9_LP(i915);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) < 9 || !HAS_DISPLAY(i915))
 		return;
 
 	if (INTEL_GEN(i915) >= 12)
+=======
+	if (GRAPHICS_VER(i915) < 9 || !HAS_DISPLAY(i915))
+		return;
+
+	if (GRAPHICS_VER(i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = gen12_get_dram_info(i915);
 	else if (INTEL_GEN(i915) >= 11)
 		ret = gen11_get_dram_info(i915);

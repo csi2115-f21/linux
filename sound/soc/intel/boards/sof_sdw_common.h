@@ -49,6 +49,16 @@ enum {
 #define SOF_SSP_GET_PORT(quirk)	(((quirk) >> 5) & GENMASK(5, 0))
 #define SOF_RT715_DAI_ID_FIX		BIT(11)
 #define SOF_SDW_NO_AGGREGATION		BIT(12)
+<<<<<<< HEAD
+=======
+
+/* BT audio offload: reserve 3 bits for future */
+#define SOF_BT_OFFLOAD_SSP_SHIFT	13
+#define SOF_BT_OFFLOAD_SSP_MASK	(GENMASK(15, 13))
+#define SOF_BT_OFFLOAD_SSP(quirk)	\
+	(((quirk) << SOF_BT_OFFLOAD_SSP_SHIFT) & SOF_BT_OFFLOAD_SSP_MASK)
+#define SOF_SSP_BT_OFFLOAD_PRESENT	BIT(16)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct sof_sdw_codec_info {
 	const int part_id;

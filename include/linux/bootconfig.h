@@ -127,6 +127,26 @@ xbc_find_value(const char *key, struct xbc_node **vnode)
 static inline struct xbc_node * __init xbc_find_node(const char *key)
 {
 	return xbc_node_find_child(NULL, key);
+<<<<<<< HEAD
+=======
+}
+
+/**
+ * xbc_node_get_subkey() - Return the first subkey node if exists
+ * @node: Parent node
+ *
+ * Return the first subkey node of the @node. If the @node has no child
+ * or only value node, this will return NULL.
+ */
+static inline struct xbc_node * __init xbc_node_get_subkey(struct xbc_node *node)
+{
+	struct xbc_node *child = xbc_node_get_child(node);
+
+	if (child && xbc_node_is_value(child))
+		return xbc_node_get_next(child);
+	else
+		return child;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**

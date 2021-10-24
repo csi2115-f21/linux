@@ -1536,7 +1536,12 @@ static int amdgpu_ttm_access_memory(struct ttm_buffer_object *bo,
 {
 	struct amdgpu_bo *abo = ttm_to_amdgpu_bo(bo);
 	struct amdgpu_device *adev = amdgpu_ttm_adev(abo->tbo.bdev);
+<<<<<<< HEAD
 	struct drm_mm_node *nodes;
+=======
+	struct amdgpu_res_cursor cursor;
+	unsigned long flags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	uint32_t value = 0;
 	int ret = 0;
 	uint64_t pos;
@@ -1545,6 +1550,7 @@ static int amdgpu_ttm_access_memory(struct ttm_buffer_object *bo,
 	if (bo->mem.mem_type != TTM_PL_VRAM)
 		return -EIO;
 
+<<<<<<< HEAD
 	pos = offset;
 	nodes = amdgpu_find_mm_node(&abo->tbo.mem, &pos);
 	pos += (nodes->start << PAGE_SHIFT);
@@ -1558,14 +1564,30 @@ static int amdgpu_ttm_access_memory(struct ttm_buffer_object *bo,
 		if (len < bytes) {
 			mask &= 0xffffffff >> (bytes - len) * 8;
 			bytes = len;
+=======
+	amdgpu_res_first(bo->resource, offset, len, &cursor);
+	while (cursor.remaining) {
+		uint64_t aligned_pos = cursor.start & ~(uint64_t)3;
+		uint64_t bytes = 4 - (cursor.start & 3);
+		uint32_t shift = (cursor.start & 3) * 8;
+		uint32_t mask = 0xffffffff << shift;
+
+		if (cursor.size < bytes) {
+			mask &= 0xffffffff >> (bytes - cursor.size) * 8;
+			bytes = cursor.size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		if (mask != 0xffffffff) {
 			spin_lock_irqsave(&adev->mmio_idx_lock, flags);
 			WREG32_NO_KIQ(mmMM_INDEX, ((uint32_t)aligned_pos) | 0x80000000);
 			WREG32_NO_KIQ(mmMM_INDEX_HI, aligned_pos >> 31);
+<<<<<<< HEAD
 			if (!write || mask != 0xffffffff)
 				value = RREG32_NO_KIQ(mmMM_DATA);
+=======
+			value = RREG32_NO_KIQ(mmMM_DATA);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (write) {
 				value &= ~mask;
 				value |= (*(uint32_t *)buf << shift) & mask;
@@ -1577,21 +1599,32 @@ static int amdgpu_ttm_access_memory(struct ttm_buffer_object *bo,
 				memcpy(buf, &value, bytes);
 			}
 		} else {
+<<<<<<< HEAD
 			bytes = (nodes->start + nodes->size) << PAGE_SHIFT;
 			bytes = min(bytes - pos, (uint64_t)len & ~0x3ull);
 
 			amdgpu_device_vram_access(adev, pos, (uint32_t *)buf,
 						  bytes, write);
+=======
+			bytes = cursor.size & ~0x3ULL;
+			amdgpu_device_vram_access(adev, cursor.start,
+						  (uint32_t *)buf, bytes,
+						  write);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		ret += bytes;
 		buf = (uint8_t *)buf + bytes;
+<<<<<<< HEAD
 		pos += bytes;
 		len -= bytes;
 		if (pos >= (nodes->start + nodes->size) << PAGE_SHIFT) {
 			++nodes;
 			pos = (nodes->start << PAGE_SHIFT);
 		}
+=======
+		amdgpu_res_next(&cursor, bytes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return ret;

@@ -10,7 +10,11 @@
 
 #include "fw/notif-wait.h"
 
+<<<<<<< HEAD
 #define MVM_UCODE_PNVM_TIMEOUT	(HZ / 10)
+=======
+#define MVM_UCODE_PNVM_TIMEOUT	(HZ / 4)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int iwl_pnvm_load(struct iwl_trans *trans,
 		  struct iwl_notif_wait_data *notif_wait);

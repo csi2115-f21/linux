@@ -47,19 +47,27 @@ static void add_object(struct i915_mmu_object *mo)
 	interval_tree_insert(&mo->it, &mo->mn->objects);
 }
 
+<<<<<<< HEAD
 static void del_object(struct i915_mmu_object *mo)
 {
 	if (RB_EMPTY_NODE(&mo->it.rb))
 		return;
+=======
+	spin_lock(&i915->mm.notifier_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	interval_tree_remove(&mo->it, &mo->mn->objects);
 	RB_CLEAR_NODE(&mo->it.rb);
 }
 
+<<<<<<< HEAD
 static void
 __i915_gem_userptr_set_active(struct drm_i915_gem_object *obj, bool value)
 {
 	struct i915_mmu_object *mo = obj->userptr.mmu_object;
+=======
+	spin_unlock(&i915->mm.notifier_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * During mm_invalidate_range we need to cancel any userptr that
@@ -189,6 +197,7 @@ i915_gem_userptr_release__mmu_notifier(struct drm_i915_gem_object *obj)
 static struct i915_mmu_notifier *
 i915_mmu_notifier_find(struct i915_mm_struct *mm)
 {
+<<<<<<< HEAD
 	struct i915_mmu_notifier *mn, *old;
 	int err;
 
@@ -212,6 +221,18 @@ i915_mmu_notifier_find(struct i915_mm_struct *mm)
 		kfree(mn);
 		mn = old;
 	}
+=======
+	struct drm_i915_private *i915 = to_i915(obj->base.dev);
+	struct page **pvec = NULL;
+
+	spin_lock(&i915->mm.notifier_lock);
+	if (!--obj->userptr.page_ref) {
+		pvec = obj->userptr.pvec;
+		obj->userptr.pvec = NULL;
+	}
+	GEM_BUG_ON(obj->userptr.page_ref < 0);
+	spin_unlock(&i915->mm.notifier_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return mn;
 }
@@ -400,23 +421,52 @@ static struct sg_table *
 __i915_gem_userptr_alloc_pages(struct drm_i915_gem_object *obj,
 			       struct page **pvec, unsigned long num_pages)
 {
+<<<<<<< HEAD
+=======
+	struct drm_i915_private *i915 = to_i915(obj->base.dev);
+	const unsigned long num_pages = obj->base.size >> PAGE_SHIFT;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int max_segment = i915_sg_segment_size();
 	struct sg_table *st;
 	unsigned int sg_page_sizes;
 	struct scatterlist *sg;
+<<<<<<< HEAD
+=======
+	struct page **pvec;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	st = kmalloc(sizeof(*st), GFP_KERNEL);
 	if (!st)
+<<<<<<< HEAD
 		return ERR_PTR(-ENOMEM);
+=======
+		return -ENOMEM;
+
+	spin_lock(&i915->mm.notifier_lock);
+	if (GEM_WARN_ON(!obj->userptr.page_ref)) {
+		spin_unlock(&i915->mm.notifier_lock);
+		ret = -EFAULT;
+		goto err_free;
+	}
+
+	obj->userptr.page_ref++;
+	pvec = obj->userptr.pvec;
+	spin_unlock(&i915->mm.notifier_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 alloc_table:
 	sg = __sg_alloc_table_from_pages(st, pvec, num_pages, 0,
 					 num_pages << PAGE_SHIFT, max_segment,
 					 NULL, 0, GFP_KERNEL);
 	if (IS_ERR(sg)) {
+<<<<<<< HEAD
 		kfree(st);
 		return ERR_CAST(sg);
+=======
+		ret = PTR_ERR(sg);
+		goto err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = i915_gem_gtt_prepare_pages(obj, st);
@@ -682,6 +732,170 @@ i915_gem_userptr_put_pages(struct drm_i915_gem_object *obj,
 
 	sg_free_table(pages);
 	kfree(pages);
+<<<<<<< HEAD
+=======
+
+	i915_gem_object_userptr_drop_ref(obj);
+}
+
+static int i915_gem_object_userptr_unbind(struct drm_i915_gem_object *obj, bool get_pages)
+{
+	struct sg_table *pages;
+	int err;
+
+	err = i915_gem_object_unbind(obj, I915_GEM_OBJECT_UNBIND_ACTIVE);
+	if (err)
+		return err;
+
+	if (GEM_WARN_ON(i915_gem_object_has_pinned_pages(obj)))
+		return -EBUSY;
+
+	assert_object_held(obj);
+
+	pages = __i915_gem_object_unset_pages(obj);
+	if (!IS_ERR_OR_NULL(pages))
+		i915_gem_userptr_put_pages(obj, pages);
+
+	if (get_pages)
+		err = ____i915_gem_object_get_pages(obj);
+
+	return err;
+}
+
+int i915_gem_object_userptr_submit_init(struct drm_i915_gem_object *obj)
+{
+	struct drm_i915_private *i915 = to_i915(obj->base.dev);
+	const unsigned long num_pages = obj->base.size >> PAGE_SHIFT;
+	struct page **pvec;
+	unsigned int gup_flags = 0;
+	unsigned long notifier_seq;
+	int pinned, ret;
+
+	if (obj->userptr.notifier.mm != current->mm)
+		return -EFAULT;
+
+	ret = i915_gem_object_lock_interruptible(obj, NULL);
+	if (ret)
+		return ret;
+
+	/* optimistically try to preserve current pages while unlocked */
+	if (i915_gem_object_has_pages(obj) &&
+	    !mmu_interval_check_retry(&obj->userptr.notifier,
+				      obj->userptr.notifier_seq)) {
+		spin_lock(&i915->mm.notifier_lock);
+		if (obj->userptr.pvec &&
+		    !mmu_interval_read_retry(&obj->userptr.notifier,
+					     obj->userptr.notifier_seq)) {
+			obj->userptr.page_ref++;
+
+			/* We can keep using the current binding, this is the fastpath */
+			ret = 1;
+		}
+		spin_unlock(&i915->mm.notifier_lock);
+	}
+
+	if (!ret) {
+		/* Make sure userptr is unbound for next attempt, so we don't use stale pages. */
+		ret = i915_gem_object_userptr_unbind(obj, false);
+	}
+	i915_gem_object_unlock(obj);
+	if (ret < 0)
+		return ret;
+
+	if (ret > 0)
+		return 0;
+
+	notifier_seq = mmu_interval_read_begin(&obj->userptr.notifier);
+
+	pvec = kvmalloc_array(num_pages, sizeof(struct page *), GFP_KERNEL);
+	if (!pvec)
+		return -ENOMEM;
+
+	if (!i915_gem_object_is_readonly(obj))
+		gup_flags |= FOLL_WRITE;
+
+	pinned = ret = 0;
+	while (pinned < num_pages) {
+		ret = pin_user_pages_fast(obj->userptr.ptr + pinned * PAGE_SIZE,
+					  num_pages - pinned, gup_flags,
+					  &pvec[pinned]);
+		if (ret < 0)
+			goto out;
+
+		pinned += ret;
+	}
+	ret = 0;
+
+	spin_lock(&i915->mm.notifier_lock);
+
+	if (mmu_interval_read_retry(&obj->userptr.notifier,
+		!obj->userptr.page_ref ? notifier_seq :
+		obj->userptr.notifier_seq)) {
+		ret = -EAGAIN;
+		goto out_unlock;
+	}
+
+	if (!obj->userptr.page_ref++) {
+		obj->userptr.pvec = pvec;
+		obj->userptr.notifier_seq = notifier_seq;
+
+		pvec = NULL;
+	}
+
+out_unlock:
+	spin_unlock(&i915->mm.notifier_lock);
+
+out:
+	if (pvec) {
+		unpin_user_pages(pvec, pinned);
+		kvfree(pvec);
+	}
+
+	return ret;
+}
+
+int i915_gem_object_userptr_submit_done(struct drm_i915_gem_object *obj)
+{
+	if (mmu_interval_read_retry(&obj->userptr.notifier,
+				    obj->userptr.notifier_seq)) {
+		/* We collided with the mmu notifier, need to retry */
+
+		return -EAGAIN;
+	}
+
+	return 0;
+}
+
+void i915_gem_object_userptr_submit_fini(struct drm_i915_gem_object *obj)
+{
+	i915_gem_object_userptr_drop_ref(obj);
+}
+
+int i915_gem_object_userptr_validate(struct drm_i915_gem_object *obj)
+{
+	int err;
+
+	err = i915_gem_object_userptr_submit_init(obj);
+	if (err)
+		return err;
+
+	err = i915_gem_object_lock_interruptible(obj, NULL);
+	if (!err) {
+		/*
+		 * Since we only check validity, not use the pages,
+		 * it doesn't matter if we collide with the mmu notifier,
+		 * and -EAGAIN handling is not required.
+		 */
+		err = i915_gem_object_pin_pages(obj);
+		if (!err)
+			i915_gem_object_unpin_pages(obj);
+
+		i915_gem_object_unlock(obj);
+	}
+
+	i915_gem_object_userptr_submit_fini(obj);
+	return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void
@@ -712,6 +926,11 @@ static const struct drm_i915_gem_object_ops i915_gem_userptr_ops = {
 	.release = i915_gem_userptr_release,
 };
 
+<<<<<<< HEAD
+=======
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Creates a new mm object that wraps some normal memory from the process
  * context - user memory.
@@ -805,12 +1024,21 @@ i915_gem_userptr_ioctl(struct drm_device *dev,
 			return -ENODEV;
 	}
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_MMU_NOTIFIER
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	obj = i915_gem_object_alloc();
 	if (obj == NULL)
 		return -ENOMEM;
 
 	drm_gem_private_object_init(dev, &obj->base, args->user_size);
+<<<<<<< HEAD
 	i915_gem_object_init(obj, &i915_gem_userptr_ops, &lock_class);
+=======
+	i915_gem_object_init(obj, &i915_gem_userptr_ops, &lock_class,
+			     I915_BO_ALLOC_STRUCT_PAGE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	obj->read_domains = I915_GEM_DOMAIN_CPU;
 	obj->write_domain = I915_GEM_DOMAIN_CPU;
 	i915_gem_object_set_cache_coherency(obj, I915_CACHE_LLC);
@@ -840,6 +1068,7 @@ i915_gem_userptr_ioctl(struct drm_device *dev,
 
 int i915_gem_init_userptr(struct drm_i915_private *dev_priv)
 {
+<<<<<<< HEAD
 	spin_lock_init(&dev_priv->mm_lock);
 	hash_init(dev_priv->mm_structs);
 
@@ -849,6 +1078,11 @@ int i915_gem_init_userptr(struct drm_i915_private *dev_priv)
 				0);
 	if (!dev_priv->mm.userptr_wq)
 		return -ENOMEM;
+=======
+#ifdef CONFIG_MMU_NOTIFIER
+	spin_lock_init(&dev_priv->mm.notifier_lock);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

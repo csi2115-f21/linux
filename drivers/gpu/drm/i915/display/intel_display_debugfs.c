@@ -509,8 +509,13 @@ static int i915_dmc_info(struct seq_file *m, void *unused)
 
 	wakeref = intel_runtime_pm_get(&dev_priv->runtime_pm);
 
+<<<<<<< HEAD
 	seq_printf(m, "fw loaded: %s\n", yesno(csr->dmc_payload != NULL));
 	seq_printf(m, "path: %s\n", csr->fw_path);
+=======
+	seq_printf(m, "fw loaded: %s\n", yesno(intel_dmc_has_payload(dev_priv)));
+	seq_printf(m, "path: %s\n", dmc->fw_path);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!csr->dmc_payload)
 		goto out;
@@ -549,7 +554,11 @@ static int i915_dmc_info(struct seq_file *m, void *unused)
 
 out:
 	seq_printf(m, "program base: 0x%08x\n",
+<<<<<<< HEAD
 		   intel_de_read(dev_priv, CSR_PROGRAM(0)));
+=======
+		   intel_de_read(dev_priv, DMC_PROGRAM(0)));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	seq_printf(m, "ssp base: 0x%08x\n",
 		   intel_de_read(dev_priv, CSR_SSP_BASE));
 	seq_printf(m, "htp: 0x%08x\n", intel_de_read(dev_priv, CSR_HTP_SKL));
@@ -2198,7 +2207,11 @@ static int i915_lpsp_capability_show(struct seq_file *m, void *data)
 	if (connector->status != connector_status_connected)
 		return -ENODEV;
 
+<<<<<<< HEAD
 	switch (INTEL_GEN(i915)) {
+=======
+	switch (DISPLAY_VER(i915)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case 12:
 		/*
 		 * Actually TGL can drive LPSP on port till DDI_C
@@ -2364,10 +2377,14 @@ int intel_connector_debugfs_add(struct drm_connector *connector)
 				    connector, &i915_hdcp_sink_capability_fops);
 	}
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 10 &&
 	    ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort &&
 	      !to_intel_connector(connector)->mst_port) ||
 	     connector->connector_type == DRM_MODE_CONNECTOR_eDP))
+=======
+	if ((DISPLAY_VER(dev_priv) >= 11 || IS_CANNONLAKE(dev_priv)) && ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort && !to_intel_connector(connector)->mst_port) || connector->connector_type == DRM_MODE_CONNECTOR_eDP))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		debugfs_create_file("i915_dsc_fec_support", S_IRUGO, root,
 				    connector, &i915_dsc_fec_support_fops);
 

@@ -267,6 +267,7 @@ static int ishtp_cl_device_remove(struct device *dev)
 		cancel_work_sync(&device->event_work);
 	}
 
+<<<<<<< HEAD
 	driver = to_ishtp_cl_driver(dev->driver);
 	if (!driver->remove) {
 		dev->driver = NULL;
@@ -275,6 +276,12 @@ static int ishtp_cl_device_remove(struct device *dev)
 	}
 
 	return driver->remove(device);
+=======
+	if (driver->remove)
+		driver->remove(device);
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**

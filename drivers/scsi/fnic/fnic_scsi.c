@@ -1363,7 +1363,11 @@ int fnic_wq_copy_cmpl_handler(struct fnic *fnic, int copy_work_to_do)
 
 static void fnic_cleanup_io(struct fnic *fnic, int exclude_id)
 {
+<<<<<<< HEAD
 	int i;
+=======
+	struct fnic *fnic = data;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct fnic_io_req *io_req;
 	unsigned long flags = 0;
 	struct scsi_cmnd *sc;
@@ -1371,9 +1375,14 @@ static void fnic_cleanup_io(struct fnic *fnic, int exclude_id)
 	unsigned long start_time = 0;
 	struct fnic_stats *fnic_stats = &fnic->fnic_stats;
 
+<<<<<<< HEAD
 	for (i = 0; i < fnic->fnic_max_tag_id; i++) {
 		if (i == exclude_id)
 			continue;
+=======
+	io_lock = fnic_io_lock_tag(fnic, sc->request->tag);
+	spin_lock_irqsave(io_lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		io_lock = fnic_io_lock_tag(fnic, i);
 		spin_lock_irqsave(io_lock, flags);
@@ -1410,6 +1419,7 @@ static void fnic_cleanup_io(struct fnic *fnic, int exclude_id)
 
 		spin_unlock_irqrestore(io_lock, flags);
 
+<<<<<<< HEAD
 		/*
 		 * If there is a scsi_cmnd associated with this io_req, then
 		 * free the corresponding state
@@ -1417,6 +1427,13 @@ static void fnic_cleanup_io(struct fnic *fnic, int exclude_id)
 		start_time = io_req->start_time;
 		fnic_release_ioreq_buf(fnic, io_req, sc);
 		mempool_free(io_req, fnic->io_req_pool);
+=======
+cleanup_scsi_cmd:
+	sc->result = DID_TRANSPORT_DISRUPTED << 16;
+	FNIC_SCSI_DBG(KERN_DEBUG, fnic->lport->host,
+		      "fnic_cleanup_io: tag:0x%x : sc:0x%p duration = %lu DID_TRANSPORT_DISRUPTED\n",
+		      sc->request->tag, sc, (jiffies - start_time));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		sc->result = DID_TRANSPORT_DISRUPTED << 16;
 		FNIC_SCSI_DBG(KERN_DEBUG, fnic->lport->host,
@@ -1424,10 +1441,28 @@ static void fnic_cleanup_io(struct fnic *fnic, int exclude_id)
 			      __func__, sc->request->tag, sc,
 			      (jiffies - start_time));
 
+<<<<<<< HEAD
 		if (atomic64_read(&fnic->io_cmpl_skip))
 			atomic64_dec(&fnic->io_cmpl_skip);
 		else
 			atomic64_inc(&fnic_stats->io_stats.io_completions);
+=======
+	/* Complete the command to SCSI */
+	if (sc->scsi_done) {
+		if (!(CMD_FLAGS(sc) & FNIC_IO_ISSUED))
+			shost_printk(KERN_ERR, fnic->lport->host,
+				     "Calling done for IO not issued to fw: tag:0x%x sc:0x%p\n",
+				     sc->request->tag, sc);
+
+		FNIC_TRACE(fnic_cleanup_io,
+			   sc->device->host->host_no, sc->request->tag, sc,
+			   jiffies_to_msecs(jiffies - start_time),
+			   0, ((u64)sc->cmnd[0] << 32 |
+			       (u64)sc->cmnd[2] << 24 |
+			       (u64)sc->cmnd[3] << 16 |
+			       (u64)sc->cmnd[4] << 8 | sc->cmnd[5]),
+			   (((u64)CMD_FLAGS(sc) << 32) | CMD_STATE(sc)));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* Complete the command to SCSI */
 		if (sc->scsi_done) {
@@ -1560,9 +1595,15 @@ static inline int fnic_queue_abort_io_req(struct fnic *fnic, int tag,
 
 static void fnic_rport_exch_reset(struct fnic *fnic, u32 port_id)
 {
+<<<<<<< HEAD
 	int tag;
 	int abt_tag;
 	int term_cnt = 0;
+=======
+	struct fnic_rport_abort_io_iter_data *iter_data = data;
+	struct fnic *fnic = iter_data->fnic;
+	int abt_tag = sc->request->tag;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct fnic_io_req *io_req;
 	spinlock_t *io_lock;
 	unsigned long flags;
@@ -2129,7 +2170,14 @@ static int fnic_clean_pending_aborts(struct fnic *fnic,
 					 bool new_sc)
 
 {
+<<<<<<< HEAD
 	int tag, abt_tag;
+=======
+	struct fnic_pending_aborts_iter_data *iter_data = data;
+	struct fnic *fnic = iter_data->fnic;
+	struct scsi_device *lun_dev = iter_data->lun_dev;
+	int abt_tag = sc->request->tag;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct fnic_io_req *io_req;
 	spinlock_t *io_lock;
 	unsigned long flags;

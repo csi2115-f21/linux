@@ -136,7 +136,11 @@ static int max5481_probe(struct spi_device *spi)
 	if (!indio_dev)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	dev_set_drvdata(&spi->dev, indio_dev);
+=======
+	spi_set_drvdata(spi, indio_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	data = iio_priv(indio_dev);
 
 	data->spi = spi;
@@ -163,7 +167,11 @@ static int max5481_probe(struct spi_device *spi)
 
 static int max5481_remove(struct spi_device *spi)
 {
+<<<<<<< HEAD
 	struct iio_dev *indio_dev = dev_get_drvdata(&spi->dev);
+=======
+	struct iio_dev *indio_dev = spi_get_drvdata(spi);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct max5481_data *data = iio_priv(indio_dev);
 
 	iio_device_unregister(indio_dev);

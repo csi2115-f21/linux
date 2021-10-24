@@ -31,6 +31,16 @@ config NET_DSA_TAG_8021Q
 
 	  Drivers which use these helpers should select this as dependency.
 
+config NET_DSA_TAG_8021Q
+	tristate
+	select VLAN_8021Q
+	help
+	  Unlike the other tagging protocols, the 802.1Q config option simply
+	  provides helpers for other tagging implementations that might rely on
+	  VLAN in one way or another. It is not a complete solution.
+
+	  Drivers which use these helpers should select this as dependency.
+
 config NET_DSA_TAG_AR9331
 	tristate "Tag driver for Atheros AR9331 SoC with built-in switch"
 	help
@@ -107,6 +117,8 @@ config NET_DSA_TAG_RTL4_A
 
 config NET_DSA_TAG_OCELOT
 	tristate "Tag driver for Ocelot family of switches, using NPI port"
+	depends on MSCC_OCELOT_SWITCH_LIB || \
+		   (MSCC_OCELOT_SWITCH_LIB=n && COMPILE_TEST)
 	select PACKING
 	help
 	  Say Y or M if you want to enable NPI tagging for the Ocelot switches
@@ -118,6 +130,11 @@ config NET_DSA_TAG_OCELOT
 
 config NET_DSA_TAG_OCELOT_8021Q
 	tristate "Tag driver for Ocelot family of switches, using VLAN"
+<<<<<<< HEAD
+=======
+	depends on MSCC_OCELOT_SWITCH_LIB || \
+	          (MSCC_OCELOT_SWITCH_LIB=n && COMPILE_TEST)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	select NET_DSA_TAG_8021Q
 	help
 	  Say Y or M if you want to enable support for tagging frames with a

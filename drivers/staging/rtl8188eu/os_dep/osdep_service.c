@@ -24,6 +24,7 @@ void _rtw_init_queue(struct __queue *pqueue)
 	spin_lock_init(&pqueue->lock);
 }
 
+<<<<<<< HEAD
 struct net_device *rtw_alloc_etherdev_with_old_priv(void *old_priv)
 {
 	struct net_device *netdev;
@@ -55,6 +56,8 @@ void rtw_free_netdev(struct net_device *netdev)
 	free_netdev(netdev);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void rtw_buf_free(u8 **buf, u32 *buf_len)
 {
 	*buf_len = 0;

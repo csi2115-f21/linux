@@ -252,6 +252,10 @@ struct cp210x_serial_private {
 	speed_t			min_speed;
 	speed_t			max_speed;
 	bool			use_actual_rate;
+<<<<<<< HEAD
+=======
+	bool			no_flow_control;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum cp210x_event_state {
@@ -1898,6 +1902,48 @@ static void cp210x_init_max_speed(struct usb_serial *serial)
 	priv->use_actual_rate = use_actual_rate;
 }
 
+<<<<<<< HEAD
+=======
+static int cp210x_get_fw_version(struct usb_serial *serial, u16 value)
+{
+	struct cp210x_serial_private *priv = usb_get_serial_data(serial);
+	u8 ver[3];
+	int ret;
+
+	ret = cp210x_read_vendor_block(serial, REQTYPE_DEVICE_TO_HOST, value,
+			ver, sizeof(ver));
+	if (ret)
+		return ret;
+
+	dev_dbg(&serial->interface->dev, "%s - %d.%d.%d\n", __func__,
+			ver[0], ver[1], ver[2]);
+
+	priv->fw_version = ver[0] << 16 | ver[1] << 8 | ver[2];
+
+	return 0;
+}
+
+static void cp210x_determine_quirks(struct usb_serial *serial)
+{
+	struct cp210x_serial_private *priv = usb_get_serial_data(serial);
+	int ret;
+
+	switch (priv->partnum) {
+	case CP210X_PARTNUM_CP2102N_QFN28:
+	case CP210X_PARTNUM_CP2102N_QFN24:
+	case CP210X_PARTNUM_CP2102N_QFN20:
+		ret = cp210x_get_fw_version(serial, CP210X_GET_FW_VER_2N);
+		if (ret)
+			break;
+		if (priv->fw_version <= 0x10004)
+			priv->no_flow_control = true;
+		break;
+	default:
+		break;
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int cp210x_attach(struct usb_serial *serial)
 {
 	int result;
@@ -1918,6 +1964,10 @@ static int cp210x_attach(struct usb_serial *serial)
 
 	usb_set_serial_data(serial, priv);
 
+<<<<<<< HEAD
+=======
+	cp210x_determine_quirks(serial);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cp210x_init_max_speed(serial);
 
 	result = cp210x_gpio_init(serial);

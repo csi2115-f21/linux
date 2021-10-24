@@ -772,7 +772,11 @@ static int gen6_rps_set(struct intel_rps *rps, u8 val)
 	struct drm_i915_private *i915 = rps_to_i915(rps);
 	u32 swreq;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 9)
+=======
+	if (GRAPHICS_VER(i915) >= 9)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		swreq = GEN9_FREQUENCY(val);
 	else if (IS_HASWELL(i915) || IS_BROADWELL(i915))
 		swreq = HSW_FREQUENCY(val);
@@ -1000,7 +1004,11 @@ static void gen6_rps_init(struct intel_rps *rps)
 
 	rps->efficient_freq = rps->rp1_freq;
 	if (IS_HASWELL(i915) || IS_BROADWELL(i915) ||
+<<<<<<< HEAD
 	    IS_GEN9_BC(i915) || INTEL_GEN(i915) >= 10) {
+=======
+	    IS_GEN9_BC(i915) || GRAPHICS_VER(i915) >= 10) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		u32 ddcc_status = 0;
 
 		if (sandybridge_pcode_read(i915,
@@ -1013,7 +1021,11 @@ static void gen6_rps_init(struct intel_rps *rps)
 					rps->max_freq);
 	}
 
+<<<<<<< HEAD
 	if (IS_GEN9_BC(i915) || INTEL_GEN(i915) >= 10) {
+=======
+	if (IS_GEN9_BC(i915) || GRAPHICS_VER(i915) >= 10) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* Store the frequency values in 16.66 MHZ units, which is
 		 * the natural hardware unit for SKL
 		 */
@@ -1882,7 +1894,11 @@ void intel_rps_init(struct intel_rps *rps)
 
 void intel_rps_sanitize(struct intel_rps *rps)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(rps_to_i915(rps)) >= 6)
+=======
+	if (GRAPHICS_VER(rps_to_i915(rps)) >= 6)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rps_disable_interrupts(rps);
 }
 

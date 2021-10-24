@@ -182,6 +182,11 @@ static inline void scsi_dh_add_device(struct scsi_device *sdev) { }
 static inline void scsi_dh_release_device(struct scsi_device *sdev) { }
 #endif
 
+<<<<<<< HEAD
+=======
+extern int scsi_device_max_queue_depth(struct scsi_device *sdev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* 
  * internal scsi timeout functions: for use by mid-layer and transport
  * classes.

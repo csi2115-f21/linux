@@ -330,7 +330,11 @@ static int radeon_pci_probe(struct pci_dev *pdev,
 		return -EPROBE_DEFER;
 
 	/* Get rid of things like offb */
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "radeondrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "radeondrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

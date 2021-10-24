@@ -130,7 +130,11 @@ int main(int argc, char **argv)
 	if (!(xdp_flags & XDP_FLAGS_SKB_MODE))
 		xdp_flags |= XDP_FLAGS_DRV_MODE;
 
+<<<<<<< HEAD
 	if (optind == argc) {
+=======
+	if (optind + 2 != argc) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		printf("usage: %s <IFNAME|IFINDEX>_IN <IFNAME|IFINDEX>_OUT\n", argv[0]);
 		return 1;
 	}
@@ -213,5 +217,9 @@ int main(int argc, char **argv)
 	poll_stats(2, ifindex_out);
 
 out:
+<<<<<<< HEAD
 	return 0;
+=======
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

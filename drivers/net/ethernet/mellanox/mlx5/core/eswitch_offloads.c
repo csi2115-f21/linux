@@ -48,6 +48,20 @@
 #include "lib/eq.h"
 #include "lib/fs_chains.h"
 #include "en_tc.h"
+<<<<<<< HEAD
+=======
+#include "en/mapping.h"
+
+#define mlx5_esw_for_each_rep(esw, i, rep) \
+	xa_for_each(&((esw)->offloads.vport_reps), i, rep)
+
+#define mlx5_esw_for_each_sf_rep(esw, i, rep) \
+	xa_for_each_marked(&((esw)->offloads.vport_reps), i, rep, MLX5_ESW_VPT_SF)
+
+#define mlx5_esw_for_each_vf_rep(esw, index, rep)	\
+	mlx5_esw_for_each_entry_marked(&((esw)->offloads.vport_reps), index, \
+				       rep, (esw)->esw_funcs.num_vfs, MLX5_ESW_VPT_VF)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* There are two match-all miss flows, one for unicast dst mac and
  * one for multicast.
@@ -327,6 +341,22 @@ esw_cleanup_decap_indir(struct mlx5_eswitch *esw,
 }
 
 static int
+<<<<<<< HEAD
+=======
+esw_setup_sampler_dest(struct mlx5_flow_destination *dest,
+		       struct mlx5_flow_act *flow_act,
+		       struct mlx5_esw_flow_attr *esw_attr,
+		       int i)
+{
+	flow_act->flags |= FLOW_ACT_IGNORE_FLOW_LEVEL;
+	dest[i].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER;
+	dest[i].sampler_id = esw_attr->sample->sampler_id;
+
+	return 0;
+}
+
+static int
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 esw_setup_ft_dest(struct mlx5_flow_destination *dest,
 		  struct mlx5_flow_act *flow_act,
 		  struct mlx5_eswitch *esw,
@@ -554,7 +584,14 @@ esw_setup_dests(struct mlx5_flow_destination *dest,
 	    mlx5_eswitch_vport_match_metadata_enabled(esw))
 		attr->flags |= MLX5_ESW_ATTR_FLAG_SRC_REWRITE;
 
+<<<<<<< HEAD
 	if (attr->dest_ft) {
+=======
+	if (attr->flags & MLX5_ESW_ATTR_FLAG_SAMPLE) {
+		esw_setup_sampler_dest(dest, flow_act, esw_attr, *i);
+		(*i)++;
+	} else if (attr->dest_ft) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		esw_setup_ft_dest(dest, flow_act, esw, attr, spec, *i);
 		(*i)++;
 	} else if (attr->flags & MLX5_ESW_ATTR_FLAG_SLOW_PATH) {
@@ -657,7 +694,10 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
 	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_MOD_HDR)
 		flow_act.modify_hdr = attr->modify_hdr;
 
-	if (split) {
+	/* esw_attr->sample is allocated only when there is a sample action */
+	if (esw_attr->sample && esw_attr->sample->sample_default_tbl) {
+		fdb = esw_attr->sample->sample_default_tbl;
+	} else if (split) {
 		fwd_attr.chain = attr->chain;
 		fwd_attr.prio = attr->prio;
 		fwd_attr.vport = esw_attr->in_rep->vport;
@@ -1036,7 +1076,12 @@ out:
 }
 
 struct mlx5_flow_handle *
+<<<<<<< HEAD
 mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, u16 vport,
+=======
+mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *on_esw,
+				    struct mlx5_eswitch_rep *rep,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				    u32 sqn)
 {
 	struct mlx5_flow_act flow_act = {0};
@@ -1054,7 +1099,14 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, u16 vport,
 	misc = MLX5_ADDR_OF(fte_match_param, spec->match_value, misc_parameters);
 	MLX5_SET(fte_match_set_misc, misc, source_sqn, sqn);
 	/* source vport is the esw manager */
+<<<<<<< HEAD
 	MLX5_SET(fte_match_set_misc, misc, source_port, esw->manager_vport);
+=======
+	MLX5_SET(fte_match_set_misc, misc, source_port, rep->esw->manager_vport);
+	if (MLX5_CAP_ESW(on_esw->dev, merged_eswitch))
+		MLX5_SET(fte_match_set_misc, misc, source_eswitch_owner_vhca_id,
+			 MLX5_CAP_GEN(rep->esw->dev, vhca_id));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	misc = MLX5_ADDR_OF(fte_match_param, spec->match_criteria, misc_parameters);
 	MLX5_SET_TO_ONES(fte_match_set_misc, misc, source_sqn);
@@ -1065,7 +1117,11 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, u16 vport,
 	dest.vport.num = vport;
 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
 
+<<<<<<< HEAD
 	flow_rule = mlx5_add_flow_rules(esw->fdb_table.offloads.slow_fdb,
+=======
+	flow_rule = mlx5_add_flow_rules(on_esw->fdb_table.offloads.slow_fdb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					spec, &flow_act, &dest, 1);
 	if (IS_ERR(flow_rule))
 		esw_warn(esw->dev, "FDB: Failed to add send to vport rule err %ld\n", PTR_ERR(flow_rule));
@@ -2279,7 +2335,13 @@ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num)
 		return;
 
 	mlx5_esw_offloads_rep_unload(esw, vport_num);
+<<<<<<< HEAD
 	mlx5_esw_offloads_devlink_port_unregister(esw, vport_num);
+=======
+
+	if (vport_num != MLX5_VPORT_UPLINK)
+		mlx5_esw_offloads_devlink_port_unregister(esw, vport_num);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #define ESW_OFFLOADS_DEVCOM_PAIR	(0)
@@ -2288,6 +2350,7 @@ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num)
 static int mlx5_esw_offloads_pair(struct mlx5_eswitch *esw,
 				  struct mlx5_eswitch *peer_esw)
 {
+<<<<<<< HEAD
 	int err;
 
 	err = esw_add_fdb_peer_miss_rules(esw, peer_esw->dev);
@@ -2295,6 +2358,10 @@ static int mlx5_esw_offloads_pair(struct mlx5_eswitch *esw,
 		return err;
 
 	return 0;
+=======
+
+	return esw_add_fdb_peer_miss_rules(esw, peer_esw->dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void mlx5_esw_offloads_unpair(struct mlx5_eswitch *esw)
@@ -2718,7 +2785,12 @@ static int mlx5_esw_host_number_init(struct mlx5_eswitch *esw)
 int esw_offloads_enable(struct mlx5_eswitch *esw)
 {
 	struct mlx5_vport *vport;
+<<<<<<< HEAD
 	int err, i;
+=======
+	unsigned long i;
+	int err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, reformat) &&
 	    MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, decap))
@@ -2744,6 +2816,18 @@ int esw_offloads_enable(struct mlx5_eswitch *esw)
 	if (err)
 		goto err_vport_metadata;
 
+<<<<<<< HEAD
+=======
+	reg_c0_obj_pool = mapping_create(sizeof(struct mlx5_mapped_obj),
+					 ESW_REG_C0_USER_DATA_METADATA_MASK,
+					 true);
+	if (IS_ERR(reg_c0_obj_pool)) {
+		err = PTR_ERR(reg_c0_obj_pool);
+		goto err_pool;
+	}
+	esw->offloads.reg_c0_obj_pool = reg_c0_obj_pool;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = esw_offloads_steering_init(esw);
 	if (err)
 		goto err_steering_init;
@@ -2914,8 +2998,19 @@ int mlx5_devlink_eswitch_mode_set(struct devlink *devlink, u16 mode,
 	if (esw_mode_from_devlink(mode, &mlx5_mode))
 		return -EINVAL;
 
+<<<<<<< HEAD
 	mutex_lock(&esw->mode_lock);
 	cur_mlx5_mode = esw->mode;
+=======
+	err = mlx5_esw_try_lock(esw);
+	if (err < 0) {
+		NL_SET_ERR_MSG_MOD(extack, "Can't change mode, E-Switch is busy");
+		return err;
+	}
+	cur_mlx5_mode = err;
+	err = 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (cur_mlx5_mode == mlx5_mode)
 		goto unlock;
 
@@ -2927,7 +3022,11 @@ int mlx5_devlink_eswitch_mode_set(struct devlink *devlink, u16 mode,
 		err = -EINVAL;
 
 unlock:
+<<<<<<< HEAD
 	mutex_unlock(&esw->mode_lock);
+=======
+	mlx5_esw_unlock(esw);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return err;
 }
 

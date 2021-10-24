@@ -57,6 +57,14 @@ struct amdgpu_gtt_mgr {
 	struct drm_mm mm;
 	spinlock_t lock;
 	atomic64_t available;
+<<<<<<< HEAD
+=======
+};
+
+struct amdgpu_preempt_mgr {
+	struct ttm_resource_manager manager;
+	atomic64_t used;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct amdgpu_mman {

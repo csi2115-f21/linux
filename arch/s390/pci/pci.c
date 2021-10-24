@@ -661,7 +661,10 @@ int zpci_enable_device(struct zpci_dev *zdev)
 	if (rc)
 		goto out_dma;
 
+<<<<<<< HEAD
 	zdev->state = ZPCI_FN_STATE_ONLINE;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 out_dma:
@@ -679,6 +682,7 @@ int zpci_disable_device(struct zpci_dev *zdev)
 	 * detected in clp_disable_fh() which becomes a no-op.
 	 */
 	return clp_disable_fh(zdev);
+<<<<<<< HEAD
 }
 EXPORT_SYMBOL_GPL(zpci_disable_device);
 
@@ -693,6 +697,8 @@ void zpci_remove_device(struct zpci_dev *zdev)
 			return zpci_iov_remove_virtfn(pdev, zdev->vfn);
 		pci_stop_and_remove_bus_device_locked(pdev);
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -757,15 +763,94 @@ error_destroy_iommu:
 error:
 	zpci_dbg(0, "add fid:%x, rc:%d\n", fid, rc);
 	kfree(zdev);
+<<<<<<< HEAD
 	return rc;
 }
 
+=======
+	return ERR_PTR(rc);
+}
+
+/**
+ * zpci_scan_configured_device() - Scan a freshly configured zpci_dev
+ * @zdev: The zpci_dev to be configured
+ * @fh: The general function handle supplied by the platform
+ *
+ * Given a device in the configuration state Configured, enables, scans and
+ * adds it to the common code PCI subsystem if possible. If the PCI device is
+ * parked because we can not yet create a PCI bus because we have not seen
+ * function 0, it is ignored but will be scanned once function 0 appears.
+ * If any failure occurs, the zpci_dev is left disabled.
+ *
+ * Return: 0 on success, or an error code otherwise
+ */
+int zpci_scan_configured_device(struct zpci_dev *zdev, u32 fh)
+{
+	int rc;
+
+	zdev->fh = fh;
+	/* the PCI function will be scanned once function 0 appears */
+	if (!zdev->zbus->bus)
+		return 0;
+
+	/* For function 0 on a multi-function bus scan whole bus as we might
+	 * have to pick up existing functions waiting for it to allow creating
+	 * the PCI bus
+	 */
+	if (zdev->devfn == 0 && zdev->zbus->multifunction)
+		rc = zpci_bus_scan_bus(zdev->zbus);
+	else
+		rc = zpci_bus_scan_device(zdev);
+
+	return rc;
+}
+
+/**
+ * zpci_deconfigure_device() - Deconfigure a zpci_dev
+ * @zdev: The zpci_dev to configure
+ *
+ * Deconfigure a zPCI function that is currently configured and possibly known
+ * to the common code PCI subsystem.
+ * If any failure occurs the device is left as is.
+ *
+ * Return: 0 on success, or an error code otherwise
+ */
+int zpci_deconfigure_device(struct zpci_dev *zdev)
+{
+	int rc;
+
+	if (zdev->zbus->bus)
+		zpci_bus_remove_device(zdev, false);
+
+	if (zdev_enabled(zdev)) {
+		rc = zpci_disable_device(zdev);
+		if (rc)
+			return rc;
+	}
+
+	rc = sclp_pci_deconfigure(zdev->fid);
+	zpci_dbg(3, "deconf fid:%x, rc:%d\n", zdev->fid, rc);
+	if (rc)
+		return rc;
+	zdev->state = ZPCI_FN_STATE_STANDBY;
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void zpci_release_device(struct kref *kref)
 {
 	struct zpci_dev *zdev = container_of(kref, struct zpci_dev, kref);
 
 	if (zdev->zbus->bus)
+<<<<<<< HEAD
 		zpci_remove_device(zdev);
+=======
+		zpci_bus_remove_device(zdev, false);
+
+	if (zdev_enabled(zdev))
+		zpci_disable_device(zdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	switch (zdev->state) {
 	case ZPCI_FN_STATE_ONLINE:

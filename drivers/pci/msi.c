@@ -494,11 +494,19 @@ static ssize_t msi_mode_show(struct device *dev, struct device_attribute *attr,
 		return retval;
 
 	entry = irq_get_msi_desc(irq);
+<<<<<<< HEAD
 	if (entry)
 		return sprintf(buf, "%s\n",
 				entry->msi_attrib.is_msix ? "msix" : "msi");
 
 	return -ENODEV;
+=======
+	if (!entry)
+		return -ENODEV;
+
+	return sysfs_emit(buf, "%s\n",
+			  entry->msi_attrib.is_msix ? "msix" : "msi");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int populate_msi_sysfs(struct pci_dev *pdev)

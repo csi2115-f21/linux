@@ -78,10 +78,25 @@ enum {
 
 	/* Vendor2 MMD registers */
 	MV_V2_PORT_CTRL		= 0xf001,
+<<<<<<< HEAD
 	MV_V2_PORT_CTRL_SWRST	= BIT(15),
 	MV_V2_PORT_CTRL_PWRDOWN = BIT(11),
 	MV_V2_PORT_MAC_TYPE_MASK = 0x7,
 	MV_V2_PORT_MAC_TYPE_RATE_MATCH = 0x6,
+=======
+	MV_V2_PORT_CTRL_PWRDOWN					= BIT(11),
+	MV_V2_33X0_PORT_CTRL_SWRST				= BIT(15),
+	MV_V2_33X0_PORT_CTRL_MACTYPE_MASK			= 0x7,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_RXAUI			= 0x0,
+	MV_V2_3310_PORT_CTRL_MACTYPE_XAUI_RATE_MATCH		= 0x1,
+	MV_V2_3340_PORT_CTRL_MACTYPE_RXAUI_NO_SGMII_AN		= 0x1,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_RXAUI_RATE_MATCH		= 0x2,
+	MV_V2_3310_PORT_CTRL_MACTYPE_XAUI			= 0x3,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_10GBASER			= 0x4,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_10GBASER_NO_SGMII_AN	= 0x5,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_10GBASER_RATE_MATCH	= 0x6,
+	MV_V2_33X0_PORT_CTRL_MACTYPE_USXGMII			= 0x7,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Temperature control/read registers (88X3310 only) */
 	MV_V2_TEMP_CTRL		= 0xf08a,
 	MV_V2_TEMP_CTRL_MASK	= 0xc000,
@@ -765,6 +780,136 @@ static int mv3310_set_tunable(struct phy_device *phydev,
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void mv3310_init_supported_interfaces(unsigned long *mask)
+{
+	__set_bit(PHY_INTERFACE_MODE_SGMII, mask);
+	__set_bit(PHY_INTERFACE_MODE_2500BASEX, mask);
+	__set_bit(PHY_INTERFACE_MODE_5GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_XAUI, mask);
+	__set_bit(PHY_INTERFACE_MODE_RXAUI, mask);
+	__set_bit(PHY_INTERFACE_MODE_10GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_USXGMII, mask);
+}
+
+static void mv3340_init_supported_interfaces(unsigned long *mask)
+{
+	__set_bit(PHY_INTERFACE_MODE_SGMII, mask);
+	__set_bit(PHY_INTERFACE_MODE_2500BASEX, mask);
+	__set_bit(PHY_INTERFACE_MODE_5GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_RXAUI, mask);
+	__set_bit(PHY_INTERFACE_MODE_10GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_USXGMII, mask);
+}
+
+static void mv2110_init_supported_interfaces(unsigned long *mask)
+{
+	__set_bit(PHY_INTERFACE_MODE_SGMII, mask);
+	__set_bit(PHY_INTERFACE_MODE_2500BASEX, mask);
+	__set_bit(PHY_INTERFACE_MODE_5GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_10GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_USXGMII, mask);
+}
+
+static void mv2111_init_supported_interfaces(unsigned long *mask)
+{
+	__set_bit(PHY_INTERFACE_MODE_SGMII, mask);
+	__set_bit(PHY_INTERFACE_MODE_2500BASEX, mask);
+	__set_bit(PHY_INTERFACE_MODE_10GBASER, mask);
+	__set_bit(PHY_INTERFACE_MODE_USXGMII, mask);
+}
+
+static const struct mv3310_chip mv3310_type = {
+	.init_supported_interfaces = mv3310_init_supported_interfaces,
+	.get_mactype = mv3310_get_mactype,
+	.init_interface = mv3310_init_interface,
+
+#ifdef CONFIG_HWMON
+	.hwmon_read_temp_reg = mv3310_hwmon_read_temp_reg,
+#endif
+};
+
+static const struct mv3310_chip mv3340_type = {
+	.init_supported_interfaces = mv3340_init_supported_interfaces,
+	.get_mactype = mv3310_get_mactype,
+	.init_interface = mv3340_init_interface,
+
+#ifdef CONFIG_HWMON
+	.hwmon_read_temp_reg = mv3310_hwmon_read_temp_reg,
+#endif
+};
+
+static const struct mv3310_chip mv2110_type = {
+	.init_supported_interfaces = mv2110_init_supported_interfaces,
+	.get_mactype = mv2110_get_mactype,
+	.init_interface = mv2110_init_interface,
+
+#ifdef CONFIG_HWMON
+	.hwmon_read_temp_reg = mv2110_hwmon_read_temp_reg,
+#endif
+};
+
+static const struct mv3310_chip mv2111_type = {
+	.init_supported_interfaces = mv2111_init_supported_interfaces,
+	.get_mactype = mv2110_get_mactype,
+	.init_interface = mv2110_init_interface,
+
+#ifdef CONFIG_HWMON
+	.hwmon_read_temp_reg = mv2110_hwmon_read_temp_reg,
+#endif
+};
+
+static int mv3310_get_number_of_ports(struct phy_device *phydev)
+{
+	int ret;
+
+	ret = phy_read_mmd(phydev, MDIO_MMD_PCS, MV_PCS_PORT_INFO);
+	if (ret < 0)
+		return ret;
+
+	ret &= MV_PCS_PORT_INFO_NPORTS_MASK;
+	ret >>= MV_PCS_PORT_INFO_NPORTS_SHIFT;
+
+	return ret + 1;
+}
+
+static int mv3310_match_phy_device(struct phy_device *phydev)
+{
+	return mv3310_get_number_of_ports(phydev) == 1;
+}
+
+static int mv3340_match_phy_device(struct phy_device *phydev)
+{
+	return mv3310_get_number_of_ports(phydev) == 4;
+}
+
+static int mv211x_match_phy_device(struct phy_device *phydev, bool has_5g)
+{
+	int val;
+
+	if ((phydev->c45_ids.device_ids[MDIO_MMD_PMAPMD] &
+	     MARVELL_PHY_ID_MASK) != MARVELL_PHY_ID_88E2110)
+		return 0;
+
+	val = phy_read_mmd(phydev, MDIO_MMD_PCS, MDIO_SPEED);
+	if (val < 0)
+		return val;
+
+	return !!(val & MDIO_PCS_SPEED_5G) == has_5g;
+}
+
+static int mv2110_match_phy_device(struct phy_device *phydev)
+{
+	return mv211x_match_phy_device(phydev, true);
+}
+
+static int mv2111_match_phy_device(struct phy_device *phydev)
+{
+	return mv211x_match_phy_device(phydev, false);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct phy_driver mv3310_drivers[] = {
 	{
 		.phy_id		= MARVELL_PHY_ID_88X3310,
@@ -781,6 +926,47 @@ static struct phy_driver mv3310_drivers[] = {
 		.get_tunable	= mv3310_get_tunable,
 		.set_tunable	= mv3310_set_tunable,
 		.remove		= mv3310_remove,
+<<<<<<< HEAD
+=======
+		.set_loopback	= genphy_c45_loopback,
+	},
+	{
+		.phy_id		= MARVELL_PHY_ID_88X3310,
+		.phy_id_mask	= MARVELL_PHY_ID_MASK,
+		.match_phy_device = mv3340_match_phy_device,
+		.name		= "mv88x3340",
+		.driver_data	= &mv3340_type,
+		.get_features	= mv3310_get_features,
+		.config_init	= mv3310_config_init,
+		.probe		= mv3310_probe,
+		.suspend	= mv3310_suspend,
+		.resume		= mv3310_resume,
+		.config_aneg	= mv3310_config_aneg,
+		.aneg_done	= mv3310_aneg_done,
+		.read_status	= mv3310_read_status,
+		.get_tunable	= mv3310_get_tunable,
+		.set_tunable	= mv3310_set_tunable,
+		.remove		= mv3310_remove,
+		.set_loopback	= genphy_c45_loopback,
+	},
+	{
+		.phy_id		= MARVELL_PHY_ID_88E2110,
+		.phy_id_mask	= MARVELL_PHY_ID_MASK,
+		.match_phy_device = mv2110_match_phy_device,
+		.name		= "mv88e2110",
+		.driver_data	= &mv2110_type,
+		.probe		= mv3310_probe,
+		.suspend	= mv3310_suspend,
+		.resume		= mv3310_resume,
+		.config_init	= mv3310_config_init,
+		.config_aneg	= mv3310_config_aneg,
+		.aneg_done	= mv3310_aneg_done,
+		.read_status	= mv3310_read_status,
+		.get_tunable	= mv3310_get_tunable,
+		.set_tunable	= mv3310_set_tunable,
+		.remove		= mv3310_remove,
+		.set_loopback	= genphy_c45_loopback,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	},
 	{
 		.phy_id		= MARVELL_PHY_ID_88E2110,

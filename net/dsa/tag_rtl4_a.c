@@ -57,9 +57,15 @@ static struct sk_buff *rtl4a_tag_xmit(struct sk_buff *skb,
 	*p = htons(RTL4_A_ETHERTYPE);
 
 	out = (RTL4_A_PROTOCOL_RTL8366RB << 12) | (2 << 8);
+<<<<<<< HEAD
 	/* The lower bits is the port numer */
 	out |= (u8)dp->index;
 	p = (u16 *)(tag + 2);
+=======
+	/* The lower bits is the port number */
+	out |= (u8)dp->index;
+	p = (__be16 *)(tag + 2);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	*p = htons(out);
 
 	return skb;
@@ -81,7 +87,11 @@ static struct sk_buff *rtl4a_tag_rcv(struct sk_buff *skb,
 
 	/* The RTL4 header has its own custom Ethertype 0x8899 and that
 	 * starts right at the beginning of the packet, after the src
+<<<<<<< HEAD
 	 * ethernet addr. Apparantly skb->data always points 2 bytes in,
+=======
+	 * ethernet addr. Apparently skb->data always points 2 bytes in,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 * behind the Ethertype.
 	 */
 	tag = skb->data - 2;

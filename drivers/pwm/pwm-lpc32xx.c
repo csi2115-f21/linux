@@ -137,10 +137,13 @@ static int lpc32xx_pwm_probe(struct platform_device *pdev)
 static int lpc32xx_pwm_remove(struct platform_device *pdev)
 {
 	struct lpc32xx_pwm_chip *lpc32xx = platform_get_drvdata(pdev);
+<<<<<<< HEAD
 	unsigned int i;
 
 	for (i = 0; i < lpc32xx->chip.npwm; i++)
 		pwm_disable(&lpc32xx->chip.pwms[i]);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return pwmchip_remove(&lpc32xx->chip);
 }

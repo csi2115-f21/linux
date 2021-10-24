@@ -160,6 +160,10 @@ struct cal_camerarx {
 	struct device_node	*sensor_ep_node;
 	struct device_node	*sensor_node;
 	struct v4l2_subdev	*sensor;
+<<<<<<< HEAD
+=======
+	struct media_pipeline	pipe;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	struct v4l2_subdev	subdev;
 	struct media_pad	pads[2];

@@ -812,7 +812,12 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
 		if (amdgpu_device_has_dc_support(adev)) {
 #if defined(CONFIG_DRM_AMD_DC)
 			struct amdgpu_display_manager *dm = &adev->dm;
+<<<<<<< HEAD
 			atif->bd = dm->backlight_dev;
+=======
+			if (dm->backlight_dev)
+				atif->bd = dm->backlight_dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 		} else {
 			struct drm_encoder *tmp;
@@ -884,7 +889,11 @@ void amdgpu_acpi_get_backlight_caps(struct amdgpu_device *adev,
 }
 
 /**
+<<<<<<< HEAD
  * amdgpu_acpi_fini - tear down driver acpi support
+=======
+ * amdgpu_acpi_is_s0ix_supported
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * @adev: amdgpu_device pointer
  *
@@ -903,6 +912,10 @@ void amdgpu_acpi_fini(struct amdgpu_device *adev)
  */
 bool amdgpu_acpi_is_s0ix_supported(struct amdgpu_device *adev)
 {
+<<<<<<< HEAD
+=======
+#if IS_ENABLED(CONFIG_AMD_PMC) && IS_ENABLED(CONFIG_PM_SLEEP)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0) {
 		if (adev->flags & AMD_IS_APU)
 			return true;

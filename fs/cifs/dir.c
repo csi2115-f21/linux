@@ -111,6 +111,7 @@ build_path_from_dentry_optional_prefix(struct dentry *direntry, bool prefix)
 	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_USE_PREFIX_PATH)
 		pplen = cifs_sb->prepath ? strlen(cifs_sb->prepath) + 1 : 0;
 
+<<<<<<< HEAD
 cifs_bp_rename_retry:
 	namelen = dfsplen + pplen;
 	seq = read_seqbegin(&rename_lock);
@@ -169,6 +170,15 @@ cifs_bp_rename_retry:
 	   those safely to '/' if any are found in the middle of the prepath */
 	/* BB test paths to Windows with '/' in the midst of prepath */
 
+=======
+	s = dentry_path_raw(direntry, page, PAGE_SIZE);
+	if (IS_ERR(s))
+		return s;
+	if (!s[1])	// for root we want "", not "/"
+		s++;
+	if (s < (char *)page + pplen + dfsplen)
+		return ERR_PTR(-ENAMETOOLONG);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (pplen) {
 		int i;
 

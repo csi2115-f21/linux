@@ -299,7 +299,14 @@ static int get_ssusb_rscs(struct platform_device *pdev, struct ssusb_mtk *ssusb)
 		of_property_read_bool(node, "enable-manual-drd");
 	otg_sx->role_sw_used = of_property_read_bool(node, "usb-role-switch");
 
+<<<<<<< HEAD
 	if (!otg_sx->role_sw_used && of_property_read_bool(node, "extcon")) {
+=======
+	if (otg_sx->role_sw_used || otg_sx->manual_drd_enabled)
+		goto out;
+
+	if (of_property_read_bool(node, "extcon")) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		otg_sx->edev = extcon_get_edev_by_phandle(ssusb->dev, 0);
 		if (IS_ERR(otg_sx->edev)) {
 			dev_err(ssusb->dev, "couldn't get extcon device\n");

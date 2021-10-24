@@ -908,6 +908,17 @@ static bool blk_mq_req_expired(struct request *rq, unsigned long *next)
 	return false;
 }
 
+<<<<<<< HEAD
+=======
+void blk_mq_put_rq_ref(struct request *rq)
+{
+	if (is_flush_rq(rq, rq->mq_hctx))
+		rq->end_io(rq, 0);
+	else if (refcount_dec_and_test(&rq->ref))
+		__blk_mq_free_request(rq);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool blk_mq_check_expired(struct blk_mq_hw_ctx *hctx,
 		struct request *rq, void *priv, bool reserved)
 {
@@ -941,11 +952,15 @@ static bool blk_mq_check_expired(struct blk_mq_hw_ctx *hctx,
 	if (blk_mq_req_expired(rq, next))
 		blk_mq_rq_timed_out(rq, reserved);
 
+<<<<<<< HEAD
 	if (is_flush_rq(rq, hctx))
 		rq->end_io(rq, 0);
 	else if (refcount_dec_and_test(&rq->ref))
 		__blk_mq_free_request(rq);
 
+=======
+	blk_mq_put_rq_ref(rq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return true;
 }
 
@@ -3050,6 +3065,7 @@ struct request_queue *blk_mq_init_queue(struct blk_mq_tag_set *set)
 }
 EXPORT_SYMBOL(blk_mq_init_queue);
 
+<<<<<<< HEAD
 /*
  * Helper for setting up a queue with mq ops, given queue depth, and
  * the passed in mq ops flags.
@@ -3058,6 +3074,9 @@ struct request_queue *blk_mq_init_sq_queue(struct blk_mq_tag_set *set,
 					   const struct blk_mq_ops *ops,
 					   unsigned int queue_depth,
 					   unsigned int set_flags)
+=======
+struct gendisk *__blk_mq_alloc_disk(struct blk_mq_tag_set *set, void *queuedata)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct request_queue *q;
 	int ret;
@@ -3070,6 +3089,7 @@ struct request_queue *blk_mq_init_sq_queue(struct blk_mq_tag_set *set,
 	set->numa_node = NUMA_NO_NODE;
 	set->flags = set_flags;
 
+<<<<<<< HEAD
 	ret = blk_mq_alloc_tag_set(set);
 	if (ret)
 		return ERR_PTR(ret);
@@ -3081,6 +3101,15 @@ struct request_queue *blk_mq_init_sq_queue(struct blk_mq_tag_set *set,
 	}
 
 	return q;
+=======
+	disk = __alloc_disk_node(0, set->numa_node);
+	if (!disk) {
+		blk_cleanup_queue(q);
+		return ERR_PTR(-ENOMEM);
+	}
+	disk->queue = q;
+	return disk;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL(blk_mq_init_sq_queue);
 

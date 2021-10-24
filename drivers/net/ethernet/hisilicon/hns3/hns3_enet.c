@@ -53,6 +53,22 @@ static int debug = -1;
 module_param(debug, int, 0);
 MODULE_PARM_DESC(debug, " Network interface message level setting");
 
+<<<<<<< HEAD
+=======
+static unsigned int tx_spare_buf_size;
+module_param(tx_spare_buf_size, uint, 0400);
+MODULE_PARM_DESC(tx_spare_buf_size, "Size used to allocate tx spare buffer");
+
+static unsigned int tx_sgl = 1;
+module_param(tx_sgl, uint, 0600);
+MODULE_PARM_DESC(tx_sgl, "Minimum number of frags when using dma_map_sg() to optimize the IOMMU mapping");
+
+#define HNS3_SGL_SIZE(nfrag)	(sizeof(struct scatterlist) * (nfrag) +	\
+				 sizeof(struct sg_table))
+#define HNS3_MAX_SGL_SIZE	ALIGN(HNS3_SGL_SIZE(HNS3_MAX_TSO_BD_NUM),\
+				      dma_get_cache_alignment())
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define DEFAULT_MSG_LEVEL (NETIF_MSG_PROBE | NETIF_MSG_LINK | \
 			   NETIF_MSG_IFDOWN | NETIF_MSG_IFUP)
 
@@ -677,10 +693,184 @@ void hns3_request_update_promisc_mode(struct hnae3_handle *handle)
 
 void hns3_enable_vlan_filter(struct net_device *netdev, bool enable)
 {
+<<<<<<< HEAD
 	struct hns3_nic_priv *priv = netdev_priv(netdev);
 	struct hnae3_handle *h = priv->ae_handle;
 	struct hnae3_ae_dev *ae_dev = pci_get_drvdata(h->pdev);
 	bool last_state;
+=======
+	struct hns3_tx_spare *tx_spare = ring->tx_spare;
+	u32 ntc, ntu;
+
+	/* This smp_load_acquire() pairs with smp_store_release() in
+	 * hns3_tx_spare_update() called in tx desc cleaning process.
+	 */
+	ntc = smp_load_acquire(&tx_spare->last_to_clean);
+	ntu = tx_spare->next_to_use;
+
+	if (ntc > ntu)
+		return ntc - ntu - 1;
+
+	/* The free tx buffer is divided into two part, so pick the
+	 * larger one.
+	 */
+	return (ntc > (tx_spare->len - ntu) ? ntc :
+			(tx_spare->len - ntu)) - 1;
+}
+
+static void hns3_tx_spare_update(struct hns3_enet_ring *ring)
+{
+	struct hns3_tx_spare *tx_spare = ring->tx_spare;
+
+	if (!tx_spare ||
+	    tx_spare->last_to_clean == tx_spare->next_to_clean)
+		return;
+
+	/* This smp_store_release() pairs with smp_load_acquire() in
+	 * hns3_tx_spare_space() called in xmit process.
+	 */
+	smp_store_release(&tx_spare->last_to_clean,
+			  tx_spare->next_to_clean);
+}
+
+static bool hns3_can_use_tx_bounce(struct hns3_enet_ring *ring,
+				   struct sk_buff *skb,
+				   u32 space)
+{
+	u32 len = skb->len <= ring->tx_copybreak ? skb->len :
+				skb_headlen(skb);
+
+	if (len > ring->tx_copybreak)
+		return false;
+
+	if (ALIGN(len, dma_get_cache_alignment()) > space) {
+		u64_stats_update_begin(&ring->syncp);
+		ring->stats.tx_spare_full++;
+		u64_stats_update_end(&ring->syncp);
+		return false;
+	}
+
+	return true;
+}
+
+static bool hns3_can_use_tx_sgl(struct hns3_enet_ring *ring,
+				struct sk_buff *skb,
+				u32 space)
+{
+	if (skb->len <= ring->tx_copybreak || !tx_sgl ||
+	    (!skb_has_frag_list(skb) &&
+	     skb_shinfo(skb)->nr_frags < tx_sgl))
+		return false;
+
+	if (space < HNS3_MAX_SGL_SIZE) {
+		u64_stats_update_begin(&ring->syncp);
+		ring->stats.tx_spare_full++;
+		u64_stats_update_end(&ring->syncp);
+		return false;
+	}
+
+	return true;
+}
+
+static void hns3_init_tx_spare_buffer(struct hns3_enet_ring *ring)
+{
+	struct hns3_tx_spare *tx_spare;
+	struct page *page;
+	u32 alloc_size;
+	dma_addr_t dma;
+	int order;
+
+	alloc_size = tx_spare_buf_size ? tx_spare_buf_size :
+		     ring->tqp->handle->kinfo.tx_spare_buf_size;
+	if (!alloc_size)
+		return;
+
+	order = get_order(alloc_size);
+	tx_spare = devm_kzalloc(ring_to_dev(ring), sizeof(*tx_spare),
+				GFP_KERNEL);
+	if (!tx_spare) {
+		/* The driver still work without the tx spare buffer */
+		dev_warn(ring_to_dev(ring), "failed to allocate hns3_tx_spare\n");
+		return;
+	}
+
+	page = alloc_pages_node(dev_to_node(ring_to_dev(ring)),
+				GFP_KERNEL, order);
+	if (!page) {
+		dev_warn(ring_to_dev(ring), "failed to allocate tx spare pages\n");
+		devm_kfree(ring_to_dev(ring), tx_spare);
+		return;
+	}
+
+	dma = dma_map_page(ring_to_dev(ring), page, 0,
+			   PAGE_SIZE << order, DMA_TO_DEVICE);
+	if (dma_mapping_error(ring_to_dev(ring), dma)) {
+		dev_warn(ring_to_dev(ring), "failed to map pages for tx spare\n");
+		put_page(page);
+		devm_kfree(ring_to_dev(ring), tx_spare);
+		return;
+	}
+
+	tx_spare->dma = dma;
+	tx_spare->buf = page_address(page);
+	tx_spare->len = PAGE_SIZE << order;
+	ring->tx_spare = tx_spare;
+}
+
+/* Use hns3_tx_spare_space() to make sure there is enough buffer
+ * before calling below function to allocate tx buffer.
+ */
+static void *hns3_tx_spare_alloc(struct hns3_enet_ring *ring,
+				 unsigned int size, dma_addr_t *dma,
+				 u32 *cb_len)
+{
+	struct hns3_tx_spare *tx_spare = ring->tx_spare;
+	u32 ntu = tx_spare->next_to_use;
+
+	size = ALIGN(size, dma_get_cache_alignment());
+	*cb_len = size;
+
+	/* Tx spare buffer wraps back here because the end of
+	 * freed tx buffer is not enough.
+	 */
+	if (ntu + size > tx_spare->len) {
+		*cb_len += (tx_spare->len - ntu);
+		ntu = 0;
+	}
+
+	tx_spare->next_to_use = ntu + size;
+	if (tx_spare->next_to_use == tx_spare->len)
+		tx_spare->next_to_use = 0;
+
+	*dma = tx_spare->dma + ntu;
+
+	return tx_spare->buf + ntu;
+}
+
+static void hns3_tx_spare_rollback(struct hns3_enet_ring *ring, u32 len)
+{
+	struct hns3_tx_spare *tx_spare = ring->tx_spare;
+
+	if (len > tx_spare->next_to_use) {
+		len -= tx_spare->next_to_use;
+		tx_spare->next_to_use = tx_spare->len - len;
+	} else {
+		tx_spare->next_to_use -= len;
+	}
+}
+
+static void hns3_tx_spare_reclaim_cb(struct hns3_enet_ring *ring,
+				     struct hns3_desc_cb *cb)
+{
+	struct hns3_tx_spare *tx_spare = ring->tx_spare;
+	u32 ntc = tx_spare->next_to_clean;
+	u32 len = cb->length;
+
+	tx_spare->next_to_clean += len;
+
+	if (tx_spare->next_to_clean >= tx_spare->len) {
+		tx_spare->next_to_clean -= tx_spare->len;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (ae_dev->dev_version >= HNAE3_DEVICE_VERSION_V2 &&
 	    h->ae_algo->ops->enable_vlan_filter) {
@@ -969,7 +1159,11 @@ static int hns3_set_l2l3l4(struct sk_buff *skb, u8 ol4_proto,
 		break;
 	case IPPROTO_UDP:
 		if (hns3_tunnel_csum_bug(skb))
+<<<<<<< HEAD
 			break;
+=======
+			return skb_checksum_help(skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		hns3_set_field(*type_cs_vlan_tso, HNS3_TXD_L4CS_B, 1);
 		hns3_set_field(*type_cs_vlan_tso, HNS3_TXD_L4T_S,
@@ -2487,6 +2681,12 @@ static void hns3_set_default_feature(struct net_device *netdev)
 		netdev->hw_features |= NETIF_F_HW_TC;
 		netdev->features |= NETIF_F_HW_TC;
 	}
+<<<<<<< HEAD
+=======
+
+	if (test_bit(HNAE3_DEV_SUPPORT_VLAN_FLTR_MDF_B, ae_dev->caps))
+		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int hns3_alloc_buffer(struct hns3_enet_ring *ring,
@@ -2813,6 +3013,7 @@ static void hns3_nic_reuse_page(struct sk_buff *skb, int i,
 	int size = le16_to_cpu(desc->rx.size);
 	u32 truesize = hns3_buf_size(ring);
 
+<<<<<<< HEAD
 	desc_cb->pagecnt_bias--;
 	skb_add_rx_frag(skb, i, desc_cb->priv, desc_cb->page_offset + pull_len,
 			size - pull_len, truesize);
@@ -2829,6 +3030,11 @@ static void hns3_nic_reuse_page(struct sk_buff *skb, int i,
 
 	/* Move offset up to the next cache line */
 	desc_cb->page_offset += truesize;
+=======
+	/* Avoid re-using remote or pfmem page */
+	if (unlikely(!dev_page_is_reusable(desc_cb->priv)))
+		goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (desc_cb->page_offset + truesize <= hns3_page_size(ring)) {
 		desc_cb->reuse_flag = 1;
@@ -3702,6 +3908,57 @@ static void hns3_nic_set_cpumask(struct hns3_nic_priv *priv)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void hns3_rx_dim_work(struct work_struct *work)
+{
+	struct dim *dim = container_of(work, struct dim, work);
+	struct hns3_enet_ring_group *group = container_of(dim,
+		struct hns3_enet_ring_group, dim);
+	struct hns3_enet_tqp_vector *tqp_vector = group->ring->tqp_vector;
+	struct dim_cq_moder cur_moder =
+		net_dim_get_rx_moderation(dim->mode, dim->profile_ix);
+
+	hns3_set_vector_coalesce_rx_gl(group->ring->tqp_vector, cur_moder.usec);
+	tqp_vector->rx_group.coal.int_gl = cur_moder.usec;
+
+	if (cur_moder.pkts < tqp_vector->rx_group.coal.int_ql_max) {
+		hns3_set_vector_coalesce_rx_ql(tqp_vector, cur_moder.pkts);
+		tqp_vector->rx_group.coal.int_ql = cur_moder.pkts;
+	}
+
+	dim->state = DIM_START_MEASURE;
+}
+
+static void hns3_tx_dim_work(struct work_struct *work)
+{
+	struct dim *dim = container_of(work, struct dim, work);
+	struct hns3_enet_ring_group *group = container_of(dim,
+		struct hns3_enet_ring_group, dim);
+	struct hns3_enet_tqp_vector *tqp_vector = group->ring->tqp_vector;
+	struct dim_cq_moder cur_moder =
+		net_dim_get_tx_moderation(dim->mode, dim->profile_ix);
+
+	hns3_set_vector_coalesce_tx_gl(tqp_vector, cur_moder.usec);
+	tqp_vector->tx_group.coal.int_gl = cur_moder.usec;
+
+	if (cur_moder.pkts < tqp_vector->tx_group.coal.int_ql_max) {
+		hns3_set_vector_coalesce_tx_ql(tqp_vector, cur_moder.pkts);
+		tqp_vector->tx_group.coal.int_ql = cur_moder.pkts;
+	}
+
+	dim->state = DIM_START_MEASURE;
+}
+
+static void hns3_nic_init_dim(struct hns3_enet_tqp_vector *tqp_vector)
+{
+	INIT_WORK(&tqp_vector->rx_group.dim.work, hns3_rx_dim_work);
+	tqp_vector->rx_group.dim.mode = DIM_CQ_PERIOD_MODE_START_FROM_EQE;
+	INIT_WORK(&tqp_vector->tx_group.dim.work, hns3_tx_dim_work);
+	tqp_vector->tx_group.dim.mode = DIM_CQ_PERIOD_MODE_START_FROM_EQE;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hns3_nic_init_vector_data(struct hns3_nic_priv *priv)
 {
 	struct hnae3_ring_chain_node vector_ring_chain;
@@ -3983,6 +4240,18 @@ void hns3_fini_ring(struct hns3_enet_ring *ring)
 	if (ring->skb) {
 		dev_kfree_skb_any(ring->skb);
 		ring->skb = NULL;
+<<<<<<< HEAD
+=======
+	} else if (HNAE3_IS_TX_RING(ring) && ring->tx_spare) {
+		struct hns3_tx_spare *tx_spare = ring->tx_spare;
+
+		dma_unmap_page(ring_to_dev(ring), tx_spare->dma, tx_spare->len,
+			       DMA_TO_DEVICE);
+		free_pages((unsigned long)tx_spare->buf,
+			   get_order(tx_spare->len));
+		devm_kfree(ring_to_dev(ring), tx_spare);
+		ring->tx_spare = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -4284,6 +4553,17 @@ static int hns3_client_init(struct hnae3_handle *handle)
 
 	if (test_bit(HNAE3_DEV_SUPPORT_HW_TX_CSUM_B, ae_dev->caps))
 		set_bit(HNS3_NIC_STATE_HW_TX_CSUM_ENABLE, &priv->state);
+<<<<<<< HEAD
+=======
+
+	if (hnae3_ae_dev_rxd_adv_layout_supported(ae_dev))
+		set_bit(HNS3_NIC_STATE_RXD_ADV_LAYOUT_ENABLE, &priv->state);
+
+	set_bit(HNS3_NIC_STATE_INITED, &priv->state);
+
+	if (ae_dev->dev_version >= HNAE3_DEVICE_VERSION_V3)
+		set_bit(HNAE3_PFLAG_LIMIT_PROMISC, &handle->supported_pflags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	set_bit(HNS3_NIC_STATE_INITED, &priv->state);
 

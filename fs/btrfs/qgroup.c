@@ -1702,7 +1702,33 @@ int btrfs_qgroup_trace_extent_post(struct btrfs_fs_info *fs_info,
 	u64 bytenr = qrecord->bytenr;
 	int ret;
 
+<<<<<<< HEAD
 	ret = btrfs_find_all_roots(NULL, fs_info, bytenr, 0, &old_root, false);
+=======
+	/*
+	 * We are always called in a context where we are already holding a
+	 * transaction handle. Often we are called when adding a data delayed
+	 * reference from btrfs_truncate_inode_items() (truncating or unlinking),
+	 * in which case we will be holding a write lock on extent buffer from a
+	 * subvolume tree. In this case we can't allow btrfs_find_all_roots() to
+	 * acquire fs_info->commit_root_sem, because that is a higher level lock
+	 * that must be acquired before locking any extent buffers.
+	 *
+	 * So we want btrfs_find_all_roots() to not acquire the commit_root_sem
+	 * but we can't pass it a non-NULL transaction handle, because otherwise
+	 * it would not use commit roots and would lock extent buffers, causing
+	 * a deadlock if it ends up trying to read lock the same extent buffer
+	 * that was previously write locked at btrfs_truncate_inode_items().
+	 *
+	 * So pass a NULL transaction handle to btrfs_find_all_roots() and
+	 * explicitly tell it to not acquire the commit_root_sem - if we are
+	 * holding a transaction handle we don't need its protection.
+	 */
+	ASSERT(trans != NULL);
+
+	ret = btrfs_find_all_roots(NULL, trans->fs_info, bytenr, 0, &old_root,
+				   false, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret < 0) {
 		fs_info->qgroup_flags |= BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT;
 		btrfs_warn(fs_info,
@@ -2620,7 +2646,7 @@ int btrfs_qgroup_account_extents(struct btrfs_trans_handle *trans)
 				/* Search commit root to find old_roots */
 				ret = btrfs_find_all_roots(NULL, fs_info,
 						record->bytenr, 0,
-						&record->old_roots, false);
+						&record->old_roots, false, false);
 				if (ret < 0)
 					goto cleanup;
 			}
@@ -2636,7 +2662,11 @@ int btrfs_qgroup_account_extents(struct btrfs_trans_handle *trans)
 			 * root. It's safe inside commit_transaction().
 			 */
 			ret = btrfs_find_all_roots(trans, fs_info,
+<<<<<<< HEAD
 				record->bytenr, SEQ_LAST, &new_roots, false);
+=======
+			   record->bytenr, BTRFS_SEQ_LAST, &new_roots, false, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (ret < 0)
 				goto cleanup;
 			if (qgroup_to_skip) {
@@ -3170,7 +3200,7 @@ static int qgroup_rescan_leaf(struct btrfs_trans_handle *trans,
 			num_bytes = found.offset;
 
 		ret = btrfs_find_all_roots(NULL, fs_info, found.objectid, 0,
-					   &roots, false);
+					   &roots, false, false);
 		if (ret < 0)
 			goto out;
 		/* For rescan, just pass old_roots as NULL */

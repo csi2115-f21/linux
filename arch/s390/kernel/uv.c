@@ -52,7 +52,11 @@ void __init setup_uv(void)
 	unsigned long uv_stor_base;
 
 	/*
+<<<<<<< HEAD
 	 * keep these conditions in line with kasan init code has_uv_sec_stor_limit()
+=======
+	 * keep these conditions in line with has_uv_sec_stor_limit()
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 */
 	if (!is_prot_virt_host())
 		return;

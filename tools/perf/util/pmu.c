@@ -914,6 +914,16 @@ static struct perf_pmu *pmu_lookup(const char *name)
 	LIST_HEAD(format);
 	LIST_HEAD(aliases);
 	__u32 type;
+<<<<<<< HEAD
+=======
+	bool is_hybrid = perf_pmu__hybrid_mounted(name);
+
+	/*
+	 * Check pmu name for hybrid and the pmu may be invalid in sysfs
+	 */
+	if (!strncmp(name, "cpu_", 4) && !is_hybrid)
+		return NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * The pmu data we store & need consists of the pmu
@@ -1812,3 +1822,60 @@ int perf_pmu__caps_parse(struct perf_pmu *pmu)
 
 	return nr_caps;
 }
+<<<<<<< HEAD
+=======
+
+void perf_pmu__warn_invalid_config(struct perf_pmu *pmu, __u64 config,
+				   char *name)
+{
+	struct perf_pmu_format *format;
+	__u64 masks = 0, bits;
+	char buf[100];
+	unsigned int i;
+
+	list_for_each_entry(format, &pmu->format, list)	{
+		if (format->value != PERF_PMU_FORMAT_VALUE_CONFIG)
+			continue;
+
+		for_each_set_bit(i, format->bits, PERF_PMU_FORMAT_BITS)
+			masks |= 1ULL << i;
+	}
+
+	/*
+	 * Kernel doesn't export any valid format bits.
+	 */
+	if (masks == 0)
+		return;
+
+	bits = config & ~masks;
+	if (bits == 0)
+		return;
+
+	bitmap_scnprintf((unsigned long *)&bits, sizeof(bits) * 8, buf, sizeof(buf));
+
+	pr_warning("WARNING: event '%s' not valid (bits %s of config "
+		   "'%llx' not supported by kernel)!\n",
+		   name ?: "N/A", buf, config);
+}
+
+bool perf_pmu__has_hybrid(void)
+{
+	if (!hybrid_scanned) {
+		hybrid_scanned = true;
+		perf_pmu__scan(NULL);
+	}
+
+	return !list_empty(&perf_pmu__hybrid_pmus);
+}
+
+int perf_pmu__match(char *pattern, char *name, char *tok)
+{
+	if (fnmatch(pattern, name, 0))
+		return -1;
+
+	if (tok && !perf_pmu__valid_suffix(name, tok))
+		return -1;
+
+	return 0;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

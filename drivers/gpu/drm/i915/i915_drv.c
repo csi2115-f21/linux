@@ -275,7 +275,11 @@ static void intel_detect_preproduction_hw(struct drm_i915_private *dev_priv)
 	pre |= IS_HSW_EARLY_SDV(dev_priv);
 	pre |= IS_SKL_REVID(dev_priv, 0, SKL_REVID_F0);
 	pre |= IS_BXT_REVID(dev_priv, 0, BXT_REVID_B_LAST);
+<<<<<<< HEAD
 	pre |= IS_KBL_GT_REVID(dev_priv, 0, KBL_REVID_A0);
+=======
+	pre |= IS_KBL_GT_STEP(dev_priv, 0, STEP_A0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pre |= IS_GLK_REVID(dev_priv, 0, GLK_REVID_A2);
 
 	if (pre) {
@@ -557,7 +561,11 @@ static int i915_driver_hw_probe(struct drm_i915_private *dev_priv)
 	if (ret)
 		goto err_perf;
 
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "inteldrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "inteldrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		goto err_ggtt;
 

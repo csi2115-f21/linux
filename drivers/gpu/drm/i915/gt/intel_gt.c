@@ -37,6 +37,43 @@ void intel_gt_init_early(struct intel_gt *gt, struct drm_i915_private *i915)
 
 	intel_rps_init_early(&gt->rps);
 	intel_uc_init_early(&gt->uc);
+<<<<<<< HEAD
+=======
+}
+
+int intel_gt_probe_lmem(struct intel_gt *gt)
+{
+	struct drm_i915_private *i915 = gt->i915;
+	struct intel_memory_region *mem;
+	int id;
+	int err;
+
+	mem = intel_gt_setup_lmem(gt);
+	if (mem == ERR_PTR(-ENODEV))
+		mem = intel_gt_setup_fake_lmem(gt);
+	if (IS_ERR(mem)) {
+		err = PTR_ERR(mem);
+		if (err == -ENODEV)
+			return 0;
+
+		drm_err(&i915->drm,
+			"Failed to setup region(%d) type=%d\n",
+			err, INTEL_MEMORY_LOCAL);
+		return err;
+	}
+
+	id = INTEL_REGION_LMEM;
+
+	mem->id = id;
+
+	intel_memory_region_set_name(mem, "local%u", mem->instance);
+
+	GEM_BUG_ON(!HAS_REGION(i915, id));
+	GEM_BUG_ON(i915->mm.regions[id]);
+	i915->mm.regions[id] = mem;
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void intel_gt_init_hw_early(struct intel_gt *gt, struct i915_ggtt *ggtt)

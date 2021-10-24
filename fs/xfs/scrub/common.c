@@ -409,7 +409,13 @@ xchk_ag_read_headers(
 	struct xfs_mount	*mp = sc->mp;
 	int			error;
 
+<<<<<<< HEAD
 	error = xfs_ialloc_read_agi(mp, sc->tp, agno, agi);
+=======
+	sa->agno = agno;
+
+	error = xfs_ialloc_read_agi(mp, sc->tp, agno, &sa->agi_bp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (error && want_ag_read_header_failure(sc, XFS_SCRUB_TYPE_AGI))
 		goto out;
 
@@ -554,6 +560,19 @@ xchk_ag_init(
 		return error;
 
 	return xchk_ag_btcur_init(sc, sa);
+}
+
+/*
+ * Grab the per-ag structure if we haven't already gotten it.  Teardown of the
+ * xchk_ag will release it for us.
+ */
+void
+xchk_perag_get(
+	struct xfs_mount	*mp,
+	struct xchk_ag		*sa)
+{
+	if (!sa->pag)
+		sa->pag = xfs_perag_get(mp, sa->agno);
 }
 
 /*

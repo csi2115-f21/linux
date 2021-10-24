@@ -129,8 +129,13 @@
 #define FEATURE_SMNCLK_DPM_BIT          47
 #define FEATURE_PERLINK_GMIDOWN_BIT     48
 #define FEATURE_GFX_EDC_BIT             49
+<<<<<<< HEAD
 #define FEATURE_SPARE_50_BIT            50
 #define FEATURE_SPARE_51_BIT            51
+=======
+#define FEATURE_GFX_PER_PART_VMIN_BIT   50
+#define FEATURE_SMART_SHIFT_BIT         51
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define FEATURE_SPARE_52_BIT            52
 #define FEATURE_SPARE_53_BIT            53
 #define FEATURE_SPARE_54_BIT            54

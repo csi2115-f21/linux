@@ -174,6 +174,17 @@
 #define mmGC_THROTTLE_CTRL_Sienna_Cichlid              0x2030
 #define mmGC_THROTTLE_CTRL_Sienna_Cichlid_BASE_IDX     0
 
+<<<<<<< HEAD
+=======
+#define mmRLC_SPARE_INT_0_Sienna_Cichlid               0x4ca5
+#define mmRLC_SPARE_INT_0_Sienna_Cichlid_BASE_IDX      1
+
+#define GFX_RLCG_GC_WRITE_OLD	(0x8 << 28)
+#define GFX_RLCG_GC_WRITE	(0x0 << 28)
+#define GFX_RLCG_GC_READ	(0x1 << 28)
+#define GFX_RLCG_MMHUB_WRITE	(0x2 << 28)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 MODULE_FIRMWARE("amdgpu/navi10_ce.bin");
 MODULE_FIRMWARE("amdgpu/navi10_pfp.bin");
 MODULE_FIRMWARE("amdgpu/navi10_me.bin");
@@ -228,6 +239,23 @@ MODULE_FIRMWARE("amdgpu/dimgrey_cavefish_mec.bin");
 MODULE_FIRMWARE("amdgpu/dimgrey_cavefish_mec2.bin");
 MODULE_FIRMWARE("amdgpu/dimgrey_cavefish_rlc.bin");
 
+<<<<<<< HEAD
+=======
+MODULE_FIRMWARE("amdgpu/beige_goby_ce.bin");
+MODULE_FIRMWARE("amdgpu/beige_goby_pfp.bin");
+MODULE_FIRMWARE("amdgpu/beige_goby_me.bin");
+MODULE_FIRMWARE("amdgpu/beige_goby_mec.bin");
+MODULE_FIRMWARE("amdgpu/beige_goby_mec2.bin");
+MODULE_FIRMWARE("amdgpu/beige_goby_rlc.bin");
+
+MODULE_FIRMWARE("amdgpu/yellow_carp_ce.bin");
+MODULE_FIRMWARE("amdgpu/yellow_carp_pfp.bin");
+MODULE_FIRMWARE("amdgpu/yellow_carp_me.bin");
+MODULE_FIRMWARE("amdgpu/yellow_carp_mec.bin");
+MODULE_FIRMWARE("amdgpu/yellow_carp_mec2.bin");
+MODULE_FIRMWARE("amdgpu/yellow_carp_rlc.bin");
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct soc15_reg_golden golden_settings_gc_10_1[] =
 {
 	SOC15_REG_GOLDEN_VALUE(GC, 0, mmCB_HW_CONTROL_4, 0xffffffff, 0x00400014),
@@ -1426,6 +1454,7 @@ static void gfx_v10_rlcg_wreg(struct amdgpu_device *adev, u32 offset, u32 v)
 	static void *spare_int;
 	uint32_t i = 0;
 	uint32_t retries = 50000;
+<<<<<<< HEAD
 
 	scratch_reg0 = adev->rmmio + (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG0_BASE_IDX] + mmSCRATCH_REG0)*4;
 	scratch_reg1 = adev->rmmio + (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG1_BASE_IDX] + mmSCRATCH_REG1)*4;
@@ -1433,6 +1462,68 @@ static void gfx_v10_rlcg_wreg(struct amdgpu_device *adev, u32 offset, u32 v)
 
 	if (amdgpu_sriov_runtime(adev)) {
 		pr_err("shouldn't call rlcg write register during runtime\n");
+=======
+	u32 ret = 0;
+
+	scratch_reg0 = adev->rmmio +
+		       (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG0_BASE_IDX] + mmSCRATCH_REG0) * 4;
+	scratch_reg1 = adev->rmmio +
+		       (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG1_BASE_IDX] + mmSCRATCH_REG1) * 4;
+	scratch_reg2 = adev->rmmio +
+		       (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG0_BASE_IDX] + mmSCRATCH_REG2) * 4;
+	scratch_reg3 = adev->rmmio +
+		       (adev->reg_offset[GC_HWIP][0][mmSCRATCH_REG1_BASE_IDX] + mmSCRATCH_REG3) * 4;
+
+	if (adev->asic_type >= CHIP_SIENNA_CICHLID) {
+		spare_int = adev->rmmio +
+			    (adev->reg_offset[GC_HWIP][0][mmRLC_SPARE_INT_0_Sienna_Cichlid_BASE_IDX]
+			     + mmRLC_SPARE_INT_0_Sienna_Cichlid) * 4;
+	} else {
+		spare_int = adev->rmmio +
+			    (adev->reg_offset[GC_HWIP][0][mmRLC_SPARE_INT_BASE_IDX] + mmRLC_SPARE_INT) * 4;
+	}
+
+	grbm_cntl = adev->reg_offset[GC_HWIP][0][mmGRBM_GFX_CNTL_BASE_IDX] + mmGRBM_GFX_CNTL;
+	grbm_idx = adev->reg_offset[GC_HWIP][0][mmGRBM_GFX_INDEX_BASE_IDX] + mmGRBM_GFX_INDEX;
+
+	if (offset == grbm_cntl || offset == grbm_idx) {
+		if (offset  == grbm_cntl)
+			writel(v, scratch_reg2);
+		else if (offset == grbm_idx)
+			writel(v, scratch_reg3);
+
+		writel(v, ((void __iomem *)adev->rmmio) + (offset * 4));
+	} else {
+		writel(v, scratch_reg0);
+		writel(offset | flag, scratch_reg1);
+		writel(1, spare_int);
+		for (i = 0; i < retries; i++) {
+			u32 tmp;
+
+			tmp = readl(scratch_reg1);
+			if (!(tmp & flag))
+				break;
+
+			udelay(10);
+		}
+
+		if (i >= retries)
+			pr_err("timeout: rlcg program reg:0x%05x failed !\n", offset);
+	}
+
+	ret = readl(scratch_reg0);
+
+	return ret;
+}
+
+static void gfx_v10_rlcg_wreg(struct amdgpu_device *adev, u32 offset, u32 value, u32 acc_flags, u32 hwip)
+{
+	u32 rlcg_flag;
+
+	if (!amdgpu_sriov_runtime(adev) &&
+	    gfx_v10_get_rlcg_flag(adev, acc_flags, hwip, 1, &rlcg_flag)) {
+		gfx_v10_rlcg_rw(adev, offset, value, rlcg_flag);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
@@ -1442,9 +1533,15 @@ static void gfx_v10_rlcg_wreg(struct amdgpu_device *adev, u32 offset, u32 v)
 	for (i = 0; i < retries; i++) {
 		u32 tmp;
 
+<<<<<<< HEAD
 		tmp = readl(scratch_reg1);
 		if (!(tmp & 0x80000000))
 			break;
+=======
+static u32 gfx_v10_rlcg_rreg(struct amdgpu_device *adev, u32 offset, u32 acc_flags, u32 hwip)
+{
+	u32 rlcg_flag;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		udelay(10);
 	}
@@ -3311,6 +3408,44 @@ static const struct soc15_reg_golden golden_settings_gc_10_3_4[] =
 	SOC15_REG_GOLDEN_VALUE(GC, 0, mmLDS_CONFIG,  0x00000020, 0x00000020)
 };
 
+<<<<<<< HEAD
+=======
+static const struct soc15_reg_golden golden_settings_gc_10_3_5[] = {
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmCGTT_SPI_CS_CLK_CTRL, 0x78000000, 0x78000100),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmCGTT_SPI_RA0_CLK_CTRL, 0xb0000ff0, 0x30000100),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmCGTT_SPI_RA1_CLK_CTRL, 0xff000000, 0x7e000100),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmCPF_GCR_CNTL, 0x0007ffff, 0x0000c000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmDB_DEBUG3, 0xffffffff, 0x00000280),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmDB_DEBUG4, 0xffffffff, 0x00800000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmGCR_GENERAL_CNTL_Sienna_Cichlid, 0x1ff1ffff, 0x00000500),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmGL2A_ADDR_MATCH_MASK, 0xffffffff, 0xffffffcf),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmGL2C_ADDR_MATCH_MASK, 0xffffffff, 0xffffffcf),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmGL2C_CM_CTRL1, 0xff8fff0f, 0x580f1008),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmGL2C_CTRL3, 0xf7ffffff, 0x00f80988),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmLDS_CONFIG, 0x000001ff, 0x00000020),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmPA_CL_ENHANCE, 0xf17fffff, 0x01200007),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_CONFIG, 0xe07df47f, 0x00180070),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER0_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER1_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER10_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER11_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER12_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER13_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER14_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER15_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER2_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER3_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER4_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER5_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER6_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER7_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER8_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmSQ_PERFCOUNTER9_SELECT, 0xf0f001ff, 0x00000000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmTA_CNTL_AUX,0xfff7ffff, 0x01030000),
+	SOC15_REG_GOLDEN_VALUE(GC, 0, mmUTCL1_CTRL, 0xffbfffff, 0x00a00000)
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define DEFAULT_SH_MEM_CONFIG \
 	((SH_MEM_ADDRESS_MODE_64 << SH_MEM_CONFIG__ADDRESS_MODE__SHIFT) | \
 	 (SH_MEM_ALIGNMENT_MODE_UNALIGNED << SH_MEM_CONFIG__ALIGNMENT_MODE__SHIFT) | \
@@ -3531,6 +3666,14 @@ static void gfx_v10_0_init_golden_registers(struct amdgpu_device *adev)
                                                 golden_settings_gc_10_3_4,
                                                 (const u32)ARRAY_SIZE(golden_settings_gc_10_3_4));
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+		soc15_program_register_sequence(adev,
+						golden_settings_gc_10_3_5,
+						(const u32)ARRAY_SIZE(golden_settings_gc_10_3_5));
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		break;
 	}
@@ -3831,6 +3974,15 @@ static int gfx_v10_0_init_microcode(struct amdgpu_device *adev)
 	case CHIP_DIMGREY_CAVEFISH:
 		chip_name = "dimgrey_cavefish";
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+		chip_name = "beige_goby";
+		break;
+	case CHIP_YELLOW_CARP:
+		chip_name = "yellow_carp";
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		BUG();
 	}
@@ -7892,6 +8044,10 @@ static const struct amdgpu_rlc_funcs gfx_v10_0_rlc_funcs_sriov = {
 	.start = gfx_v10_0_rlc_start,
 	.update_spm_vmid = gfx_v10_0_update_spm_vmid,
 	.rlcg_wreg = gfx_v10_rlcg_wreg,
+<<<<<<< HEAD
+=======
+	.rlcg_rreg = gfx_v10_rlcg_rreg,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.is_rlcg_access_range = gfx_v10_0_is_rlcg_access_range,
 };
 
@@ -9049,6 +9205,11 @@ static void gfx_v10_0_set_rlc_funcs(struct amdgpu_device *adev)
 	case CHIP_NAVY_FLOUNDER:
 	case CHIP_VANGOGH:
 	case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+	case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		adev->gfx.rlc.funcs = &gfx_v10_0_rlc_funcs;
 		break;
 	case CHIP_NAVI12:

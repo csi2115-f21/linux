@@ -406,6 +406,7 @@ static void mptcp_set_timeout(const struct sock *sk, const struct sock *ssk)
 	long tout = ssk && inet_csk(ssk)->icsk_pending ?
 				      inet_csk(ssk)->icsk_timeout - jiffies : 0;
 
+<<<<<<< HEAD
 	if (tout <= 0)
 		tout = mptcp_sk(sk)->timer_ival;
 	mptcp_sk(sk)->timer_ival = tout > 0 ? tout : TCP_RTO_MIN;
@@ -421,6 +422,20 @@ static bool mptcp_subflow_active(struct mptcp_subflow_context *subflow)
 
 	/* only send if our side has not closed yet */
 	return ((1 << ssk->sk_state) & (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT));
+=======
+	mptcp_sk(sk)->timer_ival = min(TCP_RTO_MAX,
+				       TCP_RTO_MIN << icsk->icsk_retransmits);
+}
+
+static void mptcp_set_timeout(const struct sock *sk, const struct sock *ssk)
+{
+	long tout = ssk && inet_csk(ssk)->icsk_pending ?
+				      inet_csk(ssk)->icsk_timeout - jiffies : 0;
+
+	if (tout <= 0)
+		tout = mptcp_sk(sk)->timer_ival;
+	mptcp_sk(sk)->timer_ival = tout > 0 ? tout : TCP_RTO_MIN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool tcp_can_send_ack(const struct sock *ssk)
@@ -435,6 +450,21 @@ static void mptcp_send_ack(struct mptcp_sock *msk)
 
 	mptcp_for_each_subflow(msk, subflow) {
 		struct sock *ssk = mptcp_subflow_tcp_sock(subflow);
+<<<<<<< HEAD
+=======
+		bool slow;
+
+		slow = lock_sock_fast(ssk);
+		if (tcp_can_send_ack(ssk))
+			tcp_send_ack(ssk);
+		unlock_sock_fast(ssk, slow);
+	}
+}
+
+static void mptcp_subflow_cleanup_rbuf(struct sock *ssk)
+{
+	bool slow;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		lock_sock(ssk);
 		if (tcp_can_send_ack(ssk))
@@ -735,11 +765,21 @@ void mptcp_data_ready(struct sock *sk, struct sock *ssk)
 	if (atomic_read(&sk->sk_rmem_alloc) > sk_rbuf)
 		goto wake;
 
+<<<<<<< HEAD
 	move_skbs_to_msk(msk, ssk);
 
 wake:
 	if (wake)
 		sk->sk_data_ready(sk);
+=======
+	/* Wake-up the reader only for in-sequence data */
+	mptcp_data_lock(sk);
+	if (move_skbs_to_msk(msk, ssk)) {
+		set_bit(MPTCP_DATA_READY, &msk->flags);
+		sk->sk_data_ready(sk);
+	}
+	mptcp_data_unlock(sk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void __mptcp_flush_join_list(struct mptcp_sock *msk)
@@ -1054,7 +1094,11 @@ out:
 	}
 
 	if (snd_una == READ_ONCE(msk->snd_nxt)) {
+<<<<<<< HEAD
 		if (msk->timer_ival)
+=======
+		if (msk->timer_ival && !mptcp_data_fin_enabled(msk))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			mptcp_stop_timer(sk);
 	} else {
 		mptcp_reset_timer(sk);
@@ -1245,8 +1289,19 @@ static bool __mptcp_alloc_tx_skb(struct sock *sk, struct sock *ssk, gfp_t gfp)
 static bool mptcp_must_reclaim_memory(struct sock *sk, struct sock *ssk)
 {
 	return !ssk->sk_tx_skb_cache &&
+<<<<<<< HEAD
 	       !skb_peek(&mptcp_sk(sk)->skb_tx_cache) &&
 	       tcp_under_memory_pressure(sk);
+=======
+	       tcp_under_memory_pressure(sk);
+}
+
+static bool mptcp_alloc_tx_skb(struct sock *sk, struct sock *ssk)
+{
+	if (unlikely(mptcp_must_reclaim_memory(sk, ssk)))
+		mptcp_mem_reclaim_partial(sk);
+	return __mptcp_alloc_tx_skb(sk, ssk, sk->sk_allocation);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool mptcp_alloc_tx_skb(struct sock *sk, struct sock *ssk)
@@ -1417,10 +1472,13 @@ static struct sock *mptcp_subflow_get_send(struct mptcp_sock *msk)
 			send_info[subflow->backup].ratio = ratio;
 		}
 	}
+<<<<<<< HEAD
 
 	pr_debug("msk=%p nr_active=%d ssk=%p:%lld backup=%p:%lld",
 		 msk, nr_active, send_info[0].ssk, send_info[0].ratio,
 		 send_info[1].ssk, send_info[1].ratio);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* pick the best backup if no other subflow is active */
 	if (!nr_active)
@@ -1444,7 +1502,11 @@ static void mptcp_push_release(struct sock *sk, struct sock *ssk,
 	release_sock(ssk);
 }
 
+<<<<<<< HEAD
 static void mptcp_push_pending(struct sock *sk, unsigned int flags)
+=======
+static void __mptcp_push_pending(struct sock *sk, unsigned int flags)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct sock *prev_ssk = NULL, *ssk = NULL;
 	struct mptcp_sock *msk = mptcp_sk(sk);
@@ -1719,7 +1781,11 @@ static void mptcp_wait_data(struct sock *sk, long *timeo)
 	sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
 
 	sk_wait_event(sk, timeo,
+<<<<<<< HEAD
 		      test_and_clear_bit(MPTCP_DATA_READY, &msk->flags), &wait);
+=======
+		      test_bit(MPTCP_DATA_READY, &msk->flags), &wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	sk_clear_bit(SOCKWQ_ASYNC_WAITDATA, sk);
 	remove_wait_queue(sk_sleep(sk), &wait);
@@ -2014,6 +2080,8 @@ static int mptcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
 
 		pr_debug("block timeout %ld", timeo);
 		mptcp_wait_data(sk, &timeo);
+<<<<<<< HEAD
+=======
 	}
 
 	if (skb_queue_empty_lockless(&sk->sk_receive_queue) &&
@@ -2021,6 +2089,20 @@ static int mptcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
 		/* entire backlog drained, clear DATA_READY. */
 		clear_bit(MPTCP_DATA_READY, &msk->flags);
 
+		/* .. race-breaker: ssk might have gotten new data
+		 * after last __mptcp_move_skbs() returned false.
+		 */
+		if (unlikely(__mptcp_move_skbs(msk)))
+			set_bit(MPTCP_DATA_READY, &msk->flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+
+	if (skb_queue_empty_lockless(&sk->sk_receive_queue) &&
+	    skb_queue_empty(&msk->receive_queue)) {
+		/* entire backlog drained, clear DATA_READY. */
+		clear_bit(MPTCP_DATA_READY, &msk->flags);
+
+<<<<<<< HEAD
 		/* .. race-breaker: ssk might have gotten new data
 		 * after last __mptcp_move_skbs() returned false.
 		 */
@@ -2035,6 +2117,13 @@ out_err:
 		 msk, test_bit(MPTCP_DATA_READY, &msk->flags),
 		 skb_queue_empty_lockless(&sk->sk_receive_queue), copied);
 	mptcp_rcv_space_adjust(msk, copied);
+=======
+	pr_debug("msk=%p data_ready=%d rx queue empty=%d copied=%d",
+		 msk, test_bit(MPTCP_DATA_READY, &msk->flags),
+		 skb_queue_empty_lockless(&sk->sk_receive_queue), copied);
+	if (!(flags & MSG_PEEK))
+		mptcp_rcv_space_adjust(msk, copied);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	release_sock(sk);
 	return copied;
@@ -2110,9 +2199,23 @@ static struct sock *mptcp_subflow_get_retrans(const struct mptcp_sock *msk)
 		}
 
 		return ssk;
+<<<<<<< HEAD
 	}
 
 	return backup;
+=======
+	}
+
+	return backup;
+}
+
+static void mptcp_dispose_initial_subflow(struct mptcp_sock *msk)
+{
+	if (msk->subflow) {
+		iput(SOCK_INODE(msk->subflow));
+		msk->subflow = NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* subflow sockets can be either outgoing (connect) or incoming
@@ -2126,6 +2229,11 @@ static struct sock *mptcp_subflow_get_retrans(const struct mptcp_sock *msk)
 static void __mptcp_close_ssk(struct sock *sk, struct sock *ssk,
 			      struct mptcp_subflow_context *subflow)
 {
+<<<<<<< HEAD
+=======
+	struct mptcp_sock *msk = mptcp_sk(sk);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	list_del(&subflow->node);
 
 	lock_sock_nested(ssk, SINGLE_DEPTH_NESTING);
@@ -2154,6 +2262,18 @@ static void __mptcp_close_ssk(struct sock *sk, struct sock *ssk,
 	release_sock(ssk);
 
 	sock_put(ssk);
+<<<<<<< HEAD
+=======
+
+	if (ssk == msk->last_snd)
+		msk->last_snd = NULL;
+
+	if (ssk == msk->first)
+		msk->first = NULL;
+
+	if (msk->subflow && ssk == msk->subflow->sk)
+		mptcp_dispose_initial_subflow(msk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void mptcp_close_ssk(struct sock *sk, struct sock *ssk,
@@ -2245,7 +2365,69 @@ static void mptcp_worker(struct work_struct *work)
 	struct mptcp_sendmsg_info info = {};
 	struct mptcp_data_frag *dfrag;
 	size_t copied = 0;
+<<<<<<< HEAD
 	int state, ret;
+=======
+	struct sock *ssk;
+	int ret;
+
+	mptcp_clean_una_wakeup(sk);
+	dfrag = mptcp_rtx_head(sk);
+	if (!dfrag) {
+		if (mptcp_data_fin_enabled(msk)) {
+			struct inet_connection_sock *icsk = inet_csk(sk);
+
+			icsk->icsk_retransmits++;
+			mptcp_set_datafin_timeout(sk);
+			mptcp_send_ack(msk);
+
+			goto reset_timer;
+		}
+
+		return;
+	}
+
+	ssk = mptcp_subflow_get_retrans(msk);
+	if (!ssk)
+		goto reset_timer;
+
+	lock_sock(ssk);
+
+	/* limit retransmission to the bytes already sent on some subflows */
+	info.sent = 0;
+	info.limit = READ_ONCE(msk->csum_enabled) ? dfrag->data_len : dfrag->already_sent;
+	while (info.sent < info.limit) {
+		if (!mptcp_alloc_tx_skb(sk, ssk))
+			break;
+
+		ret = mptcp_sendmsg_frag(sk, ssk, dfrag, &info);
+		if (ret <= 0)
+			break;
+
+		MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_RETRANSSEGS);
+		copied += ret;
+		info.sent += ret;
+	}
+	if (copied) {
+		dfrag->already_sent = max(dfrag->already_sent, info.sent);
+		tcp_push(ssk, 0, info.mss_now, tcp_sk(ssk)->nonagle,
+			 info.size_goal);
+	}
+
+	mptcp_set_timeout(sk, ssk);
+	release_sock(ssk);
+
+reset_timer:
+	if (!mptcp_timer_pending(sk))
+		mptcp_reset_timer(sk);
+}
+
+static void mptcp_worker(struct work_struct *work)
+{
+	struct mptcp_sock *msk = container_of(work, struct mptcp_sock, work);
+	struct sock *sk = &msk->sk.icsk_inet.sk;
+	int state;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	lock_sock(sk);
 	state = sk->sk_state;
@@ -2342,11 +2524,18 @@ static int __mptcp_init_sock(struct sock *sk)
 	msk->wmem_reserved = 0;
 	msk->rmem_released = 0;
 	msk->tx_pending_data = 0;
+<<<<<<< HEAD
 	msk->size_goal_cache = TCP_BASE_MSS;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	msk->ack_hint = NULL;
 	msk->first = NULL;
 	inet_csk(sk)->icsk_sync_mss = mptcp_sync_mss;
+<<<<<<< HEAD
+=======
+	WRITE_ONCE(msk->csum_enabled, mptcp_is_checksum_enabled(sock_net(sk)));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mptcp_pm_data_init(msk);
 
@@ -2676,6 +2865,11 @@ struct sock *mptcp_sk_clone(const struct sock *sk,
 	msk->token = subflow_req->token;
 	msk->subflow = NULL;
 	WRITE_ONCE(msk->fully_established, false);
+<<<<<<< HEAD
+=======
+	if (mp_opt->csum_reqd)
+		WRITE_ONCE(msk->csum_enabled, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	msk->write_seq = subflow_req->idsn + 1;
 	msk->snd_nxt = msk->write_seq;

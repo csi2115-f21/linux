@@ -1330,7 +1330,31 @@ static void python_process_event(union perf_event *event,
 		if (tables->db_export_mode)
 			db_export__sample(&tables->dbe, event, sample, evsel, al);
 		else
+<<<<<<< HEAD
 			python_process_general_event(sample, evsel, al);
+=======
+			python_process_general_event(sample, evsel, al, addr_al);
+	}
+}
+
+static void python_do_process_switch(union perf_event *event,
+				     struct perf_sample *sample,
+				     struct machine *machine)
+{
+	const char *handler_name = "context_switch";
+	bool out = event->header.misc & PERF_RECORD_MISC_SWITCH_OUT;
+	bool out_preempt = out && (event->header.misc & PERF_RECORD_MISC_SWITCH_OUT_PREEMPT);
+	pid_t np_pid = -1, np_tid = -1;
+	PyObject *handler, *t;
+
+	handler = get_handler(handler_name);
+	if (!handler)
+		return;
+
+	if (event->header.type == PERF_RECORD_SWITCH_CPU_WIDE) {
+		np_pid = event->context_switch.next_prev_pid;
+		np_tid = event->context_switch.next_prev_tid;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 

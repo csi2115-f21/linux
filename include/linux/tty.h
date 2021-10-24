@@ -188,6 +188,89 @@ struct tty_bufhead {
 
 struct device;
 struct signal_struct;
+<<<<<<< HEAD
+=======
+
+/*
+ * Port level information. Each device keeps its own port level information
+ * so provide a common structure for those ports wanting to use common support
+ * routines.
+ *
+ * The tty port has a different lifetime to the tty so must be kept apart.
+ * In addition be careful as tty -> port mappings are valid for the life
+ * of the tty object but in many cases port -> tty mappings are valid only
+ * until a hangup so don't use the wrong path.
+ */
+
+struct tty_port;
+
+struct tty_port_operations {
+	/* Return 1 if the carrier is raised */
+	int (*carrier_raised)(struct tty_port *port);
+	/* Control the DTR line */
+	void (*dtr_rts)(struct tty_port *port, int raise);
+	/* Called when the last close completes or a hangup finishes
+	   IFF the port was initialized. Do not use to free resources. Called
+	   under the port mutex to serialize against activate/shutdowns */
+	void (*shutdown)(struct tty_port *port);
+	/* Called under the port mutex from tty_port_open, serialized using
+	   the port mutex */
+        /* FIXME: long term getting the tty argument *out* of this would be
+           good for consoles */
+	int (*activate)(struct tty_port *port, struct tty_struct *tty);
+	/* Called on the final put of a port */
+	void (*destruct)(struct tty_port *port);
+};
+
+struct tty_port_client_operations {
+	int (*receive_buf)(struct tty_port *port, const unsigned char *, const unsigned char *, size_t);
+	void (*write_wakeup)(struct tty_port *port);
+};
+
+extern const struct tty_port_client_operations tty_port_default_client_ops;
+
+struct tty_port {
+	struct tty_bufhead	buf;		/* Locked internally */
+	struct tty_struct	*tty;		/* Back pointer */
+	struct tty_struct	*itty;		/* internal back ptr */
+	const struct tty_port_operations *ops;	/* Port operations */
+	const struct tty_port_client_operations *client_ops; /* Port client operations */
+	spinlock_t		lock;		/* Lock protecting tty field */
+	int			blocked_open;	/* Waiting to open */
+	int			count;		/* Usage count */
+	wait_queue_head_t	open_wait;	/* Open waiters */
+	wait_queue_head_t	delta_msr_wait;	/* Modem status change */
+	unsigned long		flags;		/* User TTY flags ASYNC_ */
+	unsigned long		iflags;		/* Internal flags TTY_PORT_ */
+	unsigned char		console:1;	/* port is a console */
+	struct mutex		mutex;		/* Locking */
+	struct mutex		buf_mutex;	/* Buffer alloc lock */
+	unsigned char		*xmit_buf;	/* Optional buffer */
+	unsigned int		close_delay;	/* Close port delay */
+	unsigned int		closing_wait;	/* Delay for output */
+	int			drain_delay;	/* Set to zero if no pure time
+						   based drain is needed else
+						   set to size of fifo */
+	struct kref		kref;		/* Ref counter */
+	void 			*client_data;
+};
+
+/* tty_port::iflags bits -- use atomic bit ops */
+#define TTY_PORT_INITIALIZED	0	/* device is initialized */
+#define TTY_PORT_SUSPENDED	1	/* device is suspended */
+#define TTY_PORT_ACTIVE		2	/* device is open */
+
+/*
+ * uart drivers: use the uart_port::status field and the UPSTAT_* defines
+ * for s/w-based flow control steering and carrier detection status
+ */
+#define TTY_PORT_CTS_FLOW	3	/* h/w flow control enabled */
+#define TTY_PORT_CHECK_CD	4	/* carrier detect enabled */
+#define TTY_PORT_KOPENED	5	/* device exclusively opened by
+					   kernel */
+
+struct tty_operations;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Port level information. Each device keeps its own port level information
@@ -482,7 +565,11 @@ extern void stop_tty(struct tty_struct *tty);
 extern void __start_tty(struct tty_struct *tty);
 extern void start_tty(struct tty_struct *tty);
 extern int tty_register_driver(struct tty_driver *driver);
+<<<<<<< HEAD
 extern int tty_unregister_driver(struct tty_driver *driver);
+=======
+extern void tty_unregister_driver(struct tty_driver *driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern struct device *tty_register_device(struct tty_driver *driver,
 					  unsigned index, struct device *dev);
 extern struct device *tty_register_device_attr(struct tty_driver *driver,
@@ -550,8 +637,11 @@ extern int tty_set_termios(struct tty_struct *tty, struct ktermios *kt);
 extern struct tty_ldisc *tty_ldisc_ref(struct tty_struct *);
 extern void tty_ldisc_deref(struct tty_ldisc *);
 extern struct tty_ldisc *tty_ldisc_ref_wait(struct tty_struct *);
+<<<<<<< HEAD
 extern void tty_ldisc_hangup(struct tty_struct *tty, bool reset);
 extern int tty_ldisc_reinit(struct tty_struct *tty, int disc);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern const struct seq_operations tty_ldiscs_seq_ops;
 
 extern void tty_wakeup(struct tty_struct *tty);
@@ -578,8 +668,11 @@ extern int tty_standard_install(struct tty_driver *driver,
 
 extern struct mutex tty_mutex;
 
+<<<<<<< HEAD
 #define tty_is_writelocked(tty)  (mutex_is_locked(&tty->atomic_write_lock))
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern void tty_port_init(struct tty_port *port);
 extern void tty_port_link_device(struct tty_port *port,
 		struct tty_driver *driver, unsigned index);
@@ -696,6 +789,7 @@ static inline int tty_port_users(struct tty_port *port)
 	return port->count + port->blocked_open;
 }
 
+<<<<<<< HEAD
 extern int tty_register_ldisc(int disc, struct tty_ldisc_ops *new_ldisc);
 extern int tty_unregister_ldisc(int disc);
 extern int tty_set_ldisc(struct tty_struct *tty, int disc);
@@ -706,6 +800,13 @@ extern void tty_ldisc_deinit(struct tty_struct *tty);
 extern int tty_ldisc_receive_buf(struct tty_ldisc *ld, const unsigned char *p,
 				 char *f, int count);
 extern void tty_sysctl_init(void);
+=======
+extern int tty_register_ldisc(struct tty_ldisc_ops *new_ldisc);
+extern void tty_unregister_ldisc(struct tty_ldisc_ops *ldisc);
+extern int tty_set_ldisc(struct tty_struct *tty, int disc);
+extern int tty_ldisc_receive_buf(struct tty_ldisc *ld, const unsigned char *p,
+				 const char *f, int count);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* n_tty.c */
 extern void n_tty_inherit_ops(struct tty_ldisc_ops *ops);
@@ -772,6 +873,7 @@ static inline void proc_tty_register_driver(struct tty_driver *d) {}
 static inline void proc_tty_unregister_driver(struct tty_driver *d) {}
 #endif
 
+<<<<<<< HEAD
 #define tty_msg(fn, tty, f, ...) \
 	fn("%s %s: " f, tty_driver_name(tty), tty_name(tty), ##__VA_ARGS__)
 
@@ -784,4 +886,6 @@ static inline void proc_tty_unregister_driver(struct tty_driver *d) {}
 #define tty_info_ratelimited(tty, f, ...) \
 		tty_msg(pr_info_ratelimited, tty, f, ##__VA_ARGS__)
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

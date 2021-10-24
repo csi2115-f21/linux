@@ -1273,11 +1273,15 @@ static int oa_get_render_ctx_id(struct i915_perf_stream *stream)
 	case 8:
 	case 9:
 	case 10:
+<<<<<<< HEAD
 		if (intel_engine_in_execlists_submission_mode(ce->engine)) {
 			stream->specific_ctx_id_mask =
 				(1U << GEN8_CTX_ID_WIDTH) - 1;
 			stream->specific_ctx_id = stream->specific_ctx_id_mask;
 		} else {
+=======
+		if (intel_engine_uses_guc(ce->engine)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/*
 			 * When using GuC, the context descriptor we write in
 			 * i915 is read by GuC and rewritten before it's
@@ -4259,6 +4263,54 @@ static struct ctl_table dev_root[] = {
 	{}
 };
 
+<<<<<<< HEAD
+=======
+static void oa_init_supported_formats(struct i915_perf *perf)
+{
+	struct drm_i915_private *i915 = perf->i915;
+	enum intel_platform platform = INTEL_INFO(i915)->platform;
+
+	switch (platform) {
+	case INTEL_HASWELL:
+		oa_format_add(perf, I915_OA_FORMAT_A13);
+		oa_format_add(perf, I915_OA_FORMAT_A13);
+		oa_format_add(perf, I915_OA_FORMAT_A29);
+		oa_format_add(perf, I915_OA_FORMAT_A13_B8_C8);
+		oa_format_add(perf, I915_OA_FORMAT_B4_C8);
+		oa_format_add(perf, I915_OA_FORMAT_A45_B8_C8);
+		oa_format_add(perf, I915_OA_FORMAT_B4_C8_A16);
+		oa_format_add(perf, I915_OA_FORMAT_C4_B8);
+		break;
+
+	case INTEL_BROADWELL:
+	case INTEL_CHERRYVIEW:
+	case INTEL_SKYLAKE:
+	case INTEL_BROXTON:
+	case INTEL_KABYLAKE:
+	case INTEL_GEMINILAKE:
+	case INTEL_COFFEELAKE:
+	case INTEL_COMETLAKE:
+	case INTEL_CANNONLAKE:
+	case INTEL_ICELAKE:
+	case INTEL_ELKHARTLAKE:
+	case INTEL_JASPERLAKE:
+	case INTEL_TIGERLAKE:
+	case INTEL_ROCKETLAKE:
+	case INTEL_DG1:
+	case INTEL_ALDERLAKE_S:
+	case INTEL_ALDERLAKE_P:
+		oa_format_add(perf, I915_OA_FORMAT_A12);
+		oa_format_add(perf, I915_OA_FORMAT_A12_B8_C8);
+		oa_format_add(perf, I915_OA_FORMAT_A32u40_A4u32_B8_C8);
+		oa_format_add(perf, I915_OA_FORMAT_C4_B8);
+		break;
+
+	default:
+		MISSING_CASE(platform);
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * i915_perf_init - initialize i915-perf state on module bind
  * @i915: i915 device instance
@@ -4327,9 +4379,13 @@ void i915_perf_init(struct drm_i915_private *i915)
 
 				perf->gen8_valid_ctx_bit = BIT(16);
 			}
+<<<<<<< HEAD
 		} else if (IS_GEN_RANGE(i915, 10, 11)) {
 			perf->oa_formats = gen8_plus_oa_formats;
 
+=======
+		} else if (IS_GRAPHICS_VER(i915, 10, 11)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			perf->ops.is_valid_b_counter_reg =
 				gen7_is_valid_b_counter_addr;
 			perf->ops.is_valid_mux_reg =
@@ -4343,7 +4399,11 @@ void i915_perf_init(struct drm_i915_private *i915)
 			perf->ops.disable_metric_set = gen10_disable_metric_set;
 			perf->ops.oa_hw_tail_read = gen8_oa_hw_tail_read;
 
+<<<<<<< HEAD
 			if (IS_GEN(i915, 10)) {
+=======
+			if (GRAPHICS_VER(i915) == 10) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				perf->ctx_oactxctrl_offset = 0x128;
 				perf->ctx_flexeu0_offset = 0x3de;
 			} else {

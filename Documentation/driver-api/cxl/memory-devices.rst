@@ -28,10 +28,23 @@ CXL Memory Device
 .. kernel-doc:: drivers/cxl/mem.c
    :internal:
 
+<<<<<<< HEAD
 CXL Bus
 -------
 .. kernel-doc:: drivers/cxl/bus.c
    :doc: cxl bus
+=======
+CXL Core
+--------
+.. kernel-doc:: drivers/cxl/cxl.h
+   :doc: cxl objects
+
+.. kernel-doc:: drivers/cxl/cxl.h
+   :internal:
+
+.. kernel-doc:: drivers/cxl/core.c
+   :doc: cxl core
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 External Interfaces
 ===================

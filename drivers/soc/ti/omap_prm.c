@@ -830,8 +830,16 @@ static int omap_reset_deassert(struct reset_controller_dev *rcdev,
 		       reset->prm->data->name, id);
 
 exit:
+<<<<<<< HEAD
 	if (reset->clkdm)
+=======
+	if (reset->clkdm) {
+		/* At least dra7 iva needs a delay before clkdm idle */
+		if (has_rstst)
+			udelay(1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pdata->clkdm_allow_idle(reset->clkdm);
+	}
 
 	return ret;
 }

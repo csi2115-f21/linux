@@ -362,6 +362,77 @@ static int pl2303_calc_num_ports(struct usb_serial *serial,
 	return 1;
 }
 
+<<<<<<< HEAD
+=======
+static bool pl2303_supports_hx_status(struct usb_serial *serial)
+{
+	int ret;
+	u8 buf;
+
+	ret = usb_control_msg_recv(serial->dev, 0, VENDOR_READ_REQUEST,
+			VENDOR_READ_REQUEST_TYPE, PL2303_READ_TYPE_HX_STATUS,
+			0, &buf, 1, 100, GFP_KERNEL);
+
+	return ret == 0;
+}
+
+static int pl2303_detect_type(struct usb_serial *serial)
+{
+	struct usb_device_descriptor *desc = &serial->dev->descriptor;
+	u16 bcdDevice, bcdUSB;
+
+	/*
+	 * Legacy PL2303H, variants 0 and 1 (difference unknown).
+	 */
+	if (desc->bDeviceClass == 0x02)
+		return TYPE_H;		/* variant 0 */
+
+	if (desc->bMaxPacketSize0 != 0x40) {
+		if (desc->bDeviceClass == 0x00 || desc->bDeviceClass == 0xff)
+			return TYPE_H;	/* variant 1 */
+
+		return TYPE_H;		/* variant 0 */
+	}
+
+	bcdDevice = le16_to_cpu(desc->bcdDevice);
+	bcdUSB = le16_to_cpu(desc->bcdUSB);
+
+	switch (bcdUSB) {
+	case 0x110:
+		switch (bcdDevice) {
+		case 0x300:
+			return TYPE_HX;
+		case 0x400:
+			return TYPE_HXD;
+		default:
+			return TYPE_HX;
+		}
+		break;
+	case 0x200:
+		switch (bcdDevice) {
+		case 0x100:
+		case 0x305:
+			/*
+			 * Assume it's an HXN-type if the device doesn't
+			 * support the old read request value.
+			 */
+			if (!pl2303_supports_hx_status(serial))
+				return TYPE_HXN;
+			break;
+		case 0x300:
+			return TYPE_TA;
+		case 0x500:
+			return TYPE_TB;
+		}
+		break;
+	}
+
+	dev_err(&serial->interface->dev,
+			"unknown device type, please report to linux-usb@vger.kernel.org\n");
+	return -ENODEV;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int pl2303_startup(struct usb_serial *serial)
 {
 	struct pl2303_serial_private *spriv;

@@ -2644,6 +2644,13 @@ snd_m3_create(struct snd_card *card, struct pci_dev *pci,
 #endif
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+<<<<<<< HEAD
+=======
+	if (err < 0)
+		goto free_chip;
+
+	err = snd_m3_mixer(chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err < 0)
 		goto free_chip;
 

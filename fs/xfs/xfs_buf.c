@@ -355,6 +355,7 @@ xfs_buf_allocate_memory(
 	struct xfs_buf		*bp,
 	uint			flags)
 {
+<<<<<<< HEAD
 	size_t			size;
 	size_t			nbytes, offset;
 	gfp_t			gfp_mask = xb_to_gfp(flags);
@@ -362,13 +363,32 @@ xfs_buf_allocate_memory(
 	xfs_off_t		start, end;
 	int			error;
 	xfs_km_flags_t		kmflag_mask = 0;
+=======
+	int		align_mask = xfs_buftarg_dma_alignment(bp->b_target);
+	xfs_km_flags_t	kmflag_mask = KM_NOFS;
+	size_t		size = BBTOB(bp->b_length);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * assure zeroed buffer for non-read cases.
 	 */
 	if (!(flags & XBF_READ)) {
 		kmflag_mask |= KM_ZERO;
+<<<<<<< HEAD
 		gfp_mask |= __GFP_ZERO;
+=======
+
+	bp->b_addr = kmem_alloc_io(size, align_mask, kmflag_mask);
+	if (!bp->b_addr)
+		return -ENOMEM;
+
+	if (((unsigned long)(bp->b_addr + size - 1) & PAGE_MASK) !=
+	    ((unsigned long)bp->b_addr & PAGE_MASK)) {
+		/* b_addr spans two pages - use alloc_page instead */
+		kmem_free(bp->b_addr);
+		bp->b_addr = NULL;
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/*

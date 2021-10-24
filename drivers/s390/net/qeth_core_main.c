@@ -85,6 +85,15 @@ static void qeth_close_dev_handler(struct work_struct *work)
 	ccwgroup_set_offline(card->gdev);
 }
 
+static void qeth_close_dev_handler(struct work_struct *work)
+{
+	struct qeth_card *card;
+
+	card = container_of(work, struct qeth_card, close_dev_work);
+	QETH_CARD_TEXT(card, 2, "cldevhdl");
+	ccwgroup_set_offline(card->gdev);
+}
+
 static const char *qeth_get_cardname(struct qeth_card *card)
 {
 	if (IS_VM_NIC(card)) {
@@ -465,6 +474,7 @@ static enum iucv_tx_notify qeth_compute_cq_notification(int sbalf15,
 	return n;
 }
 
+<<<<<<< HEAD
 static void qeth_cleanup_handled_pending(struct qeth_qdio_out_q *q, int bidx,
 					 int forced_cleanup)
 {
@@ -558,6 +568,8 @@ static void qeth_qdio_handle_aob(struct qeth_card *card,
 	qdio_release_aob(aob);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void qeth_setup_ccw(struct ccw1 *ccw, u8 cmd_code, u8 flags, u32 len,
 			   void *data)
 {
@@ -3859,16 +3871,21 @@ static void qeth_qdio_output_handler(struct ccw_device *ccwdev,
 				     unsigned long card_ptr)
 {
 	struct qeth_card *card        = (struct qeth_card *) card_ptr;
+<<<<<<< HEAD
 	struct qeth_qdio_out_q *queue = card->qdio.out_qs[__queue];
 	struct net_device *dev = card->dev;
 	struct netdev_queue *txq;
 	int i;
+=======
+	struct net_device *dev = card->dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	QETH_CARD_TEXT(card, 6, "qdouhdl");
 	if (qdio_error & QDIO_ERROR_FATAL) {
 		QETH_CARD_TEXT(card, 2, "achkcond");
 		netif_tx_stop_all_queues(dev);
 		qeth_schedule_recovery(card);
+<<<<<<< HEAD
 		return;
 	}
 
@@ -3889,6 +3906,9 @@ static void qeth_qdio_output_handler(struct ccw_device *ccwdev,
 	 */
 	if (netif_tx_queue_stopped(txq) && !qeth_out_queue_is_full(queue))
 		netif_tx_wake_queue(txq);
+=======
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**

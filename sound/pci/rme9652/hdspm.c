@@ -6884,7 +6884,12 @@ static int snd_hdspm_free(struct hdspm * hdspm)
 	if (hdspm->port)
 		pci_release_regions(hdspm->pci);
 
+<<<<<<< HEAD
 	pci_disable_device(hdspm->pci);
+=======
+	if (pci_is_enabled(hdspm->pci))
+		pci_disable_device(hdspm->pci);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 

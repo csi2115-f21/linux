@@ -1246,6 +1246,11 @@ static void initialize_training_settings(
 			: LINK_SPREAD_DISABLED;
 	else
 		lt_settings->link_settings.link_spread = LINK_SPREAD_05_DOWNSPREAD_30KHZ;
+<<<<<<< HEAD
+=======
+
+	lt_settings->lttpr_mode = link->lttpr_mode;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Initialize lane settings overrides */
 	if (overrides->voltage_swing != NULL)
@@ -1297,9 +1302,31 @@ static void initialize_training_settings(
 		lt_settings->enhanced_framing = *overrides->enhanced_framing;
 	else
 		lt_settings->enhanced_framing = 1;
+<<<<<<< HEAD
 }
 
 static uint8_t convert_to_count(uint8_t lttpr_repeater_count)
+=======
+
+	if (link->preferred_training_settings.fec_enable != NULL)
+		lt_settings->should_set_fec_ready = *link->preferred_training_settings.fec_enable;
+	else
+		lt_settings->should_set_fec_ready = true;
+}
+
+void dp_decide_training_settings(
+		struct dc_link *link,
+		const struct dc_link_settings *link_settings,
+		const struct dc_link_training_overrides *overrides,
+		struct link_training_settings *lt_settings)
+{
+	if (dp_get_link_encoding_format(link_settings) == DP_8b_10b_ENCODING)
+		decide_8b_10b_training_settings(link, link_settings, overrides, lt_settings);
+}
+
+
+uint8_t dp_convert_to_count(uint8_t lttpr_repeater_count)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	switch (lttpr_repeater_count) {
 	case 0x80: // 1 lttpr repeater
@@ -1610,8 +1637,52 @@ enum link_training_result dc_link_dp_perform_link_training(
 		}
 	}
 
+<<<<<<< HEAD
 	if ((status == LINK_TRAINING_SUCCESS) || !skip_video_pattern) {
 		status = perform_link_training_int(link,
+=======
+	return status;
+}
+
+enum link_training_result dc_link_dp_perform_link_training(
+	struct dc_link *link,
+	const struct dc_link_settings *link_settings,
+	bool skip_video_pattern)
+{
+	enum link_training_result status = LINK_TRAINING_SUCCESS;
+	struct link_training_settings lt_settings;
+	enum dp_link_encoding encoding =
+			dp_get_link_encoding_format(link_settings);
+
+	/* decide training settings */
+	dp_decide_training_settings(
+			link,
+			link_settings,
+			&link->preferred_training_settings,
+			&lt_settings);
+
+	/* reset previous training states */
+	dpcd_exit_training_mode(link);
+
+	/* configure link prior to entering training mode */
+	dpcd_configure_lttpr_mode(link, &lt_settings);
+	dp_set_fec_ready(link, lt_settings.should_set_fec_ready);
+	dpcd_configure_channel_coding(link, &lt_settings);
+
+	/* enter training mode:
+	 * Per DP specs starting from here, DPTX device shall not issue
+	 * Non-LT AUX transactions inside training mode.
+	 */
+	if (encoding == DP_8b_10b_ENCODING)
+		status = dp_perform_8b_10b_link_training(link, &lt_settings);
+	else
+		ASSERT(0);
+
+	/* exit training mode and switch to video idle */
+	dpcd_exit_training_mode(link);
+	if ((status == LINK_TRAINING_SUCCESS) || !skip_video_pattern)
+		status = dp_transition_to_video_idle(link,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				&lt_settings,
 				status);
 	}
@@ -1669,6 +1740,24 @@ bool perform_link_training_with_retries(
 			msleep(delay_dp_power_up_in_ms);
 		}
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_DRM_AMD_DC_HDCP
+		if (panel_mode == DP_PANEL_MODE_EDP) {
+			struct cp_psp *cp_psp = &stream->ctx->cp_psp;
+
+			if (cp_psp && cp_psp->funcs.enable_assr) {
+				if (!cp_psp->funcs.enable_assr(cp_psp->handle, link)) {
+					/* since eDP implies ASSR on, change panel
+					 * mode to disable ASSR
+					 */
+					panel_mode = DP_PANEL_MODE_DEFAULT;
+				}
+			}
+		}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dp_set_panel_mode(link, panel_mode);
 
 		if (link->aux_access_disabled) {
@@ -1690,6 +1779,22 @@ bool perform_link_training_with_retries(
 
 		dp_disable_link_phy(link, signal);
 
+<<<<<<< HEAD
+=======
+		/* Abort link training if failure due to sink being unplugged. */
+		if (status == LINK_TRAINING_ABORT)
+			break;
+		else if (do_fallback) {
+			decide_fallback_link_setting(*link_setting, &current_setting, status);
+			/* Fail link training if reduced link bandwidth no longer meets
+			 * stream requirements.
+			 */
+			if (dc_bandwidth_in_kbps_from_timing(&stream->timing) <
+					dc_link_bandwidth_kbps(link, &current_setting))
+				break;
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		msleep(delay_between_attempts);
 
 		delay_between_attempts += LINK_TRAINING_RETRY_DELAY;
@@ -1765,7 +1870,11 @@ enum link_training_result dc_link_dp_sync_lt_attempt(
 	enum clock_source_id dp_cs_id = CLOCK_SOURCE_ID_EXTERNAL;
 	bool fec_enable = false;
 
+<<<<<<< HEAD
 	initialize_training_settings(
+=======
+	dp_decide_training_settings(
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		link,
 		link_settings,
 		lt_overrides,

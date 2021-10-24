@@ -2,7 +2,10 @@
 /*
  * Copyright (C) 2017-2018 HUAWEI, Inc.
  *             https://www.huawei.com/
+<<<<<<< HEAD
  * Created by Gao Xiang <gaoxiang25@huawei.com>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 #ifndef __EROFS_INTERNAL_H
 #define __EROFS_INTERNAL_H
@@ -355,8 +358,11 @@ static inline int z_erofs_map_blocks_iter(struct inode *inode,
 
 /* data.c */
 struct page *erofs_get_meta_page(struct super_block *sb, erofs_blk_t blkaddr);
+<<<<<<< HEAD
 
 int erofs_map_blocks(struct inode *, struct erofs_map_blocks *, int);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* inode.c */
 static inline unsigned long erofs_inode_hash(erofs_nid_t nid)
@@ -421,6 +427,12 @@ int erofs_try_to_free_all_cached_pages(struct erofs_sb_info *sbi,
 				       struct erofs_workgroup *egrp);
 int erofs_try_to_free_cached_page(struct address_space *mapping,
 				  struct page *page);
+<<<<<<< HEAD
+=======
+int z_erofs_load_lz4_config(struct super_block *sb,
+			    struct erofs_super_block *dsb,
+			    struct z_erofs_lz4_cfgs *lz4, int len);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 static inline void erofs_shrinker_register(struct super_block *sb) {}
 static inline void erofs_shrinker_unregister(struct super_block *sb) {}

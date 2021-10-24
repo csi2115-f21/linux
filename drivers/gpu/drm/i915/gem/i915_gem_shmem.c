@@ -423,7 +423,12 @@ shmem_pwrite(struct drm_i915_gem_object *obj,
 
 static void shmem_release(struct drm_i915_gem_object *obj)
 {
+<<<<<<< HEAD
 	i915_gem_object_release_memory_region(obj);
+=======
+	if (obj->flags & I915_BO_ALLOC_STRUCT_PAGE)
+		i915_gem_object_release_memory_region(obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	fput(obj->base.filp);
 }
@@ -491,7 +496,12 @@ static int shmem_object_init(struct intel_memory_region *mem,
 	mapping_set_gfp_mask(mapping, mask);
 	GEM_BUG_ON(!(mapping_gfp_mask(mapping) & __GFP_RECLAIM));
 
+<<<<<<< HEAD
 	i915_gem_object_init(obj, &i915_gem_shmem_ops, &lock_class);
+=======
+	i915_gem_object_init(obj, &i915_gem_shmem_ops, &lock_class,
+			     I915_BO_ALLOC_STRUCT_PAGE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	obj->write_domain = I915_GEM_DOMAIN_CPU;
 	obj->read_domains = I915_GEM_DOMAIN_CPU;

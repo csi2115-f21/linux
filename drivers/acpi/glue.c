@@ -307,7 +307,11 @@ static int acpi_device_notify(struct device *dev)
 
 		adev = type->find_companion(dev);
 		if (!adev) {
+<<<<<<< HEAD
 			DBG("Unable to get handle for %s\n", dev_name(dev));
+=======
+			pr_debug("Unable to get handle for %s\n", dev_name(dev));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			ret = -ENODEV;
 			goto out;
 		}
@@ -328,16 +332,27 @@ static int acpi_device_notify(struct device *dev)
 		adev->handler->bind(dev);
 
  out:
+<<<<<<< HEAD
 #if ACPI_GLUE_DEBUG
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!ret) {
 		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
 
 		acpi_get_name(ACPI_HANDLE(dev), ACPI_FULL_PATHNAME, &buffer);
+<<<<<<< HEAD
 		DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
 		kfree(buffer.pointer);
 	} else
 		DBG("Device %s -> No ACPI support\n", dev_name(dev));
 #endif
+=======
+		pr_debug("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
+		kfree(buffer.pointer);
+	} else {
+		pr_debug("Device %s -> No ACPI support\n", dev_name(dev));
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }

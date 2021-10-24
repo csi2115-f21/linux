@@ -13,6 +13,10 @@
 #include <dt-bindings/power/mt8183-power.h>
 #include <dt-bindings/reset-controller/mt8183-resets.h>
 #include <dt-bindings/phy/phy.h>
+<<<<<<< HEAD
+=======
+#include <dt-bindings/thermal/thermal.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "mt8183-pinfunc.h"
 
 / {

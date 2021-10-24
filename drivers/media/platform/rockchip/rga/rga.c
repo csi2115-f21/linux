@@ -866,7 +866,13 @@ static int rga_probe(struct platform_device *pdev)
 		goto unreg_video_dev;
 	}
 
+<<<<<<< HEAD
 	pm_runtime_get_sync(rga->dev);
+=======
+	ret = pm_runtime_resume_and_get(rga->dev);
+	if (ret < 0)
+		goto unreg_video_dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rga->version.major = (rga_read(rga, RGA_VERSION_INFO) >> 24) & 0xFF;
 	rga->version.minor = (rga_read(rga, RGA_VERSION_INFO) >> 20) & 0x0F;

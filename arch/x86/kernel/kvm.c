@@ -856,8 +856,16 @@ static void kvm_wait(u8 *ptr, u8 val)
 	else
 		safe_halt();
 
+<<<<<<< HEAD
 out:
 	local_irq_restore(flags);
+=======
+		if (READ_ONCE(*ptr) == val)
+			safe_halt();
+
+		local_irq_enable();
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #ifdef CONFIG_X86_32

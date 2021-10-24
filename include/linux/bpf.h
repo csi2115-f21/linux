@@ -295,6 +295,12 @@ enum bpf_arg_type {
 	ARG_CONST_ALLOC_SIZE_OR_ZERO,	/* number of allocated bytes requested */
 	ARG_PTR_TO_BTF_ID_SOCK_COMMON,	/* pointer to in-kernel sock_common or bpf-mirrored bpf_sock */
 	ARG_PTR_TO_PERCPU_BTF_ID,	/* pointer to in-kernel percpu type */
+<<<<<<< HEAD
+=======
+	ARG_PTR_TO_FUNC,	/* pointer to a bpf program function */
+	ARG_PTR_TO_STACK_OR_NULL,	/* pointer to stack or NULL */
+	ARG_PTR_TO_CONST_STR,	/* pointer to a null terminated read-only string */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__BPF_ARG_TYPE_MAX,
 };
 
@@ -1070,6 +1076,16 @@ int bpf_prog_array_copy(struct bpf_prog_array *old_array,
 /* BPF program asks to set CN on the packet. */
 #define BPF_RET_SET_CN						(1 << 0)
 
+<<<<<<< HEAD
+=======
+/* For BPF_PROG_RUN_ARRAY_FLAGS and __BPF_PROG_RUN_ARRAY,
+ * if bpf_cgroup_storage_set() failed, the rest of programs
+ * will not execute. This should be a really rare scenario
+ * as it requires BPF_CGROUP_STORAGE_NEST_MAX number of
+ * preemptions all between bpf_cgroup_storage_set() and
+ * bpf_cgroup_storage_unset() on the same cpu.
+ */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define BPF_PROG_RUN_ARRAY_FLAGS(array, ctx, func, ret_flags)		\
 	({								\
 		struct bpf_prog_array_item *_item;			\
@@ -1082,10 +1098,19 @@ int bpf_prog_array_copy(struct bpf_prog_array *old_array,
 		_array = rcu_dereference(array);			\
 		_item = &_array->items[0];				\
 		while ((_prog = READ_ONCE(_item->prog))) {		\
+<<<<<<< HEAD
 			bpf_cgroup_storage_set(_item->cgroup_storage);	\
 			func_ret = func(_prog, ctx);			\
 			_ret &= (func_ret & 1);				\
 			*(ret_flags) |= (func_ret >> 1);			\
+=======
+			if (unlikely(bpf_cgroup_storage_set(_item->cgroup_storage)))	\
+				break;					\
+			func_ret = func(_prog, ctx);			\
+			_ret &= (func_ret & 1);				\
+			*(ret_flags) |= (func_ret >> 1);			\
+			bpf_cgroup_storage_unset();			\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			_item++;					\
 		}							\
 		rcu_read_unlock();					\
@@ -1093,7 +1118,11 @@ int bpf_prog_array_copy(struct bpf_prog_array *old_array,
 		_ret;							\
 	 })
 
+<<<<<<< HEAD
 #define __BPF_PROG_RUN_ARRAY(array, ctx, func, check_non_null)	\
+=======
+#define __BPF_PROG_RUN_ARRAY(array, ctx, func, check_non_null, set_cg_storage)	\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	({						\
 		struct bpf_prog_array_item *_item;	\
 		struct bpf_prog *_prog;			\
@@ -1106,8 +1135,19 @@ int bpf_prog_array_copy(struct bpf_prog_array *old_array,
 			goto _out;			\
 		_item = &_array->items[0];		\
 		while ((_prog = READ_ONCE(_item->prog))) {		\
+<<<<<<< HEAD
 			bpf_cgroup_storage_set(_item->cgroup_storage);	\
 			_ret &= func(_prog, ctx);	\
+=======
+			if (!set_cg_storage) {			\
+				_ret &= func(_prog, ctx);	\
+			} else {				\
+				if (unlikely(bpf_cgroup_storage_set(_item->cgroup_storage)))	\
+					break;			\
+				_ret &= func(_prog, ctx);	\
+				bpf_cgroup_storage_unset();	\
+			}				\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			_item++;			\
 		}					\
 _out:							\
@@ -1153,10 +1193,17 @@ _out:							\
 	})
 
 #define BPF_PROG_RUN_ARRAY(array, ctx, func)		\
+<<<<<<< HEAD
 	__BPF_PROG_RUN_ARRAY(array, ctx, func, false)
 
 #define BPF_PROG_RUN_ARRAY_CHECK(array, ctx, func)	\
 	__BPF_PROG_RUN_ARRAY(array, ctx, func, true)
+=======
+	__BPF_PROG_RUN_ARRAY(array, ctx, func, false, true)
+
+#define BPF_PROG_RUN_ARRAY_CHECK(array, ctx, func)	\
+	__BPF_PROG_RUN_ARRAY(array, ctx, func, true, false)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_BPF_SYSCALL
 DECLARE_PER_CPU(int, bpf_prog_active);
@@ -1370,7 +1417,11 @@ struct bpf_iter__bpf_map_elem {
 int bpf_iter_reg_target(const struct bpf_iter_reg *reg_info);
 void bpf_iter_unreg_target(const struct bpf_iter_reg *reg_info);
 bool bpf_iter_prog_supported(struct bpf_prog *prog);
+<<<<<<< HEAD
 int bpf_iter_link_attach(const union bpf_attr *attr, struct bpf_prog *prog);
+=======
+int bpf_iter_link_attach(const union bpf_attr *attr, bpfptr_t uattr, struct bpf_prog *prog);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int bpf_iter_new_fd(struct bpf_link *link);
 bool bpf_link_is_iter(struct bpf_link *link);
 struct bpf_prog *bpf_iter_get_info(struct bpf_iter_meta *meta, bool in_stop);
@@ -1439,6 +1490,12 @@ int dev_map_enqueue(struct bpf_dtab_netdev *dst, struct xdp_buff *xdp,
 		    struct net_device *dev_rx);
 int dev_map_generic_redirect(struct bpf_dtab_netdev *dst, struct sk_buff *skb,
 			     struct bpf_prog *xdp_prog);
+<<<<<<< HEAD
+=======
+int dev_map_redirect_multi(struct net_device *dev, struct sk_buff *skb,
+			   struct bpf_prog *xdp_prog, struct bpf_map *map,
+			   bool exclude_ingress);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 bool dev_map_can_have_prog(struct bpf_map *map);
 
 struct bpf_cpu_map_entry *__cpu_map_lookup_elem(struct bpf_map *map, u32 key);
@@ -1741,6 +1798,12 @@ static inline bool bpf_map_is_dev_bound(struct bpf_map *map)
 
 struct bpf_map *bpf_map_offload_map_alloc(union bpf_attr *attr);
 void bpf_map_offload_map_free(struct bpf_map *map);
+<<<<<<< HEAD
+=======
+int bpf_prog_test_run_syscall(struct bpf_prog *prog,
+			      const union bpf_attr *kattr,
+			      union bpf_attr __user *uattr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else
 static inline int bpf_prog_offload_init(struct bpf_prog *prog,
 					union bpf_attr *attr)
@@ -1783,6 +1846,24 @@ static inline int sock_map_prog_update(struct bpf_map *map,
 {
 	return -EOPNOTSUPP;
 }
+#endif /* CONFIG_NET && CONFIG_BPF_SYSCALL */
+
+#if defined(CONFIG_INET) && defined(CONFIG_BPF_SYSCALL)
+int sock_map_get_from_fd(const union bpf_attr *attr, struct bpf_prog *prog);
+int sock_map_prog_detach(const union bpf_attr *attr, enum bpf_prog_type ptype);
+int sock_map_update_elem_sys(struct bpf_map *map, void *key, void *value, u64 flags);
+void sock_map_unhash(struct sock *sk);
+void sock_map_close(struct sock *sk, long timeout);
+
+void bpf_sk_reuseport_detach(struct sock *sk);
+int bpf_fd_reuseport_array_lookup_elem(struct bpf_map *map, void *key,
+				       void *value);
+int bpf_fd_reuseport_array_update_elem(struct bpf_map *map, void *key,
+				       void *value, u64 map_flags);
+#else
+static inline void bpf_sk_reuseport_detach(struct sock *sk)
+{
+}
 
 static inline int sock_map_get_from_fd(const union bpf_attr *attr,
 				       struct bpf_prog *prog)
@@ -1801,20 +1882,11 @@ static inline int sock_map_update_elem_sys(struct bpf_map *map, void *key, void 
 {
 	return -EOPNOTSUPP;
 }
+<<<<<<< HEAD
 #endif /* CONFIG_BPF_STREAM_PARSER */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
-#if defined(CONFIG_INET) && defined(CONFIG_BPF_SYSCALL)
-void bpf_sk_reuseport_detach(struct sock *sk);
-int bpf_fd_reuseport_array_lookup_elem(struct bpf_map *map, void *key,
-				       void *value);
-int bpf_fd_reuseport_array_update_elem(struct bpf_map *map, void *key,
-				       void *value, u64 map_flags);
-#else
-static inline void bpf_sk_reuseport_detach(struct sock *sk)
-{
-}
-
-#ifdef CONFIG_BPF_SYSCALL
 static inline int bpf_fd_reuseport_array_lookup_elem(struct bpf_map *map,
 						     void *key, void *value)
 {
@@ -1886,6 +1958,13 @@ extern const struct bpf_func_proto bpf_this_cpu_ptr_proto;
 extern const struct bpf_func_proto bpf_ktime_get_coarse_ns_proto;
 extern const struct bpf_func_proto bpf_sock_from_file_proto;
 extern const struct bpf_func_proto bpf_get_socket_ptr_cookie_proto;
+<<<<<<< HEAD
+=======
+extern const struct bpf_func_proto bpf_task_storage_get_proto;
+extern const struct bpf_func_proto bpf_task_storage_delete_proto;
+extern const struct bpf_func_proto bpf_for_each_map_elem_proto;
+extern const struct bpf_func_proto bpf_btf_find_by_name_kind_proto;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 const struct bpf_func_proto *bpf_tracing_func_proto(
 	enum bpf_func_id func_id, const struct bpf_prog *prog);

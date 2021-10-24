@@ -2,7 +2,10 @@
 /*
  * Copyright (C) 2017-2018 HUAWEI, Inc.
  *             https://www.huawei.com/
+<<<<<<< HEAD
  * Created by Gao Xiang <gaoxiang25@huawei.com>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 #include "internal.h"
 #include <linux/prefetch.h>
@@ -109,6 +112,7 @@ err_out:
 	return err;
 }
 
+<<<<<<< HEAD
 int erofs_map_blocks(struct inode *inode,
 		     struct erofs_map_blocks *map, int flags)
 {
@@ -120,10 +124,31 @@ int erofs_map_blocks(struct inode *inode,
 			map->mpage = NULL;
 		}
 		return err;
+=======
+static inline struct bio *erofs_read_raw_page(struct bio *bio,
+					      struct address_space *mapping,
+					      struct page *page,
+					      erofs_off_t *last_block,
+					      unsigned int nblocks,
+					      unsigned int *eblks,
+					      bool ra)
+{
+	struct inode *const inode = mapping->host;
+	struct super_block *const sb = inode->i_sb;
+	erofs_off_t current_block = (erofs_off_t)page->index;
+	int err;
+
+	DBG_BUGON(!nblocks);
+
+	if (PageUptodate(page)) {
+		err = 0;
+		goto has_updated;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return erofs_map_blocks_flatmode(inode, map, flags);
 }
 
+<<<<<<< HEAD
 static inline struct bio *erofs_read_raw_page(struct bio *bio,
 					      struct address_space *mapping,
 					      struct page *page,
@@ -175,6 +200,39 @@ submit_bio_retry:
 		/* for RAW access mode, m_plen must be equal to m_llen */
 		DBG_BUGON(map.m_plen != map.m_llen);
 
+=======
+	/* note that for readpage case, bio also equals to NULL */
+	if (bio &&
+	    (*last_block + 1 != current_block || !*eblks)) {
+submit_bio_retry:
+		submit_bio(bio);
+		bio = NULL;
+	}
+
+	if (!bio) {
+		struct erofs_map_blocks map = {
+			.m_la = blknr_to_addr(current_block),
+		};
+		erofs_blk_t blknr;
+		unsigned int blkoff;
+
+		err = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
+		if (err)
+			goto err_out;
+
+		/* zero out the holed page */
+		if (!(map.m_flags & EROFS_MAP_MAPPED)) {
+			zero_user_segment(page, 0, PAGE_SIZE);
+			SetPageUptodate(page);
+
+			/* imply err = 0, see erofs_map_blocks */
+			goto has_updated;
+		}
+
+		/* for RAW access mode, m_plen must be equal to m_llen */
+		DBG_BUGON(map.m_plen != map.m_llen);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		blknr = erofs_blknr(map.m_pa);
 		blkoff = erofs_blkoff(map.m_pa);
 
@@ -215,6 +273,7 @@ submit_bio_retry:
 		/* max # of continuous pages */
 		if (nblocks > DIV_ROUND_UP(map.m_plen, PAGE_SIZE))
 			nblocks = DIV_ROUND_UP(map.m_plen, PAGE_SIZE);
+<<<<<<< HEAD
 
 		bio = bio_alloc(GFP_NOIO, bio_max_segs(nblocks));
 
@@ -239,6 +298,25 @@ submit_bio_retry:
 		goto submit_bio_out;
 	}
 
+=======
+
+		*eblks = bio_max_segs(nblocks);
+		bio = bio_alloc(GFP_NOIO, *eblks);
+
+		bio->bi_end_io = erofs_readendio;
+		bio_set_dev(bio, sb->s_bdev);
+		bio->bi_iter.bi_sector = (sector_t)blknr <<
+			LOG_SECTORS_PER_BLOCK;
+		bio->bi_opf = REQ_OP_READ | (ra ? REQ_RAHEAD : 0);
+	}
+
+	err = bio_add_page(bio, page, PAGE_SIZE, 0);
+	/* out of the extent or bio is full */
+	if (err < PAGE_SIZE)
+		goto submit_bio_retry;
+	--*eblks;
+	*last_block = current_block;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return bio;
 
 err_out:
@@ -252,7 +330,10 @@ has_updated:
 
 	/* if updated manually, continuous pages has a gap */
 	if (bio)
+<<<<<<< HEAD
 submit_bio_out:
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		submit_bio(bio);
 	return err ? ERR_PTR(err) : NULL;
 }
@@ -264,23 +345,40 @@ submit_bio_out:
 static int erofs_raw_access_readpage(struct file *file, struct page *page)
 {
 	erofs_off_t last_block;
+<<<<<<< HEAD
+=======
+	unsigned int eblks;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct bio *bio;
 
 	trace_erofs_readpage(page, true);
 
 	bio = erofs_read_raw_page(NULL, page->mapping,
+<<<<<<< HEAD
 				  page, &last_block, 1, false);
+=======
+				  page, &last_block, 1, &eblks, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (IS_ERR(bio))
 		return PTR_ERR(bio);
 
+<<<<<<< HEAD
 	DBG_BUGON(bio);	/* since we have only one bio -- must be NULL */
+=======
+	if (bio)
+		submit_bio(bio);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
 static void erofs_raw_access_readahead(struct readahead_control *rac)
 {
 	erofs_off_t last_block;
+<<<<<<< HEAD
+=======
+	unsigned int eblks;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct bio *bio = NULL;
 	struct page *page;
 
@@ -291,7 +389,11 @@ static void erofs_raw_access_readahead(struct readahead_control *rac)
 		prefetchw(&page->flags);
 
 		bio = erofs_read_raw_page(bio, rac->mapping, page, &last_block,
+<<<<<<< HEAD
 				readahead_count(rac), true);
+=======
+				readahead_count(rac), &eblks, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* all the page errors are ignored when readahead */
 		if (IS_ERR(bio)) {
@@ -305,7 +407,10 @@ static void erofs_raw_access_readahead(struct readahead_control *rac)
 		put_page(page);
 	}
 
+<<<<<<< HEAD
 	/* the rare case (end in gaps) */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (bio)
 		submit_bio(bio);
 }
@@ -324,7 +429,11 @@ static sector_t erofs_bmap(struct address_space *mapping, sector_t block)
 			return 0;
 	}
 
+<<<<<<< HEAD
 	if (!erofs_map_blocks(inode, &map, EROFS_GET_BLOCKS_RAW))
+=======
+	if (!erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return erofs_blknr(map.m_pa);
 
 	return 0;

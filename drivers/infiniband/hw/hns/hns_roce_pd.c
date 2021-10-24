@@ -121,8 +121,25 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
 
 void hns_roce_uar_free(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
 {
+<<<<<<< HEAD
 	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->logic_idx,
 			     BITMAP_NO_RR);
+=======
+	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->logic_idx);
+}
+
+int hns_roce_init_uar_table(struct hns_roce_dev *hr_dev)
+{
+	return hns_roce_bitmap_init(&hr_dev->uar_table.bitmap,
+				    hr_dev->caps.num_uars,
+				    hr_dev->caps.num_uars - 1,
+				    hr_dev->caps.reserved_uars, 0);
+}
+
+void hns_roce_cleanup_uar_table(struct hns_roce_dev *hr_dev)
+{
+	hns_roce_bitmap_cleanup(&hr_dev->uar_table.bitmap);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int hns_roce_init_uar_table(struct hns_roce_dev *hr_dev)

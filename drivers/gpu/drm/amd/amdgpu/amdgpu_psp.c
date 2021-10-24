@@ -25,6 +25,10 @@
 
 #include <linux/firmware.h>
 #include <linux/dma-mapping.h>
+<<<<<<< HEAD
+=======
+#include <drm/drm_drv.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include "amdgpu.h"
 #include "amdgpu_psp.h"
@@ -37,6 +41,8 @@
 
 #include "amdgpu_ras.h"
 #include "amdgpu_securedisplay.h"
+
+#include <drm/drm_drv.h>
 
 static int psp_sysfs_init(struct amdgpu_device *adev);
 static void psp_sysfs_fini(struct amdgpu_device *adev);
@@ -109,6 +115,16 @@ static int psp_early_init(void *handle)
 	case CHIP_RENOIR:
 		psp_v12_0_set_psp_funcs(psp);
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_ALDEBARAN:
+		psp_v13_0_set_psp_funcs(psp);
+		break;
+	case CHIP_YELLOW_CARP:
+		psp_v13_0_set_psp_funcs(psp);
+		psp->autoload_supported = true;
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -EINVAL;
 	}
@@ -163,6 +179,11 @@ static int psp_sw_init(void *handle)
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 	struct psp_context *psp = &adev->psp;
 	int ret;
+<<<<<<< HEAD
+=======
+	struct psp_runtime_boot_cfg_entry boot_cfg_entry;
+	struct psp_memory_training_context *mem_training_ctx = &psp->mem_train_ctx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!amdgpu_sriov_vf(adev)) {
 		ret = psp_init_microcode(psp);
@@ -259,6 +280,8 @@ psp_cmd_submit_buf(struct psp_context *psp,
 
 	mutex_lock(&psp->mutex);
 
+	mutex_lock(&psp->mutex);
+
 	memset(psp->cmd_buf_mem, 0, PSP_CMD_BUFFER_SIZE);
 
 	memcpy(psp->cmd_buf_mem, cmd, sizeof(struct psp_gfx_cmd_resp));
@@ -319,6 +342,12 @@ psp_cmd_submit_buf(struct psp_context *psp,
 	}
 	mutex_unlock(&psp->mutex);
 
+<<<<<<< HEAD
+=======
+exit:
+	mutex_unlock(&psp->mutex);
+	drm_dev_exit(idx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -355,8 +384,12 @@ static int psp_load_toc(struct psp_context *psp,
 	if (!cmd)
 		return -ENOMEM;
 	/* Copy toc to psp firmware private buffer */
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->toc_start_addr, psp->toc_bin_size);
+=======
+	psp_copy_fw(psp, psp->toc_start_addr, psp->toc_bin_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_load_toc_cmd_buf(cmd, psp->fw_pri_mc_addr, psp->toc_bin_size);
 
@@ -540,6 +573,72 @@ int psp_get_fw_attestation_records_addr(struct psp_context *psp,
 	kfree(cmd);
 
 	return ret;
+<<<<<<< HEAD
+=======
+}
+
+static int psp_boot_config_get(struct amdgpu_device *adev, uint32_t *boot_cfg)
+{
+	struct psp_context *psp = &adev->psp;
+	struct psp_gfx_cmd_resp *cmd = psp->cmd;
+	int ret;
+
+	if (amdgpu_sriov_vf(adev))
+		return 0;
+
+	memset(cmd, 0, sizeof(struct psp_gfx_cmd_resp));
+
+	cmd->cmd_id = GFX_CMD_ID_BOOT_CFG;
+	cmd->cmd.boot_cfg.sub_cmd = BOOTCFG_CMD_GET;
+
+	ret = psp_cmd_submit_buf(psp, NULL, cmd, psp->fence_buf_mc_addr);
+	if (!ret) {
+		*boot_cfg =
+			(cmd->resp.uresp.boot_cfg.boot_cfg & BOOT_CONFIG_GECC) ? 1 : 0;
+	}
+
+	return ret;
+}
+
+static int psp_boot_config_set(struct amdgpu_device *adev, uint32_t boot_cfg)
+{
+	struct psp_context *psp = &adev->psp;
+	struct psp_gfx_cmd_resp *cmd = psp->cmd;
+
+	if (amdgpu_sriov_vf(adev))
+		return 0;
+
+	memset(cmd, 0, sizeof(struct psp_gfx_cmd_resp));
+
+	cmd->cmd_id = GFX_CMD_ID_BOOT_CFG;
+	cmd->cmd.boot_cfg.sub_cmd = BOOTCFG_CMD_SET;
+	cmd->cmd.boot_cfg.boot_config = boot_cfg;
+	cmd->cmd.boot_cfg.boot_config_valid = boot_cfg;
+
+	return psp_cmd_submit_buf(psp, NULL, cmd, psp->fence_buf_mc_addr);
+}
+
+static int psp_rl_load(struct amdgpu_device *adev)
+{
+	struct psp_context *psp = &adev->psp;
+	struct psp_gfx_cmd_resp *cmd = psp->cmd;
+
+	if (psp->rl_bin_size == 0)
+		return 0;
+
+	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
+	memcpy(psp->fw_pri_buf, psp->rl_start_addr, psp->rl_bin_size);
+
+	memset(cmd, 0, sizeof(struct psp_gfx_cmd_resp));
+
+	cmd->cmd_id = GFX_CMD_ID_LOAD_IP_FW;
+	cmd->cmd.cmd_load_ip_fw.fw_phy_addr_lo = lower_32_bits(psp->fw_pri_mc_addr);
+	cmd->cmd.cmd_load_ip_fw.fw_phy_addr_hi = upper_32_bits(psp->fw_pri_mc_addr);
+	cmd->cmd.cmd_load_ip_fw.fw_size = psp->rl_bin_size;
+	cmd->cmd.cmd_load_ip_fw.fw_type = GFX_FW_TYPE_REG_LIST;
+
+	return psp_cmd_submit_buf(psp, NULL, cmd, psp->fence_buf_mc_addr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void psp_prep_asd_load_cmd_buf(struct psp_gfx_cmd_resp *cmd,
@@ -571,8 +670,12 @@ static int psp_asd_load(struct psp_context *psp)
 	if (!cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->asd_start_addr, psp->asd_ucode_size);
+=======
+	psp_copy_fw(psp, psp->asd_start_addr, psp->asd_ucode_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_asd_load_cmd_buf(cmd, psp->fw_pri_mc_addr,
 				  psp->asd_ucode_size);
@@ -646,6 +749,11 @@ int psp_reg_program(struct psp_context *psp, enum psp_reg_prog_id reg,
 
 	psp_prep_reg_prog_cmd_buf(cmd, reg, value);
 	ret = psp_cmd_submit_buf(psp, NULL, cmd, psp->fence_buf_mc_addr);
+<<<<<<< HEAD
+=======
+	if (ret)
+		DRM_ERROR("PSP failed to program reg id %d", reg);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kfree(cmd);
 	return ret;
@@ -727,8 +835,12 @@ static int psp_xgmi_load(struct psp_context *psp)
 	if (!cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->ta_xgmi_start_addr, psp->ta_xgmi_ucode_size);
+=======
+	psp_copy_fw(psp, psp->ta_xgmi_start_addr, psp->ta_xgmi_ucode_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_ta_load_cmd_buf(cmd,
 				 psp->fw_pri_mc_addr,
@@ -982,10 +1094,23 @@ static int psp_ras_load(struct psp_context *psp)
 	cmd = kzalloc(sizeof(struct psp_gfx_cmd_resp), GFP_KERNEL);
 	if (!cmd)
 		return -ENOMEM;
+<<<<<<< HEAD
 
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->ta_ras_start_addr, psp->ta_ras_ucode_size);
 
+=======
+
+	psp_copy_fw(psp, psp->ta_ras_start_addr, psp->ta_ras_ucode_size);
+
+	ras_cmd = (struct ta_ras_shared_memory *)psp->ras.ras_shared_buf;
+
+	if (psp->adev->gmc.xgmi.connected_to_cpu)
+		ras_cmd->ras_in_message.init_flags.poison_mode_en = 1;
+	else
+		ras_cmd->ras_in_message.init_flags.dgpu_mode = 1;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	psp_prep_ta_load_cmd_buf(cmd,
 				 psp->fw_pri_mc_addr,
 				 psp->ta_ras_ucode_size,
@@ -1140,12 +1265,62 @@ static int psp_ras_initialize(struct psp_context *psp)
 	if (amdgpu_sriov_vf(psp->adev))
 		return 0;
 
+<<<<<<< HEAD
 	if (!psp->adev->psp.ta_ras_ucode_size ||
 	    !psp->adev->psp.ta_ras_start_addr) {
 		dev_info(psp->adev->dev, "RAS: optional ras ta ucode is not available\n");
 		return 0;
 	}
 
+=======
+	if (!adev->psp.ta_ras_ucode_size ||
+	    !adev->psp.ta_ras_start_addr) {
+		dev_info(adev->dev, "RAS: optional ras ta ucode is not available\n");
+		return 0;
+	}
+
+	if (amdgpu_atomfirmware_dynamic_boot_config_supported(adev)) {
+		/* query GECC enablement status from boot config
+		 * boot_cfg: 1: GECC is enabled or 0: GECC is disabled
+		 */
+		ret = psp_boot_config_get(adev, &boot_cfg);
+		if (ret)
+			dev_warn(adev->dev, "PSP get boot config failed\n");
+
+		if (!amdgpu_ras_is_supported(psp->adev, AMDGPU_RAS_BLOCK__UMC)) {
+			if (!boot_cfg) {
+				dev_info(adev->dev, "GECC is disabled\n");
+			} else {
+				/* disable GECC in next boot cycle if ras is
+				 * disabled by module parameter amdgpu_ras_enable
+				 * and/or amdgpu_ras_mask, or boot_config_get call
+				 * is failed
+				 */
+				ret = psp_boot_config_set(adev, 0);
+				if (ret)
+					dev_warn(adev->dev, "PSP set boot config failed\n");
+				else
+					dev_warn(adev->dev, "GECC will be disabled in next boot cycle "
+						 "if set amdgpu_ras_enable and/or amdgpu_ras_mask to 0x0\n");
+			}
+		} else {
+			if (1 == boot_cfg) {
+				dev_info(adev->dev, "GECC is enabled\n");
+			} else {
+				/* enable GECC in next boot cycle if it is disabled
+				 * in boot config, or force enable GECC if failed to
+				 * get boot configuration
+				 */
+				ret = psp_boot_config_set(adev, BOOT_CONFIG_GECC);
+				if (ret)
+					dev_warn(adev->dev, "PSP set boot config failed\n");
+				else
+					dev_warn(adev->dev, "GECC will be enabled in next boot cycle\n");
+			}
+		}
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!psp->ras.ras_initialized) {
 		ret = psp_ras_init_shared_buf(psp);
 		if (ret)
@@ -1220,9 +1395,14 @@ static int psp_hdcp_load(struct psp_context *psp)
 	if (!cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->ta_hdcp_start_addr,
 	       psp->ta_hdcp_ucode_size);
+=======
+	psp_copy_fw(psp, psp->ta_hdcp_start_addr,
+		    psp->ta_hdcp_ucode_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_ta_load_cmd_buf(cmd,
 				 psp->fw_pri_mc_addr,
@@ -1372,8 +1552,12 @@ static int psp_dtm_load(struct psp_context *psp)
 	if (!cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->ta_dtm_start_addr, psp->ta_dtm_ucode_size);
+=======
+	psp_copy_fw(psp, psp->ta_dtm_start_addr, psp->ta_dtm_ucode_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_ta_load_cmd_buf(cmd,
 				 psp->fw_pri_mc_addr,
@@ -1518,8 +1702,12 @@ static int psp_rap_load(struct psp_context *psp)
 	if (!cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	memset(psp->fw_pri_buf, 0, PSP_1_MEG);
 	memcpy(psp->fw_pri_buf, psp->ta_rap_start_addr, psp->ta_rap_ucode_size);
+=======
+	psp_copy_fw(psp, psp->ta_rap_start_addr, psp->ta_rap_ucode_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psp_prep_ta_load_cmd_buf(cmd,
 				 psp->fw_pri_mc_addr,
@@ -1591,6 +1779,11 @@ static int psp_rap_initialize(struct psp_context *psp)
 		amdgpu_bo_free_kernel(&psp->rap_context.rap_shared_bo,
 			      &psp->rap_context.rap_shared_mc_addr,
 			      &psp->rap_context.rap_shared_buf);
+<<<<<<< HEAD
+=======
+
+		psp->rap_context.rap_initialized = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		psp->rap_context.rap_initialized = false;
 
@@ -1626,7 +1819,11 @@ int psp_rap_invoke(struct psp_context *psp, uint32_t ta_cmd_id)
 	int ret;
 
 	if (!psp->rap_context.rap_initialized)
+<<<<<<< HEAD
 		return -EINVAL;
+=======
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (ta_cmd_id != TA_CMD_RAP__INITIALIZE &&
 	    ta_cmd_id != TA_CMD_RAP__VALIDATE_L0)
@@ -1642,10 +1839,18 @@ int psp_rap_invoke(struct psp_context *psp, uint32_t ta_cmd_id)
 	rap_cmd->validation_method_id = METHOD_A;
 
 	ret = psp_ta_invoke(psp, rap_cmd->cmd_id, psp->rap_context.session_id);
+<<<<<<< HEAD
 	if (ret) {
 		mutex_unlock(&psp->rap_context.mutex);
 		return ret;
 	}
+=======
+	if (ret)
+		goto out_unlock;
+
+	if (status)
+		*status = rap_cmd->rap_status;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_unlock(&psp->rap_context.mutex);
 
@@ -2159,6 +2364,25 @@ static bool fw_load_skip_check(struct psp_context *psp,
 	return false;
 }
 
+<<<<<<< HEAD
+=======
+int psp_load_fw_list(struct psp_context *psp,
+		     struct amdgpu_firmware_info **ucode_list, int ucode_count)
+{
+	int ret = 0, i;
+	struct amdgpu_firmware_info *ucode;
+
+	for (i = 0; i < ucode_count; ++i) {
+		ucode = ucode_list[i];
+		psp_print_fw_hdr(psp, ucode);
+		ret = psp_execute_np_fw_load(psp, ucode);
+		if (ret)
+			return ret;
+	}
+	return ret;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int psp_np_fw_load(struct psp_context *psp)
 {
 	int i, ret;
@@ -2230,11 +2454,28 @@ static int psp_load_fw(struct amdgpu_device *adev)
 	if (!psp->cmd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	ret = amdgpu_bo_create_kernel(adev, PSP_1_MEG, PSP_1_MEG,
 					AMDGPU_GEM_DOMAIN_GTT,
 					&psp->fw_pri_bo,
 					&psp->fw_pri_mc_addr,
 					&psp->fw_pri_buf);
+=======
+	if (amdgpu_sriov_vf(adev)) {
+		ret = amdgpu_bo_create_kernel(adev, PSP_1_MEG, PSP_1_MEG,
+						AMDGPU_GEM_DOMAIN_VRAM,
+						&psp->fw_pri_bo,
+						&psp->fw_pri_mc_addr,
+						&psp->fw_pri_buf);
+	} else {
+		ret = amdgpu_bo_create_kernel(adev, PSP_1_MEG, PSP_1_MEG,
+						AMDGPU_GEM_DOMAIN_GTT,
+						&psp->fw_pri_bo,
+						&psp->fw_pri_mc_addr,
+						&psp->fw_pri_buf);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		goto failed;
 
@@ -2276,6 +2517,15 @@ skip_memalloc:
 		return ret;
 	}
 
+<<<<<<< HEAD
+=======
+	ret = psp_rl_load(adev);
+	if (ret) {
+		DRM_ERROR("PSP load RL failed!\n");
+		return ret;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (psp->adev->psp.ta_fw) {
 		ret = psp_ras_initialize(psp);
 		if (ret)
@@ -2639,7 +2889,11 @@ int psp_init_asd_microcode(struct psp_context *psp,
 
 	asd_hdr = (const struct psp_firmware_header_v1_0 *)adev->psp.asd_fw->data;
 	adev->psp.asd_fw_version = le32_to_cpu(asd_hdr->header.ucode_version);
+<<<<<<< HEAD
 	adev->psp.asd_feature_version = le32_to_cpu(asd_hdr->ucode_feature_version);
+=======
+	adev->psp.asd_feature_version = le32_to_cpu(asd_hdr->sos.fw_version);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	adev->psp.asd_ucode_size = le32_to_cpu(asd_hdr->header.ucode_size_bytes);
 	adev->psp.asd_start_addr = (uint8_t *)asd_hdr +
 				le32_to_cpu(asd_hdr->header.ucode_array_offset_bytes);
@@ -2675,7 +2929,11 @@ int psp_init_toc_microcode(struct psp_context *psp,
 
 	toc_hdr = (const struct psp_firmware_header_v1_0 *)adev->psp.toc_fw->data;
 	adev->psp.toc_fw_version = le32_to_cpu(toc_hdr->header.ucode_version);
+<<<<<<< HEAD
 	adev->psp.toc_feature_version = le32_to_cpu(toc_hdr->ucode_feature_version);
+=======
+	adev->psp.toc_feature_version = le32_to_cpu(toc_hdr->sos.fw_version);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	adev->psp.toc_bin_size = le32_to_cpu(toc_hdr->header.ucode_size_bytes);
 	adev->psp.toc_start_addr = (uint8_t *)toc_hdr +
 				le32_to_cpu(toc_hdr->header.ucode_array_offset_bytes);
@@ -2687,6 +2945,53 @@ out:
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static int psp_init_sos_base_fw(struct amdgpu_device *adev)
+{
+	const struct psp_firmware_header_v1_0 *sos_hdr;
+	const struct psp_firmware_header_v1_3 *sos_hdr_v1_3;
+	uint8_t *ucode_array_start_addr;
+
+	sos_hdr = (const struct psp_firmware_header_v1_0 *)adev->psp.sos_fw->data;
+	ucode_array_start_addr = (uint8_t *)sos_hdr +
+		le32_to_cpu(sos_hdr->header.ucode_array_offset_bytes);
+
+	if (adev->gmc.xgmi.connected_to_cpu || (adev->asic_type != CHIP_ALDEBARAN)) {
+		adev->psp.sos_fw_version = le32_to_cpu(sos_hdr->header.ucode_version);
+		adev->psp.sos_feature_version = le32_to_cpu(sos_hdr->sos.fw_version);
+
+		adev->psp.sys_bin_size = le32_to_cpu(sos_hdr->sos.offset_bytes);
+		adev->psp.sys_start_addr = ucode_array_start_addr;
+
+		adev->psp.sos_bin_size = le32_to_cpu(sos_hdr->sos.size_bytes);
+		adev->psp.sos_start_addr = ucode_array_start_addr +
+				le32_to_cpu(sos_hdr->sos.offset_bytes);
+	} else {
+		/* Load alternate PSP SOS FW */
+		sos_hdr_v1_3 = (const struct psp_firmware_header_v1_3 *)adev->psp.sos_fw->data;
+
+		adev->psp.sos_fw_version = le32_to_cpu(sos_hdr_v1_3->sos_aux.fw_version);
+		adev->psp.sos_feature_version = le32_to_cpu(sos_hdr_v1_3->sos_aux.fw_version);
+
+		adev->psp.sys_bin_size = le32_to_cpu(sos_hdr_v1_3->sys_drv_aux.size_bytes);
+		adev->psp.sys_start_addr = ucode_array_start_addr +
+			le32_to_cpu(sos_hdr_v1_3->sys_drv_aux.offset_bytes);
+
+		adev->psp.sos_bin_size = le32_to_cpu(sos_hdr_v1_3->sos_aux.size_bytes);
+		adev->psp.sos_start_addr = ucode_array_start_addr +
+			le32_to_cpu(sos_hdr_v1_3->sos_aux.offset_bytes);
+	}
+
+	if ((adev->psp.sys_bin_size == 0) || (adev->psp.sos_bin_size == 0)) {
+		dev_warn(adev->dev, "PSP SOS FW not available");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int psp_init_sos_microcode(struct psp_context *psp,
 			   const char *chip_name)
 {
@@ -2697,6 +3002,10 @@ int psp_init_sos_microcode(struct psp_context *psp,
 	const struct psp_firmware_header_v1_2 *sos_hdr_v1_2;
 	const struct psp_firmware_header_v1_3 *sos_hdr_v1_3;
 	int err = 0;
+<<<<<<< HEAD
+=======
+	uint8_t *ucode_array_start_addr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!chip_name) {
 		dev_err(adev->dev, "invalid chip name for sos microcode\n");
@@ -2727,6 +3036,7 @@ int psp_init_sos_microcode(struct psp_context *psp,
 				le32_to_cpu(sos_hdr->sos_offset_bytes);
 		if (sos_hdr->header.header_version_minor == 1) {
 			sos_hdr_v1_1 = (const struct psp_firmware_header_v1_1 *)adev->psp.sos_fw->data;
+<<<<<<< HEAD
 			adev->psp.toc_bin_size = le32_to_cpu(sos_hdr_v1_1->toc_size_bytes);
 			adev->psp.toc_start_addr = (uint8_t *)adev->psp.sys_start_addr +
 					le32_to_cpu(sos_hdr_v1_1->toc_offset_bytes);
@@ -2751,6 +3061,35 @@ int psp_init_sos_microcode(struct psp_context *psp,
 			adev->psp.spl_bin_size = le32_to_cpu(sos_hdr_v1_3->spl_size_bytes);
 			adev->psp.spl_start_addr = (uint8_t *)adev->psp.sys_start_addr +
 				le32_to_cpu(sos_hdr_v1_3->spl_offset_bytes);
+=======
+			adev->psp.toc_bin_size = le32_to_cpu(sos_hdr_v1_1->toc.size_bytes);
+			adev->psp.toc_start_addr = (uint8_t *)adev->psp.sys_start_addr +
+					le32_to_cpu(sos_hdr_v1_1->toc.offset_bytes);
+			adev->psp.kdb_bin_size = le32_to_cpu(sos_hdr_v1_1->kdb.size_bytes);
+			adev->psp.kdb_start_addr = (uint8_t *)adev->psp.sys_start_addr +
+					le32_to_cpu(sos_hdr_v1_1->kdb.offset_bytes);
+		}
+		if (sos_hdr->header.header_version_minor == 2) {
+			sos_hdr_v1_2 = (const struct psp_firmware_header_v1_2 *)adev->psp.sos_fw->data;
+			adev->psp.kdb_bin_size = le32_to_cpu(sos_hdr_v1_2->kdb.size_bytes);
+			adev->psp.kdb_start_addr = (uint8_t *)adev->psp.sys_start_addr +
+						    le32_to_cpu(sos_hdr_v1_2->kdb.offset_bytes);
+		}
+		if (sos_hdr->header.header_version_minor == 3) {
+			sos_hdr_v1_3 = (const struct psp_firmware_header_v1_3 *)adev->psp.sos_fw->data;
+			adev->psp.toc_bin_size = le32_to_cpu(sos_hdr_v1_3->v1_1.toc.size_bytes);
+			adev->psp.toc_start_addr = ucode_array_start_addr +
+				le32_to_cpu(sos_hdr_v1_3->v1_1.toc.offset_bytes);
+			adev->psp.kdb_bin_size = le32_to_cpu(sos_hdr_v1_3->v1_1.kdb.size_bytes);
+			adev->psp.kdb_start_addr = ucode_array_start_addr +
+				le32_to_cpu(sos_hdr_v1_3->v1_1.kdb.offset_bytes);
+			adev->psp.spl_bin_size = le32_to_cpu(sos_hdr_v1_3->spl.size_bytes);
+			adev->psp.spl_start_addr = ucode_array_start_addr +
+				le32_to_cpu(sos_hdr_v1_3->spl.offset_bytes);
+			adev->psp.rl_bin_size = le32_to_cpu(sos_hdr_v1_3->rl.size_bytes);
+			adev->psp.rl_start_addr = ucode_array_start_addr +
+				le32_to_cpu(sos_hdr_v1_3->rl.offset_bytes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		break;
 	default:
@@ -2928,7 +3267,11 @@ static ssize_t psp_usbc_pd_fw_sysfs_write(struct device *dev,
 	struct amdgpu_device *adev = drm_to_adev(ddev);
 	void *cpu_addr;
 	dma_addr_t dma_addr;
+<<<<<<< HEAD
 	int ret;
+=======
+	int ret, idx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	char fw_name[100];
 	const struct firmware *usbc_pd_fw;
 

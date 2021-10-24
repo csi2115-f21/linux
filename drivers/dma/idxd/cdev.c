@@ -46,8 +46,18 @@ enum idxd_cdev_cleanup {
 
 static void idxd_cdev_dev_release(struct device *dev)
 {
+<<<<<<< HEAD
 	dev_dbg(dev, "releasing cdev device\n");
 	kfree(dev);
+=======
+	struct idxd_cdev *idxd_cdev = container_of(dev, struct idxd_cdev, dev);
+	struct idxd_cdev_context *cdev_ctx;
+	struct idxd_wq *wq = idxd_cdev->wq;
+
+	cdev_ctx = &ictx[wq->idxd->data->type];
+	ida_simple_remove(&cdev_ctx->minor_ida, idxd_cdev->minor);
+	kfree(idxd_cdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct device_type idxd_cdev_device_type = {
@@ -220,11 +230,18 @@ static __poll_t idxd_cdev_poll(struct file *filp,
 	struct idxd_user_context *ctx = filp->private_data;
 	struct idxd_wq *wq = ctx->wq;
 	struct idxd_device *idxd = wq->idxd;
+<<<<<<< HEAD
 	struct idxd_cdev *idxd_cdev = &wq->idxd_cdev;
 	unsigned long flags;
 	__poll_t out = 0;
 
 	poll_wait(filp, &idxd_cdev->err_queue, wait);
+=======
+	unsigned long flags;
+	__poll_t out = 0;
+
+	poll_wait(filp, &wq->err_queue, wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_irqsave(&idxd->dev_lock, flags);
 	if (idxd->sw_err.valid)
 		out = EPOLLIN | EPOLLRDNORM;
@@ -258,6 +275,7 @@ static int idxd_wq_cdev_dev_setup(struct idxd_wq *wq)
 	if (!idxd_cdev->dev)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	dev = idxd_cdev->dev;
 	dev->parent = &idxd->pdev->dev;
 	dev_set_name(dev, "%s/wq%u.%u", idxd_get_dev_name(idxd),
@@ -265,6 +283,12 @@ static int idxd_wq_cdev_dev_setup(struct idxd_wq *wq)
 	dev->bus = idxd_get_bus_type(idxd);
 
 	cdev_ctx = &ictx[wq->idxd->type];
+=======
+	idxd_cdev->wq = wq;
+	cdev = &idxd_cdev->cdev;
+	dev = &idxd_cdev->dev;
+	cdev_ctx = &ictx[wq->idxd->data->type];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	minor = ida_simple_get(&cdev_ctx->minor_ida, 0, MINORMASK, GFP_KERNEL);
 	if (minor < 0) {
 		rc = minor;
@@ -272,6 +296,13 @@ static int idxd_wq_cdev_dev_setup(struct idxd_wq *wq)
 		goto ida_err;
 	}
 
+<<<<<<< HEAD
+=======
+	device_initialize(dev);
+	dev->parent = &wq->conf_dev;
+	dev->bus = &dsa_bus_type;
+	dev->type = &idxd_cdev_device_type;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dev->devt = MKDEV(MAJOR(cdev_ctx->devt), minor);
 	dev->type = &idxd_cdev_device_type;
 	rc = device_register(dev);
@@ -297,6 +328,7 @@ static void idxd_wq_cdev_cleanup(struct idxd_wq *wq,
 	struct idxd_cdev *idxd_cdev = &wq->idxd_cdev;
 	struct idxd_cdev_context *cdev_ctx;
 
+<<<<<<< HEAD
 	cdev_ctx = &ictx[wq->idxd->type];
 	if (cdev_state == CDEV_NORMAL)
 		cdev_del(&idxd_cdev->cdev);
@@ -340,6 +372,14 @@ void idxd_wq_del_cdev(struct idxd_wq *wq)
 	idxd_wq_cdev_cleanup(wq, CDEV_NORMAL);
 }
 
+=======
+	idxd_cdev = wq->idxd_cdev;
+	wq->idxd_cdev = NULL;
+	cdev_device_del(&idxd_cdev->cdev, &idxd_cdev->dev);
+	put_device(&idxd_cdev->dev);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int idxd_cdev_register(void)
 {
 	int rc, i;

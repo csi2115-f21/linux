@@ -430,7 +430,45 @@ int mlx5_vdpa_create_mr(struct mlx5_vdpa_dev *mvdev, struct vhost_iotlb *iotlb)
 	return err;
 }
 
+<<<<<<< HEAD
 void mlx5_vdpa_destroy_mr(struct mlx5_vdpa_dev *mvdev)
+=======
+static void destroy_dma_mr(struct mlx5_vdpa_dev *mvdev, struct mlx5_vdpa_mr *mr)
+{
+	mlx5_vdpa_destroy_mkey(mvdev, &mr->mkey);
+}
+
+static int _mlx5_vdpa_create_mr(struct mlx5_vdpa_dev *mvdev, struct vhost_iotlb *iotlb)
+{
+	struct mlx5_vdpa_mr *mr = &mvdev->mr;
+	int err;
+
+	if (mr->initialized)
+		return 0;
+
+	if (iotlb)
+		err = create_user_mr(mvdev, iotlb);
+	else
+		err = create_dma_mr(mvdev, mr);
+
+	if (!err)
+		mr->initialized = true;
+
+	return err;
+}
+
+int mlx5_vdpa_create_mr(struct mlx5_vdpa_dev *mvdev, struct vhost_iotlb *iotlb)
+{
+	int err;
+
+	mutex_lock(&mvdev->mr.mkey_mtx);
+	err = _mlx5_vdpa_create_mr(mvdev, iotlb);
+	mutex_unlock(&mvdev->mr.mkey_mtx);
+	return err;
+}
+
+static void destroy_user_mr(struct mlx5_vdpa_dev *mvdev, struct mlx5_vdpa_mr *mr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mlx5_vdpa_mr *mr = &mvdev->mr;
 	struct mlx5_vdpa_direct_mr *dmr;
@@ -446,6 +484,24 @@ void mlx5_vdpa_destroy_mr(struct mlx5_vdpa_dev *mvdev)
 		unmap_direct_mr(mvdev, dmr);
 		kfree(dmr);
 	}
+<<<<<<< HEAD
+=======
+}
+
+void mlx5_vdpa_destroy_mr(struct mlx5_vdpa_dev *mvdev)
+{
+	struct mlx5_vdpa_mr *mr = &mvdev->mr;
+
+	mutex_lock(&mr->mkey_mtx);
+	if (!mr->initialized)
+		goto out;
+
+	if (mr->user_mr)
+		destroy_user_mr(mvdev, mr);
+	else
+		destroy_dma_mr(mvdev, mr);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	memset(mr, 0, sizeof(*mr));
 	mr->initialized = false;
 out:

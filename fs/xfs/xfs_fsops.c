@@ -19,6 +19,65 @@
 #include "xfs_log.h"
 #include "xfs_ag.h"
 #include "xfs_ag_resv.h"
+<<<<<<< HEAD
+=======
+
+/*
+ * Write new AG headers to disk. Non-transactional, but need to be
+ * written and completed prior to the growfs transaction being logged.
+ * To do this, we use a delayed write buffer list and wait for
+ * submission and IO completion of the list as a whole. This allows the
+ * IO subsystem to merge all the AG headers in a single AG into a single
+ * IO and hide most of the latency of the IO from us.
+ *
+ * This also means that if we get an error whilst building the buffer
+ * list to write, we can cancel the entire list without having written
+ * anything.
+ */
+static int
+xfs_resizefs_init_new_ags(
+	struct xfs_trans	*tp,
+	struct aghdr_init_data	*id,
+	xfs_agnumber_t		oagcount,
+	xfs_agnumber_t		nagcount,
+	xfs_rfsblock_t		delta,
+	bool			*lastag_extended)
+{
+	struct xfs_mount	*mp = tp->t_mountp;
+	xfs_rfsblock_t		nb = mp->m_sb.sb_dblocks + delta;
+	int			error;
+
+	*lastag_extended = false;
+
+	INIT_LIST_HEAD(&id->buffer_list);
+	for (id->agno = nagcount - 1;
+	     id->agno >= oagcount;
+	     id->agno--, delta -= id->agsize) {
+
+		if (id->agno == nagcount - 1)
+			id->agsize = nb - (id->agno *
+					(xfs_rfsblock_t)mp->m_sb.sb_agblocks);
+		else
+			id->agsize = mp->m_sb.sb_agblocks;
+
+		error = xfs_ag_init_headers(mp, id);
+		if (error) {
+			xfs_buf_delwri_cancel(&id->buffer_list);
+			return error;
+		}
+	}
+
+	error = xfs_buf_delwri_submit(&id->buffer_list);
+	if (error)
+		return error;
+
+	if (delta) {
+		*lastag_extended = true;
+		error = xfs_ag_extend_space(mp, tp, id, delta);
+	}
+	return error;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * growfs operations
@@ -128,6 +187,18 @@ xfs_growfs_data_private(
 				 nb - mp->m_sb.sb_dblocks);
 	if (id.nfree)
 		xfs_trans_mod_sb(tp, XFS_TRANS_SB_FDBLOCKS, id.nfree);
+<<<<<<< HEAD
+=======
+
+	/*
+	 * Sync sb counters now to reflect the updated values. This is
+	 * particularly important for shrink because the write verifier
+	 * will fail if sb_fdblocks is ever larger than sb_dblocks.
+	 */
+	if (xfs_sb_version_haslazysbcount(&mp->m_sb))
+		xfs_log_sb(tp);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	xfs_trans_set_sync(tp);
 	error = xfs_trans_commit(tp);
 	if (error)
@@ -467,6 +538,7 @@ xfs_do_force_shutdown(
 	int		lnnum)
 {
 	bool		logerror = flags & SHUTDOWN_LOG_IO_ERROR;
+<<<<<<< HEAD
 
 	/*
 	 * No need to duplicate efforts.
@@ -496,14 +568,52 @@ xfs_do_force_shutdown(
 	if (flags & SHUTDOWN_CORRUPT_INCORE) {
 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
 "Corruption of in-memory data detected.  Shutting down filesystem");
+=======
+
+	/*
+	 * No need to duplicate efforts.
+	 */
+	if (XFS_FORCED_SHUTDOWN(mp) && !logerror)
+		return;
+
+	/*
+	 * This flags XFS_MOUNT_FS_SHUTDOWN, makes sure that we don't
+	 * queue up anybody new on the log reservations, and wakes up
+	 * everybody who's sleeping on log reservations to tell them
+	 * the bad news.
+	 */
+	if (xfs_log_force_umount(mp, logerror))
+		return;
+
+	if (flags & SHUTDOWN_FORCE_UMOUNT) {
+		xfs_alert(mp,
+"User initiated shutdown (0x%x) received. Shutting down filesystem",
+				flags);
+		return;
+	}
+
+	if (flags & SHUTDOWN_CORRUPT_INCORE) {
+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
+"Corruption of in-memory data (0x%x) detected at %pS (%s:%d).  Shutting down filesystem",
+				flags, __return_address, fname, lnnum);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
 			xfs_stack_trace();
 	} else if (logerror) {
 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_LOGERROR,
+<<<<<<< HEAD
 			"Log I/O Error Detected. Shutting down filesystem");
 	} else {
 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_IOERROR,
 			"I/O Error Detected. Shutting down filesystem");
+=======
+"Log I/O error (0x%x) detected at %pS (%s:%d). Shutting down filesystem",
+				flags, __return_address, fname, lnnum);
+	} else {
+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_IOERROR,
+"I/O error (0x%x) detected at %pS (%s:%d). Shutting down filesystem",
+				flags, __return_address, fname, lnnum);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	xfs_alert(mp,

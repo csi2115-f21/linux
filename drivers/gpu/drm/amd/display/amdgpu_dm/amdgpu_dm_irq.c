@@ -500,8 +500,36 @@ int amdgpu_dm_irq_resume_late(struct amdgpu_device *adev)
 static void amdgpu_dm_irq_schedule_work(struct amdgpu_device *adev,
 					enum dc_irq_source irq_source)
 {
+<<<<<<< HEAD
 	unsigned long irq_table_flags;
 	struct work_struct *work = NULL;
+=======
+	struct  list_head *handler_list = &adev->dm.irq_handler_list_low_tab[irq_source];
+	struct  amdgpu_dm_irq_handler_data *handler_data;
+	bool    work_queued = false;
+
+	if (list_empty(handler_list))
+		return;
+
+	list_for_each_entry (handler_data, handler_list, list) {
+		if (queue_work(system_highpri_wq, &handler_data->work)) {
+			work_queued = true;
+			break;
+		}
+	}
+
+	if (!work_queued) {
+		struct  amdgpu_dm_irq_handler_data *handler_data_add;
+		/*get the amdgpu_dm_irq_handler_data of first item pointed by handler_list*/
+		handler_data = container_of(handler_list->next, struct amdgpu_dm_irq_handler_data, list);
+
+		/*allocate a new amdgpu_dm_irq_handler_data*/
+		handler_data_add = kzalloc(sizeof(*handler_data), GFP_KERNEL);
+		if (!handler_data_add) {
+			DRM_ERROR("DM_IRQ: failed to allocate irq handler!\n");
+			return;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	DM_IRQ_TABLE_LOCK(adev, irq_table_flags);
 

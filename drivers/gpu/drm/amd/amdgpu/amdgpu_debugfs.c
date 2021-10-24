@@ -1596,20 +1596,34 @@ int amdgpu_debugfs_init(struct amdgpu_device *adev)
 {
 	int r, i;
 
+<<<<<<< HEAD
 	adev->debugfs_preempt =
 		debugfs_create_file("amdgpu_preempt_ib", 0600,
 				    adev_to_drm(adev)->primary->debugfs_root, adev,
 				    &fops_ib_preempt);
 	if (!(adev->debugfs_preempt)) {
+=======
+
+
+	ent = debugfs_create_file("amdgpu_preempt_ib", 0600, root, adev,
+				  &fops_ib_preempt);
+	if (!ent) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		DRM_ERROR("unable to create amdgpu_preempt_ib debugsfs file\n");
 		return -EIO;
 	}
 
+<<<<<<< HEAD
 	adev->smu.debugfs_sclk =
 		debugfs_create_file("amdgpu_force_sclk", 0200,
 				    adev_to_drm(adev)->primary->debugfs_root, adev,
 				    &fops_sclk_set);
 	if (!(adev->smu.debugfs_sclk)) {
+=======
+	ent = debugfs_create_file("amdgpu_force_sclk", 0200, root, adev,
+				  &fops_sclk_set);
+	if (!ent) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		DRM_ERROR("unable to create amdgpu_set_sclk debugsfs file\n");
 		return -EIO;
 	}

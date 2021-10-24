@@ -896,6 +896,13 @@ static int eb_validate_vmas(struct i915_execbuffer *eb)
 
 		err = i915_gem_object_lock(vma->obj, &eb->ww);
 		if (err)
+<<<<<<< HEAD
+=======
+			return err;
+
+		err = eb_pin_vma(eb, entry, ev);
+		if (err == -EDEADLK)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return err;
 
 		if (eb_pin_vma(eb, entry, ev)) {
@@ -944,7 +951,7 @@ eb_get_vma(const struct i915_execbuffer *eb, unsigned long handle)
 	}
 }
 
-static void eb_release_vmas(struct i915_execbuffer *eb, bool final)
+static void eb_release_vmas(struct i915_execbuffer *eb, bool final, bool release_userptr)
 {
 	const unsigned int count = eb->buffer_count;
 	unsigned int i;
@@ -957,6 +964,11 @@ static void eb_release_vmas(struct i915_execbuffer *eb, bool final)
 			break;
 
 		eb_unreserve_vma(ev);
+
+		if (release_userptr && ev->flags & __EXEC_OBJECT_USERPTR_INIT) {
+			ev->flags &= ~__EXEC_OBJECT_USERPTR_INIT;
+			i915_gem_object_userptr_submit_fini(vma->obj);
+		}
 
 		if (final)
 			i915_vma_put(vma);
@@ -1294,6 +1306,10 @@ static int __reloc_gpu_alloc(struct i915_execbuffer *eb,
 		err = PTR_ERR(cmd);
 		goto err_pool;
 	}
+<<<<<<< HEAD
+=======
+	intel_gt_buffer_pool_mark_used(pool);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memset32(cmd, 0, pool->obj->base.size / sizeof(u32));
 
@@ -1346,7 +1362,11 @@ static int __reloc_gpu_alloc(struct i915_execbuffer *eb,
 
 	err = eb->engine->emit_bb_start(rq,
 					batch->node.start, PAGE_SIZE,
+<<<<<<< HEAD
 					cache->gen > 5 ? 0 : I915_DISPATCH_SECURE);
+=======
+					cache->graphics_ver > 5 ? 0 : I915_DISPATCH_SECURE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto skip_request;
 
@@ -1383,7 +1403,11 @@ err_pool:
 
 static bool reloc_can_use_engine(const struct intel_engine_cs *engine)
 {
+<<<<<<< HEAD
 	return engine->class != VIDEO_DECODE_CLASS || !IS_GEN(engine->i915, 6);
+=======
+	return engine->class != VIDEO_DECODE_CLASS || GRAPHICS_VER(engine->i915) != 6;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static u32 *reloc_gpu(struct i915_execbuffer *eb,
@@ -1400,6 +1424,13 @@ static u32 *reloc_gpu(struct i915_execbuffer *eb,
 		int err;
 		struct intel_engine_cs *engine = eb->engine;
 
+<<<<<<< HEAD
+=======
+		/* If we need to copy for the cmdparser, we will stall anyway */
+		if (eb_use_cmdparser(eb))
+			return ERR_PTR(-EWOULDBLOCK);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!reloc_can_use_engine(engine)) {
 			engine = engine->gt->engine_class[COPY_ENGINE_CLASS][0];
 			if (!engine)
@@ -1425,7 +1456,11 @@ static inline bool use_reloc_gpu(struct i915_vma *vma)
 	if (DBG_FORCE_RELOC)
 		return false;
 
+<<<<<<< HEAD
 	return !dma_resv_test_signaled_rcu(vma->resv, true);
+=======
+	return !dma_resv_test_signaled(vma->resv, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static unsigned long vma_phys_addr(struct i915_vma *vma, u32 offset)
@@ -1447,14 +1482,24 @@ static int __reloc_entry_gpu(struct i915_execbuffer *eb,
 			      u64 offset,
 			      u64 target_addr)
 {
+<<<<<<< HEAD
 	const unsigned int gen = eb->reloc_cache.gen;
+=======
+	const unsigned int ver = eb->reloc_cache.graphics_ver;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int len;
 	u32 *batch;
 	u64 addr;
 
+<<<<<<< HEAD
 	if (gen >= 8)
 		len = offset & 7 ? 8 : 5;
 	else if (gen >= 4)
+=======
+	if (ver >= 8)
+		len = offset & 7 ? 8 : 5;
+	else if (ver >= 4)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		len = 4;
 	else
 		len = 3;
@@ -1466,7 +1511,11 @@ static int __reloc_entry_gpu(struct i915_execbuffer *eb,
 		return false;
 
 	addr = gen8_canonical_addr(vma->node.start + offset);
+<<<<<<< HEAD
 	if (gen >= 8) {
+=======
+	if (ver >= 8) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (offset & 7) {
 			*batch++ = MI_STORE_DWORD_IMM_GEN4;
 			*batch++ = lower_32_bits(addr);
@@ -1486,7 +1535,11 @@ static int __reloc_entry_gpu(struct i915_execbuffer *eb,
 			*batch++ = lower_32_bits(target_addr);
 			*batch++ = upper_32_bits(target_addr);
 		}
+<<<<<<< HEAD
 	} else if (gen >= 6) {
+=======
+	} else if (ver >= 6) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		*batch++ = MI_STORE_DWORD_IMM_GEN4;
 		*batch++ = 0;
 		*batch++ = addr;
@@ -1496,12 +1549,20 @@ static int __reloc_entry_gpu(struct i915_execbuffer *eb,
 		*batch++ = 0;
 		*batch++ = vma_phys_addr(vma, offset);
 		*batch++ = target_addr;
+<<<<<<< HEAD
 	} else if (gen >= 4) {
+=======
+	} else if (ver >= 4) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		*batch++ = MI_STORE_DWORD_IMM_GEN4 | MI_USE_GGTT;
 		*batch++ = 0;
 		*batch++ = addr;
 		*batch++ = target_addr;
+<<<<<<< HEAD
 	} else if (gen >= 3 &&
+=======
+	} else if (ver >= 3 &&
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		   !(IS_I915G(eb->i915) || IS_I915GM(eb->i915))) {
 		*batch++ = MI_STORE_DWORD_IMM | MI_MEM_VIRTUAL;
 		*batch++ = addr;
@@ -1909,7 +1970,7 @@ repeat:
 	}
 
 	/* We may process another execbuffer during the unlock... */
-	eb_release_vmas(eb, false);
+	eb_release_vmas(eb, false, true);
 	i915_gem_ww_ctx_fini(&eb->ww);
 
 	if (rq) {
@@ -2013,7 +2074,7 @@ repeat_validate:
 
 err:
 	if (err == -EDEADLK) {
-		eb_release_vmas(eb, false);
+		eb_release_vmas(eb, false, false);
 		err = i915_gem_ww_ctx_backoff(&eb->ww);
 		if (!err)
 			goto repeat_validate;
@@ -2110,7 +2171,7 @@ retry:
 
 err:
 	if (err == -EDEADLK) {
-		eb_release_vmas(eb, false);
+		eb_release_vmas(eb, false, false);
 		err = i915_gem_ww_ctx_backoff(&eb->ww);
 		if (!err)
 			goto retry;
@@ -2184,6 +2245,33 @@ static int eb_move_to_gpu(struct i915_execbuffer *eb)
 			err = i915_vma_move_to_active(vma, eb->request, flags);
 	}
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_MMU_NOTIFIER
+	if (!err && (eb->args->flags & __EXEC_USERPTR_USED)) {
+		spin_lock(&eb->i915->mm.notifier_lock);
+
+		/*
+		 * count is always at least 1, otherwise __EXEC_USERPTR_USED
+		 * could not have been set
+		 */
+		for (i = 0; i < count; i++) {
+			struct eb_vma *ev = &eb->vma[i];
+			struct drm_i915_gem_object *obj = ev->vma->obj;
+
+			if (!i915_gem_object_is_userptr(obj))
+				continue;
+
+			err = i915_gem_object_userptr_submit_done(obj);
+			if (err)
+				break;
+		}
+
+		spin_unlock(&eb->i915->mm.notifier_lock);
+	}
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(err))
 		goto err_skip;
 
@@ -3263,7 +3351,7 @@ i915_gem_do_execbuffer(struct drm_device *dev,
 
 	err = eb_lookup_vmas(&eb);
 	if (err) {
-		eb_release_vmas(&eb, true);
+		eb_release_vmas(&eb, true, true);
 		goto err_engine;
 	}
 
@@ -3355,7 +3443,7 @@ err_request:
 	i915_request_put(eb.request);
 
 err_vma:
-	eb_release_vmas(&eb, true);
+	eb_release_vmas(&eb, true, true);
 	if (eb.trampoline)
 		i915_vma_unpin(eb.trampoline);
 	WARN_ON(err == -EDEADLK);

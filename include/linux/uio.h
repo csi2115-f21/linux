@@ -19,11 +19,20 @@ struct kvec {
 
 enum iter_type {
 	/* iter types */
+<<<<<<< HEAD
 	ITER_IOVEC = 4,
 	ITER_KVEC = 8,
 	ITER_BVEC = 16,
 	ITER_PIPE = 32,
 	ITER_DISCARD = 64,
+=======
+	ITER_IOVEC,
+	ITER_KVEC,
+	ITER_BVEC,
+	ITER_PIPE,
+	ITER_XARRAY,
+	ITER_DISCARD,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct iov_iter {
@@ -52,7 +61,11 @@ struct iov_iter {
 
 static inline enum iter_type iov_iter_type(const struct iov_iter *i)
 {
+<<<<<<< HEAD
 	return i->type & ~(READ | WRITE);
+=======
+	return i->iter_type;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline bool iter_is_iovec(const struct iov_iter *i)

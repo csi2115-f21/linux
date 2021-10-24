@@ -1171,7 +1171,11 @@ static int loop_configure(struct loop_device *lo, fmode_t mode,
 	 * put /dev/loopXX inode. Later in __loop_clr_fd() we bdput(bdev).
 	 */
 	bdgrab(bdev);
+<<<<<<< HEAD
 	mutex_unlock(&lo->lo_mutex);
+=======
+	loop_global_unlock(lo, is_loop);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (partscan)
 		loop_reread_partitions(lo, bdev);
 	if (!(mode & FMODE_EXCL))
@@ -1254,7 +1258,10 @@ static int __loop_clr_fd(struct loop_device *lo, bool release)
 
 	partscan = lo->lo_flags & LO_FLAGS_PARTSCAN && bdev;
 	lo_number = lo->lo_number;
+<<<<<<< HEAD
 	loop_unprepare_queue(lo);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_unlock:
 	mutex_unlock(&lo->lo_mutex);
 	if (partscan) {
@@ -2100,7 +2107,7 @@ static int loop_add(struct loop_device **l, int i)
 		err = idr_alloc(&loop_index_idr, lo, 0, 0, GFP_KERNEL);
 	}
 	if (err < 0)
-		goto out_free_dev;
+		goto out_unlock;
 	i = err;
 
 	err = -ENOMEM;
@@ -2170,8 +2177,13 @@ static int loop_add(struct loop_device **l, int i)
 	disk->queue		= lo->lo_queue;
 	sprintf(disk->disk_name, "loop%d", i);
 	add_disk(disk);
+<<<<<<< HEAD
 	*l = lo;
 	return lo->lo_number;
+=======
+	mutex_unlock(&loop_ctl_mutex);
+	return i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 out_free_queue:
 	blk_cleanup_queue(lo->lo_queue);
@@ -2179,6 +2191,11 @@ out_cleanup_tags:
 	blk_mq_free_tag_set(&lo->tag_set);
 out_free_idr:
 	idr_remove(&loop_index_idr, i);
+<<<<<<< HEAD
+=======
+out_unlock:
+	mutex_unlock(&loop_ctl_mutex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_free_dev:
 	kfree(lo);
 out:
@@ -2190,7 +2207,10 @@ static void loop_remove(struct loop_device *lo)
 	del_gendisk(lo->lo_disk);
 	blk_cleanup_queue(lo->lo_queue);
 	blk_mq_free_tag_set(&lo->tag_set);
+<<<<<<< HEAD
 	put_disk(lo->lo_disk);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_destroy(&lo->lo_mutex);
 	kfree(lo);
 }
@@ -2222,6 +2242,7 @@ static int loop_lookup(struct loop_device **l, int i)
 		}
 		goto out;
 	}
+<<<<<<< HEAD
 
 	/* lookup and return a specific i */
 	lo = idr_find(&loop_index_idr, i);
@@ -2244,6 +2265,34 @@ static void loop_probe(dev_t dev)
 	mutex_lock(&loop_ctl_mutex);
 	if (loop_lookup(&lo, idx) < 0)
 		loop_add(&lo, idx);
+=======
+		
+	ret = mutex_lock_killable(&loop_ctl_mutex);
+	if (ret)
+		return ret;
+
+	lo = idr_find(&loop_index_idr, idx);
+	if (!lo) {
+		ret = -ENODEV;
+		goto out_unlock_ctrl;
+	}
+
+	ret = mutex_lock_killable(&lo->lo_mutex);
+	if (ret)
+		goto out_unlock_ctrl;
+	if (lo->lo_state != Lo_unbound ||
+	    atomic_read(&lo->lo_refcnt) > 0) {
+		mutex_unlock(&lo->lo_mutex);
+		ret = -EBUSY;
+		goto out_unlock_ctrl;
+	}
+	lo->lo_state = Lo_deleting;
+	mutex_unlock(&lo->lo_mutex);
+
+	idr_remove(&loop_index_idr, lo->lo_number);
+	loop_remove(lo);
+out_unlock_ctrl:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&loop_ctl_mutex);
 }
 
@@ -2256,6 +2305,19 @@ static long loop_control_ioctl(struct file *file, unsigned int cmd,
 	ret = mutex_lock_killable(&loop_ctl_mutex);
 	if (ret)
 		return ret;
+<<<<<<< HEAD
+=======
+	idr_for_each_entry(&loop_index_idr, lo, id) {
+		if (lo->lo_state == Lo_unbound)
+			goto found;
+	}
+	mutex_unlock(&loop_ctl_mutex);
+	return loop_add(-1);
+found:
+	mutex_unlock(&loop_ctl_mutex);
+	return id;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = -ENOSYS;
 	switch (cmd) {
@@ -2403,7 +2465,14 @@ static void __exit loop_exit(void)
 
 	unregister_blkdev(LOOP_MAJOR, "loop");
 
+<<<<<<< HEAD
 	misc_deregister(&loop_misc);
+=======
+	mutex_lock(&loop_ctl_mutex);
+	idr_for_each_entry(&loop_index_idr, lo, id)
+		loop_remove(lo);
+	mutex_unlock(&loop_ctl_mutex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_unlock(&loop_ctl_mutex);
 }

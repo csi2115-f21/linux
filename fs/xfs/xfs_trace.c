@@ -30,6 +30,11 @@
 #include "xfs_fsmap.h"
 #include "xfs_btree_staging.h"
 #include "xfs_icache.h"
+<<<<<<< HEAD
+=======
+#include "xfs_ag.h"
+#include "xfs_ag_resv.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * We include this last to have the helpers above available for the trace

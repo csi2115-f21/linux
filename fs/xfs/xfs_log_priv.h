@@ -50,6 +50,29 @@ enum xlog_iclog_state {
 	XLOG_STATE_IOERROR,	/* IO error happened in sync'ing log */
 };
 
+<<<<<<< HEAD
+=======
+#define XLOG_STATE_STRINGS \
+	{ XLOG_STATE_ACTIVE,	"XLOG_STATE_ACTIVE" }, \
+	{ XLOG_STATE_WANT_SYNC,	"XLOG_STATE_WANT_SYNC" }, \
+	{ XLOG_STATE_SYNCING,	"XLOG_STATE_SYNCING" }, \
+	{ XLOG_STATE_DONE_SYNC,	"XLOG_STATE_DONE_SYNC" }, \
+	{ XLOG_STATE_CALLBACK,	"XLOG_STATE_CALLBACK" }, \
+	{ XLOG_STATE_DIRTY,	"XLOG_STATE_DIRTY" }, \
+	{ XLOG_STATE_IOERROR,	"XLOG_STATE_IOERROR" }
+
+/*
+ * In core log flags
+ */
+#define XLOG_ICL_NEED_FLUSH	(1 << 0)	/* iclog needs REQ_PREFLUSH */
+#define XLOG_ICL_NEED_FUA	(1 << 1)	/* iclog needs REQ_FUA */
+
+#define XLOG_ICL_STRINGS \
+	{ XLOG_ICL_NEED_FLUSH,	"XLOG_ICL_NEED_FLUSH" }, \
+	{ XLOG_ICL_NEED_FUA,	"XLOG_ICL_NEED_FUA" }
+
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Log ticket flags
  */
@@ -268,10 +291,17 @@ struct xfs_cil {
 	struct xfs_cil_ctx	*xc_ctx;
 
 	spinlock_t		xc_push_lock ____cacheline_aligned_in_smp;
+<<<<<<< HEAD
 	xfs_lsn_t		xc_push_seq;
 	struct list_head	xc_committing;
 	wait_queue_head_t	xc_commit_wait;
 	xfs_lsn_t		xc_current_sequence;
+=======
+	xfs_csn_t		xc_push_seq;
+	struct list_head	xc_committing;
+	wait_queue_head_t	xc_commit_wait;
+	xfs_csn_t		xc_current_sequence;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct work_struct	xc_push_work;
 	wait_queue_head_t	xc_push_wait;	/* background push throttle */
 } ____cacheline_aligned_in_smp;
@@ -436,6 +466,11 @@ struct xlog {
 #endif
 	/* log recovery lsn tracking (for buffer submission */
 	xfs_lsn_t		l_recovery_lsn;
+<<<<<<< HEAD
+=======
+
+	uint32_t		l_iclog_roundoff;/* padding roundoff */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define XLOG_BUF_CANCEL_BUCKET(log, blkno) \
@@ -478,13 +513,23 @@ void	xlog_print_tic_res(struct xfs_mount *mp, struct xlog_ticket *ticket);
 void	xlog_print_trans(struct xfs_trans *);
 int	xlog_write(struct xlog *log, struct xfs_log_vec *log_vector,
 		struct xlog_ticket *tic, xfs_lsn_t *start_lsn,
+<<<<<<< HEAD
 		struct xlog_in_core **commit_iclog, uint flags,
 		bool need_start_rec);
+=======
+		struct xlog_in_core **commit_iclog, uint optype);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int	xlog_commit_record(struct xlog *log, struct xlog_ticket *ticket,
 		struct xlog_in_core **iclog, xfs_lsn_t *lsn);
 void	xfs_log_ticket_ungrant(struct xlog *log, struct xlog_ticket *ticket);
 void	xfs_log_ticket_regrant(struct xlog *log, struct xlog_ticket *ticket);
 
+<<<<<<< HEAD
+=======
+int xlog_state_release_iclog(struct xlog *log, struct xlog_in_core *iclog,
+		xfs_lsn_t log_tail_lsn);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * When we crack an atomic LSN, we sample it first so that the value will not
  * change while we are cracking it into the component values. This means we
@@ -547,14 +592,23 @@ int	xlog_cil_init(struct xlog *log);
 void	xlog_cil_init_post_recovery(struct xlog *log);
 void	xlog_cil_destroy(struct xlog *log);
 bool	xlog_cil_empty(struct xlog *log);
+<<<<<<< HEAD
+=======
+void	xlog_cil_commit(struct xlog *log, struct xfs_trans *tp,
+			xfs_csn_t *commit_seq, bool regrant);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * CIL force routines
  */
+<<<<<<< HEAD
 xfs_lsn_t
 xlog_cil_force_lsn(
 	struct xlog *log,
 	xfs_lsn_t sequence);
+=======
+xfs_lsn_t xlog_cil_force_seq(struct xlog *log, xfs_csn_t sequence);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline void
 xlog_cil_force(struct xlog *log)

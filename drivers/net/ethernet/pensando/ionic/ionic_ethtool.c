@@ -32,8 +32,11 @@ static void ionic_get_stats(struct net_device *netdev,
 	struct ionic_lif *lif;
 	u32 i;
 
+<<<<<<< HEAD
 	lif = netdev_priv(netdev);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	memset(buf, 0, stats->n_stats * sizeof(*buf));
 	for (i = 0; i < ionic_num_stats_grps; i++)
 		ionic_stats_groups[i].get_values(lif, &buf);
@@ -268,8 +271,11 @@ static int ionic_set_link_ksettings(struct net_device *netdev,
 	struct ionic_dev *idev;
 	int err = 0;
 
+<<<<<<< HEAD
 	idev = &lif->ionic->idev;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* set autoneg */
 	if (ks->base.autoneg != idev->port_info->config.an_enable) {
 		mutex_lock(&ionic->dev_cmd_lock);

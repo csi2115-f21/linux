@@ -653,9 +653,14 @@ __assign_mmap_offset(struct drm_file *file,
 	}
 
 	if (mmap_type != I915_MMAP_TYPE_GTT &&
+<<<<<<< HEAD
 	    !i915_gem_object_type_has(obj,
 				      I915_GEM_OBJECT_HAS_STRUCT_PAGE |
 				      I915_GEM_OBJECT_HAS_IOMEM)) {
+=======
+	    !i915_gem_object_has_struct_page(obj) &&
+	    !i915_gem_object_type_has(obj, I915_GEM_OBJECT_HAS_IOMEM)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = -ENODEV;
 		goto out;
 	}

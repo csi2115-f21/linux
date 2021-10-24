@@ -757,7 +757,11 @@ static inline void cgroup_threadgroup_change_end(struct task_struct *tsk) {}
  * sock_cgroup_data overloads (prioidx, classid) and the cgroup pointer.
  * On boot, sock_cgroup_data records the cgroup that the sock was created
  * in so that cgroup2 matches can be made; however, once either net_prio or
+<<<<<<< HEAD
  * net_cls starts being used, the area is overriden to carry prioidx and/or
+=======
+ * net_cls starts being used, the area is overridden to carry prioidx and/or
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * classid.  The two modes are distinguished by whether the lowest bit is
  * set.  Clear bit indicates cgroup pointer while set bit prioidx and
  * classid.

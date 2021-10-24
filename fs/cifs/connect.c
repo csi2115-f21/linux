@@ -1557,6 +1557,14 @@ out:
 
 /**
  * cifs_free_ipc - helper to release the session IPC tcon
+<<<<<<< HEAD
+=======
+ *
+ * Needs to be called everytime a session is destroyed.
+ *
+ * On session close, the IPC is closed and the server must release all tcons of the session.
+ * No need to send a tree disconnect here.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * Needs to be called everytime a session is destroyed
  */

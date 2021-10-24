@@ -366,7 +366,11 @@ void sh_css_unload_firmware(void)
 			if (fw_minibuffer[i].name)
 				kfree((void *)fw_minibuffer[i].name);
 			if (fw_minibuffer[i].buffer)
+<<<<<<< HEAD
 				vfree((void *)fw_minibuffer[i].buffer);
+=======
+				kvfree(fw_minibuffer[i].buffer);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		kfree(fw_minibuffer);
 		fw_minibuffer = NULL;

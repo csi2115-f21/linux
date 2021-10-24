@@ -247,7 +247,19 @@ sys_get_prop_image_version(struct device *dev,
 		/* bad packet */
 		return;
 
+<<<<<<< HEAD
 	dev_dbg(dev, VDBGL "F/W version: %s\n", (u8 *)&pkt->data[1]);
+=======
+	img_ver = pkt->data;
+
+	dev_dbg(dev, VDBGL "F/W version: %s\n", img_ver);
+
+	smem_tbl_ptr = qcom_smem_get(QCOM_SMEM_HOST_ANY,
+		SMEM_IMG_VER_TBL, &smem_blk_sz);
+	if (smem_tbl_ptr && smem_blk_sz >= SMEM_IMG_OFFSET_VENUS + VER_STR_SZ)
+		memcpy(smem_tbl_ptr + SMEM_IMG_OFFSET_VENUS,
+		       img_ver, VER_STR_SZ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void hfi_sys_property_info(struct venus_core *core,

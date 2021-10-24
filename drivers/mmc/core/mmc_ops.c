@@ -473,6 +473,10 @@ static int mmc_busy_status(struct mmc_card *card, bool retry_crc_err,
 		err = R1_STATUS(status) ? -EIO : 0;
 		break;
 	case MMC_BUSY_HPI:
+<<<<<<< HEAD
+=======
+	case MMC_BUSY_EXTR_SINGLE:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		err = -EINVAL;
@@ -537,7 +541,23 @@ static int __mmc_poll_for_busy(struct mmc_card *card, unsigned int timeout_ms,
 }
 
 int mmc_poll_for_busy(struct mmc_card *card, unsigned int timeout_ms,
+<<<<<<< HEAD
 		      enum mmc_busy_cmd busy_cmd)
+=======
+		      bool retry_crc_err, enum mmc_busy_cmd busy_cmd)
+{
+	struct mmc_busy_data cb_data;
+
+	cb_data.card = card;
+	cb_data.retry_crc_err = retry_crc_err;
+	cb_data.busy_cmd = busy_cmd;
+
+	return __mmc_poll_for_busy(card, timeout_ms, &mmc_busy_cb, &cb_data);
+}
+
+bool mmc_prepare_busy_cmd(struct mmc_host *host, struct mmc_command *cmd,
+			  unsigned int timeout_ms)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return __mmc_poll_for_busy(card, timeout_ms, true, false, busy_cmd);
 }

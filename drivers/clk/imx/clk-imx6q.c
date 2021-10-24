@@ -982,6 +982,7 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 			       hws[IMX6QDL_CLK_PLL3_USB_OTG]->clk);
 	}
 
+<<<<<<< HEAD
 	for (i = 0; i < ARRAY_SIZE(uart_clk_ids); i++) {
 		int index = uart_clk_ids[i];
 
@@ -989,5 +990,8 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	}
 
 	imx_register_uart_clocks(uart_clks);
+=======
+	imx_register_uart_clocks(1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 CLK_OF_DECLARE(imx6q, "fsl,imx6q-ccm", imx6q_clocks_init);

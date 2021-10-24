@@ -702,7 +702,11 @@ static void flush_space(struct btrfs_fs_info *fs_info,
 	case FLUSH_DELALLOC:
 	case FLUSH_DELALLOC_WAIT:
 		shrink_delalloc(fs_info, space_info, num_bytes,
+<<<<<<< HEAD
 				state == FLUSH_DELALLOC_WAIT);
+=======
+				state == FLUSH_DELALLOC_WAIT, for_preempt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	case FLUSH_DELAYED_REFS_NR:
 	case FLUSH_DELAYED_REFS:
@@ -797,7 +801,12 @@ static bool need_preemptive_reclaim(struct btrfs_fs_info *fs_info,
 	u64 used;
 
 	/* If we're just plain full then async reclaim just slows us down. */
+<<<<<<< HEAD
 	if ((space_info->bytes_used + space_info->bytes_reserved) >= thresh)
+=======
+	if ((space_info->bytes_used + space_info->bytes_reserved +
+	     global_rsv_size) >= thresh)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 
 	/*
@@ -921,7 +930,10 @@ static bool maybe_fail_all_tickets(struct btrfs_fs_info *fs_info,
 {
 	struct reserve_ticket *ticket;
 	u64 tickets_id = space_info->tickets_id;
+<<<<<<< HEAD
 	u64 first_ticket_bytes = 0;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (btrfs_test_opt(fs_info, ENOSPC_DEBUG)) {
 		btrfs_info(fs_info, "cannot satisfy tickets, dumping space info");

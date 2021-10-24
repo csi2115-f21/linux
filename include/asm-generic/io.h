@@ -1034,6 +1034,7 @@ extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
 
 #ifndef __pci_ioport_unmap
 static inline void __pci_ioport_unmap(void __iomem *p) {}
+<<<<<<< HEAD
 #endif
 
 #ifndef pci_iounmap
@@ -1053,8 +1054,18 @@ static inline void pci_iounmap(struct pci_dev *dev, void __iomem *p)
 static inline void *xlate_dev_kmem_ptr(void *addr)
 {
 	return addr;
+=======
+#endif
+
+#ifndef pci_iounmap
+#define pci_iounmap pci_iounmap
+static inline void pci_iounmap(struct pci_dev *dev, void __iomem *p)
+{
+	__pci_ioport_unmap(p);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 #endif
+#endif /* CONFIG_GENERIC_IOMAP */
 
 #ifndef xlate_dev_mem_ptr
 #define xlate_dev_mem_ptr xlate_dev_mem_ptr

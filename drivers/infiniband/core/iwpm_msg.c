@@ -649,7 +649,11 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
 
 	nl_client = RDMA_NL_GET_CLIENT(cb->nlh->nlmsg_type);
 	if (!iwpm_valid_client(nl_client)) {
+<<<<<<< HEAD
 		pr_info("%s: Invalid port mapper client = %d\n",
+=======
+		pr_info("%s: Invalid port mapper client = %u\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				__func__, nl_client);
 		return ret;
 	}
@@ -736,7 +740,11 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
 	}
 	nl_client = RDMA_NL_GET_CLIENT(cb->nlh->nlmsg_type);
 	if (!iwpm_valid_client(nl_client)) {
+<<<<<<< HEAD
 		pr_info("%s: Invalid port mapper client = %d\n",
+=======
+		pr_info("%s: Invalid port mapper client = %u\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				__func__, nl_client);
 		return ret;
 	}
@@ -863,7 +871,11 @@ int iwpm_hello_cb(struct sk_buff *skb, struct netlink_callback *cb)
 	abi_version = nla_get_u16(nltb[IWPM_NLA_HELLO_ABI_VERSION]);
 	nl_client = RDMA_NL_GET_CLIENT(cb->nlh->nlmsg_type);
 	if (!iwpm_valid_client(nl_client)) {
+<<<<<<< HEAD
 		pr_info("%s: Invalid port mapper client = %d\n",
+=======
+		pr_info("%s: Invalid port mapper client = %u\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				__func__, nl_client);
 		return ret;
 	}

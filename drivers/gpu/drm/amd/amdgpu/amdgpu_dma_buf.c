@@ -42,6 +42,48 @@
 #include <linux/pci-p2pdma.h>
 #include <linux/pm_runtime.h>
 
+static int
+__dma_resv_make_exclusive(struct dma_resv *obj)
+{
+	struct dma_fence **fences;
+	unsigned int count;
+	int r;
+
+	if (!dma_resv_shared_list(obj)) /* no shared fences to convert */
+		return 0;
+
+	r = dma_resv_get_fences(obj, NULL, &count, &fences);
+	if (r)
+		return r;
+
+	if (count == 0) {
+		/* Now that was unexpected. */
+	} else if (count == 1) {
+		dma_resv_add_excl_fence(obj, fences[0]);
+		dma_fence_put(fences[0]);
+		kfree(fences);
+	} else {
+		struct dma_fence_array *array;
+
+		array = dma_fence_array_create(count, fences,
+					       dma_fence_context_alloc(1), 0,
+					       false);
+		if (!array)
+			goto err_fences_put;
+
+		dma_resv_add_excl_fence(obj, &array->base);
+		dma_fence_put(&array->base);
+	}
+
+	return 0;
+
+err_fences_put:
+	while (count--)
+		dma_fence_put(fences[count]);
+	kfree(fences);
+	return -ENOMEM;
+}
+
 /**
  * amdgpu_gem_prime_mmap - &drm_driver.gem_prime_mmap implementation
  * @obj: GEM BO

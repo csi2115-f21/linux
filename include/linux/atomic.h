@@ -77,12 +77,17 @@
 	__ret;								\
 })
 
+<<<<<<< HEAD
 #ifdef ARCH_ATOMIC
 #include <linux/atomic-arch-fallback.h>
 #include <asm-generic/atomic-instrumented.h>
 #else
 #include <linux/atomic-fallback.h>
 #endif
+=======
+#include <linux/atomic-arch-fallback.h>
+#include <asm-generic/atomic-instrumented.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <asm-generic/atomic-long.h>
 

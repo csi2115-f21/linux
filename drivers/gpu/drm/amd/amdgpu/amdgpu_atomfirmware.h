@@ -35,6 +35,11 @@ int amdgpu_atomfirmware_get_clock_info(struct amdgpu_device *adev);
 int amdgpu_atomfirmware_get_gfx_info(struct amdgpu_device *adev);
 bool amdgpu_atomfirmware_mem_ecc_supported(struct amdgpu_device *adev);
 bool amdgpu_atomfirmware_sram_ecc_supported(struct amdgpu_device *adev);
+<<<<<<< HEAD
+=======
+bool amdgpu_atomfirmware_mem_training_supported(struct amdgpu_device *adev);
+bool amdgpu_atomfirmware_dynamic_boot_config_supported(struct amdgpu_device *adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int amdgpu_atomfirmware_get_fw_reserved_fb_size(struct amdgpu_device *adev);
 int amdgpu_mem_train_support(struct amdgpu_device *adev);
 

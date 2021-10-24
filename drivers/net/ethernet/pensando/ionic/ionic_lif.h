@@ -263,6 +263,49 @@ void ionic_lif_unregister(struct ionic_lif *lif);
 int ionic_lif_identify(struct ionic *ionic, u8 lif_type,
 		       union ionic_lif_identity *lif_ident);
 int ionic_lif_size(struct ionic *ionic);
+<<<<<<< HEAD
+=======
+
+#if IS_ENABLED(CONFIG_PTP_1588_CLOCK)
+void ionic_lif_hwstamp_replay(struct ionic_lif *lif);
+int ionic_lif_hwstamp_set(struct ionic_lif *lif, struct ifreq *ifr);
+int ionic_lif_hwstamp_get(struct ionic_lif *lif, struct ifreq *ifr);
+ktime_t ionic_lif_phc_ktime(struct ionic_lif *lif, u64 counter);
+void ionic_lif_register_phc(struct ionic_lif *lif);
+void ionic_lif_unregister_phc(struct ionic_lif *lif);
+void ionic_lif_alloc_phc(struct ionic_lif *lif);
+void ionic_lif_free_phc(struct ionic_lif *lif);
+#else
+static inline void ionic_lif_hwstamp_replay(struct ionic_lif *lif) {}
+
+static inline int ionic_lif_hwstamp_set(struct ionic_lif *lif, struct ifreq *ifr)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline int ionic_lif_hwstamp_get(struct ionic_lif *lif, struct ifreq *ifr)
+{
+	return -EOPNOTSUPP;
+}
+
+static inline ktime_t ionic_lif_phc_ktime(struct ionic_lif *lif, u64 counter)
+{
+	return ns_to_ktime(0);
+}
+
+static inline void ionic_lif_register_phc(struct ionic_lif *lif) {}
+static inline void ionic_lif_unregister_phc(struct ionic_lif *lif) {}
+static inline void ionic_lif_alloc_phc(struct ionic_lif *lif) {}
+static inline void ionic_lif_free_phc(struct ionic_lif *lif) {}
+#endif
+
+int ionic_lif_create_hwstamp_txq(struct ionic_lif *lif);
+int ionic_lif_create_hwstamp_rxq(struct ionic_lif *lif);
+int ionic_lif_config_hwstamp_rxq_all(struct ionic_lif *lif, bool rx_all);
+int ionic_lif_set_hwstamp_txmode(struct ionic_lif *lif, u16 txstamp_mode);
+int ionic_lif_set_hwstamp_rxfilt(struct ionic_lif *lif, u64 pkt_class);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int ionic_lif_rss_config(struct ionic_lif *lif, u16 types,
 			 const u8 *key, const u32 *indir);
 int ionic_reconfigure_queues(struct ionic_lif *lif,

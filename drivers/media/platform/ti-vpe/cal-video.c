@@ -74,6 +74,7 @@ static const struct cal_format_info *find_format_by_code(struct cal_ctx *ctx,
 	return NULL;
 }
 
+<<<<<<< HEAD
 static int cal_querycap(struct file *file, void *priv,
 			struct v4l2_capability *cap)
 {
@@ -87,6 +88,8 @@ static int cal_querycap(struct file *file, void *priv,
 	return 0;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int cal_enum_fmt_vid_cap(struct file *file, void  *priv,
 				struct v4l2_fmtdesc *f)
 {
@@ -174,6 +177,7 @@ static void cal_calc_format_size(struct cal_ctx *ctx,
 		f->fmt.pix.bytesperline, f->fmt.pix.sizeimage);
 }
 
+<<<<<<< HEAD
 static int cal_g_fmt_vid_cap(struct file *file, void *priv,
 			     struct v4l2_format *f)
 {
@@ -184,6 +188,8 @@ static int cal_g_fmt_vid_cap(struct file *file, void *priv,
 	return 0;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int cal_try_fmt_vid_cap(struct file *file, void *priv,
 			       struct v4l2_format *f)
 {
@@ -383,6 +389,7 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
 	return 0;
 }
 
+<<<<<<< HEAD
 static const struct v4l2_file_operations cal_fops = {
 	.owner		= THIS_MODULE,
 	.open           = v4l2_fh_open,
@@ -393,6 +400,9 @@ static const struct v4l2_file_operations cal_fops = {
 };
 
 static const struct v4l2_ioctl_ops cal_ioctl_ops = {
+=======
+static const struct v4l2_ioctl_ops cal_ioctl_video_ops = {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.vidioc_querycap      = cal_querycap,
 	.vidioc_enum_fmt_vid_cap  = cal_enum_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap     = cal_g_fmt_vid_cap,
@@ -418,7 +428,159 @@ static const struct v4l2_ioctl_ops cal_ioctl_ops = {
 };
 
 /* ------------------------------------------------------------------
+<<<<<<< HEAD
  *	videobuf2 Operations
+=======
+ *	V4L2 Media Controller Centric IOCTLs
+ * ------------------------------------------------------------------
+ */
+
+static int cal_mc_enum_fmt_vid_cap(struct file *file, void  *priv,
+				   struct v4l2_fmtdesc *f)
+{
+	if (f->index >= cal_num_formats)
+		return -EINVAL;
+
+	f->pixelformat = cal_formats[f->index].fourcc;
+	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	return 0;
+}
+
+static void cal_mc_try_fmt(struct cal_ctx *ctx, struct v4l2_format *f,
+			   const struct cal_format_info **info)
+{
+	struct v4l2_pix_format *format = &f->fmt.pix;
+	const struct cal_format_info *fmtinfo;
+	unsigned int bpp;
+
+	/*
+	 * Default to the first format if the requested pixel format code isn't
+	 * supported.
+	 */
+	fmtinfo = cal_format_by_fourcc(f->fmt.pix.pixelformat);
+	if (!fmtinfo)
+		fmtinfo = &cal_formats[0];
+
+	/*
+	 * Clamp the size, update the pixel format. The field and colorspace are
+	 * accepted as-is, except for V4L2_FIELD_ANY that is turned into
+	 * V4L2_FIELD_NONE.
+	 */
+	bpp = ALIGN(fmtinfo->bpp, 8);
+
+	format->width = clamp_t(unsigned int, format->width,
+				CAL_MIN_WIDTH_BYTES * 8 / bpp,
+				CAL_MAX_WIDTH_BYTES * 8 / bpp);
+	format->height = clamp_t(unsigned int, format->height,
+				 CAL_MIN_HEIGHT_LINES, CAL_MAX_HEIGHT_LINES);
+	format->pixelformat = fmtinfo->fourcc;
+
+	if (format->field == V4L2_FIELD_ANY)
+		format->field = V4L2_FIELD_NONE;
+
+	/*
+	 * Calculate the number of bytes per line and the image size. The
+	 * hardware stores the stride as a number of 16 bytes words, in a
+	 * signed 15-bit value. Only 14 bits are thus usable.
+	 */
+	format->bytesperline = ALIGN(clamp(format->bytesperline,
+					   format->width * bpp / 8,
+					   ((1U << 14) - 1) * 16), 16);
+
+	format->sizeimage = format->height * format->bytesperline;
+
+	format->colorspace = ctx->v_fmt.fmt.pix.colorspace;
+
+	if (info)
+		*info = fmtinfo;
+
+	ctx_dbg(3, ctx, "%s: %s %ux%u (bytesperline %u sizeimage %u)\n",
+		__func__, fourcc_to_str(format->pixelformat),
+		format->width, format->height,
+		format->bytesperline, format->sizeimage);
+}
+
+static int cal_mc_try_fmt_vid_cap(struct file *file, void *priv,
+				  struct v4l2_format *f)
+{
+	struct cal_ctx *ctx = video_drvdata(file);
+
+	cal_mc_try_fmt(ctx, f, NULL);
+	return 0;
+}
+
+static int cal_mc_s_fmt_vid_cap(struct file *file, void *priv,
+				struct v4l2_format *f)
+{
+	struct cal_ctx *ctx = video_drvdata(file);
+	const struct cal_format_info *fmtinfo;
+
+	if (vb2_is_busy(&ctx->vb_vidq)) {
+		ctx_dbg(3, ctx, "%s device busy\n", __func__);
+		return -EBUSY;
+	}
+
+	cal_mc_try_fmt(ctx, f, &fmtinfo);
+
+	ctx->v_fmt = *f;
+	ctx->fmtinfo = fmtinfo;
+
+	return 0;
+}
+
+static int cal_mc_enum_framesizes(struct file *file, void *fh,
+				  struct v4l2_frmsizeenum *fsize)
+{
+	struct cal_ctx *ctx = video_drvdata(file);
+	const struct cal_format_info *fmtinfo;
+	unsigned int bpp;
+
+	if (fsize->index > 0)
+		return -EINVAL;
+
+	fmtinfo = cal_format_by_fourcc(fsize->pixel_format);
+	if (!fmtinfo) {
+		ctx_dbg(3, ctx, "Invalid pixel format 0x%08x\n",
+			fsize->pixel_format);
+		return -EINVAL;
+	}
+
+	bpp = ALIGN(fmtinfo->bpp, 8);
+
+	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+	fsize->stepwise.min_width = CAL_MIN_WIDTH_BYTES * 8 / bpp;
+	fsize->stepwise.max_width = CAL_MAX_WIDTH_BYTES * 8 / bpp;
+	fsize->stepwise.step_width = 64 / bpp;
+	fsize->stepwise.min_height = CAL_MIN_HEIGHT_LINES;
+	fsize->stepwise.max_height = CAL_MAX_HEIGHT_LINES;
+	fsize->stepwise.step_height = 1;
+
+	return 0;
+}
+
+static const struct v4l2_ioctl_ops cal_ioctl_mc_ops = {
+	.vidioc_querycap      = cal_querycap,
+	.vidioc_enum_fmt_vid_cap  = cal_mc_enum_fmt_vid_cap,
+	.vidioc_g_fmt_vid_cap     = cal_g_fmt_vid_cap,
+	.vidioc_try_fmt_vid_cap   = cal_mc_try_fmt_vid_cap,
+	.vidioc_s_fmt_vid_cap     = cal_mc_s_fmt_vid_cap,
+	.vidioc_enum_framesizes   = cal_mc_enum_framesizes,
+	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
+	.vidioc_create_bufs   = vb2_ioctl_create_bufs,
+	.vidioc_prepare_buf   = vb2_ioctl_prepare_buf,
+	.vidioc_querybuf      = vb2_ioctl_querybuf,
+	.vidioc_qbuf          = vb2_ioctl_qbuf,
+	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
+	.vidioc_expbuf        = vb2_ioctl_expbuf,
+	.vidioc_streamon      = vb2_ioctl_streamon,
+	.vidioc_streamoff     = vb2_ioctl_streamoff,
+	.vidioc_log_status    = v4l2_ctrl_log_status,
+};
+
+/* ------------------------------------------------------------------
+ *	videobuf2 Common Operations
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * ------------------------------------------------------------------
  */
 
@@ -504,6 +666,29 @@ static void cal_release_buffers(struct cal_ctx *ctx,
 	spin_unlock_irq(&ctx->dma.lock);
 }
 
+<<<<<<< HEAD
+=======
+/* ------------------------------------------------------------------
+ *	videobuf2 Operations
+ * ------------------------------------------------------------------
+ */
+
+static int cal_video_check_format(struct cal_ctx *ctx)
+{
+	const struct v4l2_mbus_framefmt *format;
+
+	format = &ctx->phy->formats[CAL_CAMERARX_PAD_SOURCE];
+
+	if (ctx->fmtinfo->code != format->code ||
+	    ctx->v_fmt.fmt.pix.height != format->height ||
+	    ctx->v_fmt.fmt.pix.width != format->width ||
+	    ctx->v_fmt.fmt.pix.field != format->field)
+		return -EPIPE;
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
 {
 	struct cal_ctx *ctx = vb2_get_drv_priv(vq);
@@ -511,6 +696,26 @@ static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
 	dma_addr_t addr;
 	int ret;
 
+<<<<<<< HEAD
+=======
+	ret = media_pipeline_start(&ctx->vdev.entity, &ctx->phy->pipe);
+	if (ret < 0) {
+		ctx_err(ctx, "Failed to start media pipeline: %d\n", ret);
+		goto error_release_buffers;
+	}
+
+	/*
+	 * Verify that the currently configured format matches the output of
+	 * the connected CAMERARX.
+	 */
+	ret = cal_video_check_format(ctx);
+	if (ret < 0) {
+		ctx_dbg(3, ctx,
+			"Format mismatch between CAMERARX and video node\n");
+		goto error_pipeline;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_irq(&ctx->dma.lock);
 	buf = list_first_entry(&ctx->dma.queue, struct cal_buffer, list);
 	ctx->dma.pending = buf;
@@ -598,8 +803,19 @@ static int cal_ctx_v4l2_init_formats(struct cal_ctx *ctx)
 		mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 		ret = v4l2_subdev_call(ctx->phy->sensor, pad, enum_mbus_code,
 				       NULL, &mbus_code);
+<<<<<<< HEAD
 		if (ret)
 			continue;
+=======
+		if (ret == -EINVAL)
+			break;
+
+		if (ret) {
+			ctx_err(ctx, "Error enumerating mbus codes in subdev %s: %d\n",
+				ctx->phy->sensor->name, ret);
+			return ret;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		ctx_dbg(2, ctx,
 			"subdev %s: code: %04x idx: %u\n",
@@ -640,7 +856,10 @@ static int cal_ctx_v4l2_init_formats(struct cal_ctx *ctx)
 	v4l2_fill_pix_format(&ctx->v_fmt.fmt.pix, &mbus_fmt);
 	ctx->v_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	ctx->v_fmt.fmt.pix.pixelformat = fmtinfo->fourcc;
+<<<<<<< HEAD
 	ctx->v_fmt.fmt.pix.field = mbus_fmt.field;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cal_calc_format_size(ctx, fmtinfo, &ctx->v_fmt);
 	ctx->fmtinfo = fmtinfo;
 
@@ -657,11 +876,23 @@ int cal_ctx_v4l2_register(struct cal_ctx *ctx)
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	ret = v4l2_ctrl_add_handler(hdl, ctx->phy->sensor->ctrl_handler, NULL,
 				    true);
 	if (ret < 0) {
 		ctx_err(ctx, "Failed to add sensor ctrl handler\n");
 		return ret;
+=======
+	if (!cal_mc_api) {
+		struct v4l2_ctrl_handler *hdl = &ctx->ctrl_handler;
+
+		ret = v4l2_ctrl_add_handler(hdl, ctx->phy->sensor->ctrl_handler,
+					    NULL, true);
+		if (ret < 0) {
+			ctx_err(ctx, "Failed to add sensor ctrl handler\n");
+			return ret;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = video_register_device(vfd, VFL_TYPE_VIDEO, cal_video_nr);
@@ -729,6 +960,11 @@ int cal_ctx_v4l2_init(struct cal_ctx *ctx)
 	vfd->v4l2_dev = &ctx->cal->v4l2_dev;
 	vfd->queue = q;
 	snprintf(vfd->name, sizeof(vfd->name), "CAL output %u", ctx->index);
+<<<<<<< HEAD
+=======
+	vfd->release = video_device_release_empty;
+	vfd->ioctl_ops = cal_mc_api ? &cal_ioctl_mc_ops : &cal_ioctl_video_ops;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	vfd->lock = &ctx->mutex;
 	video_set_drvdata(vfd, ctx);
 

@@ -84,6 +84,38 @@ int hl_gen_sob_mask(u16 sob_base, u8 sob_mask, u8 *mask)
 	return 0;
 }
 
+static void sob_reset_work(struct work_struct *work)
+{
+	struct hl_cs_compl *hl_cs_cmpl =
+		container_of(work, struct hl_cs_compl, sob_reset_work);
+	struct hl_device *hdev = hl_cs_cmpl->hdev;
+
+	/*
+	 * A signal CS can get completion while the corresponding wait
+	 * for signal CS is on its way to the PQ. The wait for signal CS
+	 * will get stuck if the signal CS incremented the SOB to its
+	 * max value and there are no pending (submitted) waits on this
+	 * SOB.
+	 * We do the following to void this situation:
+	 * 1. The wait for signal CS must get a ref for the signal CS as
+	 *    soon as possible in cs_ioctl_signal_wait() and put it
+	 *    before being submitted to the PQ but after it incremented
+	 *    the SOB refcnt in init_signal_wait_cs().
+	 * 2. Signal/Wait for signal CS will decrement the SOB refcnt
+	 *    here.
+	 * These two measures guarantee that the wait for signal CS will
+	 * reset the SOB upon completion rather than the signal CS and
+	 * hence the above scenario is avoided.
+	 */
+	kref_put(&hl_cs_cmpl->hw_sob->kref, hl_sob_reset);
+
+	if (hl_cs_cmpl->type == CS_TYPE_COLLECTIVE_WAIT)
+		hdev->asic_funcs->reset_sob_group(hdev,
+				hl_cs_cmpl->sob_group);
+
+	kfree(hl_cs_cmpl);
+}
+
 static void hl_fence_release(struct kref *kref)
 {
 	struct hl_fence *fence =
@@ -91,6 +123,7 @@ static void hl_fence_release(struct kref *kref)
 	struct hl_cs_compl *hl_cs_cmpl =
 		container_of(fence, struct hl_cs_compl, base_fence);
 	struct hl_device *hdev = hl_cs_cmpl->hdev;
+<<<<<<< HEAD
 
 	/* EBUSY means the CS was never submitted and hence we don't have
 	 * an attached hw_sob object that we should handle here
@@ -137,6 +170,35 @@ free:
 	kfree(hl_cs_cmpl);
 }
 
+=======
+
+	/* EBUSY means the CS was never submitted and hence we don't have
+	 * an attached hw_sob object that we should handle here
+	 */
+	if (fence->error == -EBUSY)
+		goto free;
+
+	if ((hl_cs_cmpl->type == CS_TYPE_SIGNAL) ||
+		(hl_cs_cmpl->type == CS_TYPE_WAIT) ||
+		(hl_cs_cmpl->type == CS_TYPE_COLLECTIVE_WAIT)) {
+
+		dev_dbg(hdev->dev,
+			"CS 0x%llx type %d finished, sob_id: %d, sob_val: 0x%x\n",
+			hl_cs_cmpl->cs_seq,
+			hl_cs_cmpl->type,
+			hl_cs_cmpl->hw_sob->sob_id,
+			hl_cs_cmpl->sob_val);
+
+		queue_work(hdev->sob_reset_wq, &hl_cs_cmpl->sob_reset_work);
+
+		return;
+	}
+
+free:
+	kfree(hl_cs_cmpl);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void hl_fence_put(struct hl_fence *fence)
 {
 	if (fence)
@@ -651,12 +713,27 @@ static int allocate_cs(struct hl_device *hdev, struct hl_ctx *ctx,
 	cs->submitted = false;
 	cs->completed = false;
 	cs->type = cs_type;
+<<<<<<< HEAD
+=======
+	cs->timestamp = !!(flags & HL_CS_FLAGS_TIMESTAMP);
+	cs->timeout_jiffies = timeout;
+	cs->skip_reset_on_timeout =
+		hdev->skip_reset_on_timeout ||
+		!!(flags & HL_CS_FLAGS_SKIP_RESET_ON_TIMEOUT);
+	cs->submission_time_jiffies = jiffies;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	INIT_LIST_HEAD(&cs->job_list);
 	INIT_DELAYED_WORK(&cs->work_tdr, cs_timedout);
 	kref_init(&cs->refcount);
 	spin_lock_init(&cs->job_lock);
 
 	cs_cmpl = kmalloc(sizeof(*cs_cmpl), GFP_ATOMIC);
+<<<<<<< HEAD
+=======
+	if (!cs_cmpl)
+		cs_cmpl = kmalloc(sizeof(*cs_cmpl), GFP_KERNEL);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!cs_cmpl) {
 		atomic64_inc(&ctx->cs_counters.out_of_mem_drop_cnt);
 		atomic64_inc(&cntr->out_of_mem_drop_cnt);
@@ -667,6 +744,7 @@ static int allocate_cs(struct hl_device *hdev, struct hl_ctx *ctx,
 	cs_cmpl->hdev = hdev;
 	cs_cmpl->type = cs->type;
 	spin_lock_init(&cs_cmpl->lock);
+	INIT_WORK(&cs_cmpl->sob_reset_work, sob_reset_work);
 	cs->fence = &cs_cmpl->base_fence;
 
 	spin_lock(&ctx->cs_lock);
@@ -764,6 +842,34 @@ void hl_cs_rollback_all(struct hl_device *hdev)
 		cs_rollback(hdev, cs);
 		cs_put(cs);
 	}
+<<<<<<< HEAD
+=======
+}
+
+void hl_pending_cb_list_flush(struct hl_ctx *ctx)
+{
+	struct hl_pending_cb *pending_cb, *tmp;
+
+	list_for_each_entry_safe(pending_cb, tmp,
+			&ctx->pending_cb_list, cb_node) {
+		list_del(&pending_cb->cb_node);
+		hl_cb_put(pending_cb->cb);
+		kfree(pending_cb);
+	}
+}
+
+static void
+wake_pending_user_interrupt_threads(struct hl_user_interrupt *interrupt)
+{
+	struct hl_user_pending_interrupt *pend;
+
+	spin_lock(&interrupt->wait_list_lock);
+	list_for_each_entry(pend, &interrupt->wait_list_head, wait_list_node) {
+		pend->fence.error = -EIO;
+		complete_all(&pend->fence.completion);
+	}
+	spin_unlock(&interrupt->wait_list_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void hl_pending_cb_list_flush(struct hl_ctx *ctx)
@@ -1038,7 +1144,12 @@ static int cs_staged_submission(struct hl_device *hdev, struct hl_cs *cs,
 }
 
 static int cs_ioctl_default(struct hl_fpriv *hpriv, void __user *chunks,
+<<<<<<< HEAD
 				u32 num_chunks, u64 *cs_seq, u32 flags)
+=======
+				u32 num_chunks, u64 *cs_seq, u32 flags,
+				u32 timeout)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool staged_mid, int_queues_only = true;
 	struct hl_device *hdev = hpriv->hdev;
@@ -1269,7 +1380,12 @@ static int hl_submit_pending_cb(struct hl_fpriv *hpriv)
 		list_move_tail(&pending_cb->cb_node, &local_cb_list);
 	spin_unlock(&ctx->pending_cb_lock);
 
+<<<<<<< HEAD
 	rc = allocate_cs(hdev, ctx, CS_TYPE_DEFAULT, ULLONG_MAX, &cs);
+=======
+	rc = allocate_cs(hdev, ctx, CS_TYPE_DEFAULT, ULLONG_MAX, &cs, 0,
+				hdev->timeout_jiffies);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (rc)
 		goto add_list_elements;
 
@@ -1370,7 +1486,11 @@ static int hl_cs_ctx_switch(struct hl_fpriv *hpriv, union hl_cs_args *args,
 			rc = 0;
 		} else {
 			rc = cs_ioctl_default(hpriv, chunks, num_chunks,
+<<<<<<< HEAD
 								cs_seq, 0);
+=======
+					cs_seq, 0, hdev->timeout_jiffies);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		mutex_unlock(&hpriv->restore_phase_mutex);
@@ -1424,6 +1544,7 @@ out:
 	return rc;
 }
 
+<<<<<<< HEAD
 static int cs_ioctl_extract_signal_seq(struct hl_device *hdev,
 		struct hl_cs_chunk *chunk, u64 *signal_seq, struct hl_ctx *ctx)
 {
@@ -1431,6 +1552,70 @@ static int cs_ioctl_extract_signal_seq(struct hl_device *hdev,
 	u32 size_to_copy, signal_seq_arr_len;
 	int rc = 0;
 
+=======
+/*
+ * hl_cs_signal_sob_wraparound_handler: handle SOB value wrapaound case.
+ * if the SOB value reaches the max value move to the other SOB reserved
+ * to the queue.
+ * Note that this function must be called while hw_queues_lock is taken.
+ */
+int hl_cs_signal_sob_wraparound_handler(struct hl_device *hdev, u32 q_idx,
+			struct hl_hw_sob **hw_sob, u32 count)
+{
+	struct hl_sync_stream_properties *prop;
+	struct hl_hw_sob *sob = *hw_sob, *other_sob;
+	u8 other_sob_offset;
+
+	prop = &hdev->kernel_queues[q_idx].sync_stream_prop;
+
+	kref_get(&sob->kref);
+
+	/* check for wraparound */
+	if (prop->next_sob_val + count >= HL_MAX_SOB_VAL) {
+		/*
+		 * Decrement as we reached the max value.
+		 * The release function won't be called here as we've
+		 * just incremented the refcount right before calling this
+		 * function.
+		 */
+		kref_put(&sob->kref, hl_sob_reset_error);
+
+		/*
+		 * check the other sob value, if it still in use then fail
+		 * otherwise make the switch
+		 */
+		other_sob_offset = (prop->curr_sob_offset + 1) % HL_RSVD_SOBS;
+		other_sob = &prop->hw_sob[other_sob_offset];
+
+		if (kref_read(&other_sob->kref) != 1) {
+			dev_err(hdev->dev, "error: Cannot switch SOBs q_idx: %d\n",
+								q_idx);
+			return -EINVAL;
+		}
+
+		prop->next_sob_val = 1;
+
+		/* only two SOBs are currently in use */
+		prop->curr_sob_offset = other_sob_offset;
+		*hw_sob = other_sob;
+
+		dev_dbg(hdev->dev, "switched to SOB %d, q_idx: %d\n",
+				prop->curr_sob_offset, q_idx);
+	} else {
+		prop->next_sob_val += count;
+	}
+
+	return 0;
+}
+
+static int cs_ioctl_extract_signal_seq(struct hl_device *hdev,
+		struct hl_cs_chunk *chunk, u64 *signal_seq, struct hl_ctx *ctx)
+{
+	u64 *signal_seq_arr = NULL;
+	u32 size_to_copy, signal_seq_arr_len;
+	int rc = 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	signal_seq_arr_len = chunk->num_signal_seq_arr;
 
 	/* currently only one signal seq is supported */
@@ -1536,7 +1721,11 @@ static int cs_ioctl_signal_wait_create_jobs(struct hl_device *hdev,
 
 static int cs_ioctl_signal_wait(struct hl_fpriv *hpriv, enum hl_cs_type cs_type,
 				void __user *chunks, u32 num_chunks,
+<<<<<<< HEAD
 				u64 *cs_seq, bool timestamp)
+=======
+				u64 *cs_seq, u32 flags, u32 timeout)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct hl_cs_chunk *cs_chunk_array, *chunk;
 	struct hw_queue_properties *hw_queue_prop;
@@ -1709,7 +1898,11 @@ int hl_cs_ioctl(struct hl_fpriv *hpriv, void *data)
 	enum hl_cs_type cs_type;
 	u64 cs_seq = ULONG_MAX;
 	void __user *chunks;
+<<<<<<< HEAD
 	u32 num_chunks, flags;
+=======
+	u32 num_chunks, flags, timeout;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int rc;
 
 	rc = hl_cs_sanity_checks(hpriv, args);
@@ -1740,11 +1933,19 @@ int hl_cs_ioctl(struct hl_fpriv *hpriv, void *data)
 	case CS_TYPE_WAIT:
 	case CS_TYPE_COLLECTIVE_WAIT:
 		rc = cs_ioctl_signal_wait(hpriv, cs_type, chunks, num_chunks,
+<<<<<<< HEAD
 			&cs_seq, args->in.cs_flags & HL_CS_FLAGS_TIMESTAMP);
 		break;
 	default:
 		rc = cs_ioctl_default(hpriv, chunks, num_chunks, &cs_seq,
 							args->in.cs_flags);
+=======
+					&cs_seq, args->in.cs_flags, timeout);
+		break;
+	default:
+		rc = cs_ioctl_default(hpriv, chunks, num_chunks, &cs_seq,
+						args->in.cs_flags, timeout);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	}
 
@@ -1799,12 +2000,21 @@ static int _hl_cs_wait_ioctl(struct hl_device *hdev, struct hl_ctx *ctx,
 		} else {
 			*status = CS_WAIT_STATUS_BUSY;
 		}
+<<<<<<< HEAD
 
 		if (fence->error == -ETIMEDOUT)
 			rc = -ETIMEDOUT;
 		else if (fence->error == -EIO)
 			rc = -EIO;
 
+=======
+
+		if (fence->error == -ETIMEDOUT)
+			rc = -ETIMEDOUT;
+		else if (fence->error == -EIO)
+			rc = -EIO;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		hl_fence_put(fence);
 	} else {
 		dev_dbg(hdev->dev,
@@ -1873,3 +2083,179 @@ int hl_cs_wait_ioctl(struct hl_fpriv *hpriv, void *data)
 
 	return 0;
 }
+<<<<<<< HEAD
+=======
+
+static int _hl_interrupt_wait_ioctl(struct hl_device *hdev, struct hl_ctx *ctx,
+				u32 timeout_us, u64 user_address,
+				u32 target_value, u16 interrupt_offset,
+				enum hl_cs_wait_status *status)
+{
+	struct hl_user_pending_interrupt *pend;
+	struct hl_user_interrupt *interrupt;
+	unsigned long timeout;
+	long completion_rc;
+	u32 completion_value;
+	int rc = 0;
+
+	if (timeout_us == U32_MAX)
+		timeout = timeout_us;
+	else
+		timeout = usecs_to_jiffies(timeout_us);
+
+	hl_ctx_get(hdev, ctx);
+
+	pend = kmalloc(sizeof(*pend), GFP_KERNEL);
+	if (!pend) {
+		hl_ctx_put(ctx);
+		return -ENOMEM;
+	}
+
+	hl_fence_init(&pend->fence, ULONG_MAX);
+
+	if (interrupt_offset == HL_COMMON_USER_INTERRUPT_ID)
+		interrupt = &hdev->common_user_interrupt;
+	else
+		interrupt = &hdev->user_interrupt[interrupt_offset];
+
+	spin_lock(&interrupt->wait_list_lock);
+	if (!hl_device_operational(hdev, NULL)) {
+		rc = -EPERM;
+		goto unlock_and_free_fence;
+	}
+
+	if (copy_from_user(&completion_value, u64_to_user_ptr(user_address), 4)) {
+		dev_err(hdev->dev,
+			"Failed to copy completion value from user\n");
+		rc = -EFAULT;
+		goto unlock_and_free_fence;
+	}
+
+	if (completion_value >= target_value)
+		*status = CS_WAIT_STATUS_COMPLETED;
+	else
+		*status = CS_WAIT_STATUS_BUSY;
+
+	if (!timeout_us || (*status == CS_WAIT_STATUS_COMPLETED))
+		goto unlock_and_free_fence;
+
+	/* Add pending user interrupt to relevant list for the interrupt
+	 * handler to monitor
+	 */
+	list_add_tail(&pend->wait_list_node, &interrupt->wait_list_head);
+	spin_unlock(&interrupt->wait_list_lock);
+
+wait_again:
+	/* Wait for interrupt handler to signal completion */
+	completion_rc =
+		wait_for_completion_interruptible_timeout(
+				&pend->fence.completion, timeout);
+
+	/* If timeout did not expire we need to perform the comparison.
+	 * If comparison fails, keep waiting until timeout expires
+	 */
+	if (completion_rc > 0) {
+		if (copy_from_user(&completion_value,
+				u64_to_user_ptr(user_address), 4)) {
+			dev_err(hdev->dev,
+				"Failed to copy completion value from user\n");
+			rc = -EFAULT;
+			goto remove_pending_user_interrupt;
+		}
+
+		if (completion_value >= target_value) {
+			*status = CS_WAIT_STATUS_COMPLETED;
+		} else {
+			timeout = completion_rc;
+			goto wait_again;
+		}
+	} else {
+		*status = CS_WAIT_STATUS_BUSY;
+	}
+
+remove_pending_user_interrupt:
+	spin_lock(&interrupt->wait_list_lock);
+	list_del(&pend->wait_list_node);
+
+unlock_and_free_fence:
+	spin_unlock(&interrupt->wait_list_lock);
+	kfree(pend);
+	hl_ctx_put(ctx);
+
+	return rc;
+}
+
+static int hl_interrupt_wait_ioctl(struct hl_fpriv *hpriv, void *data)
+{
+	u16 interrupt_id, interrupt_offset, first_interrupt, last_interrupt;
+	struct hl_device *hdev = hpriv->hdev;
+	struct asic_fixed_properties *prop;
+	union hl_wait_cs_args *args = data;
+	enum hl_cs_wait_status status;
+	int rc;
+
+	prop = &hdev->asic_prop;
+
+	if (!prop->user_interrupt_count) {
+		dev_err(hdev->dev, "no user interrupts allowed");
+		return -EPERM;
+	}
+
+	interrupt_id =
+		FIELD_GET(HL_WAIT_CS_FLAGS_INTERRUPT_MASK, args->in.flags);
+
+	first_interrupt = prop->first_available_user_msix_interrupt;
+	last_interrupt = prop->first_available_user_msix_interrupt +
+						prop->user_interrupt_count - 1;
+
+	if ((interrupt_id < first_interrupt || interrupt_id > last_interrupt) &&
+			interrupt_id != HL_COMMON_USER_INTERRUPT_ID) {
+		dev_err(hdev->dev, "invalid user interrupt %u", interrupt_id);
+		return -EINVAL;
+	}
+
+	if (interrupt_id == HL_COMMON_USER_INTERRUPT_ID)
+		interrupt_offset = HL_COMMON_USER_INTERRUPT_ID;
+	else
+		interrupt_offset = interrupt_id - first_interrupt;
+
+	rc = _hl_interrupt_wait_ioctl(hdev, hpriv->ctx,
+				args->in.interrupt_timeout_us, args->in.addr,
+				args->in.target, interrupt_offset, &status);
+
+	memset(args, 0, sizeof(*args));
+
+	if (rc) {
+		dev_err_ratelimited(hdev->dev,
+			"interrupt_wait_ioctl failed (%d)\n", rc);
+
+		return rc;
+	}
+
+	switch (status) {
+	case CS_WAIT_STATUS_COMPLETED:
+		args->out.status = HL_WAIT_CS_STATUS_COMPLETED;
+		break;
+	case CS_WAIT_STATUS_BUSY:
+	default:
+		args->out.status = HL_WAIT_CS_STATUS_BUSY;
+		break;
+	}
+
+	return 0;
+}
+
+int hl_wait_ioctl(struct hl_fpriv *hpriv, void *data)
+{
+	union hl_wait_cs_args *args = data;
+	u32 flags = args->in.flags;
+	int rc;
+
+	if (flags & HL_WAIT_CS_FLAGS_INTERRUPT)
+		rc = hl_interrupt_wait_ioctl(hpriv, data);
+	else
+		rc = hl_cs_wait_ioctl(hpriv, data);
+
+	return rc;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

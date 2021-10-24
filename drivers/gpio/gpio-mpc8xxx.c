@@ -376,8 +376,13 @@ static int mpc8xxx_probe(struct platform_device *pdev)
 
 	ret = gpiochip_add_data(gc, mpc8xxx_gc);
 	if (ret) {
+<<<<<<< HEAD
 		pr_err("%pOF: GPIO chip registration failed with status %d\n",
 		       np, ret);
+=======
+		dev_err(&pdev->dev,
+			"GPIO chip registration failed with status %d\n", ret);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto err;
 	}
 

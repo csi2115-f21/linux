@@ -142,7 +142,11 @@ int rxe_mem_init_user(struct rxe_pd *pd, u64 start,
 		goto err1;
 	}
 
+<<<<<<< HEAD
 	mem->umem = umem;
+=======
+	mr->umem = umem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	num_buf = ib_umem_num_pages(umem);
 
 	rxe_mem_init(access, mem);
@@ -304,11 +308,19 @@ out:
 }
 
 /* copy data from a range (vaddr, vaddr+length-1) to or from
+<<<<<<< HEAD
  * a mem object starting at iova. Compute incremental value of
  * crc32 if crcp is not zero. caller must hold a reference to mem
  */
 int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
 		 enum copy_direction dir, u32 *crcp)
+=======
+ * a mr object starting at iova. Compute incremental value of
+ * crc32 if crcp is not zero. caller must hold a reference to mr
+ */
+int rxe_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
+		enum rxe_mr_copy_dir dir, u32 *crcp)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int			err;
 	int			bytes;
@@ -335,8 +347,13 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
 		memcpy(dest, src, length);
 
 		if (crcp)
+<<<<<<< HEAD
 			*crcp = rxe_crc32(to_rdev(mem->ibmr.device),
 					*crcp, dest, length);
+=======
+			*crcp = rxe_crc32(to_rdev(mr->ibmr.device), *crcp, dest,
+					  length);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		return 0;
 	}
@@ -369,8 +386,13 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
 		memcpy(dest, src, bytes);
 
 		if (crcp)
+<<<<<<< HEAD
 			crc = rxe_crc32(to_rdev(mem->ibmr.device),
 					crc, dest, bytes);
+=======
+			crc = rxe_crc32(to_rdev(mr->ibmr.device), crc, dest,
+					bytes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		length	-= bytes;
 		addr	+= bytes;
@@ -404,7 +426,11 @@ int copy_data(
 	struct rxe_dma_info	*dma,
 	void			*addr,
 	int			length,
+<<<<<<< HEAD
 	enum copy_direction	dir,
+=======
+	enum rxe_mr_copy_dir	dir,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32			*crcp)
 {
 	int			bytes;
@@ -466,7 +492,11 @@ int copy_data(
 		if (bytes > 0) {
 			iova = sge->addr + offset;
 
+<<<<<<< HEAD
 			err = rxe_mem_copy(mem, iova, addr, bytes, dir, crcp);
+=======
+			err = rxe_mr_copy(mr, iova, addr, bytes, dir, crcp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (err)
 				goto err2;
 

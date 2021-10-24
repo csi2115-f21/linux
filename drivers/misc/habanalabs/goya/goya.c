@@ -464,6 +464,10 @@ int goya_get_fixed_properties(struct hl_device *hdev)
 	prop->fw_security_disabled = true;
 	prop->fw_security_status_valid = false;
 	prop->hard_reset_done_by_fw = false;
+<<<<<<< HEAD
+=======
+	prop->gic_interrupts_enable = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -897,6 +901,12 @@ static int goya_sw_init(struct hl_device *hdev)
 	spin_lock_init(&goya->hw_queues_lock);
 	hdev->supports_coresight = true;
 	hdev->supports_soft_reset = true;
+<<<<<<< HEAD
+=======
+	hdev->allow_external_soft_reset = true;
+
+	goya_set_pci_memory_regions(hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 
@@ -2421,7 +2431,28 @@ static int goya_read_device_fw_version(struct hl_device *hdev,
 		return -EIO;
 	}
 
+<<<<<<< HEAD
 	return 0;
+=======
+static void goya_init_firmware_loader(struct hl_device *hdev)
+{
+	struct asic_fixed_properties *prop = &hdev->asic_prop;
+	struct fw_load_mgr *fw_loader = &hdev->fw_loader;
+
+	/* fill common fields */
+	fw_loader->boot_fit_img.image_name = GOYA_BOOT_FIT_FILE;
+	fw_loader->linux_img.image_name = GOYA_LINUX_FW_FILE;
+	fw_loader->cpu_timeout = GOYA_CPU_TIMEOUT_USEC;
+	fw_loader->boot_fit_timeout = GOYA_BOOT_FIT_REQ_TIMEOUT_USEC;
+	fw_loader->skip_bmc = false;
+	fw_loader->sram_bar_id = SRAM_CFG_BAR_ID;
+	fw_loader->dram_bar_id = DDR_BAR_ID;
+
+	if (prop->dynamic_fw_load)
+		goya_init_dynamic_firmware_loader(hdev);
+	else
+		goya_init_static_firmware_loader(hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int goya_init_cpu(struct hl_device *hdev)
@@ -5407,6 +5438,23 @@ static void goya_enable_events_from_fw(struct hl_device *hdev)
 			GOYA_ASYNC_EVENT_ID_INTS_REGISTER);
 }
 
+<<<<<<< HEAD
+=======
+static int goya_map_pll_idx_to_fw_idx(u32 pll_idx)
+{
+	switch (pll_idx) {
+	case HL_GOYA_CPU_PLL: return CPU_PLL;
+	case HL_GOYA_PCI_PLL: return PCI_PLL;
+	case HL_GOYA_MME_PLL: return MME_PLL;
+	case HL_GOYA_TPC_PLL: return TPC_PLL;
+	case HL_GOYA_IC_PLL: return IC_PLL;
+	case HL_GOYA_MC_PLL: return MC_PLL;
+	case HL_GOYA_EMMC_PLL: return EMMC_PLL;
+	default: return -EINVAL;
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct hl_asic_funcs goya_funcs = {
 	.early_init = goya_early_init,
 	.early_fini = goya_early_fini,
@@ -5489,7 +5537,14 @@ static const struct hl_asic_funcs goya_funcs = {
 	.ack_protection_bits_errors = goya_ack_protection_bits_errors,
 	.get_hw_block_id = goya_get_hw_block_id,
 	.hw_block_mmap = goya_block_mmap,
+<<<<<<< HEAD
 	.enable_events_from_fw = goya_enable_events_from_fw
+=======
+	.enable_events_from_fw = goya_enable_events_from_fw,
+	.map_pll_idx_to_fw_idx = goya_map_pll_idx_to_fw_idx,
+	.init_firmware_loader = goya_init_firmware_loader,
+	.init_cpu_scrambler_dram = goya_cpu_init_scrambler_dram
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /*

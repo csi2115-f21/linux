@@ -1904,6 +1904,7 @@ int efa_destroy_ah(struct ib_ah *ibah, u32 flags)
 	return 0;
 }
 
+<<<<<<< HEAD
 struct rdma_hw_stats *efa_alloc_hw_stats(struct ib_device *ibdev, u8 port_num)
 {
 	return rdma_alloc_hw_stats_struct(efa_stats_names,
@@ -1913,6 +1914,26 @@ struct rdma_hw_stats *efa_alloc_hw_stats(struct ib_device *ibdev, u8 port_num)
 
 int efa_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
 		     u8 port_num, int index)
+=======
+struct rdma_hw_stats *efa_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num)
+{
+	return rdma_alloc_hw_stats_struct(efa_stats_names,
+					  ARRAY_SIZE(efa_stats_names),
+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
+}
+
+struct rdma_hw_stats *efa_alloc_hw_device_stats(struct ib_device *ibdev)
+{
+	/*
+	 * It is probably a bug that efa reports its port stats as device
+	 * stats
+	 */
+	return efa_alloc_hw_port_stats(ibdev, 0);
+}
+
+int efa_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
+		     u32 port_num, int index)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct efa_com_get_stats_params params = {};
 	union efa_com_get_stats_result result;

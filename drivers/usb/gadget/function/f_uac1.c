@@ -19,6 +19,15 @@
 #include "u_audio.h"
 #include "u_uac1.h"
 
+<<<<<<< HEAD
+=======
+/* UAC1 spec: 3.7.2.3 Audio Channel Cluster Format */
+#define UAC1_CHANNEL_MASK 0x0FFF
+
+#define EPIN_EN(_opts) ((_opts)->p_chmask != 0)
+#define EPOUT_EN(_opts) ((_opts)->c_chmask != 0)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct f_uac1 {
 	struct g_audio g_audio;
 	u8 ac_intf, as_in_intf, as_out_intf;
@@ -123,7 +132,11 @@ static struct uac1_output_terminal_descriptor usb_in_ot_desc = {
 	.bTerminalID =		USB_IN_OT_ID,
 	.wTerminalType =	cpu_to_le16(UAC_TERMINAL_STREAMING),
 	.bAssocTerminal =	0,
+<<<<<<< HEAD
 	.bSourceID =		IO_IN_IT_ID,
+=======
+	/* .bSourceID =		DYNAMIC */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* B.4.1  Standard AS Interface Descriptor */
@@ -503,6 +516,141 @@ static void f_audio_disable(struct usb_function *f)
 }
 
 /*-------------------------------------------------------------------------*/
+<<<<<<< HEAD
+=======
+
+static struct
+uac1_ac_header_descriptor *build_ac_header_desc(struct f_uac1_opts *opts)
+{
+	struct uac1_ac_header_descriptor *ac_desc;
+	int ac_header_desc_size;
+	int num_ifaces = 0;
+
+	if (EPOUT_EN(opts))
+		num_ifaces++;
+	if (EPIN_EN(opts))
+		num_ifaces++;
+
+	ac_header_desc_size = UAC_DT_AC_HEADER_SIZE(num_ifaces);
+
+	ac_desc = kzalloc(ac_header_desc_size, GFP_KERNEL);
+	if (!ac_desc)
+		return NULL;
+
+	ac_desc->bLength = ac_header_desc_size;
+	ac_desc->bDescriptorType = USB_DT_CS_INTERFACE;
+	ac_desc->bDescriptorSubtype = UAC_HEADER;
+	ac_desc->bcdADC = cpu_to_le16(0x0100);
+	ac_desc->bInCollection = num_ifaces;
+
+	/* wTotalLength and baInterfaceNr will be defined later */
+
+	return ac_desc;
+}
+
+/* Use macro to overcome line length limitation */
+#define USBDHDR(p) (struct usb_descriptor_header *)(p)
+
+static void setup_descriptor(struct f_uac1_opts *opts)
+{
+	/* patch descriptors */
+	int i = 1; /* ID's start with 1 */
+
+	if (EPOUT_EN(opts))
+		usb_out_it_desc.bTerminalID = i++;
+	if (EPIN_EN(opts))
+		io_in_it_desc.bTerminalID = i++;
+	if (EPOUT_EN(opts))
+		io_out_ot_desc.bTerminalID = i++;
+	if (EPIN_EN(opts))
+		usb_in_ot_desc.bTerminalID = i++;
+
+	usb_in_ot_desc.bSourceID = io_in_it_desc.bTerminalID;
+	io_out_ot_desc.bSourceID = usb_out_it_desc.bTerminalID;
+
+	as_out_header_desc.bTerminalLink = usb_out_it_desc.bTerminalID;
+	as_in_header_desc.bTerminalLink = usb_in_ot_desc.bTerminalID;
+
+	ac_header_desc->wTotalLength = cpu_to_le16(ac_header_desc->bLength);
+
+	if (EPIN_EN(opts)) {
+		u16 len = le16_to_cpu(ac_header_desc->wTotalLength);
+
+		len += sizeof(usb_in_ot_desc);
+		len += sizeof(io_in_it_desc);
+		ac_header_desc->wTotalLength = cpu_to_le16(len);
+	}
+	if (EPOUT_EN(opts)) {
+		u16 len = le16_to_cpu(ac_header_desc->wTotalLength);
+
+		len += sizeof(usb_out_it_desc);
+		len += sizeof(io_out_ot_desc);
+		ac_header_desc->wTotalLength = cpu_to_le16(len);
+	}
+
+	i = 0;
+	f_audio_desc[i++] = USBDHDR(&ac_interface_desc);
+	f_audio_desc[i++] = USBDHDR(ac_header_desc);
+
+	if (EPOUT_EN(opts)) {
+		f_audio_desc[i++] = USBDHDR(&usb_out_it_desc);
+		f_audio_desc[i++] = USBDHDR(&io_out_ot_desc);
+	}
+
+	if (EPIN_EN(opts)) {
+		f_audio_desc[i++] = USBDHDR(&io_in_it_desc);
+		f_audio_desc[i++] = USBDHDR(&usb_in_ot_desc);
+	}
+
+	if (EPOUT_EN(opts)) {
+		f_audio_desc[i++] = USBDHDR(&as_out_interface_alt_0_desc);
+		f_audio_desc[i++] = USBDHDR(&as_out_interface_alt_1_desc);
+		f_audio_desc[i++] = USBDHDR(&as_out_header_desc);
+		f_audio_desc[i++] = USBDHDR(&as_out_type_i_desc);
+		f_audio_desc[i++] = USBDHDR(&as_out_ep_desc);
+		f_audio_desc[i++] = USBDHDR(&as_iso_out_desc);
+	}
+	if (EPIN_EN(opts)) {
+		f_audio_desc[i++] = USBDHDR(&as_in_interface_alt_0_desc);
+		f_audio_desc[i++] = USBDHDR(&as_in_interface_alt_1_desc);
+		f_audio_desc[i++] = USBDHDR(&as_in_header_desc);
+		f_audio_desc[i++] = USBDHDR(&as_in_type_i_desc);
+		f_audio_desc[i++] = USBDHDR(&as_in_ep_desc);
+		f_audio_desc[i++] = USBDHDR(&as_iso_in_desc);
+	}
+	f_audio_desc[i] = NULL;
+}
+
+static int f_audio_validate_opts(struct g_audio *audio, struct device *dev)
+{
+	struct f_uac1_opts *opts = g_audio_to_uac1_opts(audio);
+
+	if (!opts->p_chmask && !opts->c_chmask) {
+		dev_err(dev, "Error: no playback and capture channels\n");
+		return -EINVAL;
+	} else if (opts->p_chmask & ~UAC1_CHANNEL_MASK) {
+		dev_err(dev, "Error: unsupported playback channels mask\n");
+		return -EINVAL;
+	} else if (opts->c_chmask & ~UAC1_CHANNEL_MASK) {
+		dev_err(dev, "Error: unsupported capture channels mask\n");
+		return -EINVAL;
+	} else if ((opts->p_ssize < 1) || (opts->p_ssize > 4)) {
+		dev_err(dev, "Error: incorrect playback sample size\n");
+		return -EINVAL;
+	} else if ((opts->c_ssize < 1) || (opts->c_ssize > 4)) {
+		dev_err(dev, "Error: incorrect capture sample size\n");
+		return -EINVAL;
+	} else if (!opts->p_srate) {
+		dev_err(dev, "Error: incorrect playback sampling rate\n");
+		return -EINVAL;
+	} else if (!opts->c_srate) {
+		dev_err(dev, "Error: incorrect capture sampling rate\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* audio function driver setup/binding */
 static int f_audio_bind(struct usb_configuration *c, struct usb_function *f)
@@ -523,6 +671,14 @@ static int f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 	us = usb_gstrings_attach(cdev, uac1_strings, ARRAY_SIZE(strings_uac1));
 	if (IS_ERR(us))
 		return PTR_ERR(us);
+<<<<<<< HEAD
+=======
+
+	ac_header_desc = build_ac_header_desc(audio_opts);
+	if (!ac_header_desc)
+		return -ENOMEM;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ac_interface_desc.iInterface = us[STR_AC_IF].id;
 	usb_out_it_desc.iTerminal = us[STR_USB_OUT_IT].id;
 	usb_out_it_desc.iChannelNames = us[STR_USB_OUT_IT_CH_NAMES].id;
@@ -563,6 +719,7 @@ static int f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 	uac1->ac_intf = status;
 	uac1->ac_alt = 0;
 
+<<<<<<< HEAD
 	status = usb_interface_id(c, f);
 	if (status < 0)
 		goto fail;
@@ -580,12 +737,38 @@ static int f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 	ac_header_desc.baInterfaceNr[1] = status;
 	uac1->as_in_intf = status;
 	uac1->as_in_alt = 0;
+=======
+	ba_iface_id = 0;
+
+	if (EPOUT_EN(audio_opts)) {
+		status = usb_interface_id(c, f);
+		if (status < 0)
+			goto fail;
+		as_out_interface_alt_0_desc.bInterfaceNumber = status;
+		as_out_interface_alt_1_desc.bInterfaceNumber = status;
+		ac_header_desc->baInterfaceNr[ba_iface_id++] = status;
+		uac1->as_out_intf = status;
+		uac1->as_out_alt = 0;
+	}
+
+	if (EPIN_EN(audio_opts)) {
+		status = usb_interface_id(c, f);
+		if (status < 0)
+			goto fail;
+		as_in_interface_alt_0_desc.bInterfaceNumber = status;
+		as_in_interface_alt_1_desc.bInterfaceNumber = status;
+		ac_header_desc->baInterfaceNr[ba_iface_id++] = status;
+		uac1->as_in_intf = status;
+		uac1->as_in_alt = 0;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	audio->gadget = gadget;
 
 	status = -ENODEV;
 
 	/* allocate instance-specific endpoints */
+<<<<<<< HEAD
 	ep = usb_ep_autoconfig(cdev->gadget, &as_out_ep_desc);
 	if (!ep)
 		goto fail;
@@ -597,6 +780,25 @@ static int f_audio_bind(struct usb_configuration *c, struct usb_function *f)
 		goto fail;
 	audio->in_ep = ep;
 	audio->in_ep->desc = &as_in_ep_desc;
+=======
+	if (EPOUT_EN(audio_opts)) {
+		ep = usb_ep_autoconfig(cdev->gadget, &as_out_ep_desc);
+		if (!ep)
+			goto fail;
+		audio->out_ep = ep;
+		audio->out_ep->desc = &as_out_ep_desc;
+	}
+
+	if (EPIN_EN(audio_opts)) {
+		ep = usb_ep_autoconfig(cdev->gadget, &as_in_ep_desc);
+		if (!ep)
+			goto fail;
+		audio->in_ep = ep;
+		audio->in_ep->desc = &as_in_ep_desc;
+	}
+
+	setup_descriptor(audio_opts);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* copy descriptors, and track endpoint copies */
 	status = usb_assign_descriptors(f, f_audio_desc, f_audio_desc, NULL,
@@ -765,6 +967,12 @@ static void f_audio_unbind(struct usb_configuration *c, struct usb_function *f)
 	g_audio_cleanup(audio);
 	usb_free_all_descriptors(f);
 
+<<<<<<< HEAD
+=======
+	kfree(ac_header_desc);
+	ac_header_desc = NULL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	audio->gadget = NULL;
 }
 

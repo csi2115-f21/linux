@@ -22,7 +22,11 @@ static noinline void __init copy_user_test(void)
 	char *kmem;
 	char __user *usermem;
 	size_t size = 10;
+<<<<<<< HEAD
 	int unused;
+=======
+	int __maybe_unused unused;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kmem = kmalloc(size, GFP_KERNEL);
 	if (!kmem)

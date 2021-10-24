@@ -313,8 +313,12 @@ static int hibmc_pci_probe(struct pci_dev *pdev,
 	struct drm_device *dev;
 	int ret;
 
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev,
 								"hibmcdrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "hibmcdrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

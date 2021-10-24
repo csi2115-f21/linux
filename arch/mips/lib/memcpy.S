@@ -661,8 +661,19 @@ LEAF(memcpy)					/* a0=dst a1=src a2=len */
 EXPORT_SYMBOL(memcpy)
 	move	v0, dst				/* return value */
 .L__memcpy:
+<<<<<<< HEAD
 FEXPORT(__copy_user)
 EXPORT_SYMBOL(__copy_user)
+=======
+#ifndef CONFIG_EVA
+FEXPORT(__raw_copy_from_user)
+EXPORT_SYMBOL(__raw_copy_from_user)
+FEXPORT(__raw_copy_to_user)
+EXPORT_SYMBOL(__raw_copy_to_user)
+FEXPORT(__raw_copy_in_user)
+EXPORT_SYMBOL(__raw_copy_in_user)
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Legacy Mode, user <-> user */
 	__BUILD_COPY_USER LEGACY_MODE USEROP USEROP
 
@@ -705,5 +716,14 @@ LEAF(__copy_in_user_eva)
 EXPORT_SYMBOL(__copy_in_user_eva)
 __BUILD_COPY_USER EVA_MODE USEROP USEROP
 END(__copy_in_user_eva)
+
+/*
+ * __copy_in_user (EVA)
+ */
+
+LEAF(__raw_copy_in_user)
+EXPORT_SYMBOL(__raw_copy_in_user)
+__BUILD_COPY_USER EVA_MODE USEROP USEROP
+END(__raw_copy_in_user)
 
 #endif

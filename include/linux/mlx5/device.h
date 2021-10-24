@@ -1214,6 +1214,18 @@ enum mlx5_qcam_feature_groups {
 
 #define MLX5_CAP_GEN_MAX(mdev, cap) \
 	MLX5_GET(cmd_hca_cap, mdev->caps.hca_max[MLX5_CAP_GENERAL], cap)
+<<<<<<< HEAD
+=======
+
+#define MLX5_CAP_GEN_2(mdev, cap) \
+	MLX5_GET(cmd_hca_cap_2, mdev->caps.hca_cur[MLX5_CAP_GENERAL_2], cap)
+
+#define MLX5_CAP_GEN_2_64(mdev, cap) \
+	MLX5_GET64(cmd_hca_cap_2, mdev->caps.hca_cur[MLX5_CAP_GENERAL_2], cap)
+
+#define MLX5_CAP_GEN_2_MAX(mdev, cap) \
+	MLX5_GET(cmd_hca_cap_2, mdev->caps.hca_max[MLX5_CAP_GENERAL_2], cap)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define MLX5_CAP_ETH(mdev, cap) \
 	MLX5_GET(per_protocol_networking_offload_caps,\

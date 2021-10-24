@@ -213,6 +213,7 @@ static __always_inline bool tcp_is_cwnd_limited(const struct sock *sk)
 	return !!BPF_CORE_READ_BITFIELD(tp, is_cwnd_limited);
 }
 
+<<<<<<< HEAD
 static __always_inline void tcp_cong_avoid_ai(struct tcp_sock *tp, __u32 w, __u32 acked)
 {
 	/* If credits accumulated at a higher w, apply them gently now. */
@@ -230,5 +231,9 @@ static __always_inline void tcp_cong_avoid_ai(struct tcp_sock *tp, __u32 w, __u3
 	}
 	tp->snd_cwnd = min(tp->snd_cwnd, tp->snd_cwnd_clamp);
 }
+=======
+extern __u32 tcp_slow_start(struct tcp_sock *tp, __u32 acked) __ksym;
+extern void tcp_cong_avoid_ai(struct tcp_sock *tp, __u32 w, __u32 acked) __ksym;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif

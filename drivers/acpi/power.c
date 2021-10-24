@@ -347,9 +347,19 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
 	acpi_status status = AE_OK;
 
 	status = acpi_evaluate_object(resource->device.handle, "_ON", NULL, NULL);
+<<<<<<< HEAD
 	if (ACPI_FAILURE(status))
+=======
+	if (ACPI_FAILURE(status)) {
+		resource->state = ACPI_POWER_RESOURCE_STATE_UNKNOWN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENODEV;
 
+<<<<<<< HEAD
+=======
+	resource->state = ACPI_POWER_RESOURCE_STATE_ON;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pr_debug("Power resource [%s] turned on\n", resource->name);
 
 	/*
@@ -400,7 +410,12 @@ static int __acpi_power_off(struct acpi_power_resource *resource)
 
 	status = acpi_evaluate_object(resource->device.handle, "_OFF",
 				      NULL, NULL);
+<<<<<<< HEAD
 	if (ACPI_FAILURE(status))
+=======
+	if (ACPI_FAILURE(status)) {
+		resource->state = ACPI_POWER_RESOURCE_STATE_UNKNOWN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENODEV;
 
 	pr_debug("Power resource [%s] turned off\n", resource->name);
@@ -987,7 +1002,11 @@ void acpi_resume_power_resources(void)
 
 		if (state == ACPI_POWER_RESOURCE_STATE_OFF
 		    && resource->ref_count) {
+<<<<<<< HEAD
 			dev_info(&resource->device.dev, "Turning ON\n");
+=======
+			dev_dbg(&resource->device.dev, "Turning ON\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			__acpi_power_on(resource);
 		}
 
@@ -1008,6 +1027,7 @@ void acpi_turn_off_unused_power_resources(void)
 
 		mutex_lock(&resource->resource_lock);
 
+<<<<<<< HEAD
 		result = acpi_power_get_state(resource->device.handle, &state);
 		if (result) {
 			mutex_unlock(&resource->resource_lock);
@@ -1017,6 +1037,16 @@ void acpi_turn_off_unused_power_resources(void)
 		if (state == ACPI_POWER_RESOURCE_STATE_ON
 		    && !resource->ref_count) {
 			dev_info(&resource->device.dev, "Turning OFF\n");
+=======
+		/*
+		 * Turn off power resources in an unknown state too, because the
+		 * platform firmware on some system expects the OS to turn off
+		 * power resources without any users unconditionally.
+		 */
+		if (!resource->ref_count &&
+		    resource->state != ACPI_POWER_RESOURCE_STATE_OFF) {
+			dev_dbg(&resource->device.dev, "Turning OFF\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			__acpi_power_off(resource);
 		}
 

@@ -1131,6 +1131,14 @@ static int replace_nexthop_grp(struct net *net, struct nexthop *old,
 
 	rcu_assign_pointer(old->nh_grp, newg);
 
+<<<<<<< HEAD
+=======
+	if (newg->resilient) {
+		rcu_assign_pointer(oldg->res_table, tmp_table);
+		rcu_assign_pointer(oldg->spare->res_table, tmp_table);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0; i < oldg->num_nh; i++)
 		oldg->nh_entries[i].nh_parent = new;
 

@@ -56,7 +56,13 @@ amdgpu-y += amdgpu_device.o amdgpu_kms.o \
 	amdgpu_gmc.o amdgpu_mmhub.o amdgpu_xgmi.o amdgpu_csa.o amdgpu_ras.o amdgpu_vm_cpu.o \
 	amdgpu_vm_sdma.o amdgpu_discovery.o amdgpu_ras_eeprom.o amdgpu_nbio.o \
 	amdgpu_umc.o smu_v11_0_i2c.o amdgpu_fru_eeprom.o amdgpu_rap.o \
+<<<<<<< HEAD
 	amdgpu_fw_attestation.o amdgpu_securedisplay.o
+=======
+	amdgpu_fw_attestation.o amdgpu_securedisplay.o amdgpu_hdp.o
+
+amdgpu-$(CONFIG_PROC_FS) += amdgpu_fdinfo.o
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 amdgpu-$(CONFIG_PERF_EVENTS) += amdgpu_pmu.o
 
@@ -71,7 +77,12 @@ amdgpu-y += \
 	vi.o mxgpu_vi.o nbio_v6_1.o soc15.o emu_soc.o mxgpu_ai.o nbio_v7_0.o vega10_reg_init.o \
 	vega20_reg_init.o nbio_v7_4.o nbio_v2_3.o nv.o navi10_reg_init.o navi14_reg_init.o \
 	arct_reg_init.o navi12_reg_init.o mxgpu_nv.o sienna_cichlid_reg_init.o vangogh_reg_init.o \
+<<<<<<< HEAD
 	nbio_v7_2.o dimgrey_cavefish_reg_init.o hdp_v4_0.o hdp_v5_0.o
+=======
+	nbio_v7_2.o dimgrey_cavefish_reg_init.o hdp_v4_0.o hdp_v5_0.o aldebaran_reg_init.o aldebaran.o \
+	beige_goby_reg_init.o yellow_carp_reg_init.o
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 # add DF block
 amdgpu-y += \
@@ -106,7 +117,12 @@ amdgpu-y += \
 	psp_v3_1.o \
 	psp_v10_0.o \
 	psp_v11_0.o \
+<<<<<<< HEAD
 	psp_v12_0.o
+=======
+	psp_v12_0.o \
+	psp_v13_0.o
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 # add DCE block
 amdgpu-y += \
@@ -172,7 +188,16 @@ amdgpu-y += \
 amdgpu-y += \
 	smuio_v9_0.o \
 	smuio_v11_0.o \
+<<<<<<< HEAD
 	smuio_v11_0_6.o
+=======
+	smuio_v11_0_6.o \
+	smuio_v13_0.o
+
+# add reset block
+amdgpu-y += \
+	amdgpu_reset.o
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 # add amdkfd interfaces
 amdgpu-y += amdgpu_amdkfd.o

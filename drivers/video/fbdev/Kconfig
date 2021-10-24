@@ -2192,7 +2192,11 @@ config FB_HYPERV
 
 config FB_SIMPLE
 	bool "Simple framebuffer support"
+<<<<<<< HEAD
 	depends on (FB = y)
+=======
+	depends on (FB = y) && !DRM_SIMPLEDRM
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	select FB_CFB_FILLRECT
 	select FB_CFB_COPYAREA
 	select FB_CFB_IMAGEBLIT

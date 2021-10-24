@@ -316,7 +316,11 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	local_irq_restore(flags);
 }
 
+<<<<<<< HEAD
 static inline unsigned long mm_mangle_tif_spec_ib(struct task_struct *next)
+=======
+static unsigned long mm_mangle_tif_spec_ib(struct task_struct *next)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned long next_tif = task_thread_info(next)->flags;
 	unsigned long ibpb = (next_tif >> TIF_SPEC_IB) & LAST_USER_MM_IBPB;

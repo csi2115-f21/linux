@@ -28,6 +28,14 @@ void igc_ethtool_set_ops(struct net_device *);
 #define MAX_ETYPE_FILTER		8
 #define IGC_RETA_SIZE			128
 
+<<<<<<< HEAD
+=======
+/* SDP support */
+#define IGC_N_EXTTS	2
+#define IGC_N_PEROUT	2
+#define IGC_N_SDP	4
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 enum igc_mac_filter_type {
 	IGC_MAC_FILTER_TYPE_DST = 0,
 	IGC_MAC_FILTER_TYPE_SRC

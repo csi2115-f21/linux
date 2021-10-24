@@ -510,6 +510,12 @@ struct spi_controller {
 
 #define SPI_MASTER_GPIO_SS		BIT(5)	/* GPIO CS must select slave */
 
+<<<<<<< HEAD
+=======
+	/* flag indicating this is a non-devres managed controller */
+	bool			devm_allocated;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* flag indicating this is an SPI slave controller */
 	bool			slave;
 

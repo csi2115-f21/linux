@@ -1769,7 +1769,10 @@ process_csb(struct intel_engine_cs *engine, struct i915_request **inactive)
 	 */
 	GEM_BUG_ON(!tasklet_is_locked(&execlists->tasklet) &&
 		   !reset_in_progress(execlists));
+<<<<<<< HEAD
 	GEM_BUG_ON(!intel_engine_in_execlists_submission_mode(engine));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Note that csb_write, csb_status may be either in HWSP or mmio.
@@ -1848,7 +1851,11 @@ process_csb(struct intel_engine_cs *engine, struct i915_request **inactive)
 		ENGINE_TRACE(engine, "csb[%d]: status=0x%08x:0x%08x\n",
 			     head, upper_32_bits(csb), lower_32_bits(csb));
 
+<<<<<<< HEAD
 		if (INTEL_GEN(engine->i915) >= 12)
+=======
+		if (GRAPHICS_VER(engine->i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			promote = gen12_csb_parse(csb);
 		else
 			promote = gen8_csb_parse(csb);
@@ -2346,7 +2353,12 @@ static bool preempt_timeout(const struct intel_engine_cs *const engine)
  */
 static void execlists_submission_tasklet(unsigned long data)
 {
+<<<<<<< HEAD
 	struct intel_engine_cs * const engine = (struct intel_engine_cs *)data;
+=======
+	struct intel_engine_cs * const engine =
+		from_tasklet(engine, t, execlists.tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct i915_request *post[2 * EXECLIST_MAX_PORTS];
 	struct i915_request **inactive;
 
@@ -2385,6 +2397,48 @@ static void execlists_submission_tasklet(unsigned long data)
 	rcu_read_unlock();
 }
 
+<<<<<<< HEAD
+=======
+static void execlists_irq_handler(struct intel_engine_cs *engine, u16 iir)
+{
+	bool tasklet = false;
+
+	if (unlikely(iir & GT_CS_MASTER_ERROR_INTERRUPT)) {
+		u32 eir;
+
+		/* Upper 16b are the enabling mask, rsvd for internal errors */
+		eir = ENGINE_READ(engine, RING_EIR) & GENMASK(15, 0);
+		ENGINE_TRACE(engine, "CS error: %x\n", eir);
+
+		/* Disable the error interrupt until after the reset */
+		if (likely(eir)) {
+			ENGINE_WRITE(engine, RING_EMR, ~0u);
+			ENGINE_WRITE(engine, RING_EIR, eir);
+			WRITE_ONCE(engine->execlists.error_interrupt, eir);
+			tasklet = true;
+		}
+	}
+
+	if (iir & GT_WAIT_SEMAPHORE_INTERRUPT) {
+		WRITE_ONCE(engine->execlists.yield,
+			   ENGINE_READ_FW(engine, RING_EXECLIST_STATUS_HI));
+		ENGINE_TRACE(engine, "semaphore yield: %08x\n",
+			     engine->execlists.yield);
+		if (del_timer(&engine->execlists.timer))
+			tasklet = true;
+	}
+
+	if (iir & GT_CONTEXT_SWITCH_INTERRUPT)
+		tasklet = true;
+
+	if (iir & GT_RENDER_USER_INTERRUPT)
+		intel_engine_signal_breadcrumbs(engine);
+
+	if (tasklet)
+		tasklet_hi_schedule(&engine->execlists.tasklet);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __execlists_kick(struct intel_engine_execlists *execlists)
 {
 	/* Kick the tasklet for some interrupt coalescing and reset handling */
@@ -2455,6 +2509,29 @@ static void execlists_submit_request(struct i915_request *request)
 	}
 
 	spin_unlock_irqrestore(&engine->active.lock, flags);
+<<<<<<< HEAD
+=======
+}
+
+static int
+__execlists_context_pre_pin(struct intel_context *ce,
+			    struct intel_engine_cs *engine,
+			    struct i915_gem_ww_ctx *ww, void **vaddr)
+{
+	int err;
+
+	err = lrc_pre_pin(ce, engine, ww, vaddr);
+	if (err)
+		return err;
+
+	if (!__test_and_set_bit(CONTEXT_INIT_BIT, &ce->flags)) {
+		lrc_init_state(ce, engine, *vaddr);
+
+		 __i915_gem_object_flush_map(ce->state->obj, 0, engine->context_size);
+	}
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int execlists_context_pre_pin(struct intel_context *ce,
@@ -2926,7 +3003,12 @@ static void execlists_reset_rewind(struct intel_engine_cs *engine, bool stalled)
 
 static void nop_submission_tasklet(unsigned long data)
 {
+<<<<<<< HEAD
 	struct intel_engine_cs * const engine = (struct intel_engine_cs *)data;
+=======
+	struct intel_engine_cs * const engine =
+		from_tasklet(engine, t, execlists.tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* The driver is wedged; don't process any more events. */
 	WRITE_ONCE(engine->execlists.queue_priority_hint, INT_MIN);
@@ -2962,7 +3044,11 @@ static void execlists_reset_cancel(struct intel_engine_cs *engine)
 
 	/* Mark all executing requests as skipped. */
 	list_for_each_entry(rq, &engine->active.requests, sched.link)
+<<<<<<< HEAD
 		i915_request_mark_eio(rq);
+=======
+		i915_request_put(i915_request_mark_eio(rq));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	intel_engine_signal_breadcrumbs(engine);
 
 	/* Flush the queued requests to the timeline list (for retiring). */
@@ -2981,7 +3067,11 @@ static void execlists_reset_cancel(struct intel_engine_cs *engine)
 
 	/* On-hold requests will be flushed to timeline upon their release */
 	list_for_each_entry(rq, &engine->active.hold, sched.link)
+<<<<<<< HEAD
 		i915_request_mark_eio(rq);
+=======
+		i915_request_put(i915_request_mark_eio(rq));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Cancel all attached virtual engines */
 	while ((rb = rb_first_cached(&execlists->virtual))) {
@@ -3011,7 +3101,11 @@ static void execlists_reset_cancel(struct intel_engine_cs *engine)
 	execlists->queue = RB_ROOT_CACHED;
 
 	GEM_BUG_ON(__tasklet_is_enabled(&execlists->tasklet));
+<<<<<<< HEAD
 	execlists->tasklet.func = nop_submission_tasklet;
+=======
+	execlists->tasklet.callback = nop_submission_tasklet;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_unlock_irqrestore(&engine->active.lock, flags);
 	rcu_read_unlock();
@@ -3072,6 +3166,7 @@ static void execlists_set_default_submission(struct intel_engine_cs *engine)
 {
 	engine->submit_request = execlists_submit_request;
 	engine->schedule = i915_schedule;
+<<<<<<< HEAD
 	engine->execlists.tasklet.func = execlists_submission_tasklet;
 
 	engine->reset.prepare = execlists_reset_prepare;
@@ -3096,6 +3191,9 @@ static void execlists_set_default_submission(struct intel_engine_cs *engine)
 		engine->emit_bb_start = gen8_emit_bb_start;
 	else
 		engine->emit_bb_start = gen8_emit_bb_start_noarb;
+=======
+	engine->execlists.tasklet.callback = execlists_submission_tasklet;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void execlists_shutdown(struct intel_engine_cs *engine)
@@ -3125,6 +3223,17 @@ logical_ring_default_vfuncs(struct intel_engine_cs *engine)
 
 	engine->cops = &execlists_context_ops;
 	engine->request_alloc = execlists_request_alloc;
+<<<<<<< HEAD
+=======
+
+	engine->reset.prepare = execlists_reset_prepare;
+	engine->reset.rewind = execlists_reset_rewind;
+	engine->reset.cancel = execlists_reset_cancel;
+	engine->reset.finish = execlists_reset_finish;
+
+	engine->park = execlists_park;
+	engine->unpark = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	engine->emit_flush = gen8_emit_flush_xcs;
 	engine->emit_init_breadcrumb = gen8_emit_init_breadcrumb;
@@ -3195,8 +3304,12 @@ int intel_execlists_submission_setup(struct intel_engine_cs *engine)
 	struct intel_uncore *uncore = engine->uncore;
 	u32 base = engine->mmio_base;
 
+<<<<<<< HEAD
 	tasklet_init(&engine->execlists.tasklet,
 		     execlists_submission_tasklet, (unsigned long)engine);
+=======
+	tasklet_setup(&engine->execlists.tasklet, execlists_submission_tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	timer_setup(&engine->execlists.timer, execlists_timeslice, 0);
 	timer_setup(&engine->execlists.preempt, execlists_preempt, 0);
 
@@ -3230,7 +3343,11 @@ int intel_execlists_submission_setup(struct intel_engine_cs *engine)
 		execlists->csb_size = GEN11_CSB_ENTRIES;
 
 	engine->context_tag = GENMASK(BITS_PER_LONG - 2, 0);
+<<<<<<< HEAD
 	if (INTEL_GEN(engine->i915) >= 11) {
+=======
+	if (GRAPHICS_VER(engine->i915) >= 11) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		execlists->ccid |= engine->instance << (GEN11_ENGINE_INSTANCE_SHIFT - 32);
 		execlists->ccid |= engine->class << (GEN11_ENGINE_CLASS_SHIFT - 32);
 	}
@@ -3244,7 +3361,11 @@ int intel_execlists_submission_setup(struct intel_engine_cs *engine)
 
 static struct list_head *virtual_queue(struct virtual_engine *ve)
 {
+<<<<<<< HEAD
 	return &ve->base.execlists.default_priolist.requests[0];
+=======
+	return &ve->base.execlists.default_priolist.requests;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void rcu_virtual_context_destroy(struct work_struct *wrk)
@@ -3440,7 +3561,12 @@ static intel_engine_mask_t virtual_submission_mask(struct virtual_engine *ve)
 
 static void virtual_submission_tasklet(unsigned long data)
 {
+<<<<<<< HEAD
 	struct virtual_engine * const ve = (struct virtual_engine *)data;
+=======
+	struct virtual_engine * const ve =
+		from_tasklet(ve, t, base.execlists.tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	const int prio = READ_ONCE(ve->base.execlists.queue_priority_hint);
 	intel_engine_mask_t mask;
 	unsigned int n;
@@ -3650,9 +3776,13 @@ intel_execlists_create_virtual(struct intel_engine_cs **siblings,
 
 	INIT_LIST_HEAD(virtual_queue(ve));
 	ve->base.execlists.queue_priority_hint = INT_MIN;
+<<<<<<< HEAD
 	tasklet_init(&ve->base.execlists.tasklet,
 		     virtual_submission_tasklet,
 		     (unsigned long)ve);
+=======
+	tasklet_setup(&ve->base.execlists.tasklet, virtual_submission_tasklet);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	intel_context_init(&ve->context, &ve->base);
 
@@ -3680,7 +3810,11 @@ intel_execlists_create_virtual(struct intel_engine_cs **siblings,
 		 * layering if we handle cloning of the requests and
 		 * submitting a copy into each backend.
 		 */
+<<<<<<< HEAD
 		if (sibling->execlists.tasklet.func !=
+=======
+		if (sibling->execlists.tasklet.callback !=
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		    execlists_submission_tasklet) {
 			err = -ENODEV;
 			goto err_put;
@@ -3882,6 +4016,7 @@ void intel_execlists_show_requests(struct intel_engine_cs *engine,
 	}
 
 	spin_unlock_irqrestore(&engine->active.lock, flags);
+<<<<<<< HEAD
 }
 
 bool
@@ -3889,6 +4024,8 @@ intel_engine_in_execlists_submission_mode(const struct intel_engine_cs *engine)
 {
 	return engine->set_default_submission ==
 	       execlists_set_default_submission;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #if IS_ENABLED(CONFIG_DRM_I915_SELFTEST)

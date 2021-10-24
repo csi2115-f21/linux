@@ -330,7 +330,11 @@ void kvm_flush_remote_tlbs(struct kvm *kvm)
 	 */
 	if (!kvm_arch_flush_remote_tlb(kvm)
 	    || kvm_make_all_cpus_request(kvm, KVM_REQ_TLB_FLUSH))
+<<<<<<< HEAD
 		++kvm->stat.remote_tlb_flush;
+=======
+		++kvm->stat.generic.remote_tlb_flush;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cmpxchg(&kvm->tlbs_dirty, dirty_count, 0);
 }
 EXPORT_SYMBOL_GPL(kvm_flush_remote_tlbs);
@@ -461,6 +465,7 @@ static void kvm_mmu_notifier_change_pte(struct mmu_notifier *mn,
 
 	idx = srcu_read_lock(&kvm->srcu);
 
+<<<<<<< HEAD
 	KVM_MMU_LOCK(kvm);
 
 	kvm->mmu_notifier_seq++;
@@ -469,6 +474,62 @@ static void kvm_mmu_notifier_change_pte(struct mmu_notifier *mn,
 		kvm_flush_remote_tlbs(kvm);
 
 	KVM_MMU_UNLOCK(kvm);
+=======
+	/* The on_lock() path does not yet support lock elision. */
+	if (!IS_KVM_NULL_FN(range->on_lock)) {
+		locked = true;
+		KVM_MMU_LOCK(kvm);
+
+		range->on_lock(kvm, range->start, range->end);
+
+		if (IS_KVM_NULL_FN(range->handler))
+			goto out_unlock;
+	}
+
+	for (i = 0; i < KVM_ADDRESS_SPACE_NUM; i++) {
+		slots = __kvm_memslots(kvm, i);
+		kvm_for_each_memslot(slot, slots) {
+			unsigned long hva_start, hva_end;
+
+			hva_start = max(range->start, slot->userspace_addr);
+			hva_end = min(range->end, slot->userspace_addr +
+						  (slot->npages << PAGE_SHIFT));
+			if (hva_start >= hva_end)
+				continue;
+
+			/*
+			 * To optimize for the likely case where the address
+			 * range is covered by zero or one memslots, don't
+			 * bother making these conditional (to avoid writes on
+			 * the second or later invocation of the handler).
+			 */
+			gfn_range.pte = range->pte;
+			gfn_range.may_block = range->may_block;
+
+			/*
+			 * {gfn(page) | page intersects with [hva_start, hva_end)} =
+			 * {gfn_start, gfn_start+1, ..., gfn_end-1}.
+			 */
+			gfn_range.start = hva_to_gfn_memslot(hva_start, slot);
+			gfn_range.end = hva_to_gfn_memslot(hva_end + PAGE_SIZE - 1, slot);
+			gfn_range.slot = slot;
+
+			if (!locked) {
+				locked = true;
+				KVM_MMU_LOCK(kvm);
+			}
+			ret |= range->handler(kvm, &gfn_range);
+		}
+	}
+
+	if (range->flush_on_ret && (ret || kvm->tlbs_dirty))
+		kvm_flush_remote_tlbs(kvm);
+
+out_unlock:
+	if (locked)
+		KVM_MMU_UNLOCK(kvm);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	srcu_read_unlock(&kvm->srcu, idx);
 }
 
@@ -478,8 +539,26 @@ static int kvm_mmu_notifier_invalidate_range_start(struct mmu_notifier *mn,
 	struct kvm *kvm = mmu_notifier_to_kvm(mn);
 	int need_tlb_flush = 0, idx;
 
+<<<<<<< HEAD
 	idx = srcu_read_lock(&kvm->srcu);
 	KVM_MMU_LOCK(kvm);
+=======
+	trace_kvm_set_spte_hva(address);
+
+	/*
+	 * .change_pte() must be surrounded by .invalidate_range_{start,end}(),
+	 * and so always runs with an elevated notifier count.  This obviates
+	 * the need to bump the sequence count.
+	 */
+	WARN_ON_ONCE(!kvm->mmu_notifier_count);
+
+	kvm_handle_hva_range(mn, address, address + 1, pte, kvm_set_spte_gfn);
+}
+
+static void kvm_inc_notifier_count(struct kvm *kvm, unsigned long start,
+				   unsigned long end)
+{
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * The count increase must become visible at unlock time as no
 	 * spte can be established without taking the mmu_lock and
@@ -504,6 +583,7 @@ static int kvm_mmu_notifier_invalidate_range_start(struct mmu_notifier *mn,
 		kvm->mmu_notifier_range_end =
 			max(kvm->mmu_notifier_range_end, range->end);
 	}
+<<<<<<< HEAD
 	need_tlb_flush = kvm_unmap_hva_range(kvm, range->start, range->end,
 					     range->flags);
 	/* we've to flush the tlb before the pages can be freed */
@@ -512,12 +592,38 @@ static int kvm_mmu_notifier_invalidate_range_start(struct mmu_notifier *mn,
 
 	KVM_MMU_UNLOCK(kvm);
 	srcu_read_unlock(&kvm->srcu, idx);
+=======
+}
+
+static int kvm_mmu_notifier_invalidate_range_start(struct mmu_notifier *mn,
+					const struct mmu_notifier_range *range)
+{
+	struct kvm *kvm = mmu_notifier_to_kvm(mn);
+	const struct kvm_hva_range hva_range = {
+		.start		= range->start,
+		.end		= range->end,
+		.pte		= __pte(0),
+		.handler	= kvm_unmap_gfn_range,
+		.on_lock	= kvm_inc_notifier_count,
+		.flush_on_ret	= true,
+		.may_block	= mmu_notifier_range_blockable(range),
+	};
+
+	trace_kvm_unmap_hva_range(range->start, range->end);
+
+	__kvm_handle_hva_range(kvm, &hva_range);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
 
+<<<<<<< HEAD
 static void kvm_mmu_notifier_invalidate_range_end(struct mmu_notifier *mn,
 					const struct mmu_notifier_range *range)
+=======
+static void kvm_dec_notifier_count(struct kvm *kvm, unsigned long start,
+				   unsigned long end)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct kvm *kvm = mmu_notifier_to_kvm(mn);
 
@@ -535,7 +641,27 @@ static void kvm_mmu_notifier_invalidate_range_end(struct mmu_notifier *mn,
 	 * in conjunction with the smp_rmb in mmu_notifier_retry().
 	 */
 	kvm->mmu_notifier_count--;
+<<<<<<< HEAD
 	KVM_MMU_UNLOCK(kvm);
+=======
+}
+
+static void kvm_mmu_notifier_invalidate_range_end(struct mmu_notifier *mn,
+					const struct mmu_notifier_range *range)
+{
+	struct kvm *kvm = mmu_notifier_to_kvm(mn);
+	const struct kvm_hva_range hva_range = {
+		.start		= range->start,
+		.end		= range->end,
+		.pte		= __pte(0),
+		.handler	= (void *)kvm_null_fn,
+		.on_lock	= kvm_dec_notifier_count,
+		.flush_on_ret	= false,
+		.may_block	= mmu_notifier_range_blockable(range),
+	};
+
+	__kvm_handle_hva_range(kvm, &hva_range);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	BUG_ON(kvm->mmu_notifier_count < 0);
 }
@@ -711,7 +837,14 @@ static int kvm_create_vm_debugfs(struct kvm *kvm, int fd)
 {
 	char dir_name[ITOA_MAX_LEN * 2];
 	struct kvm_stat_data *stat_data;
+<<<<<<< HEAD
 	struct kvm_stats_debugfs_item *p;
+=======
+	const struct _kvm_stats_desc *pdesc;
+	int i;
+	int kvm_debugfs_num_entries = kvm_vm_stats_header.num_desc +
+				      kvm_vcpu_stats_header.num_desc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!debugfs_initialized())
 		return 0;
@@ -737,6 +870,24 @@ static int kvm_create_vm_debugfs(struct kvm *kvm, int fd)
 				    kvm->debugfs_dentry, stat_data,
 				    &stat_fops_per_vm);
 	}
+<<<<<<< HEAD
+=======
+
+	for (i = 0; i < kvm_vcpu_stats_header.num_desc; ++i) {
+		pdesc = &kvm_vcpu_stats_desc[i];
+		stat_data = kzalloc(sizeof(*stat_data), GFP_KERNEL_ACCOUNT);
+		if (!stat_data)
+			return -ENOMEM;
+
+		stat_data->kvm = kvm;
+		stat_data->desc = pdesc;
+		stat_data->kind = KVM_STAT_VCPU;
+		kvm->debugfs_stat_data[i + kvm_vm_stats_header.num_desc] = stat_data;
+		debugfs_create_file(pdesc->name, kvm_stats_debugfs_mode(pdesc),
+				    kvm->debugfs_dentry, stat_data,
+				    &stat_fops_per_vm);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -773,6 +924,10 @@ static struct kvm *kvm_create_vm(unsigned long type)
 	mutex_init(&kvm->lock);
 	mutex_init(&kvm->irq_lock);
 	mutex_init(&kvm->slots_lock);
+<<<<<<< HEAD
+=======
+	mutex_init(&kvm->slots_arch_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	INIT_LIST_HEAD(&kvm->devices);
 
 	BUILD_BUG_ON(KVM_MEM_SLOTS_NUM > SHRT_MAX);
@@ -1145,6 +1300,17 @@ static struct kvm_memslots *install_new_memslots(struct kvm *kvm,
 	slots->generation = gen | KVM_MEMSLOT_GEN_UPDATE_IN_PROGRESS;
 
 	rcu_assign_pointer(kvm->memslots[as_id], slots);
+<<<<<<< HEAD
+=======
+
+	/*
+	 * Acquired in kvm_set_memslot. Must be released before synchronize
+	 * SRCU below in order to avoid deadlock with another thread
+	 * acquiring the slots_arch_lock in an srcu critical section.
+	 */
+	mutex_unlock(&kvm->slots_arch_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	synchronize_srcu_expedited(&kvm->srcu);
 
 	/*
@@ -2834,11 +3000,19 @@ void kvm_vcpu_block(struct kvm_vcpu *vcpu)
 			if (kvm_vcpu_check_block(vcpu) < 0) {
 				++vcpu->stat.halt_successful_poll;
 				if (!vcpu_valid_wakeup(vcpu))
+<<<<<<< HEAD
 					++vcpu->stat.halt_poll_invalid;
+=======
+					++vcpu->stat.generic.halt_poll_invalid;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				goto out;
 			}
 			poll_end = cur = ktime_get();
+<<<<<<< HEAD
 		} while (single_task_running() && ktime_before(cur, stop));
+=======
+		} while (kvm_vcpu_can_poll(cur, stop));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	prepare_to_rcuwait(&vcpu->wait);

@@ -38,8 +38,11 @@ static s16 odm_InbandNoise_Monitor_NSeries(
 		max_rf_path = 2;
 	else
 		max_rf_path = 1;
+<<<<<<< HEAD
 
 	ODM_RT_TRACE(pDM_Odm, ODM_COMP_COMMON, ODM_DBG_LOUD, ("odm_DebugControlInbandNoise_Nseries() ==>\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memset(&noise_data, 0, sizeof(struct noise_level));
 
@@ -76,9 +79,12 @@ static s16 odm_InbandNoise_Monitor_NSeries(
 
 		noise_data.value[ODM_RF_PATH_A] = (u8)(tmp4b&0xff);
 		noise_data.value[ODM_RF_PATH_B]  = (u8)((tmp4b&0xff00)>>8);
+<<<<<<< HEAD
 
 		ODM_RT_TRACE(pDM_Odm, ODM_COMP_COMMON, ODM_DBG_LOUD, ("value_a = 0x%x(%d), value_b = 0x%x(%d)\n",
 			noise_data.value[ODM_RF_PATH_A], noise_data.value[ODM_RF_PATH_A], noise_data.value[ODM_RF_PATH_B], noise_data.value[ODM_RF_PATH_B]));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		for (rf_path = ODM_RF_PATH_A; rf_path < max_rf_path; rf_path++) {
 			noise_data.sval[rf_path] = (s8)noise_data.value[rf_path];
@@ -120,14 +126,20 @@ static s16 odm_InbandNoise_Monitor_NSeries(
 	}
 	reg_c50 = (s32)PHY_QueryBBReg(pDM_Odm->Adapter, rOFDM0_XAAGCCore1, bMaskByte0);
 	reg_c50 &= ~BIT7;
+<<<<<<< HEAD
 	ODM_RT_TRACE(pDM_Odm, ODM_COMP_COMMON, ODM_DBG_LOUD, ("0x%x = 0x%02x(%d)\n", rOFDM0_XAAGCCore1, reg_c50, reg_c50));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pDM_Odm->noise_level.noise[ODM_RF_PATH_A] = -110 + reg_c50 + noise_data.sum[ODM_RF_PATH_A];
 	pDM_Odm->noise_level.noise_all += pDM_Odm->noise_level.noise[ODM_RF_PATH_A];
 
 	if (max_rf_path == 2) {
 		reg_c58 = (s32)PHY_QueryBBReg(pDM_Odm->Adapter, rOFDM0_XBAGCCore1, bMaskByte0);
 		reg_c58 &= ~BIT7;
+<<<<<<< HEAD
 		ODM_RT_TRACE(pDM_Odm, ODM_COMP_COMMON, ODM_DBG_LOUD, ("0x%x = 0x%02x(%d)\n", rOFDM0_XBAGCCore1, reg_c58, reg_c58));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pDM_Odm->noise_level.noise[ODM_RF_PATH_B] = -110 + reg_c58 + noise_data.sum[ODM_RF_PATH_B];
 		pDM_Odm->noise_level.noise_all += pDM_Odm->noise_level.noise[ODM_RF_PATH_B];
 	}

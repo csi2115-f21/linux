@@ -29,8 +29,11 @@
 
 static struct kobject *block_depr;
 
+<<<<<<< HEAD
 DECLARE_RWSEM(bdev_lookup_sem);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* for extended dynamic devt allocation, currently only one major is used */
 #define NR_EXT_DEVT		(1 << MINORBITS)
 static DEFINE_IDA(ext_devt_ida);
@@ -411,6 +414,7 @@ static int blk_mangle_minor(int minor)
 	return minor;
 }
 
+<<<<<<< HEAD
 /**
  * blk_alloc_devt - allocate a dev_t for a block device
  * @bdev: block device to allocate dev_t for
@@ -426,6 +430,9 @@ static int blk_mangle_minor(int minor)
  * Might sleep.
  */
 int blk_alloc_devt(struct block_device *bdev, dev_t *devt)
+=======
+int blk_alloc_ext_minor(void)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct gendisk *disk = bdev->bd_disk;
 	int idx;
@@ -437,11 +444,20 @@ int blk_alloc_devt(struct block_device *bdev, dev_t *devt)
 	}
 
 	idx = ida_alloc_range(&ext_devt_ida, 0, NR_EXT_DEVT, GFP_KERNEL);
+<<<<<<< HEAD
 	if (idx < 0)
 		return idx == -ENOSPC ? -EBUSY : idx;
 
 	*devt = MKDEV(BLOCK_EXT_MAJOR, blk_mangle_minor(idx));
 	return 0;
+=======
+	if (idx < 0) {
+		if (idx == -ENOSPC)
+			return -EBUSY;
+		return idx;
+	}
+	return blk_mangle_minor(idx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -455,8 +471,12 @@ int blk_alloc_devt(struct block_device *bdev, dev_t *devt)
  */
 void blk_free_devt(dev_t devt)
 {
+<<<<<<< HEAD
 	if (MAJOR(devt) == BLOCK_EXT_MAJOR)
 		ida_free(&ext_devt_ida, blk_mangle_minor(MINOR(devt)));
+=======
+	ida_free(&ext_devt_ida, blk_mangle_minor(minor));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static char *bdevt_str(dev_t devt, char *buf)
@@ -498,6 +518,7 @@ static void disk_scan_partitions(struct gendisk *disk)
 
 static void register_disk(struct device *parent, struct gendisk *disk,
 			  const struct attribute_group **groups)
+<<<<<<< HEAD
 {
 	struct device *ddev = disk_to_dev(disk);
 	int err;
@@ -600,6 +621,119 @@ static void __device_add_disk(struct device *parent, struct gendisk *disk,
 	disk->major = MAJOR(devt);
 	disk->first_minor = MINOR(devt);
 
+=======
+{
+	struct device *ddev = disk_to_dev(disk);
+	int err;
+
+	ddev->parent = parent;
+
+	dev_set_name(ddev, "%s", disk->disk_name);
+
+	/* delay uevents, until we scanned partition table */
+	dev_set_uevent_suppress(ddev, 1);
+
+	if (groups) {
+		WARN_ON(ddev->groups);
+		ddev->groups = groups;
+	}
+	if (device_add(ddev))
+		return;
+	if (!sysfs_deprecated) {
+		err = sysfs_create_link(block_depr, &ddev->kobj,
+					kobject_name(&ddev->kobj));
+		if (err) {
+			device_del(ddev);
+			return;
+		}
+	}
+
+	/*
+	 * avoid probable deadlock caused by allocating memory with
+	 * GFP_KERNEL in runtime_resume callback of its all ancestor
+	 * devices
+	 */
+	pm_runtime_set_memalloc_noio(ddev, true);
+
+	disk->part0->bd_holder_dir =
+		kobject_create_and_add("holders", &ddev->kobj);
+	disk->slave_dir = kobject_create_and_add("slaves", &ddev->kobj);
+
+	if (disk->flags & GENHD_FL_HIDDEN)
+		return;
+
+	disk_scan_partitions(disk);
+
+	/* announce the disk and partitions after all partitions are created */
+	dev_set_uevent_suppress(ddev, 0);
+	disk_uevent(disk, KOBJ_ADD);
+
+	if (disk->queue->backing_dev_info->dev) {
+		err = sysfs_create_link(&ddev->kobj,
+			  &disk->queue->backing_dev_info->dev->kobj,
+			  "bdi");
+		WARN_ON(err);
+	}
+}
+
+/**
+ * __device_add_disk - add disk information to kernel list
+ * @parent: parent device for the disk
+ * @disk: per-device partitioning information
+ * @groups: Additional per-device sysfs groups
+ * @register_queue: register the queue if set to true
+ *
+ * This function registers the partitioning information in @disk
+ * with the kernel.
+ *
+ * FIXME: error handling
+ */
+static void __device_add_disk(struct device *parent, struct gendisk *disk,
+			      const struct attribute_group **groups,
+			      bool register_queue)
+{
+	int ret;
+
+	/*
+	 * The disk queue should now be all set with enough information about
+	 * the device for the elevator code to pick an adequate default
+	 * elevator if one is needed, that is, for devices requesting queue
+	 * registration.
+	 */
+	if (register_queue)
+		elevator_init_mq(disk->queue);
+
+	/*
+	 * If the driver provides an explicit major number it also must provide
+	 * the number of minors numbers supported, and those will be used to
+	 * setup the gendisk.
+	 * Otherwise just allocate the device numbers for both the whole device
+	 * and all partitions from the extended dev_t space.
+	 */
+	if (disk->major) {
+		WARN_ON(!disk->minors);
+
+		if (disk->minors > DISK_MAX_PARTS) {
+			pr_err("block: can't allocate more than %d partitions\n",
+				DISK_MAX_PARTS);
+			disk->minors = DISK_MAX_PARTS;
+		}
+	} else {
+		WARN_ON(disk->minors);
+
+		ret = blk_alloc_ext_minor();
+		if (ret < 0) {
+			WARN_ON(1);
+			return;
+		}
+		disk->major = BLOCK_EXT_MAJOR;
+		disk->first_minor = MINOR(ret);
+		disk->flags |= GENHD_FL_EXT_DEVT;
+	}
+
+	disk->flags |= GENHD_FL_UP;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	disk_alloc_events(disk);
 
 	if (disk->flags & GENHD_FL_HIDDEN) {
@@ -612,6 +746,7 @@ static void __device_add_disk(struct device *parent, struct gendisk *disk,
 	} else {
 		struct backing_dev_info *bdi = disk->queue->backing_dev_info;
 		struct device *dev = disk_to_dev(disk);
+<<<<<<< HEAD
 		int ret;
 
 		/* Register BDI before referencing it from bdev */
@@ -620,6 +755,16 @@ static void __device_add_disk(struct device *parent, struct gendisk *disk,
 		WARN_ON(ret);
 		bdi_set_owner(bdi, dev);
 		bdev_add(disk->part0, devt);
+=======
+
+		/* Register BDI before referencing it from bdev */
+		dev->devt = MKDEV(disk->major, disk->first_minor);
+		ret = bdi_register(bdi, "%u:%u",
+				   disk->major, disk->first_minor);
+		WARN_ON(ret);
+		bdi_set_owner(bdi, dev);
+		bdev_add(disk->part0, dev->devt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	register_disk(parent, disk, groups);
 	if (register_queue)
@@ -629,7 +774,14 @@ static void __device_add_disk(struct device *parent, struct gendisk *disk,
 	 * Take an extra ref on queue which will be put on disk_release()
 	 * so that it sticks around as long as @disk is there.
 	 */
+<<<<<<< HEAD
 	WARN_ON_ONCE(!blk_get_queue(disk->queue));
+=======
+	if (blk_get_queue(disk->queue))
+		set_bit(GD_QUEUE_REF, &disk->state);
+	else
+		WARN_ON_ONCE(1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	disk_add_events(disk);
 	blk_integrity_add(disk);
@@ -649,6 +801,7 @@ void device_add_disk_no_queue_reg(struct device *parent, struct gendisk *disk)
 }
 EXPORT_SYMBOL(device_add_disk_no_queue_reg);
 
+<<<<<<< HEAD
 static void invalidate_partition(struct block_device *bdev)
 {
 	fsync_bdev(bdev);
@@ -661,6 +814,8 @@ static void invalidate_partition(struct block_device *bdev)
 	remove_inode_hash(bdev->bd_inode);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * del_gendisk - remove the gendisk
  * @disk: the struct gendisk to remove
@@ -682,9 +837,12 @@ static void invalidate_partition(struct block_device *bdev)
  */
 void del_gendisk(struct gendisk *disk)
 {
+<<<<<<< HEAD
 	struct disk_part_iter piter;
 	struct block_device *part;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	might_sleep();
 
 	if (WARN_ON_ONCE(!disk->queue))
@@ -693,6 +851,7 @@ void del_gendisk(struct gendisk *disk)
 	blk_integrity_del(disk);
 	disk_del_events(disk);
 
+<<<<<<< HEAD
 	/*
 	 * Block lookups of the disk until all bdevs are unhashed and the
 	 * disk is marked as dead (GENHD_FL_UP cleared).
@@ -711,6 +870,23 @@ void del_gendisk(struct gendisk *disk)
 	set_capacity(disk, 0);
 	disk->flags &= ~GENHD_FL_UP;
 	up_write(&bdev_lookup_sem);
+=======
+	mutex_lock(&disk->open_mutex);
+	disk->flags &= ~GENHD_FL_UP;
+	blk_drop_partitions(disk);
+	mutex_unlock(&disk->open_mutex);
+
+	fsync_bdev(disk->part0);
+	__invalidate_device(disk->part0, true);
+
+	/*
+	 * Unhash the bdev inode for this device so that it can't be looked
+	 * up any more even if openers still hold references to it.
+	 */
+	remove_inode_hash(disk->part0->bd_inode);
+
+	set_capacity(disk, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!(disk->flags & GENHD_FL_HIDDEN)) {
 		sysfs_remove_link(&disk_to_dev(disk)->kobj, "bdi");
@@ -838,11 +1014,20 @@ void __init printk_all_partitions(void)
 		 * numbers in hex - the same format as the root=
 		 * option takes.
 		 */
+<<<<<<< HEAD
 		disk_part_iter_init(&piter, disk, DISK_PITER_INCL_PART0);
 		while ((part = disk_part_iter_next(&piter))) {
 			bool is_part0 = part == disk->part0;
 
 			printk("%s%s %10llu %s %s", is_part0 ? "" : "  ",
+=======
+		rcu_read_lock();
+		xa_for_each(&disk->part_tbl, idx, part) {
+			if (!bdev_nr_sectors(part))
+				continue;
+			printk("%s%s %10llu %s %s",
+			       bdev_is_partition(part) ? "  " : "",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			       bdevt_str(part->bd_dev, devt_buf),
 			       bdev_nr_sectors(part) >> 1,
 			       disk_name(disk, part->bd_partno, name_buf),
@@ -924,6 +1109,10 @@ static int show_partition(struct seq_file *seqf, void *v)
 	struct gendisk *sgp = v;
 	struct disk_part_iter piter;
 	struct block_device *part;
+<<<<<<< HEAD
+=======
+	unsigned long idx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	char buf[BDEVNAME_SIZE];
 
 	/* Don't show non-partitionable removeable devices or empty devices */
@@ -933,15 +1122,27 @@ static int show_partition(struct seq_file *seqf, void *v)
 	if (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO)
 		return 0;
 
+<<<<<<< HEAD
 	/* show the full disk and all non-0 size partitions of it */
 	disk_part_iter_init(&piter, sgp, DISK_PITER_INCL_PART0);
 	while ((part = disk_part_iter_next(&piter)))
+=======
+	rcu_read_lock();
+	xa_for_each(&sgp->part_tbl, idx, part) {
+		if (!bdev_nr_sectors(part))
+			continue;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		seq_printf(seqf, "%4d  %7d %10llu %s\n",
 			   MAJOR(part->bd_dev), MINOR(part->bd_dev),
 			   bdev_nr_sectors(part) >> 1,
 			   disk_name(sgp, part->bd_partno, buf));
+<<<<<<< HEAD
 	disk_part_iter_exit(&piter);
 
+=======
+	}
+	rcu_read_unlock();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -1160,6 +1361,12 @@ static struct attribute *disk_attrs[] = {
 	&dev_attr_stat.attr,
 	&dev_attr_inflight.attr,
 	&dev_attr_badblocks.attr,
+<<<<<<< HEAD
+=======
+	&dev_attr_events.attr,
+	&dev_attr_events_async.attr,
+	&dev_attr_events_poll_msecs.attr,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_FAIL_MAKE_REQUEST
 	&dev_attr_fail.attr,
 #endif
@@ -1209,6 +1416,7 @@ static void disk_release(struct device *dev)
 
 	might_sleep();
 
+<<<<<<< HEAD
 	blk_free_devt(dev->devt);
 	disk_release_events(disk);
 	kfree(disk->random);
@@ -1217,6 +1425,16 @@ static void disk_release(struct device *dev)
 	if (disk->queue)
 		blk_put_queue(disk->queue);
 	kfree(disk);
+=======
+	if (MAJOR(dev->devt) == BLOCK_EXT_MAJOR)
+		blk_free_ext_minor(MINOR(dev->devt));
+	disk_release_events(disk);
+	kfree(disk->random);
+	xa_destroy(&disk->part_tbl);
+	if (test_bit(GD_QUEUE_REF, &disk->state) && disk->queue)
+		blk_put_queue(disk->queue);
+	bdput(disk->part0);	/* frees the disk */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 struct class block_class = {
 	.name		= "block",
@@ -1366,6 +1584,7 @@ struct gendisk *__alloc_disk_node(int minors, int node_id)
 {
 	struct gendisk *disk;
 
+<<<<<<< HEAD
 	if (minors > DISK_MAX_PARTS) {
 		printk(KERN_ERR
 			"block: can't allocate more than %d partitions\n",
@@ -1373,6 +1592,8 @@ struct gendisk *__alloc_disk_node(int minors, int node_id)
 		minors = DISK_MAX_PARTS;
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	disk = kzalloc_node(sizeof(struct gendisk), GFP_KERNEL, node_id);
 	if (!disk)
 		return NULL;
@@ -1402,6 +1623,28 @@ out_free_disk:
 }
 EXPORT_SYMBOL(__alloc_disk_node);
 
+<<<<<<< HEAD
+=======
+struct gendisk *__blk_alloc_disk(int node)
+{
+	struct request_queue *q;
+	struct gendisk *disk;
+
+	q = blk_alloc_queue(node);
+	if (!q)
+		return NULL;
+
+	disk = __alloc_disk_node(0, node);
+	if (!disk) {
+		blk_cleanup_queue(q);
+		return NULL;
+	}
+	disk->queue = q;
+	return disk;
+}
+EXPORT_SYMBOL(__blk_alloc_disk);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * put_disk - decrements the gendisk refcount
  * @disk: the struct gendisk to decrement the refcount for
@@ -1456,6 +1699,7 @@ int bdev_read_only(struct block_device *bdev)
 	return bdev->bd_read_only || get_disk_ro(bdev->bd_disk);
 }
 EXPORT_SYMBOL(bdev_read_only);
+<<<<<<< HEAD
 
 /*
  * Disk events - monitor disk events like media change and eject request.
@@ -1941,3 +2185,5 @@ static void disk_release_events(struct gendisk *disk)
 	WARN_ON_ONCE(disk->ev && disk->ev->block != 1);
 	kfree(disk->ev);
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

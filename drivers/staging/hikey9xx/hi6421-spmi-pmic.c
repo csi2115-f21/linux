@@ -33,6 +33,7 @@ enum hi6421_spmi_pmic_irq_list {
 	SIM0_HPD_F,
 	SIM1_HPD_R,
 	SIM1_HPD_F,
+<<<<<<< HEAD
 	PMIC_IRQ_LIST_MAX,
 };
 
@@ -44,13 +45,42 @@ enum hi6421_spmi_pmic_irq_list {
 #define HISI_BITS			8
 #define HISI_IRQ_KEY_VALUE		(BIT(POWERKEY_DOWN) | BIT(POWERKEY_UP))
 #define HISI_MASK			GENMASK(HISI_BITS - 1, 0)
+=======
+
+	PMIC_IRQ_LIST_MAX
+};
+
+#define HISI_IRQ_BANK_SIZE		2
+
+/*
+ * IRQ number for the power key button and mask for both UP and DOWN IRQs
+ */
+#define HISI_POWERKEY_IRQ_NUM		0
+#define HISI_IRQ_POWERKEY_UP_DOWN	(BIT(POWERKEY_DOWN) | BIT(POWERKEY_UP))
+
+/*
+ * Registers for IRQ address and IRQ mask bits
+ *
+ * Please notice that we need to regmap a larger region, as other
+ * registers are used by the regulators.
+ * See drivers/regulator/hi6421-regulator.c.
+ */
+#define SOC_PMIC_IRQ_MASK_0_ADDR	0x0202
+#define SOC_PMIC_IRQ0_ADDR		0x0212
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * The IRQs are mapped as:
  *
+<<<<<<< HEAD
  * 	======================  =============   ============	=====
  *	IRQ			MASK REGISTER 	IRQ REGISTER	BIT
  * 	======================  =============   ============	=====
+=======
+ *	======================  =============   ============	=====
+ *	IRQ			MASK REGISTER	IRQ REGISTER	BIT
+ *	======================  =============   ============	=====
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *	OTMP			0x0202		0x212		bit 0
  *	VBUS_CONNECT		0x0202		0x212		bit 1
  *	VBUS_DISCONNECT		0x0202		0x212		bit 2
@@ -66,6 +96,7 @@ enum hi6421_spmi_pmic_irq_list {
  *	SIM0_HPD_F		0x0203		0x213		bit 3
  *	SIM1_HPD_R		0x0203		0x213		bit 4
  *	SIM1_HPD_F		0x0203		0x213		bit 5
+<<<<<<< HEAD
  * 	======================  =============   ============	=====
  */
 #define SOC_PMIC_IRQ_MASK_0_ADDR	0x0202
@@ -74,6 +105,17 @@ enum hi6421_spmi_pmic_irq_list {
 #define IRQ_MASK_REGISTER(irq_data)	(SOC_PMIC_IRQ_MASK_0_ADDR + \
 					 (irqd_to_hwirq(irq_data) >> 3))
 #define IRQ_MASK_BIT(irq_data)		BIT(irqd_to_hwirq(irq_data) & 0x07)
+=======
+ *	======================  =============   ============	=====
+ *
+ * Each mask register contains 8 bits. The ancillary macros below
+ * convert a number from 0 to 14 into a register address and a bit mask
+ */
+#define HISI_IRQ_MASK_REG(irq_data)	(SOC_PMIC_IRQ_MASK_0_ADDR + \
+					 (irqd_to_hwirq(irq_data) / BITS_PER_BYTE))
+#define HISI_IRQ_MASK_BIT(irq_data)	BIT(irqd_to_hwirq(irq_data) & (BITS_PER_BYTE - 1))
+#define HISI_8BITS_MASK			0xff
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static const struct mfd_cell hi6421v600_devs[] = {
 	{ .name = "hi6421v600-regulator", },
@@ -86,6 +128,7 @@ static irqreturn_t hi6421_spmi_irq_handler(int irq, void *priv)
 	unsigned int in;
 	int i, offset;
 
+<<<<<<< HEAD
 	for (i = 0; i < HISI_IRQ_ARRAY; i++) {
 		regmap_read(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i, &in);
 		pending = HISI_MASK & in;
@@ -96,13 +139,38 @@ static irqreturn_t hi6421_spmi_irq_handler(int irq, void *priv)
 			generic_handle_irq(ddata->irqs[POWERKEY_DOWN]);
 			generic_handle_irq(ddata->irqs[POWERKEY_UP]);
 			pending &= (~HISI_IRQ_KEY_VALUE);
+=======
+	for (i = 0; i < HISI_IRQ_BANK_SIZE; i++) {
+		regmap_read(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i, &in);
+
+		/* Mark pending IRQs as handled */
+		regmap_write(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i, in);
+
+		pending = in & HISI_8BITS_MASK;
+
+		if (i == HISI_POWERKEY_IRQ_NUM &&
+		    (pending & HISI_IRQ_POWERKEY_UP_DOWN) == HISI_IRQ_POWERKEY_UP_DOWN) {
+			/*
+			 * If both powerkey down and up IRQs are received,
+			 * handle them at the right order
+			 */
+			generic_handle_irq(ddata->irqs[POWERKEY_DOWN]);
+			generic_handle_irq(ddata->irqs[POWERKEY_UP]);
+			pending &= ~HISI_IRQ_POWERKEY_UP_DOWN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		if (!pending)
 			continue;
 
+<<<<<<< HEAD
 		for_each_set_bit(offset, &pending, HISI_BITS)
 			generic_handle_irq(ddata->irqs[offset + i * HISI_BITS]);
+=======
+		for_each_set_bit(offset, &pending, BITS_PER_BYTE) {
+			generic_handle_irq(ddata->irqs[offset + i * BITS_PER_BYTE]);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return IRQ_HANDLED;
@@ -115,12 +183,20 @@ static void hi6421_spmi_irq_mask(struct irq_data *d)
 	unsigned int data;
 	u32 offset;
 
+<<<<<<< HEAD
 	offset = IRQ_MASK_REGISTER(d);
+=======
+	offset = HISI_IRQ_MASK_REG(d);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_lock_irqsave(&ddata->lock, flags);
 
 	regmap_read(ddata->regmap, offset, &data);
+<<<<<<< HEAD
 	data |= IRQ_MASK_BIT(d);
+=======
+	data |= HISI_IRQ_MASK_BIT(d);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	regmap_write(ddata->regmap, offset, data);
 
 	spin_unlock_irqrestore(&ddata->lock, flags);
@@ -132,20 +208,32 @@ static void hi6421_spmi_irq_unmask(struct irq_data *d)
 	u32 data, offset;
 	unsigned long flags;
 
+<<<<<<< HEAD
 	offset = (irqd_to_hwirq(d) >> 3);
 	offset += SOC_PMIC_IRQ_MASK_0_ADDR;
+=======
+	offset = HISI_IRQ_MASK_REG(d);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_lock_irqsave(&ddata->lock, flags);
 
 	regmap_read(ddata->regmap, offset, &data);
+<<<<<<< HEAD
 	data &= ~(1 << (irqd_to_hwirq(d) & 0x07));
+=======
+	data &= ~HISI_IRQ_MASK_BIT(d);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	regmap_write(ddata->regmap, offset, data);
 
 	spin_unlock_irqrestore(&ddata->lock, flags);
 }
 
 static struct irq_chip hi6421_spmi_pmu_irqchip = {
+<<<<<<< HEAD
 	.name		= "hisi-irq",
+=======
+	.name		= "hi6421v600-irq",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.irq_mask	= hi6421_spmi_irq_mask,
 	.irq_unmask	= hi6421_spmi_irq_unmask,
 	.irq_disable	= hi6421_spmi_irq_mask,
@@ -158,7 +246,11 @@ static int hi6421_spmi_irq_map(struct irq_domain *d, unsigned int virq,
 	struct hi6421_spmi_pmic *ddata = d->host_data;
 
 	irq_set_chip_and_handler_name(virq, &hi6421_spmi_pmu_irqchip,
+<<<<<<< HEAD
 				      handle_simple_irq, "hisi");
+=======
+				      handle_simple_irq, "hi6421v600");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	irq_set_chip_data(virq, ddata);
 	irq_set_irq_type(virq, IRQ_TYPE_NONE);
 
@@ -175,6 +267,7 @@ static void hi6421_spmi_pmic_irq_init(struct hi6421_spmi_pmic *ddata)
 	int i;
 	unsigned int pending;
 
+<<<<<<< HEAD
 	for (i = 0; i < HISI_IRQ_ARRAY; i++)
 		regmap_write(ddata->regmap, SOC_PMIC_IRQ_MASK_0_ADDR + i,
 			     HISI_MASK);
@@ -183,14 +276,33 @@ static void hi6421_spmi_pmic_irq_init(struct hi6421_spmi_pmic *ddata)
 		regmap_read(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i, &pending);
 		regmap_write(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i,
 			     HISI_MASK);
+=======
+	/* Mask all IRQs */
+	for (i = 0; i < HISI_IRQ_BANK_SIZE; i++)
+		regmap_write(ddata->regmap, SOC_PMIC_IRQ_MASK_0_ADDR + i,
+			     HISI_8BITS_MASK);
+
+	/* Mark all IRQs as handled */
+	for (i = 0; i < HISI_IRQ_BANK_SIZE; i++) {
+		regmap_read(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i, &pending);
+		regmap_write(ddata->regmap, SOC_PMIC_IRQ0_ADDR + i,
+			     HISI_8BITS_MASK);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
 static const struct regmap_config regmap_config = {
+<<<<<<< HEAD
 	.reg_bits		= 16,
 	.val_bits		= HISI_BITS,
 	.max_register		= 0xffff,
 	.fast_io		= true
+=======
+	.reg_bits	= 16,
+	.val_bits	= BITS_PER_BYTE,
+	.max_register	= 0xffff,
+	.fast_io	= true
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static int hi6421_spmi_pmic_probe(struct spmi_device *pdev)
@@ -230,29 +342,53 @@ static int hi6421_spmi_pmic_probe(struct spmi_device *pdev)
 
 	hi6421_spmi_pmic_irq_init(ddata);
 
+<<<<<<< HEAD
 	ddata->irqs = devm_kzalloc(dev, HISI_IRQ_NUM * sizeof(int), GFP_KERNEL);
 	if (!ddata->irqs)
 		return -ENOMEM;
 
 	ddata->domain = irq_domain_add_simple(np, HISI_IRQ_NUM, 0,
+=======
+	ddata->irqs = devm_kzalloc(dev, PMIC_IRQ_LIST_MAX * sizeof(int), GFP_KERNEL);
+	if (!ddata->irqs)
+		return -ENOMEM;
+
+	ddata->domain = irq_domain_add_simple(np, PMIC_IRQ_LIST_MAX, 0,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					      &hi6421_spmi_domain_ops, ddata);
 	if (!ddata->domain) {
 		dev_err(dev, "Failed to create IRQ domain\n");
 		return -ENODEV;
 	}
 
+<<<<<<< HEAD
 	for (i = 0; i < HISI_IRQ_NUM; i++) {
 		virq = irq_create_mapping(ddata->domain, i);
 		if (!virq) {
 			dev_err(dev, "Failed to map H/W IRQ\n");
 			return -ENOSPC;
+=======
+	for (i = 0; i < PMIC_IRQ_LIST_MAX; i++) {
+		virq = irq_create_mapping(ddata->domain, i);
+		if (!virq) {
+			dev_err(dev, "Failed to map H/W IRQ\n");
+			return -ENODEV;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		ddata->irqs[i] = virq;
 	}
 
+<<<<<<< HEAD
 	ret = request_threaded_irq(ddata->irq, hi6421_spmi_irq_handler, NULL,
 				   IRQF_TRIGGER_LOW | IRQF_SHARED | IRQF_NO_SUSPEND,
 				   "pmic", ddata);
+=======
+	ret = devm_request_threaded_irq(dev,
+					ddata->irq, hi6421_spmi_irq_handler,
+					NULL,
+				        IRQF_TRIGGER_LOW | IRQF_SHARED | IRQF_NO_SUSPEND,
+				        "pmic", ddata);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret < 0) {
 		dev_err(dev, "Failed to start IRQ handling thread: error %d\n",
 			ret);
@@ -270,6 +406,7 @@ static int hi6421_spmi_pmic_probe(struct spmi_device *pdev)
 	return ret;
 }
 
+<<<<<<< HEAD
 static void hi6421_spmi_pmic_remove(struct spmi_device *pdev)
 {
 	struct hi6421_spmi_pmic *ddata = dev_get_drvdata(&pdev->dev);
@@ -277,6 +414,8 @@ static void hi6421_spmi_pmic_remove(struct spmi_device *pdev)
 	free_irq(ddata->irq, ddata);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct of_device_id pmic_spmi_id_table[] = {
 	{ .compatible = "hisilicon,hi6421-spmi" },
 	{ }
@@ -289,7 +428,10 @@ static struct spmi_driver hi6421_spmi_pmic_driver = {
 		.of_match_table = pmic_spmi_id_table,
 	},
 	.probe	= hi6421_spmi_pmic_probe,
+<<<<<<< HEAD
 	.remove	= hi6421_spmi_pmic_remove,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 module_spmi_driver(hi6421_spmi_pmic_driver);
 

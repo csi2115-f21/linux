@@ -20,10 +20,40 @@
 
 #define FANOTIFY_FID_BITS	(FAN_REPORT_FID | FAN_REPORT_DFID_NAME)
 
+<<<<<<< HEAD
 #define FANOTIFY_INIT_FLAGS	(FANOTIFY_CLASS_BITS | FANOTIFY_FID_BITS | \
 				 FAN_REPORT_TID | \
 				 FAN_CLOEXEC | FAN_NONBLOCK | \
 				 FAN_UNLIMITED_QUEUE | FAN_UNLIMITED_MARKS)
+=======
+/*
+ * fanotify_init() flags that require CAP_SYS_ADMIN.
+ * We do not allow unprivileged groups to request permission events.
+ * We do not allow unprivileged groups to get other process pid in events.
+ * We do not allow unprivileged groups to use unlimited resources.
+ */
+#define FANOTIFY_ADMIN_INIT_FLAGS	(FANOTIFY_PERM_CLASSES | \
+					 FAN_REPORT_TID | \
+					 FAN_UNLIMITED_QUEUE | \
+					 FAN_UNLIMITED_MARKS)
+
+/*
+ * fanotify_init() flags that are allowed for user without CAP_SYS_ADMIN.
+ * FAN_CLASS_NOTIF is the only class we allow for unprivileged group.
+ * We do not allow unprivileged groups to get file descriptors in events,
+ * so one of the flags for reporting file handles is required.
+ */
+#define FANOTIFY_USER_INIT_FLAGS	(FAN_CLASS_NOTIF | \
+					 FANOTIFY_FID_BITS | \
+					 FAN_CLOEXEC | FAN_NONBLOCK)
+
+#define FANOTIFY_INIT_FLAGS	(FANOTIFY_ADMIN_INIT_FLAGS | \
+				 FANOTIFY_USER_INIT_FLAGS)
+
+/* Internal group flags */
+#define FANOTIFY_UNPRIV		0x80000000
+#define FANOTIFY_INTERNAL_GROUP_FLAGS	(FANOTIFY_UNPRIV)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define FANOTIFY_MARK_TYPE_BITS	(FAN_MARK_INODE | FAN_MARK_MOUNT | \
 				 FAN_MARK_FILESYSTEM)

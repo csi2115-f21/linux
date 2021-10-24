@@ -1070,7 +1070,11 @@ out_free_interp:
 		elf_prot = make_prot(elf_ppnt->p_flags, &arch_state,
 				     !!interpreter, false);
 
+<<<<<<< HEAD
 		elf_flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_EXECUTABLE;
+=======
+		elf_flags = MAP_PRIVATE | MAP_DENYWRITE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		vaddr = elf_ppnt->p_vaddr;
 		/*

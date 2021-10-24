@@ -105,6 +105,27 @@ static const int xpcs_xlgmii_features[] = {
 	__ETHTOOL_LINK_MODE_MASK_NBITS,
 };
 
+<<<<<<< HEAD
+=======
+static const int xpcs_sgmii_features[] = {
+	ETHTOOL_LINK_MODE_10baseT_Half_BIT,
+	ETHTOOL_LINK_MODE_10baseT_Full_BIT,
+	ETHTOOL_LINK_MODE_100baseT_Half_BIT,
+	ETHTOOL_LINK_MODE_100baseT_Full_BIT,
+	ETHTOOL_LINK_MODE_1000baseT_Half_BIT,
+	ETHTOOL_LINK_MODE_1000baseT_Full_BIT,
+	__ETHTOOL_LINK_MODE_MASK_NBITS,
+};
+
+static const int xpcs_2500basex_features[] = {
+	ETHTOOL_LINK_MODE_Asym_Pause_BIT,
+	ETHTOOL_LINK_MODE_Autoneg_BIT,
+	ETHTOOL_LINK_MODE_2500baseX_Full_BIT,
+	ETHTOOL_LINK_MODE_2500baseT_Full_BIT,
+	__ETHTOOL_LINK_MODE_MASK_NBITS,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const phy_interface_t xpcs_usxgmii_interfaces[] = {
 	PHY_INTERFACE_MODE_USXGMII,
 	PHY_INTERFACE_MODE_MAX,
@@ -576,9 +597,120 @@ static void xpcs_resolve_pma(struct mdio_xpcs_args *xpcs,
 	}
 }
 
+<<<<<<< HEAD
 static int xpcs_validate(struct mdio_xpcs_args *xpcs,
 			 unsigned long *supported,
 			 struct phylink_link_state *state)
+=======
+void xpcs_validate(struct dw_xpcs *xpcs, unsigned long *supported,
+		   struct phylink_link_state *state)
+{
+	__ETHTOOL_DECLARE_LINK_MODE_MASK(xpcs_supported);
+	const struct xpcs_compat *compat;
+	int i;
+
+	/* phylink expects us to report all supported modes with
+	 * PHY_INTERFACE_MODE_NA, just don't limit the supported and
+	 * advertising masks and exit.
+	 */
+	if (state->interface == PHY_INTERFACE_MODE_NA)
+		return;
+
+	bitmap_zero(xpcs_supported, __ETHTOOL_LINK_MODE_MASK_NBITS);
+
+	compat = xpcs_find_compat(xpcs->id, state->interface);
+
+	/* Populate the supported link modes for this
+	 * PHY interface type
+	 */
+	if (compat)
+		for (i = 0; compat->supported[i] != __ETHTOOL_LINK_MODE_MASK_NBITS; i++)
+			set_bit(compat->supported[i], xpcs_supported);
+
+	linkmode_and(supported, supported, xpcs_supported);
+	linkmode_and(state->advertising, state->advertising, xpcs_supported);
+}
+EXPORT_SYMBOL_GPL(xpcs_validate);
+
+int xpcs_config_eee(struct dw_xpcs *xpcs, int mult_fact_100ns, int enable)
+{
+	int ret;
+
+	if (enable) {
+	/* Enable EEE */
+		ret = DW_VR_MII_EEE_LTX_EN | DW_VR_MII_EEE_LRX_EN |
+		      DW_VR_MII_EEE_TX_QUIET_EN | DW_VR_MII_EEE_RX_QUIET_EN |
+		      DW_VR_MII_EEE_TX_EN_CTRL | DW_VR_MII_EEE_RX_EN_CTRL |
+		      mult_fact_100ns << DW_VR_MII_EEE_MULT_FACT_100NS_SHIFT;
+	} else {
+		ret = xpcs_read(xpcs, MDIO_MMD_VEND2, DW_VR_MII_EEE_MCTRL0);
+		if (ret < 0)
+			return ret;
+		ret &= ~(DW_VR_MII_EEE_LTX_EN | DW_VR_MII_EEE_LRX_EN |
+		       DW_VR_MII_EEE_TX_QUIET_EN | DW_VR_MII_EEE_RX_QUIET_EN |
+		       DW_VR_MII_EEE_TX_EN_CTRL | DW_VR_MII_EEE_RX_EN_CTRL |
+		       DW_VR_MII_EEE_MULT_FACT_100NS);
+	}
+
+	ret = xpcs_write(xpcs, MDIO_MMD_VEND2, DW_VR_MII_EEE_MCTRL0, ret);
+	if (ret < 0)
+		return ret;
+
+	ret = xpcs_read(xpcs, MDIO_MMD_VEND2, DW_VR_MII_EEE_MCTRL1);
+	if (ret < 0)
+		return ret;
+
+	ret |= DW_VR_MII_EEE_TRN_LPI;
+	return xpcs_write(xpcs, MDIO_MMD_VEND2, DW_VR_MII_EEE_MCTRL1, ret);
+}
+EXPORT_SYMBOL_GPL(xpcs_config_eee);
+
+static int xpcs_config_aneg_c37_sgmii(struct dw_xpcs *xpcs, unsigned int mode)
+{
+	int ret;
+
+	/* For AN for C37 SGMII mode, the settings are :-
+	 * 1) VR_MII_AN_CTRL Bit(2:1)[PCS_MODE] = 10b (SGMII AN)
+	 * 2) VR_MII_AN_CTRL Bit(3) [TX_CONFIG] = 0b (MAC side SGMII)
+	 *    DW xPCS used with DW EQoS MAC is always MAC side SGMII.
+	 * 3) VR_MII_DIG_CTRL1 Bit(9) [MAC_AUTO_SW] = 1b (Automatic
+	 *    speed/duplex mode change by HW after SGMII AN complete)
+	 *
+	 * Note: Since it is MAC side SGMII, there is no need to set
+	 *	 SR_MII_AN_ADV. MAC side SGMII receives AN Tx Config from
+	 *	 PHY about the link state change after C28 AN is completed
+	 *	 between PHY and Link Partner. There is also no need to
+	 *	 trigger AN restart for MAC-side SGMII.
+	 */
+	ret = xpcs_read(xpcs, MDIO_MMD_VEND2, DW_VR_MII_AN_CTRL);
+	if (ret < 0)
+		return ret;
+
+	ret &= ~(DW_VR_MII_PCS_MODE_MASK | DW_VR_MII_TX_CONFIG_MASK);
+	ret |= (DW_VR_MII_PCS_MODE_C37_SGMII <<
+		DW_VR_MII_AN_CTRL_PCS_MODE_SHIFT &
+		DW_VR_MII_PCS_MODE_MASK);
+	ret |= (DW_VR_MII_TX_CONFIG_MAC_SIDE_SGMII <<
+		DW_VR_MII_AN_CTRL_TX_CONFIG_SHIFT &
+		DW_VR_MII_TX_CONFIG_MASK);
+	ret = xpcs_write(xpcs, MDIO_MMD_VEND2, DW_VR_MII_AN_CTRL, ret);
+	if (ret < 0)
+		return ret;
+
+	ret = xpcs_read(xpcs, MDIO_MMD_VEND2, DW_VR_MII_DIG_CTRL1);
+	if (ret < 0)
+		return ret;
+
+	if (phylink_autoneg_inband(mode))
+		ret |= DW_VR_MII_DIG_CTRL1_MAC_AUTO_SW;
+	else
+		ret &= ~DW_VR_MII_DIG_CTRL1_MAC_AUTO_SW;
+
+	return xpcs_write(xpcs, MDIO_MMD_VEND2, DW_VR_MII_DIG_CTRL1, ret);
+}
+
+static int xpcs_config_2500basex(struct dw_xpcs *xpcs)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	linkmode_and(supported, supported, xpcs->supported);
 	linkmode_and(state->advertising, state->advertising, xpcs->supported);
@@ -681,9 +813,23 @@ static bool xpcs_check_features(struct mdio_xpcs_args *xpcs,
 
 static int xpcs_probe(struct mdio_xpcs_args *xpcs, phy_interface_t interface)
 {
+<<<<<<< HEAD
 	u32 xpcs_id = xpcs_get_id(xpcs);
 	struct xpcs_id *match = NULL;
 	int i;
+=======
+	struct dw_xpcs *xpcs;
+	u32 xpcs_id;
+	int i, ret;
+
+	xpcs = kzalloc(sizeof(*xpcs), GFP_KERNEL);
+	if (!xpcs)
+		return NULL;
+
+	xpcs->mdiodev = mdiodev;
+
+	xpcs_id = xpcs_get_id(xpcs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	for (i = 0; i < ARRAY_SIZE(xpcs_id_list); i++) {
 		struct xpcs_id *entry = &xpcs_id_list[i];

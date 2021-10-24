@@ -1393,7 +1393,11 @@ static unsigned int tcmu_handle_completions(struct tcmu_dev *udev)
 
 	while (udev->cmdr_last_cleaned != READ_ONCE(mb->cmd_tail)) {
 
+<<<<<<< HEAD
 		struct tcmu_cmd_entry *entry = (void *) mb + CMDR_OFF + udev->cmdr_last_cleaned;
+=======
+		struct tcmu_cmd_entry *entry = udev->cmdr + udev->cmdr_last_cleaned;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/*
 		 * Flush max. up to end of cmd ring since current entry might
@@ -1415,7 +1419,11 @@ static unsigned int tcmu_handle_completions(struct tcmu_dev *udev)
 		}
 		WARN_ON(tcmu_hdr_get_op(entry->hdr.len_op) != TCMU_OP_CMD);
 
+<<<<<<< HEAD
 		cmd = idr_remove(&udev->commands, entry->hdr.cmd_id);
+=======
+		cmd = xa_erase(&udev->commands, entry->hdr.cmd_id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!cmd) {
 			pr_err("cmd_id %u not found, ring is broken\n",
 			       entry->hdr.cmd_id);
@@ -2230,12 +2238,20 @@ static void tcmu_reset_ring(struct tcmu_dev *udev, u8 err_level)
 
 	mutex_lock(&udev->cmdr_lock);
 
+<<<<<<< HEAD
 	idr_for_each_entry(&udev->commands, cmd, i) {
+=======
+	xa_for_each(&udev->commands, i, cmd) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pr_debug("removing cmd %u on dev %s from ring (is expired %d)\n",
 			  cmd->cmd_id, udev->name,
 			  test_bit(TCMU_CMD_BIT_EXPIRED, &cmd->flags));
 
+<<<<<<< HEAD
 		idr_remove(&udev->commands, i);
+=======
+		xa_erase(&udev->commands, i);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!test_bit(TCMU_CMD_BIT_EXPIRED, &cmd->flags)) {
 			WARN_ON(!cmd->se_cmd);
 			list_del_init(&cmd->queue_entry);

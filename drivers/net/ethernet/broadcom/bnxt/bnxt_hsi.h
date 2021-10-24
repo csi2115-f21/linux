@@ -356,6 +356,15 @@ struct cmd_nums {
 	#define HWRM_STAT_EXT_CTX_QUERY                   0x199UL
 	#define HWRM_FUNC_SPD_CFG                         0x19aUL
 	#define HWRM_FUNC_SPD_QCFG                        0x19bUL
+<<<<<<< HEAD
+=======
+	#define HWRM_FUNC_PTP_PIN_QCFG                    0x19cUL
+	#define HWRM_FUNC_PTP_PIN_CFG                     0x19dUL
+	#define HWRM_FUNC_PTP_CFG                         0x19eUL
+	#define HWRM_FUNC_PTP_TS_QUERY                    0x19fUL
+	#define HWRM_FUNC_PTP_EXT_CFG                     0x1a0UL
+	#define HWRM_FUNC_PTP_EXT_QCFG                    0x1a1UL
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	#define HWRM_SELFTEST_QLIST                       0x200UL
 	#define HWRM_SELFTEST_EXEC                        0x201UL
 	#define HWRM_SELFTEST_IRQ                         0x202UL
@@ -502,8 +511,13 @@ struct hwrm_err_output {
 #define HWRM_VERSION_MAJOR 1
 #define HWRM_VERSION_MINOR 10
 #define HWRM_VERSION_UPDATE 2
+<<<<<<< HEAD
 #define HWRM_VERSION_RSVD 16
 #define HWRM_VERSION_STR "1.10.2.16"
+=======
+#define HWRM_VERSION_RSVD 47
+#define HWRM_VERSION_STR "1.10.2.47"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* hwrm_ver_get_input (size:192b/24B) */
 struct hwrm_ver_get_input {
@@ -1074,6 +1088,226 @@ struct hwrm_async_event_cmpl_echo_request {
 	__le32	event_data1;
 };
 
+<<<<<<< HEAD
+=======
+/* hwrm_async_event_cmpl_phc_master (size:128b/16B) */
+struct hwrm_async_event_cmpl_phc_master {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_TYPE_LAST             ASYNC_EVENT_CMPL_PHC_MASTER_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_ID_PHC_MASTER 0x43UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_ID_LAST      ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_ID_PHC_MASTER
+	__le32	event_data2;
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA2_PHC_MASTER_FID_MASK 0xffffUL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA2_PHC_MASTER_FID_SFT 0
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA2_PHC_SEC_FID_MASK   0xffff0000UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA2_PHC_SEC_FID_SFT    16
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_V          0x1UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_MASK         0xfUL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_SFT          0
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_PHC_MASTER     0x1UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_PHC_SECONDARY  0x2UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_PHC_FAILOVER   0x3UL
+	#define ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_LAST          ASYNC_EVENT_CMPL_PHC_MASTER_EVENT_DATA1_FLAGS_PHC_FAILOVER
+};
+
+/* hwrm_async_event_cmpl_pps_timestamp (size:128b/16B) */
+struct hwrm_async_event_cmpl_pps_timestamp {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_TYPE_LAST             ASYNC_EVENT_CMPL_PPS_TIMESTAMP_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_ID_PPS_TIMESTAMP 0x44UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_ID_LAST         ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_ID_PPS_TIMESTAMP
+	__le32	event_data2;
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_EVENT_TYPE              0x1UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_EVENT_TYPE_INTERNAL       0x0UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_EVENT_TYPE_EXTERNAL       0x1UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_EVENT_TYPE_LAST          ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_EVENT_TYPE_EXTERNAL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_PIN_NUMBER_MASK         0xeUL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_PIN_NUMBER_SFT          1
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_PPS_TIMESTAMP_UPPER_MASK 0xffff0UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA2_PPS_TIMESTAMP_UPPER_SFT 4
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_V          0x1UL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA1_PPS_TIMESTAMP_LOWER_MASK 0xffffffffUL
+	#define ASYNC_EVENT_CMPL_PPS_TIMESTAMP_EVENT_DATA1_PPS_TIMESTAMP_LOWER_SFT 0
+};
+
+/* hwrm_async_event_cmpl_error_report (size:128b/16B) */
+struct hwrm_async_event_cmpl_error_report {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_TYPE_LAST             ASYNC_EVENT_CMPL_ERROR_REPORT_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_EVENT_ID_ERROR_REPORT 0x45UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_EVENT_ID_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_EVENT_ID_ERROR_REPORT
+	__le32	event_data2;
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_V          0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_EVENT_DATA1_ERROR_TYPE_MASK 0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_EVENT_DATA1_ERROR_TYPE_SFT 0
+};
+
+/* hwrm_async_event_cmpl_hwrm_error (size:128b/16B) */
+struct hwrm_async_event_cmpl_hwrm_error {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_TYPE_LAST             ASYNC_EVENT_CMPL_HWRM_ERROR_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_ID_HWRM_ERROR 0xffUL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_ID_LAST      ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_ID_HWRM_ERROR
+	__le32	event_data2;
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_MASK    0xffUL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_SFT     0
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_WARNING   0x0UL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_NONFATAL  0x1UL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_FATAL     0x2UL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_LAST     ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA2_SEVERITY_FATAL
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_V          0x1UL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_HWRM_ERROR_EVENT_DATA1_TIMESTAMP     0x1UL
+};
+
+/* hwrm_async_event_cmpl_error_report_base (size:128b/16B) */
+struct hwrm_async_event_cmpl_error_report_base {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_TYPE_LAST             ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_ID_ERROR_REPORT 0x45UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_ID_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_ID_ERROR_REPORT
+	__le32	event_data2;
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_V          0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_MASK          0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_SFT           0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_RESERVED        0x0UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_PAUSE_STORM     0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_INVALID_SIGNAL  0x2UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_NVM             0x3UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_LAST           ASYNC_EVENT_CMPL_ERROR_REPORT_BASE_EVENT_DATA1_ERROR_TYPE_NVM
+};
+
+/* hwrm_async_event_cmpl_error_report_pause_storm (size:128b/16B) */
+struct hwrm_async_event_cmpl_error_report_pause_storm {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_TYPE_LAST             ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_ID_ERROR_REPORT 0x45UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_ID_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_ID_ERROR_REPORT
+	__le32	event_data2;
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_V          0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_DATA1_ERROR_TYPE_MASK       0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_DATA1_ERROR_TYPE_SFT        0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_DATA1_ERROR_TYPE_PAUSE_STORM  0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_DATA1_ERROR_TYPE_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_PAUSE_STORM_EVENT_DATA1_ERROR_TYPE_PAUSE_STORM
+};
+
+/* hwrm_async_event_cmpl_error_report_invalid_signal (size:128b/16B) */
+struct hwrm_async_event_cmpl_error_report_invalid_signal {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_TYPE_LAST             ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_ID_ERROR_REPORT 0x45UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_ID_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_ID_ERROR_REPORT
+	__le32	event_data2;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA2_PIN_ID_MASK 0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA2_PIN_ID_SFT 0
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_V          0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA1_ERROR_TYPE_MASK          0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA1_ERROR_TYPE_SFT           0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA1_ERROR_TYPE_INVALID_SIGNAL  0x2UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA1_ERROR_TYPE_LAST           ASYNC_EVENT_CMPL_ERROR_REPORT_INVALID_SIGNAL_EVENT_DATA1_ERROR_TYPE_INVALID_SIGNAL
+};
+
+/* hwrm_async_event_cmpl_error_report_nvm (size:128b/16B) */
+struct hwrm_async_event_cmpl_error_report_nvm {
+	__le16	type;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_TYPE_MASK            0x3fUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_TYPE_SFT             0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_TYPE_HWRM_ASYNC_EVENT  0x2eUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_TYPE_LAST             ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_TYPE_HWRM_ASYNC_EVENT
+	__le16	event_id;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_ID_ERROR_REPORT 0x45UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_ID_LAST        ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_ID_ERROR_REPORT
+	__le32	event_data2;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA2_ERR_ADDR_MASK 0xffffffffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA2_ERR_ADDR_SFT 0
+	u8	opaque_v;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_V          0x1UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_OPAQUE_MASK 0xfeUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_OPAQUE_SFT 1
+	u8	timestamp_lo;
+	__le16	timestamp_hi;
+	__le32	event_data1;
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_ERROR_TYPE_MASK     0xffUL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_ERROR_TYPE_SFT      0
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_ERROR_TYPE_NVM_ERROR  0x3UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_ERROR_TYPE_LAST      ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_ERROR_TYPE_NVM_ERROR
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_MASK   0xff00UL
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_SFT    8
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_WRITE    (0x1UL << 8)
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_ERASE    (0x2UL << 8)
+	#define ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_LAST    ASYNC_EVENT_CMPL_ERROR_REPORT_NVM_EVENT_DATA1_NVM_ERR_TYPE_ERASE
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* hwrm_func_reset_input (size:192b/24B) */
 struct hwrm_func_reset_input {
 	__le16	req_type;
@@ -1342,7 +1576,11 @@ struct hwrm_func_qcfg_input {
 	u8	unused_0[6];
 };
 
+<<<<<<< HEAD
 /* hwrm_func_qcfg_output (size:768b/96B) */
+=======
+/* hwrm_func_qcfg_output (size:832b/104B) */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct hwrm_func_qcfg_output {
 	__le16	error_code;
 	__le16	req_type;
@@ -1463,11 +1701,43 @@ struct hwrm_func_qcfg_output {
 	#define FUNC_QCFG_RESP_MPC_CHNLS_TE_CFA_ENABLED      0x4UL
 	#define FUNC_QCFG_RESP_MPC_CHNLS_RE_CFA_ENABLED      0x8UL
 	#define FUNC_QCFG_RESP_MPC_CHNLS_PRIMATE_ENABLED     0x10UL
+<<<<<<< HEAD
 	u8	unused_2[6];
 	u8	valid;
 };
 
 /* hwrm_func_cfg_input (size:768b/96B) */
+=======
+	u8	unused_2[3];
+	__le32	partition_min_bw;
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_MASK             0xfffffffUL
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_SFT              0
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_SCALE                     0x10000000UL
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_SCALE_BITS                  (0x0UL << 28)
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_SCALE_BYTES                 (0x1UL << 28)
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_SCALE_LAST                 FUNC_QCFG_RESP_PARTITION_MIN_BW_SCALE_BYTES
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_UNIT_MASK        0xe0000000UL
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_UNIT_SFT         29
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_UNIT_PERCENT1_100  (0x1UL << 29)
+	#define FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_UNIT_LAST         FUNC_QCFG_RESP_PARTITION_MIN_BW_BW_VALUE_UNIT_PERCENT1_100
+	__le32	partition_max_bw;
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_MASK             0xfffffffUL
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_SFT              0
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_SCALE                     0x10000000UL
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_SCALE_BITS                  (0x0UL << 28)
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_SCALE_BYTES                 (0x1UL << 28)
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_SCALE_LAST                 FUNC_QCFG_RESP_PARTITION_MAX_BW_SCALE_BYTES
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_UNIT_MASK        0xe0000000UL
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_UNIT_SFT         29
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_UNIT_PERCENT1_100  (0x1UL << 29)
+	#define FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_UNIT_LAST         FUNC_QCFG_RESP_PARTITION_MAX_BW_BW_VALUE_UNIT_PERCENT1_100
+	__le16	host_mtu;
+	u8	unused_3;
+	u8	valid;
+};
+
+/* hwrm_func_cfg_input (size:832b/104B) */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct hwrm_func_cfg_input {
 	__le16	req_type;
 	__le16	cmpl_ring;
@@ -1530,7 +1800,15 @@ struct hwrm_func_cfg_input {
 	#define FUNC_CFG_REQ_ENABLES_HOT_RESET_IF_SUPPORT     0x800000UL
 	#define FUNC_CFG_REQ_ENABLES_SCHQ_ID                  0x1000000UL
 	#define FUNC_CFG_REQ_ENABLES_MPC_CHNLS                0x2000000UL
+<<<<<<< HEAD
 	__le16	mtu;
+=======
+	#define FUNC_CFG_REQ_ENABLES_PARTITION_MIN_BW         0x4000000UL
+	#define FUNC_CFG_REQ_ENABLES_PARTITION_MAX_BW         0x8000000UL
+	#define FUNC_CFG_REQ_ENABLES_TPID                     0x10000000UL
+	#define FUNC_CFG_REQ_ENABLES_HOST_MTU                 0x20000000UL
+	__le16	admin_mtu;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__le16	mru;
 	__le16	num_rsscos_ctxs;
 	__le16	num_cmpl_rings;
@@ -1615,7 +1893,34 @@ struct hwrm_func_cfg_input {
 	#define FUNC_CFG_REQ_MPC_CHNLS_RE_CFA_DISABLE      0x80UL
 	#define FUNC_CFG_REQ_MPC_CHNLS_PRIMATE_ENABLE      0x100UL
 	#define FUNC_CFG_REQ_MPC_CHNLS_PRIMATE_DISABLE     0x200UL
+<<<<<<< HEAD
 	u8	unused_0[4];
+=======
+	__le32	partition_min_bw;
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_MASK             0xfffffffUL
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_SFT              0
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_SCALE                     0x10000000UL
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_SCALE_BITS                  (0x0UL << 28)
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_SCALE_BYTES                 (0x1UL << 28)
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_SCALE_LAST                 FUNC_CFG_REQ_PARTITION_MIN_BW_SCALE_BYTES
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_UNIT_MASK        0xe0000000UL
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_UNIT_SFT         29
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_UNIT_PERCENT1_100  (0x1UL << 29)
+	#define FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_UNIT_LAST         FUNC_CFG_REQ_PARTITION_MIN_BW_BW_VALUE_UNIT_PERCENT1_100
+	__le32	partition_max_bw;
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_MASK             0xfffffffUL
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_SFT              0
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_SCALE                     0x10000000UL
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_SCALE_BITS                  (0x0UL << 28)
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_SCALE_BYTES                 (0x1UL << 28)
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_SCALE_LAST                 FUNC_CFG_REQ_PARTITION_MAX_BW_SCALE_BYTES
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_UNIT_MASK        0xe0000000UL
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_UNIT_SFT         29
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_UNIT_PERCENT1_100  (0x1UL << 29)
+	#define FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_UNIT_LAST         FUNC_CFG_REQ_PARTITION_MAX_BW_BW_VALUE_UNIT_PERCENT1_100
+	__be16	tpid;
+	__le16	host_mtu;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* hwrm_func_cfg_output (size:128b/16B) */
@@ -1777,6 +2082,7 @@ struct hwrm_func_drv_rgtr_input {
 	__le16	target_id;
 	__le64	resp_addr;
 	__le32	flags;
+<<<<<<< HEAD
 	#define FUNC_DRV_RGTR_REQ_FLAGS_FWD_ALL_MODE               0x1UL
 	#define FUNC_DRV_RGTR_REQ_FLAGS_FWD_NONE_MODE              0x2UL
 	#define FUNC_DRV_RGTR_REQ_FLAGS_16BIT_VER_MODE             0x4UL
@@ -1785,6 +2091,17 @@ struct hwrm_func_drv_rgtr_input {
 	#define FUNC_DRV_RGTR_REQ_FLAGS_ERROR_RECOVERY_SUPPORT     0x20UL
 	#define FUNC_DRV_RGTR_REQ_FLAGS_MASTER_SUPPORT             0x40UL
 	#define FUNC_DRV_RGTR_REQ_FLAGS_FAST_RESET_SUPPORT         0x80UL
+=======
+	#define FUNC_DRV_RGTR_REQ_FLAGS_FWD_ALL_MODE                     0x1UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_FWD_NONE_MODE                    0x2UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_16BIT_VER_MODE                   0x4UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_FLOW_HANDLE_64BIT_MODE           0x8UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_HOT_RESET_SUPPORT                0x10UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_ERROR_RECOVERY_SUPPORT           0x20UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_MASTER_SUPPORT                   0x40UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_FAST_RESET_SUPPORT               0x80UL
+	#define FUNC_DRV_RGTR_REQ_FLAGS_RSS_STRICT_HASH_TYPE_SUPPORT     0x100UL
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__le32	enables;
 	#define FUNC_DRV_RGTR_REQ_ENABLES_OS_TYPE             0x1UL
 	#define FUNC_DRV_RGTR_REQ_ENABLES_VER                 0x2UL
@@ -3647,7 +3964,11 @@ struct hwrm_port_lpbk_clr_stats_output {
 	u8	valid;
 };
 
+<<<<<<< HEAD
 /* hwrm_port_ts_query_input (size:192b/24B) */
+=======
+/* hwrm_port_ts_query_input (size:256b/32B) */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct hwrm_port_ts_query_input {
 	__le16	req_type;
 	__le16	cmpl_ring;
@@ -3662,6 +3983,14 @@ struct hwrm_port_ts_query_input {
 	#define PORT_TS_QUERY_REQ_FLAGS_CURRENT_TIME     0x2UL
 	__le16	port_id;
 	u8	unused_0[2];
+<<<<<<< HEAD
+=======
+	__le16	enables;
+	#define PORT_TS_QUERY_REQ_ENABLES_TS_REQ_TIMEOUT     0x1UL
+	#define PORT_TS_QUERY_REQ_ENABLES_PTP_SEQ_ID         0x2UL
+	__le16	ts_req_timeout;
+	__le32	ptp_seq_id;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* hwrm_port_ts_query_output (size:192b/24B) */

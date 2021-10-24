@@ -1371,7 +1371,11 @@ event_trigger_unlock_commit(struct trace_event_file *file,
 
 /**
  * event_trigger_unlock_commit_regs - handle triggers and finish event commit
+<<<<<<< HEAD
  * @file: The file pointer assoctiated to the event
+=======
+ * @file: The file pointer associated with the event
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @buffer: The ring buffer that the event is being written to
  * @event: The event meta data in the ring buffer
  * @entry: The event itself
@@ -1930,4 +1934,25 @@ static inline bool is_good_name(const char *name)
 	return true;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * This is a generic way to read and write a u64 value from a file in tracefs.
+ *
+ * The value is stored on the variable pointed by *val. The value needs
+ * to be at least *min and at most *max. The write is protected by an
+ * existing *lock.
+ */
+struct trace_min_max_param {
+	struct mutex	*lock;
+	u64		*val;
+	u64		*min;
+	u64		*max;
+};
+
+#define U64_STR_SIZE		24	/* 20 digits max */
+
+extern const struct file_operations trace_min_max_fops;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* _LINUX_KERNEL_TRACE_H */

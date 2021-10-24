@@ -25,6 +25,8 @@
 #include <net/netfilter/nf_conntrack_zones.h>
 #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
 
+extern unsigned int nf_frag_pernet_id;
+
 static DEFINE_MUTEX(defrag6_mutex);
 
 static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
@@ -89,10 +91,19 @@ static const struct nf_hook_ops ipv6_defrag_ops[] = {
 
 static void __net_exit defrag6_net_exit(struct net *net)
 {
+<<<<<<< HEAD
 	if (net->nf.defrag_ipv6) {
 		nf_unregister_net_hooks(net, ipv6_defrag_ops,
 					ARRAY_SIZE(ipv6_defrag_ops));
 		net->nf.defrag_ipv6 = false;
+=======
+	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
+
+	if (nf_frag->users) {
+		nf_unregister_net_hooks(net, ipv6_defrag_ops,
+					ARRAY_SIZE(ipv6_defrag_ops));
+		nf_frag->users = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -130,8 +141,10 @@ static void __exit nf_defrag_fini(void)
 
 int nf_defrag_ipv6_enable(struct net *net)
 {
+	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
 	int err = 0;
 
+<<<<<<< HEAD
 	might_sleep();
 
 	if (net->nf.defrag_ipv6)
@@ -139,12 +152,26 @@ int nf_defrag_ipv6_enable(struct net *net)
 
 	mutex_lock(&defrag6_mutex);
 	if (net->nf.defrag_ipv6)
+=======
+	mutex_lock(&defrag6_mutex);
+	if (nf_frag->users == UINT_MAX) {
+		err = -EOVERFLOW;
+		goto out_unlock;
+	}
+
+	if (nf_frag->users) {
+		nf_frag->users++;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto out_unlock;
 
 	err = nf_register_net_hooks(net, ipv6_defrag_ops,
 				    ARRAY_SIZE(ipv6_defrag_ops));
 	if (err == 0)
+<<<<<<< HEAD
 		net->nf.defrag_ipv6 = true;
+=======
+		nf_frag->users = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
  out_unlock:
 	mutex_unlock(&defrag6_mutex);
@@ -152,6 +179,24 @@ int nf_defrag_ipv6_enable(struct net *net)
 }
 EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
 
+<<<<<<< HEAD
+=======
+void nf_defrag_ipv6_disable(struct net *net)
+{
+	struct nft_ct_frag6_pernet *nf_frag = net_generic(net, nf_frag_pernet_id);
+
+	mutex_lock(&defrag6_mutex);
+	if (nf_frag->users) {
+		nf_frag->users--;
+		if (nf_frag->users == 0)
+			nf_unregister_net_hooks(net, ipv6_defrag_ops,
+						ARRAY_SIZE(ipv6_defrag_ops));
+	}
+	mutex_unlock(&defrag6_mutex);
+}
+EXPORT_SYMBOL_GPL(nf_defrag_ipv6_disable);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 module_init(nf_defrag_init);
 module_exit(nf_defrag_fini);
 

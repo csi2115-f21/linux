@@ -86,5 +86,28 @@ bool dp_set_dsc_enable(struct pipe_ctx *pipe_ctx, bool enable);
 bool dp_set_dsc_pps_sdp(struct pipe_ctx *pipe_ctx, bool enable);
 void dp_set_dsc_on_stream(struct pipe_ctx *pipe_ctx, bool enable);
 bool dp_update_dsc_config(struct pipe_ctx *pipe_ctx);
+<<<<<<< HEAD
+=======
+bool dp_set_dsc_on_rx(struct pipe_ctx *pipe_ctx, bool enable);
+
+/* Initialize output parameter lt_settings. */
+void dp_decide_training_settings(
+	struct dc_link *link,
+	const struct dc_link_settings *link_setting,
+	const struct dc_link_training_overrides *overrides,
+	struct link_training_settings *lt_settings);
+
+/* Convert PHY repeater count read from DPCD uint8_t. */
+uint8_t dp_convert_to_count(uint8_t lttpr_repeater_count);
+
+/* Check DPCD training status registers to detect link loss. */
+enum link_training_result dp_check_link_loss_status(
+		struct dc_link *link,
+		const struct link_training_settings *link_training_setting);
+
+enum dc_status dpcd_configure_lttpr_mode(
+		struct dc_link *link,
+		struct link_training_settings *lt_settings);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* __DC_LINK_DP_H__ */

@@ -472,7 +472,10 @@ static bool tx_load(struct slgt_info *info, const char *buf, unsigned int count)
 
 static void get_signals(struct slgt_info *info);
 static void set_signals(struct slgt_info *info);
+<<<<<<< HEAD
 static void enable_loopback(struct slgt_info *info);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void set_rate(struct slgt_info *info, u32 data_rate);
 
 static int  bh_action(struct slgt_info *info);
@@ -3714,9 +3717,13 @@ static void slgt_cleanup(void)
 	if (serial_driver) {
 		for (info=slgt_device_list ; info != NULL ; info=info->next_device)
 			tty_unregister_device(serial_driver, info->line);
+<<<<<<< HEAD
 		rc = tty_unregister_driver(serial_driver);
 		if (rc)
 			DBGERR(("tty_unregister_driver error=%d\n", rc));
+=======
+		tty_unregister_driver(serial_driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		put_tty_driver(serial_driver);
 	}
 

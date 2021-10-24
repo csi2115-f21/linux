@@ -419,6 +419,11 @@ int kfd_init_apertures(struct kfd_process *process)
 			case CHIP_NAVY_FLOUNDER:
 			case CHIP_VANGOGH:
 			case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+			case CHIP_BEIGE_GOBY:
+			case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				kfd_init_apertures_v9(pdd, id);
 				break;
 			default:

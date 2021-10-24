@@ -153,10 +153,15 @@ DEFINE_EVENT(xfs_perag_class, name,	\
 DEFINE_PERAG_REF_EVENT(xfs_perag_get);
 DEFINE_PERAG_REF_EVENT(xfs_perag_get_tag);
 DEFINE_PERAG_REF_EVENT(xfs_perag_put);
+<<<<<<< HEAD
 DEFINE_PERAG_REF_EVENT(xfs_perag_set_reclaim);
 DEFINE_PERAG_REF_EVENT(xfs_perag_clear_reclaim);
 DEFINE_PERAG_REF_EVENT(xfs_perag_set_blockgc);
 DEFINE_PERAG_REF_EVENT(xfs_perag_clear_blockgc);
+=======
+DEFINE_PERAG_REF_EVENT(xfs_perag_set_inode_tag);
+DEFINE_PERAG_REF_EVENT(xfs_perag_clear_inode_tag);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 DECLARE_EVENT_CLASS(xfs_ag_class,
 	TP_PROTO(struct xfs_mount *mp, xfs_agnumber_t agno),
@@ -1483,7 +1488,11 @@ TRACE_EVENT(xfs_bunmap,
 	TP_fast_assign(
 		__entry->dev = VFS_I(ip)->i_sb->s_dev;
 		__entry->ino = ip->i_ino;
+<<<<<<< HEAD
 		__entry->size = ip->i_d.di_size;
+=======
+		__entry->size = ip->i_disk_size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__entry->bno = bno;
 		__entry->len = len;
 		__entry->caller_ip = caller_ip;
@@ -3924,9 +3933,77 @@ DECLARE_EVENT_CLASS(xfs_eofblocks_class,
 DEFINE_EVENT(xfs_eofblocks_class, name,	\
 	TP_PROTO(struct xfs_mount *mp, struct xfs_eofblocks *eofb, \
 		 unsigned long caller_ip), \
+<<<<<<< HEAD
 	TP_ARGS(mp, eofb, caller_ip))
 DEFINE_EOFBLOCKS_EVENT(xfs_ioc_free_eofblocks);
 DEFINE_EOFBLOCKS_EVENT(xfs_blockgc_free_space);
+=======
+	TP_ARGS(mp, icw, caller_ip))
+DEFINE_ICWALK_EVENT(xfs_ioc_free_eofblocks);
+DEFINE_ICWALK_EVENT(xfs_blockgc_free_space);
+
+TRACE_DEFINE_ENUM(XLOG_STATE_ACTIVE);
+TRACE_DEFINE_ENUM(XLOG_STATE_WANT_SYNC);
+TRACE_DEFINE_ENUM(XLOG_STATE_SYNCING);
+TRACE_DEFINE_ENUM(XLOG_STATE_DONE_SYNC);
+TRACE_DEFINE_ENUM(XLOG_STATE_CALLBACK);
+TRACE_DEFINE_ENUM(XLOG_STATE_DIRTY);
+TRACE_DEFINE_ENUM(XLOG_STATE_IOERROR);
+
+DECLARE_EVENT_CLASS(xlog_iclog_class,
+	TP_PROTO(struct xlog_in_core *iclog, unsigned long caller_ip),
+	TP_ARGS(iclog, caller_ip),
+	TP_STRUCT__entry(
+		__field(dev_t, dev)
+		__field(uint32_t, state)
+		__field(int32_t, refcount)
+		__field(uint32_t, offset)
+		__field(uint32_t, flags)
+		__field(unsigned long long, lsn)
+		__field(unsigned long, caller_ip)
+	),
+	TP_fast_assign(
+		__entry->dev = iclog->ic_log->l_mp->m_super->s_dev;
+		__entry->state = iclog->ic_state;
+		__entry->refcount = atomic_read(&iclog->ic_refcnt);
+		__entry->offset = iclog->ic_offset;
+		__entry->flags = iclog->ic_flags;
+		__entry->lsn = be64_to_cpu(iclog->ic_header.h_lsn);
+		__entry->caller_ip = caller_ip;
+	),
+	TP_printk("dev %d:%d state %s refcnt %d offset %u lsn 0x%llx flags %s caller %pS",
+		  MAJOR(__entry->dev), MINOR(__entry->dev),
+		  __print_symbolic(__entry->state, XLOG_STATE_STRINGS),
+		  __entry->refcount,
+		  __entry->offset,
+		  __entry->lsn,
+		  __print_flags(__entry->flags, "|", XLOG_ICL_STRINGS),
+		  (char *)__entry->caller_ip)
+
+);
+
+#define DEFINE_ICLOG_EVENT(name)	\
+DEFINE_EVENT(xlog_iclog_class, name,	\
+	TP_PROTO(struct xlog_in_core *iclog, unsigned long caller_ip), \
+	TP_ARGS(iclog, caller_ip))
+
+DEFINE_ICLOG_EVENT(xlog_iclog_activate);
+DEFINE_ICLOG_EVENT(xlog_iclog_clean);
+DEFINE_ICLOG_EVENT(xlog_iclog_callback);
+DEFINE_ICLOG_EVENT(xlog_iclog_callbacks_start);
+DEFINE_ICLOG_EVENT(xlog_iclog_callbacks_done);
+DEFINE_ICLOG_EVENT(xlog_iclog_force);
+DEFINE_ICLOG_EVENT(xlog_iclog_force_lsn);
+DEFINE_ICLOG_EVENT(xlog_iclog_get_space);
+DEFINE_ICLOG_EVENT(xlog_iclog_release);
+DEFINE_ICLOG_EVENT(xlog_iclog_switch);
+DEFINE_ICLOG_EVENT(xlog_iclog_sync);
+DEFINE_ICLOG_EVENT(xlog_iclog_syncing);
+DEFINE_ICLOG_EVENT(xlog_iclog_sync_done);
+DEFINE_ICLOG_EVENT(xlog_iclog_want_sync);
+DEFINE_ICLOG_EVENT(xlog_iclog_wait_on);
+DEFINE_ICLOG_EVENT(xlog_iclog_write);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* _TRACE_XFS_H */
 

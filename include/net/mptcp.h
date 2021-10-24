@@ -45,12 +45,31 @@ struct mptcp_out_options {
 		struct in6_addr addr6;
 #endif
 	};
+<<<<<<< HEAD
 	u8 addr_id;
 	u16 port;
 	u64 ahmac;
 	u8 rm_id;
 	u8 join_id;
 	u8 backup;
+=======
+};
+
+struct mptcp_out_options {
+#if IS_ENABLED(CONFIG_MPTCP)
+	u16 suboptions;
+	u64 sndr_key;
+	u64 rcvr_key;
+	u64 ahmac;
+	struct mptcp_addr_info addr;
+	struct mptcp_rm_list rm_list;
+	u8 join_id;
+	u8 backup;
+	u8 reset_reason:4,
+	   reset_transient:1,
+	   csum_reqd:1,
+	   allow_join_id0:1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 nonce;
 	u64 thmac;
 	u32 token;

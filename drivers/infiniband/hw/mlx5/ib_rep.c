@@ -123,8 +123,12 @@ struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
 
 	rep = dev->port[port - 1].rep;
 
+<<<<<<< HEAD
 	return mlx5_eswitch_add_send_to_vport_rule(esw, rep->vport,
 						   sq->base.mqp.qpn);
+=======
+	return mlx5_eswitch_add_send_to_vport_rule(esw, rep, sq->base.mqp.qpn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int mlx5r_rep_probe(struct auxiliary_device *adev,

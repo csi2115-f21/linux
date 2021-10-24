@@ -17,6 +17,14 @@ static void hl_ctx_fini(struct hl_ctx *ctx)
 
 	/* Release all allocated pending cb's, those cb's were never
 	 * scheduled so it is safe to release them here
+<<<<<<< HEAD
+=======
+	 */
+	hl_pending_cb_list_flush(ctx);
+
+	/* Release all allocated HW block mapped list entries and destroy
+	 * the mutex.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 */
 	hl_pending_cb_list_flush(ctx);
 

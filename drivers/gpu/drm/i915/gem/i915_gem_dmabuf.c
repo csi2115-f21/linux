@@ -25,7 +25,11 @@ static struct sg_table *i915_gem_map_dma_buf(struct dma_buf_attachment *attachme
 	struct scatterlist *src, *dst;
 	int ret, i;
 
+<<<<<<< HEAD
 	ret = i915_gem_object_pin_pages(obj);
+=======
+	ret = i915_gem_object_pin_pages_unlocked(obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		goto err;
 
@@ -141,6 +145,7 @@ out:
 	return err;
 }
 
+<<<<<<< HEAD
 static int i915_gem_end_cpu_access(struct dma_buf *dma_buf, enum dma_data_direction direction)
 {
 	struct drm_i915_gem_object *obj = dma_buf_to_obj(dma_buf);
@@ -162,6 +167,8 @@ out:
 	return err;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct dma_buf_ops i915_dmabuf_ops =  {
 	.map_dma_buf = i915_gem_map_dma_buf,
 	.unmap_dma_buf = i915_gem_unmap_dma_buf,

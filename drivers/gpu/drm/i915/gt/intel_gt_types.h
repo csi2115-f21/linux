@@ -29,6 +29,15 @@ struct i915_ggtt;
 struct intel_engine_cs;
 struct intel_uncore;
 
+<<<<<<< HEAD
+=======
+enum intel_submission_method {
+	INTEL_SUBMISSION_RING,
+	INTEL_SUBMISSION_ELSP,
+	INTEL_SUBMISSION_GUC,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct intel_gt {
 	struct drm_i915_private *i915;
 	struct intel_uncore *uncore;

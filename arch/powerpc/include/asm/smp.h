@@ -31,6 +31,10 @@ extern u32 *cpu_to_phys_id;
 extern bool coregroup_enabled;
 
 extern int cpu_to_chip_id(int cpu);
+<<<<<<< HEAD
+=======
+extern int *chip_id_lookup_table;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_SMP
 

@@ -207,6 +207,7 @@ static int bpf_trampoline_update(struct bpf_trampoline *tr)
 	    tprogs[BPF_TRAMP_MODIFY_RETURN].nr_progs)
 		flags = BPF_TRAMP_F_CALL_ORIG | BPF_TRAMP_F_SKIP_FRAME;
 
+<<<<<<< HEAD
 	/* Though the second half of trampoline page is unused a task could be
 	 * preempted in the middle of the first half of trampoline and two
 	 * updates to trampoline would change the code from underneath the
@@ -220,6 +221,9 @@ static int bpf_trampoline_update(struct bpf_trampoline *tr)
 	synchronize_rcu_mult(call_rcu_tasks, call_rcu_tasks_trace);
 
 	err = arch_prepare_bpf_trampoline(new_image, new_image + PAGE_SIZE / 2,
+=======
+	err = arch_prepare_bpf_trampoline(im, im->image, im->image + PAGE_SIZE,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					  &tr->func.model, flags, tprogs,
 					  tr->func.addr);
 	if (err < 0)

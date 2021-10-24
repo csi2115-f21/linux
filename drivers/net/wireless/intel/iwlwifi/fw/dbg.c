@@ -2559,7 +2559,13 @@ int iwl_fw_dbg_ini_collect(struct iwl_fw_runtime *fwrt,
 
 	fwrt->dump.wks[idx].dump_data = *dump_data;
 
+<<<<<<< HEAD
 	IWL_WARN(fwrt, "WRT: Collecting data: ini trigger %d fired.\n", tp_id);
+=======
+	IWL_WARN(fwrt,
+		 "WRT: Collecting data: ini trigger %d fired (delay=%dms).\n",
+		 tp_id, (u32)(delay / USEC_PER_MSEC));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	schedule_delayed_work(&fwrt->dump.wks[idx].wk, usecs_to_jiffies(delay));
 

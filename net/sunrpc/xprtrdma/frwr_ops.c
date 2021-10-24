@@ -406,6 +406,10 @@ int frwr_send(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 	struct rpcrdma_ep *ep = r_xprt->rx_ep;
 	struct ib_send_wr *post_wr;
 	struct rpcrdma_mr *mr;
+<<<<<<< HEAD
+=======
+	unsigned int num_wrs;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	post_wr = &req->rl_wr;
 	list_for_each_entry(mr, &req->rl_registered, mr_list) {
@@ -424,6 +428,10 @@ int frwr_send(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 		post_wr = &frwr->fr_regwr.wr;
 	}
 
+<<<<<<< HEAD
+=======
+	trace_xprtrdma_post_send(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ib_post_send(ep->re_id->qp, post_wr, NULL);
 }
 
@@ -566,6 +574,7 @@ void frwr_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 	if (!rc)
 		return;
 
+<<<<<<< HEAD
 	/* Recycle MRs in the LOCAL_INV chain that did not get posted.
 	 */
 	trace_xprtrdma_post_linv_err(req, rc);
@@ -578,6 +587,10 @@ void frwr_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 		list_del_init(&mr->mr_list);
 		frwr_mr_recycle(mr);
 	}
+=======
+	/* On error, the MRs get destroyed once the QP has drained. */
+	trace_xprtrdma_post_linv_err(req, rc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -674,6 +687,7 @@ void frwr_unmap_async(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 		mr = container_of(frwr, struct rpcrdma_mr, frwr);
 		bad_wr = bad_wr->next;
 
+<<<<<<< HEAD
 		frwr_mr_recycle(mr);
 	}
 
@@ -682,4 +696,12 @@ void frwr_unmap_async(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
 	 * not happen, so wake here in that case.
 	 */
 	rpcrdma_complete_rqst(req->rl_reply);
+=======
+	/* The final LOCAL_INV WR in the chain is supposed to
+	 * do the wake. If it was never posted, the wake does
+	 * not happen. Unpin the rqst in preparation for its
+	 * retransmission.
+	 */
+	rpcrdma_unpin_rqst(req->rl_reply);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

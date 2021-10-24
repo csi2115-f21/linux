@@ -118,8 +118,13 @@ void ODM_CfoTrackingInit(void *pDM_VOID)
 
 void ODM_CfoTracking(void *pDM_VOID)
 {
+<<<<<<< HEAD
 	PDM_ODM_T pDM_Odm = (PDM_ODM_T)pDM_VOID;
 	PCFO_TRACKING pCfoTrack = &pDM_Odm->DM_CfoTrack;
+=======
+	struct dm_odm_t *pDM_Odm = (struct dm_odm_t *)pDM_VOID;
+	struct cfo_tracking *pCfoTrack = &pDM_Odm->DM_CfoTrack;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int CFO_kHz_A, CFO_kHz_B, CFO_ave = 0;
 	int CFO_ave_diff;
 	int CrystalCap = (int)pCfoTrack->CrystalCap;
@@ -180,6 +185,7 @@ void ODM_CfoTracking(void *pDM_VOID)
 			CFO_ave = CFO_kHz_A;
 		else
 			CFO_ave = (int)(CFO_kHz_A + CFO_kHz_B) >> 1;
+<<<<<<< HEAD
 		ODM_RT_TRACE(
 			pDM_Odm,
 			ODM_COMP_CFO_TRACKING,
@@ -191,6 +197,8 @@ void ODM_CfoTracking(void *pDM_VOID)
 				CFO_ave
 			)
 		);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* 4 1.3 Avoid abnormal large CFO */
 		CFO_ave_diff =
@@ -297,9 +305,15 @@ void ODM_CfoTracking(void *pDM_VOID)
 
 void ODM_ParsingCFO(void *pDM_VOID, void *pPktinfo_VOID, s8 *pcfotail)
 {
+<<<<<<< HEAD
 	PDM_ODM_T pDM_Odm = (PDM_ODM_T)pDM_VOID;
 	struct odm_packet_info *pPktinfo = pPktinfo_VOID;
 	PCFO_TRACKING pCfoTrack = &pDM_Odm->DM_CfoTrack;
+=======
+	struct dm_odm_t *pDM_Odm = (struct dm_odm_t *)pDM_VOID;
+	struct odm_packet_info *pPktinfo = pPktinfo_VOID;
+	struct cfo_tracking *pCfoTrack = &pDM_Odm->DM_CfoTrack;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 i;
 
 	if (!(pDM_Odm->SupportAbility & ODM_BB_CFO_TRACKING))

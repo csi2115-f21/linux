@@ -258,6 +258,46 @@ static void remove_from_engine(struct i915_request *rq)
 	spin_lock_irq(&locked->active.lock);
 	while (unlikely(locked != (engine = READ_ONCE(rq->engine)))) {
 		spin_unlock(&locked->active.lock);
+<<<<<<< HEAD
+		spin_lock(&engine->active.lock);
+		locked = engine;
+=======
+		locked = engine;
+		spin_lock(&locked->active.lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+	list_del_init(&rq->sched.link);
+
+	clear_bit(I915_FENCE_FLAG_PQUEUE, &rq->fence.flags);
+	clear_bit(I915_FENCE_FLAG_HOLD, &rq->fence.flags);
+
+<<<<<<< HEAD
+	/* Prevent further __await_execution() registering a cb, then flush */
+	set_bit(I915_FENCE_FLAG_ACTIVE, &rq->fence.flags);
+=======
+	spin_unlock_irq(&locked->active.lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	spin_unlock_irq(&locked->active.lock);
+
+<<<<<<< HEAD
+	__notify_execute_cb_imm(rq);
+=======
+
+static void remove_from_engine(struct i915_request *rq)
+{
+	struct intel_engine_cs *engine, *locked;
+
+	/*
+	 * Virtual engines complicate acquiring the engine timeline lock,
+	 * as their rq->engine pointer is not stable until under that
+	 * engine lock. The simple ploy we use is to take the lock then
+	 * check that the rq still belongs to the newly locked engine.
+	 */
+	locked = READ_ONCE(rq->engine);
+	spin_lock_irq(&locked->active.lock);
+	while (unlikely(locked != (engine = READ_ONCE(rq->engine)))) {
+		spin_unlock(&locked->active.lock);
 		spin_lock(&engine->active.lock);
 		locked = engine;
 	}
@@ -272,6 +312,55 @@ static void remove_from_engine(struct i915_request *rq)
 	spin_unlock_irq(&locked->active.lock);
 
 	__notify_execute_cb_imm(rq);
+}
+
+static void __rq_init_watchdog(struct i915_request *rq)
+{
+	rq->watchdog.timer.function = NULL;
+}
+
+static enum hrtimer_restart __rq_watchdog_expired(struct hrtimer *hrtimer)
+{
+	struct i915_request *rq =
+		container_of(hrtimer, struct i915_request, watchdog.timer);
+	struct intel_gt *gt = rq->engine->gt;
+
+	if (!i915_request_completed(rq)) {
+		if (llist_add(&rq->watchdog.link, &gt->watchdog.list))
+			schedule_work(&gt->watchdog.work);
+	} else {
+		i915_request_put(rq);
+	}
+
+	return HRTIMER_NORESTART;
+}
+
+static void __rq_arm_watchdog(struct i915_request *rq)
+{
+	struct i915_request_watchdog *wdg = &rq->watchdog;
+	struct intel_context *ce = rq->context;
+
+	if (!ce->watchdog.timeout_us)
+		return;
+
+	i915_request_get(rq);
+
+	hrtimer_init(&wdg->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	wdg->timer.function = __rq_watchdog_expired;
+	hrtimer_start_range_ns(&wdg->timer,
+			       ns_to_ktime(ce->watchdog.timeout_us *
+					   NSEC_PER_USEC),
+			       NSEC_PER_MSEC,
+			       HRTIMER_MODE_REL);
+}
+
+static void __rq_cancel_watchdog(struct i915_request *rq)
+{
+	struct i915_request_watchdog *wdg = &rq->watchdog;
+
+	if (wdg->timer.function && hrtimer_try_to_cancel(&wdg->timer) > 0)
+		i915_request_put(rq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 bool i915_request_retire(struct i915_request *rq)
@@ -676,6 +765,31 @@ void i915_request_unsubmit(struct i915_request *request)
 	__i915_request_unsubmit(request);
 
 	spin_unlock_irqrestore(&engine->active.lock, flags);
+<<<<<<< HEAD
+=======
+}
+
+static void __cancel_request(struct i915_request *rq)
+{
+	struct intel_engine_cs *engine = NULL;
+
+	i915_request_active_engine(rq, &engine);
+
+	if (engine && intel_engine_pulse(engine))
+		intel_gt_handle_error(engine->gt, engine->mask, 0,
+				      "request cancellation by %s",
+				      current->comm);
+}
+
+void i915_request_cancel(struct i915_request *rq, int error)
+{
+	if (!i915_request_set_error_once(rq, error))
+		return;
+
+	set_bit(I915_FENCE_FLAG_SENTINEL, &rq->fence.flags);
+
+	__cancel_request(rq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int __i915_sw_fence_call

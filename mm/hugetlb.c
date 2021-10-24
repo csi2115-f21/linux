@@ -1035,6 +1035,11 @@ static bool vma_has_reserves(struct vm_area_struct *vma, long chg)
 static void enqueue_huge_page(struct hstate *h, struct page *page)
 {
 	int nid = page_to_nid(page);
+<<<<<<< HEAD
+=======
+
+	lockdep_assert_held(&hugetlb_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	list_move(&page->lru, &h->hugepage_freelists[nid]);
 	h->free_huge_pages++;
 	h->free_huge_pages_node[nid]++;
@@ -1303,7 +1308,80 @@ static inline void destroy_compound_gigantic_page(struct page *page,
 						unsigned int order) { }
 #endif
 
+<<<<<<< HEAD
 static void update_and_free_page(struct hstate *h, struct page *page)
+=======
+/*
+ * Remove hugetlb page from lists, and update dtor so that page appears
+ * as just a compound page.  A reference is held on the page.
+ *
+ * Must be called with hugetlb lock held.
+ */
+static void remove_hugetlb_page(struct hstate *h, struct page *page,
+							bool adjust_surplus)
+{
+	int nid = page_to_nid(page);
+
+	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page(page), page);
+	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page_rsvd(page), page);
+
+	lockdep_assert_held(&hugetlb_lock);
+	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+		return;
+
+	list_del(&page->lru);
+
+	if (HPageFreed(page)) {
+		h->free_huge_pages--;
+		h->free_huge_pages_node[nid]--;
+	}
+	if (adjust_surplus) {
+		h->surplus_huge_pages--;
+		h->surplus_huge_pages_node[nid]--;
+	}
+
+	set_page_refcounted(page);
+	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
+
+	h->nr_huge_pages--;
+	h->nr_huge_pages_node[nid]--;
+}
+
+static void add_hugetlb_page(struct hstate *h, struct page *page,
+			     bool adjust_surplus)
+{
+	int zeroed;
+	int nid = page_to_nid(page);
+
+	VM_BUG_ON_PAGE(!HPageVmemmapOptimized(page), page);
+
+	lockdep_assert_held(&hugetlb_lock);
+
+	INIT_LIST_HEAD(&page->lru);
+	h->nr_huge_pages++;
+	h->nr_huge_pages_node[nid]++;
+
+	if (adjust_surplus) {
+		h->surplus_huge_pages++;
+		h->surplus_huge_pages_node[nid]++;
+	}
+
+	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
+	set_page_private(page, 0);
+	SetHPageVmemmapOptimized(page);
+
+	/*
+	 * This page is now managed by the hugetlb allocator and has
+	 * no users -- drop the last reference.
+	 */
+	zeroed = put_page_testzero(page);
+	VM_BUG_ON_PAGE(!zeroed, page);
+	arch_clear_hugepage_flags(page);
+	enqueue_huge_page(h, page);
+}
+
+static void __update_and_free_page(struct hstate *h, struct page *page)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int i;
 	struct page *subpage = page;
@@ -1499,6 +1577,30 @@ static void prep_compound_gigantic_page(struct page *page, unsigned int order)
 		 * after get_user_pages().
 		 */
 		__ClearPageReserved(p);
+<<<<<<< HEAD
+=======
+		/*
+		 * Subtle and very unlikely
+		 *
+		 * Gigantic 'page allocators' such as memblock or cma will
+		 * return a set of pages with each page ref counted.  We need
+		 * to turn this set of pages into a compound page with tail
+		 * page ref counts set to zero.  Code such as speculative page
+		 * cache adding could take a ref on a 'to be' tail page.
+		 * We need to respect any increased ref count, and only set
+		 * the ref count to zero if count is currently 1.  If count
+		 * is not 1, we call synchronize_rcu in the hope that a rcu
+		 * grace period will cause ref count to drop and then retry.
+		 * If count is still inflated on retry we return an error and
+		 * must discard the pages.
+		 */
+		if (!page_ref_freeze(p, 1)) {
+			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
+			synchronize_rcu();
+			if (!page_ref_freeze(p, 1))
+				goto out_error;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		set_page_count(p, 0);
 		set_compound_head(p, page);
 	}
@@ -1635,8 +1737,26 @@ static struct page *alloc_fresh_huge_page(struct hstate *h,
 	if (!page)
 		return NULL;
 
+<<<<<<< HEAD
 	if (hstate_is_gigantic(h))
 		prep_compound_gigantic_page(page, huge_page_order(h));
+=======
+	if (hstate_is_gigantic(h)) {
+		if (!prep_compound_gigantic_page(page, huge_page_order(h))) {
+			/*
+			 * Rare failure to convert pages to compound page.
+			 * Free pages and try again - ONCE!
+			 */
+			free_gigantic_page(page, huge_page_order(h));
+			if (!retry) {
+				retry = true;
+				goto retry;
+			}
+			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+			return NULL;
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	prep_new_huge_page(h, page, page_to_nid(page));
 
 	return page;
@@ -2013,7 +2133,11 @@ free:
 	/* Free unnecessary surplus pages to the buddy allocator */
 	list_for_each_entry_safe(page, tmp, &surplus_list, lru)
 		put_page(page);
+<<<<<<< HEAD
 	spin_lock(&hugetlb_lock);
+=======
+	spin_lock_irq(&hugetlb_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -2229,16 +2353,171 @@ static void restore_reserve_on_error(struct hstate *h,
 			 * accounting of reserve counts.
 			 */
 			ClearHPageRestoreReserve(page);
+<<<<<<< HEAD
 		} else if (rc) {
 			rc = vma_add_reservation(h, vma, address);
 			if (unlikely(rc < 0))
+=======
+		else if (rc)
+			(void)vma_add_reservation(h, vma, address);
+		else
+			vma_end_reservation(h, vma, address);
+	} else {
+		if (!rc) {
+			/*
+			 * This indicates there is an entry in the reserve map
+			 * added by alloc_huge_page.  We know it was added
+			 * before the alloc_huge_page call, otherwise
+			 * HPageRestoreReserve would be set on the page.
+			 * Remove the entry so that a subsequent allocation
+			 * does not consume a reservation.
+			 */
+			rc = vma_del_reservation(h, vma, address);
+			if (rc < 0)
+				/*
+				 * VERY rare out of memory condition.  Since
+				 * we can not delete the entry, set
+				 * HPageRestoreReserve so that the reserve
+				 * count will be incremented when the page
+				 * is freed.  This reserve will be consumed
+				 * on a subsequent allocation.
+				 */
+				SetHPageRestoreReserve(page);
+		} else if (rc < 0) {
+			/*
+			 * Rare out of memory condition from
+			 * vma_needs_reservation call.  Memory allocation is
+			 * only attempted if a new entry is needed.  Therefore,
+			 * this implies there is not an entry in the
+			 * reserve map.
+			 *
+			 * For shared mappings, no entry in the map indicates
+			 * no reservation.  We are done.
+			 */
+			if (!(vma->vm_flags & VM_MAYSHARE))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				/*
 				 * See above comment about rare out of
 				 * memory condition.
 				 */
 				ClearHPageRestoreReserve(page);
 		} else
+<<<<<<< HEAD
 			vma_end_reservation(h, vma, address);
+=======
+			/*
+			 * No reservation present, do nothing
+			 */
+			 vma_end_reservation(h, vma, address);
+	}
+}
+
+/*
+ * alloc_and_dissolve_huge_page - Allocate a new page and dissolve the old one
+ * @h: struct hstate old page belongs to
+ * @old_page: Old page to dissolve
+ * @list: List to isolate the page in case we need to
+ * Returns 0 on success, otherwise negated error.
+ */
+static int alloc_and_dissolve_huge_page(struct hstate *h, struct page *old_page,
+					struct list_head *list)
+{
+	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+	int nid = page_to_nid(old_page);
+	struct page *new_page;
+	int ret = 0;
+
+	/*
+	 * Before dissolving the page, we need to allocate a new one for the
+	 * pool to remain stable.  Here, we allocate the page and 'prep' it
+	 * by doing everything but actually updating counters and adding to
+	 * the pool.  This simplifies and let us do most of the processing
+	 * under the lock.
+	 */
+	new_page = alloc_buddy_huge_page(h, gfp_mask, nid, NULL, NULL);
+	if (!new_page)
+		return -ENOMEM;
+	__prep_new_huge_page(h, new_page);
+
+retry:
+	spin_lock_irq(&hugetlb_lock);
+	if (!PageHuge(old_page)) {
+		/*
+		 * Freed from under us. Drop new_page too.
+		 */
+		goto free_new;
+	} else if (page_count(old_page)) {
+		/*
+		 * Someone has grabbed the page, try to isolate it here.
+		 * Fail with -EBUSY if not possible.
+		 */
+		spin_unlock_irq(&hugetlb_lock);
+		if (!isolate_huge_page(old_page, list))
+			ret = -EBUSY;
+		spin_lock_irq(&hugetlb_lock);
+		goto free_new;
+	} else if (!HPageFreed(old_page)) {
+		/*
+		 * Page's refcount is 0 but it has not been enqueued in the
+		 * freelist yet. Race window is small, so we can succeed here if
+		 * we retry.
+		 */
+		spin_unlock_irq(&hugetlb_lock);
+		cond_resched();
+		goto retry;
+	} else {
+		/*
+		 * Ok, old_page is still a genuine free hugepage. Remove it from
+		 * the freelist and decrease the counters. These will be
+		 * incremented again when calling __prep_account_new_huge_page()
+		 * and enqueue_huge_page() for new_page. The counters will remain
+		 * stable since this happens under the lock.
+		 */
+		remove_hugetlb_page(h, old_page, false);
+
+		/*
+		 * Reference count trick is needed because allocator gives us
+		 * referenced page but the pool requires pages with 0 refcount.
+		 */
+		__prep_account_new_huge_page(h, nid);
+		page_ref_dec(new_page);
+		enqueue_huge_page(h, new_page);
+
+		/*
+		 * Pages have been replaced, we can safely free the old one.
+		 */
+		spin_unlock_irq(&hugetlb_lock);
+		update_and_free_page(h, old_page, false);
+	}
+
+	return ret;
+
+free_new:
+	spin_unlock_irq(&hugetlb_lock);
+	update_and_free_page(h, new_page, false);
+
+	return ret;
+}
+
+int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list)
+{
+	struct hstate *h;
+	struct page *head;
+	int ret = -EBUSY;
+
+	/*
+	 * The page might have been dissolved from under our feet, so make sure
+	 * to carefully check the state under the lock.
+	 * Return success when racing as if we dissolved the page ourselves.
+	 */
+	spin_lock_irq(&hugetlb_lock);
+	if (PageHuge(page)) {
+		head = compound_head(page);
+		h = page_hstate(head);
+	} else {
+		spin_unlock_irq(&hugetlb_lock);
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -2424,10 +2703,21 @@ static void __init gather_bootmem_prealloc(void)
 		struct hstate *h = m->hstate;
 
 		WARN_ON(page_count(page) != 1);
+<<<<<<< HEAD
 		prep_compound_huge_page(page, huge_page_order(h));
 		WARN_ON(PageReserved(page));
 		prep_new_huge_page(h, page, page_to_nid(page));
 		put_page(page); /* free it into the hugepage allocator */
+=======
+		if (prep_compound_gigantic_page(page, huge_page_order(h))) {
+			WARN_ON(PageReserved(page));
+			prep_new_huge_page(h, page, page_to_nid(page));
+			put_page(page); /* add to the hugepage allocator */
+		} else {
+			free_gigantic_page(page, huge_page_order(h));
+			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/*
 		 * If we had gigantic hugepages allocated at boot time, we need
@@ -4615,6 +4905,25 @@ int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
 	spinlock_t *ptl;
 	int ret;
 	struct page *page;
+<<<<<<< HEAD
+=======
+	int writable;
+
+	if (is_continue) {
+		ret = -EFAULT;
+		page = find_lock_page(mapping, idx);
+		if (!page)
+			goto out;
+	} else if (!*pagep) {
+		/* If a page already exists, then it's UFFDIO_COPY for
+		 * a non-missing case. Return -EEXIST.
+		 */
+		if (vm_shared &&
+		    hugetlbfs_pagecache_present(h, dst_vma, dst_addr)) {
+			ret = -EEXIST;
+			goto out;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!*pagep) {
 		ret = -ENOMEM;
@@ -4722,6 +5031,10 @@ out_release_unlock:
 	if (vm_shared)
 		unlock_page(page);
 out_release_nounlock:
+<<<<<<< HEAD
+=======
+	restore_reserve_on_error(h, dst_vma, dst_addr, page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_page(page);
 	goto out;
 }

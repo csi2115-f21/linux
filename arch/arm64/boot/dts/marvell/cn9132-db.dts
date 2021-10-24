@@ -98,9 +98,92 @@
 };
 
 &cp2_ethernet {
+<<<<<<< HEAD
 	status = "okay";
 };
 
+/* SLM-1521-V2, CON9 */
+&cp2_eth0 {
+	status = "disabled";
+	phy-mode = "10gbase-kr";
+	/* Generic PHY, providing serdes lanes */
+	phys = <&cp2_comphy4 0>;
+	managed = "in-band-status";
+	sfp = <&cp2_sfp_eth0>;
+};
+
+&cp2_gpio1 {
+	status = "okay";
+};
+
+&cp2_gpio2 {
+	status = "okay";
+};
+
+&cp2_i2c0 {
+	clock-frequency = <100000>;
+
+	/* SLM-1521-V2 - U3 */
+	i2c-mux@72 {
+		compatible = "nxp,pca9544";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x72>;
+		cp2_sfpp0_i2c: i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+		};
+
+		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <1>;
+			/* U12 */
+			cp2_module_expander1: pca9555@21 {
+				compatible = "nxp,pca9555";
+				pinctrl-names = "default";
+				gpio-controller;
+				#gpio-cells = <2>;
+				reg = <0x21>;
+			};
+		};
+	};
+};
+
+/* SLM-1521-V2, CON6 */
+&cp2_pcie0 {
+	status = "okay";
+	num-lanes = <2>;
+	num-viewport = <8>;
+	/* Generic PHY, providing serdes lanes */
+	phys = <&cp2_comphy0 0
+		&cp2_comphy1 0>;
+};
+
+/* SLM-1521-V2, CON8 */
+&cp2_pcie2 {
+	status = "okay";
+	num-lanes = <1>;
+	num-viewport = <8>;
+	/* Generic PHY, providing serdes lanes */
+	phys = <&cp2_comphy5 2>;
+};
+
+&cp2_sata0 {
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	status = "okay";
+
+	/* SLM-1521-V2, CON4 */
+	sata-port@0 {
+		/* Generic PHY, providing serdes lanes */
+		phys = <&cp2_comphy2 0>;
+	};
+};
+
+<<<<<<< HEAD
+=======
 /* SLM-1521-V2, CON9 */
 &cp2_eth0 {
 	status = "disabled";
@@ -179,6 +262,7 @@
 	};
 };
 
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* CON 2 on SLM-1683 - microSD */
 &cp2_sdhci0 {
 	status = "okay";
@@ -205,17 +289,37 @@
 	};
 };
 
+<<<<<<< HEAD
 &cp2_usb3_0 {
 	status = "okay";
 	usb-phy = <&cp2_usb3_0_phy0>;
 	phy-names = "usb";
+=======
+&cp2_utmi {
+	status = "okay";
+};
+
+&cp2_usb3_0 {
+	status = "okay";
+	usb-phy = <&cp2_usb3_0_phy0>;
+	phys = <&cp2_utmi0>;
+	phy-names = "usb";
+	dr_mode = "host";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* SLM-1521-V2, CON11 */
 &cp2_usb3_1 {
 	status = "okay";
 	usb-phy = <&cp2_usb3_0_phy1>;
+<<<<<<< HEAD
 	phy-names = "usb";
 	/* Generic PHY, providing serdes lanes */
 	phys = <&cp2_comphy3 1>;
+=======
+	/* Generic PHY, providing serdes lanes */
+	phys = <&cp2_comphy3 1>, <&cp2_utmi1>;
+	phy-names = "usb", "utmi";
+	dr_mode = "host";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };

@@ -138,6 +138,17 @@ static inline void interrupt_nmi_enter_prepare(struct pt_regs *regs, struct inte
 	local_paca->irq_soft_mask = IRQS_ALL_DISABLED;
 	local_paca->irq_happened |= PACA_IRQ_HARD_DIS;
 
+<<<<<<< HEAD
+=======
+	if (is_implicit_soft_masked(regs)) {
+		// Adjust regs->softe soft implicit soft-mask, so
+		// arch_irq_disabled_regs(regs) behaves as expected.
+		regs->softe = IRQS_ALL_DISABLED;
+	}
+	if (IS_ENABLED(CONFIG_PPC_IRQ_SOFT_MASK_DEBUG))
+		BUG_ON(!arch_irq_disabled_regs(regs) && !(regs->msr & MSR_EE));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Don't do any per-CPU operations until interrupt state is fixed */
 #endif
 	/* Allow DEC and PMI to be traced when they are soft-NMI */
@@ -437,6 +448,11 @@ DECLARE_INTERRUPT_HANDLER_NMI(hmi_exception_realmode);
 
 DECLARE_INTERRUPT_HANDLER_ASYNC(TAUException);
 
+<<<<<<< HEAD
+=======
+void __noreturn unrecoverable_exception(struct pt_regs *regs);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void replay_system_reset(void);
 void replay_soft_interrupts(void);
 

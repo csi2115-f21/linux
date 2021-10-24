@@ -792,6 +792,155 @@ static struct usb_class_driver wdm_class = {
 	.minor_base =	WDM_MINOR_BASE,
 };
 
+<<<<<<< HEAD
+=======
+/* --- WWAN framework integration --- */
+#ifdef CONFIG_WWAN_CORE
+static int wdm_wwan_port_start(struct wwan_port *port)
+{
+	struct wdm_device *desc = wwan_port_get_drvdata(port);
+
+	/* The interface is both exposed via the WWAN framework and as a
+	 * legacy usbmisc chardev. If chardev is already open, just fail
+	 * to prevent concurrent usage. Otherwise, switch to WWAN mode.
+	 */
+	mutex_lock(&wdm_mutex);
+	if (desc->count) {
+		mutex_unlock(&wdm_mutex);
+		return -EBUSY;
+	}
+	set_bit(WDM_WWAN_IN_USE, &desc->flags);
+	mutex_unlock(&wdm_mutex);
+
+	desc->manage_power(desc->intf, 1);
+
+	/* tx is allowed */
+	wwan_port_txon(port);
+
+	/* Start getting events */
+	return usb_submit_urb(desc->validity, GFP_KERNEL);
+}
+
+static void wdm_wwan_port_stop(struct wwan_port *port)
+{
+	struct wdm_device *desc = wwan_port_get_drvdata(port);
+
+	/* Stop all transfers and disable WWAN mode */
+	poison_urbs(desc);
+	desc->manage_power(desc->intf, 0);
+	clear_bit(WDM_READ, &desc->flags);
+	clear_bit(WDM_WWAN_IN_USE, &desc->flags);
+	unpoison_urbs(desc);
+}
+
+static void wdm_wwan_port_tx_complete(struct urb *urb)
+{
+	struct sk_buff *skb = urb->context;
+	struct wdm_device *desc = skb_shinfo(skb)->destructor_arg;
+
+	usb_autopm_put_interface(desc->intf);
+	wwan_port_txon(desc->wwanp);
+	kfree_skb(skb);
+}
+
+static int wdm_wwan_port_tx(struct wwan_port *port, struct sk_buff *skb)
+{
+	struct wdm_device *desc = wwan_port_get_drvdata(port);
+	struct usb_interface *intf = desc->intf;
+	struct usb_ctrlrequest *req = desc->orq;
+	int rv;
+
+	rv = usb_autopm_get_interface(intf);
+	if (rv)
+		return rv;
+
+	usb_fill_control_urb(
+		desc->command,
+		interface_to_usbdev(intf),
+		usb_sndctrlpipe(interface_to_usbdev(intf), 0),
+		(unsigned char *)req,
+		skb->data,
+		skb->len,
+		wdm_wwan_port_tx_complete,
+		skb
+	);
+
+	req->bRequestType = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE);
+	req->bRequest = USB_CDC_SEND_ENCAPSULATED_COMMAND;
+	req->wValue = 0;
+	req->wIndex = desc->inum;
+	req->wLength = cpu_to_le16(skb->len);
+
+	skb_shinfo(skb)->destructor_arg = desc;
+
+	rv = usb_submit_urb(desc->command, GFP_KERNEL);
+	if (rv)
+		usb_autopm_put_interface(intf);
+	else /* One transfer at a time, stop TX until URB completion */
+		wwan_port_txoff(port);
+
+	return rv;
+}
+
+static struct wwan_port_ops wdm_wwan_port_ops = {
+	.start = wdm_wwan_port_start,
+	.stop = wdm_wwan_port_stop,
+	.tx = wdm_wwan_port_tx,
+};
+
+static void wdm_wwan_init(struct wdm_device *desc)
+{
+	struct usb_interface *intf = desc->intf;
+	struct wwan_port *port;
+
+	/* Only register to WWAN core if protocol/type is known */
+	if (desc->wwanp_type == WWAN_PORT_UNKNOWN) {
+		dev_info(&intf->dev, "Unknown control protocol\n");
+		return;
+	}
+
+	port = wwan_create_port(&intf->dev, desc->wwanp_type, &wdm_wwan_port_ops, desc);
+	if (IS_ERR(port)) {
+		dev_err(&intf->dev, "%s: Unable to create WWAN port\n",
+			dev_name(intf->usb_dev));
+		return;
+	}
+
+	desc->wwanp = port;
+}
+
+static void wdm_wwan_deinit(struct wdm_device *desc)
+{
+	if (!desc->wwanp)
+		return;
+
+	wwan_remove_port(desc->wwanp);
+	desc->wwanp = NULL;
+}
+
+static void wdm_wwan_rx(struct wdm_device *desc, int length)
+{
+	struct wwan_port *port = desc->wwanp;
+	struct sk_buff *skb;
+
+	/* Forward data to WWAN port */
+	skb = alloc_skb(length, GFP_ATOMIC);
+	if (!skb)
+		return;
+
+	memcpy(skb_put(skb, length), desc->inbuf, length);
+	wwan_port_rx(port, skb);
+
+	/* inbuf has been copied, it is safe to check for outstanding data */
+	schedule_work(&desc->service_outs_intr);
+}
+#else /* CONFIG_WWAN_CORE */
+static void wdm_wwan_init(struct wdm_device *desc) {}
+static void wdm_wwan_deinit(struct wdm_device *desc) {}
+static void wdm_wwan_rx(struct wdm_device *desc, int length) {}
+#endif /* CONFIG_WWAN_CORE */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* --- error handling --- */
 static void wdm_rxwork(struct work_struct *work)
 {

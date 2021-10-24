@@ -91,7 +91,11 @@ static ssize_t queue_ra_show(struct request_queue *q, char *page)
 	unsigned long ra_kb = q->backing_dev_info->ra_pages <<
 					(PAGE_SHIFT - 10);
 
+<<<<<<< HEAD
 	return queue_var_show(ra_kb, (page));
+=======
+	return queue_var_show(ra_kb, page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t
@@ -859,6 +863,7 @@ int blk_register_queue(struct gendisk *disk)
 		  "%s is registering an already registered queue\n",
 		  kobject_name(&dev->kobj));
 
+<<<<<<< HEAD
 	/*
 	 * SCSI probing may synchronously create and destroy a lot of
 	 * request_queues for non-existent devices.  Shutting down a fully
@@ -873,6 +878,8 @@ int blk_register_queue(struct gendisk *disk)
 		percpu_ref_switch_to_percpu(&q->q_usage_counter);
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	blk_queue_update_readahead(q);
 
 	ret = blk_trace_init_sysfs(dev);

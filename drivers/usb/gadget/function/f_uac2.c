@@ -41,6 +41,10 @@
 
 #define EPIN_EN(_opts) ((_opts)->p_chmask != 0)
 #define EPOUT_EN(_opts) ((_opts)->c_chmask != 0)
+<<<<<<< HEAD
+=======
+#define EPOUT_FBACK_IN_EN(_opts) ((_opts)->c_sync == USB_ENDPOINT_SYNC_ASYNC)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct f_uac2 {
 	struct g_audio g_audio;
@@ -296,6 +300,40 @@ static struct uac2_iso_endpoint_descriptor as_iso_out_desc = {
 	.wLockDelay = 0,
 };
 
+<<<<<<< HEAD
+=======
+/* STD AS ISO IN Feedback Endpoint */
+static struct usb_endpoint_descriptor fs_epin_fback_desc = {
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+
+	.bEndpointAddress = USB_DIR_IN,
+	.bmAttributes = USB_ENDPOINT_XFER_ISOC | USB_ENDPOINT_USAGE_FEEDBACK,
+	.wMaxPacketSize = cpu_to_le16(3),
+	.bInterval = 1,
+};
+
+static struct usb_endpoint_descriptor hs_epin_fback_desc = {
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+
+	.bmAttributes = USB_ENDPOINT_XFER_ISOC | USB_ENDPOINT_USAGE_FEEDBACK,
+	.wMaxPacketSize = cpu_to_le16(4),
+	.bInterval = 4,
+};
+
+static struct usb_endpoint_descriptor ss_epin_fback_desc = {
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+
+	.bEndpointAddress = USB_DIR_IN,
+	.bmAttributes = USB_ENDPOINT_XFER_ISOC | USB_ENDPOINT_USAGE_FEEDBACK,
+	.wMaxPacketSize = cpu_to_le16(4),
+	.bInterval = 4,
+};
+
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Audio Streaming IN Interface - Alt0 */
 static struct usb_interface_descriptor std_as_in_if0_desc = {
 	.bLength = sizeof std_as_in_if0_desc,
@@ -433,6 +471,42 @@ static struct usb_descriptor_header *hs_audio_desc[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static struct usb_descriptor_header *ss_audio_desc[] = {
+	(struct usb_descriptor_header *)&iad_desc,
+	(struct usb_descriptor_header *)&std_ac_if_desc,
+
+	(struct usb_descriptor_header *)&ac_hdr_desc,
+	(struct usb_descriptor_header *)&in_clk_src_desc,
+	(struct usb_descriptor_header *)&out_clk_src_desc,
+	(struct usb_descriptor_header *)&usb_out_it_desc,
+	(struct usb_descriptor_header *)&io_in_it_desc,
+	(struct usb_descriptor_header *)&usb_in_ot_desc,
+	(struct usb_descriptor_header *)&io_out_ot_desc,
+
+	(struct usb_descriptor_header *)&std_as_out_if0_desc,
+	(struct usb_descriptor_header *)&std_as_out_if1_desc,
+
+	(struct usb_descriptor_header *)&as_out_hdr_desc,
+	(struct usb_descriptor_header *)&as_out_fmt1_desc,
+	(struct usb_descriptor_header *)&ss_epout_desc,
+	(struct usb_descriptor_header *)&ss_epout_desc_comp,
+	(struct usb_descriptor_header *)&as_iso_out_desc,
+	(struct usb_descriptor_header *)&ss_epin_fback_desc,
+
+	(struct usb_descriptor_header *)&std_as_in_if0_desc,
+	(struct usb_descriptor_header *)&std_as_in_if1_desc,
+
+	(struct usb_descriptor_header *)&as_in_hdr_desc,
+	(struct usb_descriptor_header *)&as_in_fmt1_desc,
+	(struct usb_descriptor_header *)&ss_epin_desc,
+	(struct usb_descriptor_header *)&ss_epin_desc_comp,
+	(struct usb_descriptor_header *)&as_iso_in_desc,
+	NULL,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct cntrl_cur_lay3 {
 	__le32	dCUR;
 };
@@ -477,6 +551,12 @@ static int set_ep_max_packet_size(const struct f_uac2_opts *uac2_opts,
 		ssize = uac2_opts->c_ssize;
 	}
 
+<<<<<<< HEAD
+=======
+	if (!is_playback && (uac2_opts->c_sync == USB_ENDPOINT_SYNC_ASYNC))
+		srate = srate * (1000 + uac2_opts->fb_max) / 1000;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	max_size_bw = num_channels(chmask) * ssize *
 		DIV_ROUND_UP(srate, factor / (1 << (ep_desc->bInterval - 1)));
 	ep_desc->wMaxPacketSize = cpu_to_le16(min_t(u16, max_size_bw,
@@ -488,6 +568,82 @@ static int set_ep_max_packet_size(const struct f_uac2_opts *uac2_opts,
 /* Use macro to overcome line length limitation */
 #define USBDHDR(p) (struct usb_descriptor_header *)(p)
 
+<<<<<<< HEAD
+=======
+static void setup_headers(struct f_uac2_opts *opts,
+			  struct usb_descriptor_header **headers,
+			  enum usb_device_speed speed)
+{
+	struct usb_ss_ep_comp_descriptor *epout_desc_comp = NULL;
+	struct usb_ss_ep_comp_descriptor *epin_desc_comp = NULL;
+	struct usb_endpoint_descriptor *epout_desc;
+	struct usb_endpoint_descriptor *epin_desc;
+	struct usb_endpoint_descriptor *epin_fback_desc;
+	int i;
+
+	switch (speed) {
+	case USB_SPEED_FULL:
+		epout_desc = &fs_epout_desc;
+		epin_desc = &fs_epin_desc;
+		epin_fback_desc = &fs_epin_fback_desc;
+		break;
+	case USB_SPEED_HIGH:
+		epout_desc = &hs_epout_desc;
+		epin_desc = &hs_epin_desc;
+		epin_fback_desc = &hs_epin_fback_desc;
+		break;
+	default:
+		epout_desc = &ss_epout_desc;
+		epin_desc = &ss_epin_desc;
+		epout_desc_comp = &ss_epout_desc_comp;
+		epin_desc_comp = &ss_epin_desc_comp;
+		epin_fback_desc = &ss_epin_fback_desc;
+	}
+
+	i = 0;
+	headers[i++] = USBDHDR(&iad_desc);
+	headers[i++] = USBDHDR(&std_ac_if_desc);
+	headers[i++] = USBDHDR(&ac_hdr_desc);
+	if (EPIN_EN(opts))
+		headers[i++] = USBDHDR(&in_clk_src_desc);
+	if (EPOUT_EN(opts)) {
+		headers[i++] = USBDHDR(&out_clk_src_desc);
+		headers[i++] = USBDHDR(&usb_out_it_desc);
+	}
+	if (EPIN_EN(opts)) {
+		headers[i++] = USBDHDR(&io_in_it_desc);
+		headers[i++] = USBDHDR(&usb_in_ot_desc);
+	}
+	if (EPOUT_EN(opts)) {
+		headers[i++] = USBDHDR(&io_out_ot_desc);
+		headers[i++] = USBDHDR(&std_as_out_if0_desc);
+		headers[i++] = USBDHDR(&std_as_out_if1_desc);
+		headers[i++] = USBDHDR(&as_out_hdr_desc);
+		headers[i++] = USBDHDR(&as_out_fmt1_desc);
+		headers[i++] = USBDHDR(epout_desc);
+		if (epout_desc_comp)
+			headers[i++] = USBDHDR(epout_desc_comp);
+
+		headers[i++] = USBDHDR(&as_iso_out_desc);
+
+		if (EPOUT_FBACK_IN_EN(opts))
+			headers[i++] = USBDHDR(epin_fback_desc);
+	}
+	if (EPIN_EN(opts)) {
+		headers[i++] = USBDHDR(&std_as_in_if0_desc);
+		headers[i++] = USBDHDR(&std_as_in_if1_desc);
+		headers[i++] = USBDHDR(&as_in_hdr_desc);
+		headers[i++] = USBDHDR(&as_in_fmt1_desc);
+		headers[i++] = USBDHDR(epin_desc);
+		if (epin_desc_comp)
+			headers[i++] = USBDHDR(epin_desc_comp);
+
+		headers[i++] = USBDHDR(&as_iso_in_desc);
+	}
+	headers[i] = NULL;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void setup_descriptor(struct f_uac2_opts *opts)
 {
 	/* patch descriptors */
@@ -547,6 +703,7 @@ static void setup_descriptor(struct f_uac2_opts *opts)
 		fs_audio_desc[i++] = USBDHDR(&out_clk_src_desc);
 		fs_audio_desc[i++] = USBDHDR(&usb_out_it_desc);
 	}
+<<<<<<< HEAD
 	if (EPIN_EN(opts)) {
 		fs_audio_desc[i++] = USBDHDR(&io_in_it_desc);
 		fs_audio_desc[i++] = USBDHDR(&usb_in_ot_desc);
@@ -602,6 +759,10 @@ static void setup_descriptor(struct f_uac2_opts *opts)
 		hs_audio_desc[i++] = USBDHDR(&as_iso_in_desc);
 	}
 	hs_audio_desc[i] = NULL;
+=======
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int
@@ -721,6 +882,18 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
 		if (!agdev->out_ep) {
 			dev_err(dev, "%s:%d Error!\n", __func__, __LINE__);
 			return -ENODEV;
+<<<<<<< HEAD
+=======
+		}
+		if (EPOUT_FBACK_IN_EN(uac2_opts)) {
+			agdev->in_ep_fback = usb_ep_autoconfig(gadget,
+						       &fs_epin_fback_desc);
+			if (!agdev->in_ep_fback) {
+				dev_err(dev, "%s:%d Error!\n",
+					__func__, __LINE__);
+				return -ENODEV;
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -739,8 +912,22 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
 				le16_to_cpu(fs_epout_desc.wMaxPacketSize),
 				le16_to_cpu(hs_epout_desc.wMaxPacketSize));
 
+<<<<<<< HEAD
+=======
+	agdev->in_ep_maxpsize = max_t(u16, agdev->in_ep_maxpsize,
+				le16_to_cpu(ss_epin_desc.wMaxPacketSize));
+	agdev->out_ep_maxpsize = max_t(u16, agdev->out_ep_maxpsize,
+				le16_to_cpu(ss_epout_desc.wMaxPacketSize));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hs_epout_desc.bEndpointAddress = fs_epout_desc.bEndpointAddress;
 	hs_epin_desc.bEndpointAddress = fs_epin_desc.bEndpointAddress;
+<<<<<<< HEAD
+=======
+	ss_epout_desc.bEndpointAddress = fs_epout_desc.bEndpointAddress;
+	ss_epin_fback_desc.bEndpointAddress = fs_epin_fback_desc.bEndpointAddress;
+	ss_epin_desc.bEndpointAddress = fs_epin_desc.bEndpointAddress;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	setup_descriptor(uac2_opts);
 
@@ -758,6 +945,10 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
 	agdev->params.c_srate = uac2_opts->c_srate;
 	agdev->params.c_ssize = uac2_opts->c_ssize;
 	agdev->params.req_number = uac2_opts->req_number;
+<<<<<<< HEAD
+=======
+	agdev->params.fb_max = uac2_opts->fb_max;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = g_audio_setup(agdev, "UAC2 PCM", "UAC2_Gadget");
 	if (ret)
 		goto err_free_descs;
@@ -1066,13 +1257,79 @@ end:									\
 									\
 CONFIGFS_ATTR(f_uac2_opts_, name)
 
+<<<<<<< HEAD
+=======
+#define UAC2_ATTRIBUTE_SYNC(name)					\
+static ssize_t f_uac2_opts_##name##_show(struct config_item *item,	\
+					 char *page)			\
+{									\
+	struct f_uac2_opts *opts = to_f_uac2_opts(item);		\
+	int result;							\
+	char *str;							\
+									\
+	mutex_lock(&opts->lock);					\
+	switch (opts->name) {						\
+	case USB_ENDPOINT_SYNC_ASYNC:					\
+		str = "async";						\
+		break;							\
+	case USB_ENDPOINT_SYNC_ADAPTIVE:				\
+		str = "adaptive";					\
+		break;							\
+	default:							\
+		str = "unknown";					\
+		break;							\
+	}								\
+	result = sprintf(page, "%s\n", str);				\
+	mutex_unlock(&opts->lock);					\
+									\
+	return result;							\
+}									\
+									\
+static ssize_t f_uac2_opts_##name##_store(struct config_item *item,	\
+					  const char *page, size_t len)	\
+{									\
+	struct f_uac2_opts *opts = to_f_uac2_opts(item);		\
+	int ret = 0;							\
+									\
+	mutex_lock(&opts->lock);					\
+	if (opts->refcnt) {						\
+		ret = -EBUSY;						\
+		goto end;						\
+	}								\
+									\
+	if (!strncmp(page, "async", 5))					\
+		opts->name = USB_ENDPOINT_SYNC_ASYNC;			\
+	else if (!strncmp(page, "adaptive", 8))				\
+		opts->name = USB_ENDPOINT_SYNC_ADAPTIVE;		\
+	else {								\
+		ret = -EINVAL;						\
+		goto end;						\
+	}								\
+									\
+	ret = len;							\
+									\
+end:									\
+	mutex_unlock(&opts->lock);					\
+	return ret;							\
+}									\
+									\
+CONFIGFS_ATTR(f_uac2_opts_, name)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 UAC2_ATTRIBUTE(p_chmask);
 UAC2_ATTRIBUTE(p_srate);
 UAC2_ATTRIBUTE(p_ssize);
 UAC2_ATTRIBUTE(c_chmask);
 UAC2_ATTRIBUTE(c_srate);
+<<<<<<< HEAD
 UAC2_ATTRIBUTE(c_ssize);
 UAC2_ATTRIBUTE(req_number);
+=======
+UAC2_ATTRIBUTE_SYNC(c_sync);
+UAC2_ATTRIBUTE(c_ssize);
+UAC2_ATTRIBUTE(req_number);
+UAC2_ATTRIBUTE(fb_max);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static struct configfs_attribute *f_uac2_attrs[] = {
 	&f_uac2_opts_attr_p_chmask,
@@ -1082,6 +1339,10 @@ static struct configfs_attribute *f_uac2_attrs[] = {
 	&f_uac2_opts_attr_c_srate,
 	&f_uac2_opts_attr_c_ssize,
 	&f_uac2_opts_attr_req_number,
+<<<<<<< HEAD
+=======
+	&f_uac2_opts_attr_fb_max,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	NULL,
 };
 
@@ -1119,6 +1380,10 @@ static struct usb_function_instance *afunc_alloc_inst(void)
 	opts->c_chmask = UAC2_DEF_CCHMASK;
 	opts->c_srate = UAC2_DEF_CSRATE;
 	opts->c_ssize = UAC2_DEF_CSSIZE;
+<<<<<<< HEAD
+=======
+	opts->c_sync = UAC2_DEF_CSYNC;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	opts->req_number = UAC2_DEF_REQ_NUM;
 	return &opts->func_inst;
 }

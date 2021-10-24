@@ -27,6 +27,7 @@ int cn10k_pf_lmtst_init(struct otx2_nic *pf)
 	int size, num_lines;
 	u64 base;
 
+<<<<<<< HEAD
 	if (!test_bit(CN10K_LMTST, &pf->hw.cap_flag)) {
 		pf->hw_ops = &otx2_hw_ops;
 		return 0;
@@ -38,6 +39,26 @@ int cn10k_pf_lmtst_init(struct otx2_nic *pf)
 
 	size = pci_resource_len(pf->pdev, PCI_MBOX_BAR_NUM) -
 	       (MBOX_SIZE * (pf->total_vfs + 1));
+=======
+	struct lmtst_tbl_setup_req *req;
+	int qcount, err;
+
+	if (!test_bit(CN10K_LMTST, &pfvf->hw.cap_flag)) {
+		pfvf->hw_ops = &otx2_hw_ops;
+		return 0;
+	}
+
+	pfvf->hw_ops = &cn10k_hw_ops;
+	qcount = pfvf->hw.max_queues;
+	/* LMTST lines allocation
+	 * qcount = num_online_cpus();
+	 * NPA = TX + RX + XDP.
+	 * NIX = TX * 32 (For Burst SQE flush).
+	 */
+	pfvf->tot_lmt_lines = (qcount * 3) + (qcount * 32);
+	pfvf->npa_lmt_lines = qcount * 3;
+	pfvf->nix_lmt_size =  LMT_BURST_SIZE * LMT_LINE_SIZE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pf->hw.lmt_base = ioremap(base, size);
 
@@ -61,6 +82,7 @@ int cn10k_vf_lmtst_init(struct otx2_nic *vf)
 {
 	int size, num_lines;
 
+<<<<<<< HEAD
 	if (!test_bit(CN10K_LMTST, &vf->hw.cap_flag)) {
 		vf->hw_ops = &otx2_hw_ops;
 		return 0;
@@ -82,6 +104,8 @@ int cn10k_vf_lmtst_init(struct otx2_nic *vf)
 			    vf->hw.tx_queues;
 	vf->nix_lmt_lines = num_lines > 32 ? 32 : num_lines;
 	vf->nix_lmt_size = vf->nix_lmt_lines * LMT_LINE_SIZE;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 EXPORT_SYMBOL(cn10k_vf_lmtst_init);
@@ -93,8 +117,15 @@ int cn10k_sq_aq_init(void *dev, u16 qidx, u16 sqb_aura)
 	struct otx2_snd_queue *sq;
 
 	sq = &pfvf->qset.sq[qidx];
+<<<<<<< HEAD
 	sq->lmt_addr = (__force u64 *)((u64)pfvf->hw.nix_lmt_base +
 			       (qidx * pfvf->nix_lmt_size));
+=======
+	sq->lmt_addr = (u64 *)((u64)pfvf->hw.nix_lmt_base +
+			       (qidx * pfvf->nix_lmt_size));
+
+	sq->lmt_id = pfvf->npa_lmt_lines + (qidx * LMT_BURST_SIZE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Get memory to put this msg */
 	aq = otx2_mbox_alloc_msg_nix_cn10k_aq_enq(&pfvf->mbox);
@@ -158,15 +189,22 @@ void cn10k_refill_pool_ptrs(void *dev, struct otx2_cq_queue *cq)
 
 void cn10k_sqe_flush(void *dev, struct otx2_snd_queue *sq, int size, int qidx)
 {
+<<<<<<< HEAD
 	struct otx2_nic *pfvf = dev;
 	int lmt_id = NIX_LMTID_BASE + (qidx * pfvf->nix_lmt_lines);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u64 val = 0, tar_addr = 0;
 
 	/* FIXME: val[0:10] LMT_ID.
 	 * [12:15] no of LMTST - 1 in the burst.
 	 * [19:63] data size of each LMTST in the burst except first.
 	 */
+<<<<<<< HEAD
 	val = (lmt_id & 0x7FF);
+=======
+	val = (sq->lmt_id & 0x7FF);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Target address for LMTST flush tells HW how many 128bit
 	 * words are present.
 	 * tar_addr[6:4] size of first LMTST - 1 in units of 128b.

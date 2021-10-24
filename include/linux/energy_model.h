@@ -91,6 +91,11 @@ void em_dev_unregister_perf_domain(struct device *dev);
  * @pd		: performance domain for which energy has to be estimated
  * @max_util	: highest utilization among CPUs of the domain
  * @sum_util	: sum of the utilization of all CPUs in the domain
+<<<<<<< HEAD
+=======
+ * @allowed_cpu_cap	: maximum allowed CPU capacity for the @pd, which
+			  might reflect reduced frequency (due to thermal)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * This function must be used only for CPU devices. There is no validation,
  * i.e. if the EM is a CPU type and has cpumask allocated. It is called from

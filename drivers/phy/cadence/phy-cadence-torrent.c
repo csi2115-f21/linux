@@ -231,6 +231,29 @@ static const struct reg_field phy_pma_pll_raw_ctrl =
 static const struct reg_field phy_reset_ctrl =
 				REG_FIELD(PHY_RESET, 8, 8);
 
+<<<<<<< HEAD
+=======
+static const struct reg_field phy_pipe_cmn_ctrl1_0 = REG_FIELD(PHY_PIPE_CMN_CTRL1, 0, 0);
+
+#define REFCLK_OUT_NUM_CMN_CONFIG	5
+
+enum cdns_torrent_refclk_out_cmn {
+	CMN_CDIAG_REFCLK_OVRD_4,
+	CMN_CDIAG_REFCLK_DRV0_CTRL_1,
+	CMN_CDIAG_REFCLK_DRV0_CTRL_4,
+	CMN_CDIAG_REFCLK_DRV0_CTRL_5,
+	CMN_CDIAG_REFCLK_DRV0_CTRL_6,
+};
+
+static const struct reg_field refclk_out_cmn_cfg[] = {
+	[CMN_CDIAG_REFCLK_OVRD_4]	= REG_FIELD(CMN_CDIAG_REFCLK_OVRD, 4, 4),
+	[CMN_CDIAG_REFCLK_DRV0_CTRL_1]	= REG_FIELD(CMN_CDIAG_REFCLK_DRV0_CTRL, 1, 1),
+	[CMN_CDIAG_REFCLK_DRV0_CTRL_4]	= REG_FIELD(CMN_CDIAG_REFCLK_DRV0_CTRL, 4, 4),
+	[CMN_CDIAG_REFCLK_DRV0_CTRL_5]  = REG_FIELD(CMN_CDIAG_REFCLK_DRV0_CTRL, 5, 5),
+	[CMN_CDIAG_REFCLK_DRV0_CTRL_6]	= REG_FIELD(CMN_CDIAG_REFCLK_DRV0_CTRL, 6, 6),
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 enum cdns_torrent_phy_type {
 	TYPE_NONE,
 	TYPE_DP,
@@ -279,6 +302,11 @@ struct cdns_torrent_phy {
 	struct regmap_field *phy_pma_cmn_ctrl_2;
 	struct regmap_field *phy_pma_pll_raw_ctrl;
 	struct regmap_field *phy_reset_ctrl;
+<<<<<<< HEAD
+=======
+	struct clk *clks[CDNS_TORRENT_REFCLK_DRIVER + 1];
+	struct clk_onecell_data clk_data;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum phy_powerstate {
@@ -323,6 +351,57 @@ static const struct phy_ops cdns_torrent_phy_ops = {
 	.configure	= cdns_torrent_dp_configure,
 	.power_on	= cdns_torrent_phy_on,
 	.power_off	= cdns_torrent_phy_off,
+	.owner		= THIS_MODULE,
+};
+
+static int cdns_torrent_phy_init(struct phy *phy);
+static int cdns_torrent_dp_init(struct phy *phy);
+static int cdns_torrent_dp_run(struct cdns_torrent_phy *cdns_phy,
+			       u32 num_lanes);
+static
+int cdns_torrent_dp_wait_pma_cmn_ready(struct cdns_torrent_phy *cdns_phy);
+static void cdns_torrent_dp_pma_cfg(struct cdns_torrent_phy *cdns_phy,
+				    struct cdns_torrent_inst *inst);
+static
+void cdns_torrent_dp_pma_cmn_cfg_19_2mhz(struct cdns_torrent_phy *cdns_phy);
+static
+void cdns_torrent_dp_pma_cmn_vco_cfg_19_2mhz(struct cdns_torrent_phy *cdns_phy,
+					     u32 rate, bool ssc);
+static
+void cdns_torrent_dp_pma_cmn_cfg_25mhz(struct cdns_torrent_phy *cdns_phy);
+static
+void cdns_torrent_dp_pma_cmn_vco_cfg_25mhz(struct cdns_torrent_phy *cdns_phy,
+					   u32 rate, bool ssc);
+static void cdns_torrent_dp_pma_lane_cfg(struct cdns_torrent_phy *cdns_phy,
+					 unsigned int lane);
+static void cdns_torrent_dp_pma_cmn_rate(struct cdns_torrent_phy *cdns_phy,
+					 u32 rate, u32 num_lanes);
+static int cdns_torrent_dp_configure(struct phy *phy,
+				     union phy_configure_opts *opts);
+static int cdns_torrent_dp_set_power_state(struct cdns_torrent_phy *cdns_phy,
+					   u32 num_lanes,
+					   enum phy_powerstate powerstate);
+static int cdns_torrent_phy_on(struct phy *phy);
+static int cdns_torrent_phy_off(struct phy *phy);
+
+static const struct phy_ops cdns_torrent_phy_ops = {
+	.init		= cdns_torrent_phy_init,
+	.configure	= cdns_torrent_dp_configure,
+	.power_on	= cdns_torrent_phy_on,
+	.power_off	= cdns_torrent_phy_off,
+	.owner		= THIS_MODULE,
+};
+
+static int cdns_torrent_noop_phy_on(struct phy *phy)
+{
+	/* Give 5ms to 10ms delay for the PIPE clock to be stable */
+	usleep_range(5000, 10000);
+
+	return 0;
+}
+
+static const struct phy_ops noop_ops = {
+	.power_on	= cdns_torrent_noop_phy_on,
 	.owner		= THIS_MODULE,
 };
 
@@ -557,6 +636,43 @@ static const struct coefficients vltg_coeff[4][4] = {
 	}
 };
 
+<<<<<<< HEAD
+/*
+ * Enable or disable PLL for selected lanes.
+ */
+static int cdns_torrent_dp_set_pll_en(struct cdns_torrent_phy *cdns_phy,
+				      struct phy_configure_opts_dp *dp,
+				      bool enable)
+{
+	u32 rd_val;
+	u32 ret;
+	struct regmap *regmap = cdns_phy->regmap_dptx_phy_reg;
+
+	/*
+	 * Used to determine, which bits to check for or enable in
+	 * PHY_PMA_XCVR_PLLCLK_EN register.
+	 */
+	u32 pll_bits;
+	/* Used to enable or disable lanes. */
+	u32 pll_val;
+
+	/* Select values of registers and mask, depending on enabled lane
+	 * count.
+	 */
+	switch (dp->lanes) {
+	/* lane 0 */
+	case (1):
+		pll_bits = 0x00000001;
+		break;
+	/* lanes 0-1 */
+	case (2):
+		pll_bits = 0x00000003;
+		break;
+	/* lanes 0-3, all */
+	default:
+		pll_bits = 0x0000000F;
+		break;
+=======
 /*
  * Enable or disable PLL for selected lanes.
  */
@@ -612,6 +728,78 @@ static int cdns_torrent_dp_set_pll_en(struct cdns_torrent_phy *cdns_phy,
 }
 
 /*
+ * Perform register operations related to setting link rate, once powerstate is
+ * set and PLL disable request was processed.
+ */
+static int cdns_torrent_dp_configure_rate(struct cdns_torrent_phy *cdns_phy,
+					  struct phy_configure_opts_dp *dp)
+{
+	u32 ret;
+	u32 read_val;
+
+	/* Disable the cmn_pll0_en before re-programming the new data rate. */
+	regmap_field_write(cdns_phy->phy_pma_pll_raw_ctrl, 0x0);
+
+	/*
+	 * Wait for PLL ready de-assertion.
+	 * For PLL0 - PHY_PMA_CMN_CTRL2[2] == 1
+	 */
+	ret = regmap_field_read_poll_timeout(cdns_phy->phy_pma_cmn_ctrl_2,
+					     read_val,
+					     ((read_val >> 2) & 0x01) != 0,
+					     0, POLL_TIMEOUT_US);
+	if (ret)
+		return ret;
+	ndelay(200);
+
+	/* DP Rate Change - VCO Output settings. */
+	if (cdns_phy->ref_clk_rate == REF_CLK_19_2MHz) {
+		/* PMA common configuration 19.2MHz */
+		cdns_torrent_dp_pma_cmn_vco_cfg_19_2mhz(cdns_phy, dp->link_rate,
+							dp->ssc);
+		cdns_torrent_dp_pma_cmn_cfg_19_2mhz(cdns_phy);
+	} else if (cdns_phy->ref_clk_rate == REF_CLK_25MHz) {
+		/* PMA common configuration 25MHz */
+		cdns_torrent_dp_pma_cmn_vco_cfg_25mhz(cdns_phy, dp->link_rate,
+						      dp->ssc);
+		cdns_torrent_dp_pma_cmn_cfg_25mhz(cdns_phy);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+	cdns_torrent_dp_pma_cmn_rate(cdns_phy, dp->link_rate, dp->lanes);
+
+<<<<<<< HEAD
+	if (enable)
+		pll_val = pll_bits;
+	else
+		pll_val = 0x00000000;
+
+	cdns_torrent_dp_write(regmap, PHY_PMA_XCVR_PLLCLK_EN, pll_val);
+
+	/* Wait for acknowledgment from PHY. */
+	ret = regmap_read_poll_timeout(regmap,
+				       PHY_PMA_XCVR_PLLCLK_EN_ACK,
+				       rd_val,
+				       (rd_val & pll_bits) == pll_val,
+				       0, POLL_TIMEOUT_US);
+	ndelay(100);
+=======
+	/* Enable the cmn_pll0_en. */
+	regmap_field_write(cdns_phy->phy_pma_pll_raw_ctrl, 0x3);
+
+	/*
+	 * Wait for PLL ready assertion.
+	 * For PLL0 - PHY_PMA_CMN_CTRL2[0] == 1
+	 */
+	ret = regmap_field_read_poll_timeout(cdns_phy->phy_pma_cmn_ctrl_2,
+					     read_val,
+					     (read_val & 0x01) != 0,
+					     0, POLL_TIMEOUT_US);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	return ret;
+}
+
+/*
+<<<<<<< HEAD
  * Perform register operations related to setting link rate, once powerstate is
  * set and PLL disable request was processed.
  */
@@ -715,6 +903,58 @@ static int cdns_torrent_dp_verify_config(struct cdns_torrent_inst *inst,
 			if (dp->voltage[i] > 3 || dp->pre[i] > 3)
 				return -EINVAL;
 
+=======
+ * Verify, that parameters to configure PHY with are correct.
+ */
+static int cdns_torrent_dp_verify_config(struct cdns_torrent_inst *inst,
+					 struct phy_configure_opts_dp *dp)
+{
+	u8 i;
+
+	/* If changing link rate was required, verify it's supported. */
+	if (dp->set_rate) {
+		switch (dp->link_rate) {
+		case 1620:
+		case 2160:
+		case 2430:
+		case 2700:
+		case 3240:
+		case 4320:
+		case 5400:
+		case 8100:
+			/* valid bit rate */
+			break;
+		default:
+			return -EINVAL;
+		}
+	}
+
+	/* Verify lane count. */
+	switch (dp->lanes) {
+	case 1:
+	case 2:
+	case 4:
+		/* valid lane count. */
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/* Check against actual number of PHY's lanes. */
+	if (dp->lanes > inst->num_lanes)
+		return -EINVAL;
+
+	/*
+	 * If changing voltages is required, check swing and pre-emphasis
+	 * levels, per-lane.
+	 */
+	if (dp->set_voltages) {
+		/* Lane count verified previously. */
+		for (i = 0; i < dp->lanes; i++) {
+			if (dp->voltage[i] > 3 || dp->pre[i] > 3)
+				return -EINVAL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/* Sum of voltage swing and pre-emphasis levels cannot
 			 * exceed 3.
 			 */
@@ -816,6 +1056,80 @@ static int cdns_torrent_dp_set_rate(struct cdns_torrent_phy *cdns_phy,
 				    struct phy_configure_opts_dp *dp)
 {
 	u32 ret;
+<<<<<<< HEAD
+
+	ret = cdns_torrent_dp_set_power_state(cdns_phy, dp->lanes,
+					      POWERSTATE_A3);
+	if (ret)
+		return ret;
+	ret = cdns_torrent_dp_set_pll_en(cdns_phy, dp, false);
+	if (ret)
+		return ret;
+	ndelay(200);
+
+	ret = cdns_torrent_dp_configure_rate(cdns_phy, dp);
+	if (ret)
+		return ret;
+	ndelay(200);
+
+	ret = cdns_torrent_dp_set_pll_en(cdns_phy, dp, true);
+	if (ret)
+		return ret;
+	ret = cdns_torrent_dp_set_power_state(cdns_phy, dp->lanes,
+					      POWERSTATE_A2);
+	if (ret)
+		return ret;
+	ret = cdns_torrent_dp_set_power_state(cdns_phy, dp->lanes,
+					      POWERSTATE_A0);
+	if (ret)
+		return ret;
+	ndelay(900);
+
+	return ret;
+}
+
+/* Configure voltage swing and pre-emphasis for all enabled lanes. */
+static void cdns_torrent_dp_set_voltages(struct cdns_torrent_phy *cdns_phy,
+					 struct phy_configure_opts_dp *dp)
+{
+	u8 lane;
+	u16 val;
+
+	for (lane = 0; lane < dp->lanes; lane++) {
+		val = cdns_torrent_phy_read(cdns_phy->regmap_tx_lane_cdb[lane],
+					    TX_DIAG_ACYA);
+		/*
+		 * Write 1 to register bit TX_DIAG_ACYA[0] to freeze the
+		 * current state of the analog TX driver.
+		 */
+		val |= TX_DIAG_ACYA_HBDC_MASK;
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       TX_DIAG_ACYA, val);
+
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       TX_TXCC_CTRL, 0x08A4);
+		val = vltg_coeff[dp->voltage[lane]][dp->pre[lane]].diag_tx_drv;
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       DRV_DIAG_TX_DRV, val);
+		val = vltg_coeff[dp->voltage[lane]][dp->pre[lane]].mgnfs_mult;
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       TX_TXCC_MGNFS_MULT_000,
+				       val);
+		val = vltg_coeff[dp->voltage[lane]][dp->pre[lane]].cpost_mult;
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       TX_TXCC_CPOST_MULT_00,
+				       val);
+
+		val = cdns_torrent_phy_read(cdns_phy->regmap_tx_lane_cdb[lane],
+					    TX_DIAG_ACYA);
+		/*
+		 * Write 0 to register bit TX_DIAG_ACYA[0] to allow the state of
+		 * analog TX driver to reflect the new programmed one.
+		 */
+		val &= ~TX_DIAG_ACYA_HBDC_MASK;
+		cdns_torrent_phy_write(cdns_phy->regmap_tx_lane_cdb[lane],
+				       TX_DIAG_ACYA, val);
+=======
 
 	ret = cdns_torrent_dp_set_power_state(cdns_phy, dp->lanes,
 					      POWERSTATE_A3);
@@ -902,8 +1216,26 @@ static int cdns_torrent_dp_configure(struct phy *phy,
 	if (ret) {
 		dev_err(&phy->dev, "invalid params for phy configure\n");
 		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	}
+};
+
+<<<<<<< HEAD
+static int cdns_torrent_dp_configure(struct phy *phy,
+				     union phy_configure_opts *opts)
+{
+	struct cdns_torrent_inst *inst = phy_get_drvdata(phy);
+	struct cdns_torrent_phy *cdns_phy = dev_get_drvdata(phy->dev.parent);
+	int ret;
+
+	ret = cdns_torrent_dp_verify_config(inst, &opts->dp);
+	if (ret) {
+		dev_err(&phy->dev, "invalid params for phy configure\n");
+		return ret;
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (opts->dp.set_lanes) {
 		ret = cdns_torrent_dp_set_lanes(cdns_phy, &opts->dp);
 		if (ret) {
@@ -1559,6 +1891,7 @@ static int cdns_torrent_dp_set_power_state(struct cdns_torrent_phy *cdns_phy,
 		mask = 0x3F3F3F3FU;
 		break;
 	}
+<<<<<<< HEAD
 
 	/* Set power state A<n>. */
 	cdns_torrent_dp_write(regmap, PHY_PMA_XCVR_POWER_STATE_REQ, value);
@@ -1569,6 +1902,18 @@ static int cdns_torrent_dp_set_power_state(struct cdns_torrent_phy *cdns_phy,
 	cdns_torrent_dp_write(regmap, PHY_PMA_XCVR_POWER_STATE_REQ, 0x00000000);
 	ndelay(100);
 
+=======
+
+	/* Set power state A<n>. */
+	cdns_torrent_dp_write(regmap, PHY_PMA_XCVR_POWER_STATE_REQ, value);
+	/* Wait, until PHY acknowledges power state completion. */
+	ret = regmap_read_poll_timeout(regmap, PHY_PMA_XCVR_POWER_STATE_ACK,
+				       read_val, (read_val & mask) == value, 0,
+				       POLL_TIMEOUT_US);
+	cdns_torrent_dp_write(regmap, PHY_PMA_XCVR_POWER_STATE_REQ, 0x00000000);
+	ndelay(100);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -1602,6 +1947,114 @@ static int cdns_torrent_dp_run(struct cdns_torrent_phy *cdns_phy, u32 num_lanes)
 					      POWERSTATE_A0);
 
 	return ret;
+}
+
+<<<<<<< HEAD
+static int cdns_torrent_phy_on(struct phy *phy)
+{
+	struct cdns_torrent_inst *inst = phy_get_drvdata(phy);
+	struct cdns_torrent_phy *cdns_phy = dev_get_drvdata(phy->dev.parent);
+	u32 read_val;
+	int ret;
+
+	if (cdns_phy->nsubnodes == 1) {
+		/* Take the PHY lane group out of reset */
+		reset_control_deassert(inst->lnk_rst);
+=======
+static int cdns_torrent_derived_refclk_enable(struct clk_hw *hw)
+{
+	struct cdns_torrent_derived_refclk *derived_refclk = to_cdns_torrent_derived_refclk(hw);
+
+	regmap_field_write(derived_refclk->cmn_fields[CMN_CDIAG_REFCLK_DRV0_CTRL_6], 0);
+	regmap_field_write(derived_refclk->cmn_fields[CMN_CDIAG_REFCLK_DRV0_CTRL_4], 1);
+	regmap_field_write(derived_refclk->cmn_fields[CMN_CDIAG_REFCLK_DRV0_CTRL_5], 1);
+	regmap_field_write(derived_refclk->cmn_fields[CMN_CDIAG_REFCLK_DRV0_CTRL_1], 0);
+	regmap_field_write(derived_refclk->cmn_fields[CMN_CDIAG_REFCLK_OVRD_4], 1);
+	regmap_field_write(derived_refclk->phy_pipe_cmn_ctrl1_0, 1);
+
+	return 0;
+}
+
+static void cdns_torrent_derived_refclk_disable(struct clk_hw *hw)
+{
+	struct cdns_torrent_derived_refclk *derived_refclk = to_cdns_torrent_derived_refclk(hw);
+
+	regmap_field_write(derived_refclk->phy_pipe_cmn_ctrl1_0, 0);
+}
+
+static int cdns_torrent_derived_refclk_is_enabled(struct clk_hw *hw)
+{
+	struct cdns_torrent_derived_refclk *derived_refclk = to_cdns_torrent_derived_refclk(hw);
+	int val;
+
+	regmap_field_read(derived_refclk->phy_pipe_cmn_ctrl1_0, &val);
+
+	return !!val;
+}
+
+static const struct clk_ops cdns_torrent_derived_refclk_ops = {
+	.enable = cdns_torrent_derived_refclk_enable,
+	.disable = cdns_torrent_derived_refclk_disable,
+	.is_enabled = cdns_torrent_derived_refclk_is_enabled,
+};
+
+static int cdns_torrent_derived_refclk_register(struct cdns_torrent_phy *cdns_phy)
+{
+	struct cdns_torrent_derived_refclk *derived_refclk;
+	struct device *dev = cdns_phy->dev;
+	struct regmap_field *field;
+	struct clk_init_data *init;
+	const char *parent_name;
+	struct regmap *regmap;
+	char clk_name[100];
+	struct clk *clk;
+	int i;
+
+	derived_refclk = devm_kzalloc(dev, sizeof(*derived_refclk), GFP_KERNEL);
+	if (!derived_refclk)
+		return -ENOMEM;
+
+	snprintf(clk_name, sizeof(clk_name), "%s_%s", dev_name(dev),
+		 clk_names[CDNS_TORRENT_REFCLK_DRIVER]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+		/* Take the PHY out of reset */
+		ret = reset_control_deassert(cdns_phy->phy_rst);
+		if (ret)
+			return ret;
+	}
+
+	/*
+	 * Wait for cmn_ready assertion
+	 * PHY_PMA_CMN_CTRL1[0] == 1
+	 */
+	ret = regmap_field_read_poll_timeout(cdns_phy->phy_pma_cmn_ctrl_1,
+					     read_val, read_val, 1000,
+					     PLL_LOCK_TIMEOUT);
+	if (ret) {
+		dev_err(cdns_phy->dev, "Timeout waiting for CMN ready\n");
+		return ret;
+	}
+
+	mdelay(10);
+
+	return 0;
+}
+
+static int cdns_torrent_phy_off(struct phy *phy)
+{
+	struct cdns_torrent_inst *inst = phy_get_drvdata(phy);
+	struct cdns_torrent_phy *cdns_phy = dev_get_drvdata(phy->dev.parent);
+	int ret;
+
+	if (cdns_phy->nsubnodes != 1)
+		return 0;
+
+	ret = reset_control_assert(cdns_phy->phy_rst);
+	if (ret)
+		return ret;
+
+	return reset_control_assert(inst->lnk_rst);
 }
 
 static int cdns_torrent_phy_on(struct phy *phy)
@@ -2071,6 +2524,88 @@ int cdns_torrent_phy_configure_multilink(struct cdns_torrent_phy *cdns_phy)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void cdns_torrent_clk_cleanup(struct cdns_torrent_phy *cdns_phy)
+{
+	struct device *dev = cdns_phy->dev;
+
+	of_clk_del_provider(dev->of_node);
+}
+
+static int cdns_torrent_clk_register(struct cdns_torrent_phy *cdns_phy)
+{
+	struct device *dev = cdns_phy->dev;
+	struct device_node *node = dev->of_node;
+	int ret;
+
+	ret = cdns_torrent_derived_refclk_register(cdns_phy);
+	if (ret) {
+		dev_err(dev, "failed to register derived refclk\n");
+		return ret;
+	}
+
+	cdns_phy->clk_data.clks = cdns_phy->clks;
+	cdns_phy->clk_data.clk_num = CDNS_TORRENT_REFCLK_DRIVER + 1;
+
+	ret = of_clk_add_provider(node, of_clk_src_onecell_get, &cdns_phy->clk_data);
+	if (ret) {
+		dev_err(dev, "Failed to add clock provider: %s\n", node->name);
+		return ret;
+	}
+
+	return 0;
+}
+
+static int cdns_torrent_reset(struct cdns_torrent_phy *cdns_phy)
+{
+	struct device *dev = cdns_phy->dev;
+
+	cdns_phy->phy_rst = devm_reset_control_get_exclusive_by_index(dev, 0);
+	if (IS_ERR(cdns_phy->phy_rst)) {
+		dev_err(dev, "%s: failed to get reset\n",
+			dev->of_node->full_name);
+		return PTR_ERR(cdns_phy->phy_rst);
+	}
+
+	cdns_phy->apb_rst = devm_reset_control_get_optional_exclusive(dev, "torrent_apb");
+	if (IS_ERR(cdns_phy->apb_rst)) {
+		dev_err(dev, "%s: failed to get apb reset\n",
+			dev->of_node->full_name);
+		return PTR_ERR(cdns_phy->apb_rst);
+	}
+
+	return 0;
+}
+
+static int cdns_torrent_clk(struct cdns_torrent_phy *cdns_phy)
+{
+	struct device *dev = cdns_phy->dev;
+	int ret;
+
+	cdns_phy->clk = devm_clk_get(dev, "refclk");
+	if (IS_ERR(cdns_phy->clk)) {
+		dev_err(dev, "phy ref clock not found\n");
+		return PTR_ERR(cdns_phy->clk);
+	}
+
+	ret = clk_prepare_enable(cdns_phy->clk);
+	if (ret) {
+		dev_err(cdns_phy->dev, "Failed to prepare ref clock\n");
+		return ret;
+	}
+
+	cdns_phy->ref_clk_rate = clk_get_rate(cdns_phy->clk);
+	if (!(cdns_phy->ref_clk_rate)) {
+		dev_err(cdns_phy->dev, "Failed to get ref clock rate\n");
+		clk_disable_unprepare(cdns_phy->clk);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int cdns_torrent_phy_probe(struct platform_device *pdev)
 {
 	struct cdns_torrent_phy *cdns_phy;
@@ -2302,7 +2837,11 @@ static int cdns_torrent_phy_probe(struct platform_device *pdev)
 		goto put_lnk_rst;
 	}
 
+<<<<<<< HEAD
 	if (cdns_phy->nsubnodes > 1) {
+=======
+	if (cdns_phy->nsubnodes > 1 && !already_configured) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = cdns_torrent_phy_configure_multilink(cdns_phy);
 		if (ret)
 			goto put_lnk_rst;
@@ -2324,6 +2863,11 @@ put_lnk_rst:
 	of_node_put(child);
 	reset_control_assert(cdns_phy->apb_rst);
 	clk_disable_unprepare(cdns_phy->clk);
+<<<<<<< HEAD
+=======
+clk_cleanup:
+	cdns_torrent_clk_cleanup(cdns_phy);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -2340,6 +2884,10 @@ static int cdns_torrent_phy_remove(struct platform_device *pdev)
 	}
 
 	clk_disable_unprepare(cdns_phy->clk);
+<<<<<<< HEAD
+=======
+	cdns_torrent_clk_cleanup(cdns_phy);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -3198,8 +3746,13 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 	.cmn_vals = {
 		[TYPE_PCIE] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &pcie_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &pcie_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = NULL,
+				[EXTERNAL_SSC] = NULL,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_pcie_100_int_ssc_cmn_vals,
 			},
 			[TYPE_SGMII] = {
@@ -3220,7 +3773,11 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 		},
 		[TYPE_SGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &sgmii_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_sgmii_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 			[TYPE_PCIE] = {
 				[NO_SSC] = &sgmii_100_no_ssc_cmn_vals,
@@ -3235,7 +3792,11 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 		},
 		[TYPE_QSGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &qsgmii_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_qsgmii_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 			[TYPE_PCIE] = {
 				[NO_SSC] = &qsgmii_100_no_ssc_cmn_vals,
@@ -3250,8 +3811,13 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 		},
 		[TYPE_USB] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
 			},
 			[TYPE_PCIE] = {
@@ -3260,6 +3826,7 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 				[INTERNAL_SSC] = &usb_100_int_ssc_cmn_vals,
 			},
 			[TYPE_SGMII] = {
+<<<<<<< HEAD
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
@@ -3267,6 +3834,15 @@ static const struct cdns_torrent_data cdns_map_torrent = {
 			[TYPE_QSGMII] = {
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
+			},
+			[TYPE_QSGMII] = {
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
 			},
 		},
@@ -3607,8 +4183,13 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 	.cmn_vals = {
 		[TYPE_PCIE] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &pcie_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &pcie_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = NULL,
+				[EXTERNAL_SSC] = NULL,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_pcie_100_int_ssc_cmn_vals,
 			},
 			[TYPE_SGMII] = {
@@ -3629,7 +4210,11 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 		},
 		[TYPE_SGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &sgmii_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_sgmii_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 			[TYPE_PCIE] = {
 				[NO_SSC] = &sgmii_100_no_ssc_cmn_vals,
@@ -3644,7 +4229,11 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 		},
 		[TYPE_QSGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &qsgmii_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_qsgmii_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 			[TYPE_PCIE] = {
 				[NO_SSC] = &qsgmii_100_no_ssc_cmn_vals,
@@ -3659,8 +4248,13 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 		},
 		[TYPE_USB] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
 			},
 			[TYPE_PCIE] = {
@@ -3669,6 +4263,7 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 				[INTERNAL_SSC] = &usb_100_int_ssc_cmn_vals,
 			},
 			[TYPE_SGMII] = {
+<<<<<<< HEAD
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
@@ -3676,6 +4271,15 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 			[TYPE_QSGMII] = {
 				[NO_SSC] = &usb_100_no_ssc_cmn_vals,
 				[EXTERNAL_SSC] = &usb_100_no_ssc_cmn_vals,
+=======
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
+			},
+			[TYPE_QSGMII] = {
+				[NO_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+				[EXTERNAL_SSC] = &sl_usb_100_no_ssc_cmn_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				[INTERNAL_SSC] = &sl_usb_100_int_ssc_cmn_vals,
 			},
 		},
@@ -3705,6 +4309,7 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 		},
 		[TYPE_SGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &sgmii_100_no_ssc_tx_ln_vals,
 			},
 			[TYPE_PCIE] = {
@@ -3716,10 +4321,24 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 				[NO_SSC] = &sgmii_100_no_ssc_tx_ln_vals,
 				[EXTERNAL_SSC] = &sgmii_100_no_ssc_tx_ln_vals,
 				[INTERNAL_SSC] = &sgmii_100_no_ssc_tx_ln_vals,
+=======
+				[NO_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+			},
+			[TYPE_PCIE] = {
+				[NO_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+				[EXTERNAL_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+				[INTERNAL_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+			},
+			[TYPE_USB] = {
+				[NO_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+				[EXTERNAL_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+				[INTERNAL_SSC] = &ti_sgmii_100_no_ssc_tx_ln_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 		},
 		[TYPE_QSGMII] = {
 			[TYPE_NONE] = {
+<<<<<<< HEAD
 				[NO_SSC] = &qsgmii_100_no_ssc_tx_ln_vals,
 			},
 			[TYPE_PCIE] = {
@@ -3731,6 +4350,19 @@ static const struct cdns_torrent_data ti_j721e_map_torrent = {
 				[NO_SSC] = &qsgmii_100_no_ssc_tx_ln_vals,
 				[EXTERNAL_SSC] = &qsgmii_100_no_ssc_tx_ln_vals,
 				[INTERNAL_SSC] = &qsgmii_100_no_ssc_tx_ln_vals,
+=======
+				[NO_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+			},
+			[TYPE_PCIE] = {
+				[NO_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+				[EXTERNAL_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+				[INTERNAL_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+			},
+			[TYPE_USB] = {
+				[NO_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+				[EXTERNAL_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+				[INTERNAL_SSC] = &ti_qsgmii_100_no_ssc_tx_ln_vals,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			},
 		},
 		[TYPE_USB] = {

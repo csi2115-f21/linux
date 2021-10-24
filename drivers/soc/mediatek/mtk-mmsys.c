@@ -10,6 +10,7 @@
 #include <linux/platform_device.h>
 #include <linux/soc/mediatek/mtk-mmsys.h>
 
+<<<<<<< HEAD
 #define DISP_REG_CONFIG_DISP_OVL0_MOUT_EN	0x040
 #define DISP_REG_CONFIG_DISP_OVL1_MOUT_EN	0x044
 #define DISP_REG_CONFIG_DISP_OD_MOUT_EN		0x048
@@ -76,6 +77,11 @@
 struct mtk_mmsys_driver_data {
 	const char *clk_driver;
 };
+=======
+#include "mtk-mmsys.h"
+#include "mt8167-mmsys.h"
+#include "mt8183-mmsys.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static const struct mtk_mmsys_driver_data mt2701_mmsys_driver_data = {
 	.clk_driver = "clk-mt2701-mm",
@@ -101,6 +107,7 @@ static const struct mtk_mmsys_driver_data mt8183_mmsys_driver_data = {
 	.clk_driver = "clk-mt8183-mm",
 };
 
+<<<<<<< HEAD
 static unsigned int mtk_mmsys_ddp_mout_en(enum mtk_ddp_comp_id cur,
 					  enum mtk_ddp_comp_id next,
 					  unsigned int *addr)
@@ -254,11 +261,18 @@ static void mtk_mmsys_ddp_sout_sel(void __iomem *config_regs,
 			       config_regs + DISP_REG_CONFIG_DPI_SEL);
 	}
 }
+=======
+struct mtk_mmsys {
+	void __iomem *regs;
+	const struct mtk_mmsys_driver_data *data;
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void mtk_mmsys_ddp_connect(struct device *dev,
 			   enum mtk_ddp_comp_id cur,
 			   enum mtk_ddp_comp_id next)
 {
+<<<<<<< HEAD
 	void __iomem *config_regs = dev_get_drvdata(dev);
 	unsigned int addr, value, reg;
 
@@ -275,6 +289,18 @@ void mtk_mmsys_ddp_connect(struct device *dev,
 		reg = readl_relaxed(config_regs + addr) | value;
 		writel_relaxed(reg, config_regs + addr);
 	}
+=======
+	struct mtk_mmsys *mmsys = dev_get_drvdata(dev);
+	const struct mtk_mmsys_routes *routes = mmsys->data->routes;
+	u32 reg;
+	int i;
+
+	for (i = 0; i < mmsys->data->num_routes; i++)
+		if (cur == routes[i].from_comp && next == routes[i].to_comp) {
+			reg = readl_relaxed(mmsys->regs + routes[i].addr) | routes[i].val;
+			writel_relaxed(reg, mmsys->regs + routes[i].addr);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(mtk_mmsys_ddp_connect);
 
@@ -282,6 +308,7 @@ void mtk_mmsys_ddp_disconnect(struct device *dev,
 			      enum mtk_ddp_comp_id cur,
 			      enum mtk_ddp_comp_id next)
 {
+<<<<<<< HEAD
 	void __iomem *config_regs = dev_get_drvdata(dev);
 	unsigned int addr, value, reg;
 
@@ -296,6 +323,18 @@ void mtk_mmsys_ddp_disconnect(struct device *dev,
 		reg = readl_relaxed(config_regs + addr) & ~value;
 		writel_relaxed(reg, config_regs + addr);
 	}
+=======
+	struct mtk_mmsys *mmsys = dev_get_drvdata(dev);
+	const struct mtk_mmsys_routes *routes = mmsys->data->routes;
+	u32 reg;
+	int i;
+
+	for (i = 0; i < mmsys->data->num_routes; i++)
+		if (cur == routes[i].from_comp && next == routes[i].to_comp) {
+			reg = readl_relaxed(mmsys->regs + routes[i].addr) & ~routes[i].val;
+			writel_relaxed(reg, mmsys->regs + routes[i].addr);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(mtk_mmsys_ddp_disconnect);
 

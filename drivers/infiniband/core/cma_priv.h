@@ -89,6 +89,10 @@ struct rdma_id_private {
 	u8			reuseaddr;
 	u8			afonly;
 	u8			timeout;
+<<<<<<< HEAD
+=======
+	u8			min_rnr_timer;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	enum ib_gid_type	gid_type;
 
 	/*

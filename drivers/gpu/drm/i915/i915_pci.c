@@ -786,7 +786,11 @@ static const struct intel_device_info cml_gt2_info = {
 #define GEN10_FEATURES \
 	GEN9_FEATURES, \
 	GEN(10), \
+<<<<<<< HEAD
 	.ddb_size = 1024, \
+=======
+	.dbuf.size = 1024 - 4, /* 4 blocks for bypass path allocation */ \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.display.has_dsc = 1, \
 	.has_coherent_ggtt = false, \
 	GLK_COLORS
@@ -826,8 +830,13 @@ static const struct intel_device_info cnl_info = {
 		[TRANSCODER_DSI_1] = TRANSCODER_DSI1_OFFSET, \
 	}, \
 	GEN(11), \
+<<<<<<< HEAD
 	.ddb_size = 2048, \
 	.num_supported_dbuf_slices = 2, \
+=======
+	.dbuf.size = 2048, \
+	.dbuf.slice_mask = BIT(DBUF_S1) | BIT(DBUF_S2), \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.has_logical_ring_elsq = 1, \
 	.color = { .degamma_lut_size = 33, .gamma_lut_size = 262145 }
 
@@ -904,16 +913,26 @@ static const struct intel_device_info rkl_info = {
 		BIT(RCS0) | BIT(BCS0) | BIT(VECS0) | BIT(VCS0),
 };
 
+<<<<<<< HEAD
 #define GEN12_DGFX_FEATURES \
 	GEN12_FEATURES, \
 	.memory_regions = REGION_SMEM | REGION_LMEM, \
+=======
+#define DGFX_FEATURES \
+	.memory_regions = REGION_SMEM | REGION_LMEM | REGION_STOLEN_LMEM, \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.has_master_unit_irq = 1, \
 	.has_llc = 0, \
 	.has_snoop = 1, \
 	.is_dgfx = 1
 
 static const struct intel_device_info dg1_info __maybe_unused = {
+<<<<<<< HEAD
 	GEN12_DGFX_FEATURES,
+=======
+	GEN12_FEATURES,
+	DGFX_FEATURES,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	PLATFORM(INTEL_DG1),
 	.pipe_mask = BIT(PIPE_A) | BIT(PIPE_B) | BIT(PIPE_C) | BIT(PIPE_D),
 	.require_force_probe = 1,
@@ -924,6 +943,44 @@ static const struct intel_device_info dg1_info __maybe_unused = {
 	.ppgtt_size = 47,
 };
 
+<<<<<<< HEAD
+=======
+static const struct intel_device_info adl_s_info = {
+	GEN12_FEATURES,
+	PLATFORM(INTEL_ALDERLAKE_S),
+	.pipe_mask = BIT(PIPE_A) | BIT(PIPE_B) | BIT(PIPE_C) | BIT(PIPE_D),
+	.require_force_probe = 1,
+	.display.has_hti = 1,
+	.display.has_psr_hw_tracking = 0,
+	.platform_engine_mask =
+		BIT(RCS0) | BIT(BCS0) | BIT(VECS0) | BIT(VCS0) | BIT(VCS2),
+	.dma_mask_size = 46,
+};
+
+#define XE_LPD_FEATURES \
+	.display.ver = 13,						\
+	.display.has_psr_hw_tracking = 0,				\
+	.abox_mask = GENMASK(1, 0),					\
+	.pipe_mask = BIT(PIPE_A) | BIT(PIPE_B) | BIT(PIPE_C) | BIT(PIPE_D), \
+	.cpu_transcoder_mask = BIT(TRANSCODER_A) | BIT(TRANSCODER_B) |	\
+		BIT(TRANSCODER_C) | BIT(TRANSCODER_D),			\
+	.dbuf.size = 4096,						\
+	.dbuf.slice_mask = BIT(DBUF_S1) | BIT(DBUF_S2) | BIT(DBUF_S3) | BIT(DBUF_S4)
+
+static const struct intel_device_info adl_p_info = {
+	GEN12_FEATURES,
+	XE_LPD_FEATURES,
+	PLATFORM(INTEL_ALDERLAKE_P),
+	.has_cdclk_crawl = 1,
+	.require_force_probe = 1,
+	.display.has_modular_fia = 1,
+	.platform_engine_mask =
+		BIT(RCS0) | BIT(BCS0) | BIT(VECS0) | BIT(VCS0) | BIT(VCS2),
+	.ppgtt_size = 48,
+	.dma_mask_size = 39,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #undef GEN
 #undef PLATFORM
 
@@ -1155,6 +1212,10 @@ static int __init i915_init(void)
 	err = pci_register_driver(&i915_pci_driver);
 	if (err) {
 		i915_pmu_exit();
+<<<<<<< HEAD
+=======
+		i915_globals_exit();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	}
 

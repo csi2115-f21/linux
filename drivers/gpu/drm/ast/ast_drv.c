@@ -103,8 +103,13 @@ static void ast_kick_out_firmware_fb(struct pci_dev *pdev)
 #ifdef CONFIG_X86
 	primary = pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW;
 #endif
+<<<<<<< HEAD
 	drm_fb_helper_remove_conflicting_framebuffers(ap, "astdrmfb", primary);
 	kfree(ap);
+=======
+
+	return drm_aperture_remove_conflicting_framebuffers(base, size, primary, "astdrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int ast_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)

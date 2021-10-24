@@ -27,7 +27,10 @@ void i915_globals_exit(void);
 
 /* constructors */
 int i915_global_active_init(void);
+<<<<<<< HEAD
 int i915_global_buddy_init(void);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int i915_global_context_init(void);
 int i915_global_gem_context_init(void);
 int i915_global_objects_init(void);

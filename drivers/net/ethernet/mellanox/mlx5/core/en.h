@@ -835,6 +835,10 @@ struct mlx5e_priv {
 	struct mlx5e_tir           inner_indir_tir[MLX5E_NUM_INDIR_TIRS];
 	struct mlx5e_tir           direct_tir[MLX5E_MAX_NUM_CHANNELS];
 	struct mlx5e_tir           xsk_tir[MLX5E_MAX_NUM_CHANNELS];
+<<<<<<< HEAD
+=======
+	struct mlx5e_tir           ptp_tir;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlx5e_rss_params    rss_params;
 	u32                        tx_rates[MLX5E_MAX_NUM_SQS];
 
@@ -854,7 +858,11 @@ struct mlx5e_priv {
 	struct mlx5e_stats         stats;
 	struct mlx5e_channel_stats channel_stats[MLX5E_MAX_NUM_CHANNELS];
 	struct mlx5e_channel_stats trap_stats;
+<<<<<<< HEAD
 	struct mlx5e_port_ptp_stats port_ptp_stats;
+=======
+	struct mlx5e_ptp_stats     ptp_stats;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u16                        max_nch;
 	u8                         max_opened_tc;
 	bool                       port_ptp_opened;
@@ -1024,6 +1032,7 @@ void mlx5e_deactivate_priv_channels(struct mlx5e_priv *priv);
 void mlx5e_build_default_indir_rqt(u32 *indirection_rqt, int len,
 				   int num_channels);
 
+<<<<<<< HEAD
 void mlx5e_reset_tx_moderation(struct mlx5e_params *params, u8 cq_period_mode);
 void mlx5e_reset_rx_moderation(struct mlx5e_params *params, u8 cq_period_mode);
 void mlx5e_set_tx_cq_mode_params(struct mlx5e_params *params, u8 cq_period_mode);
@@ -1032,6 +1041,8 @@ void mlx5e_set_rx_cq_mode_params(struct mlx5e_params *params, u8 cq_period_mode)
 void mlx5e_set_rq_type(struct mlx5_core_dev *mdev, struct mlx5e_params *params);
 void mlx5e_init_rq_type_params(struct mlx5_core_dev *mdev,
 			       struct mlx5e_params *params);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int mlx5e_modify_rq_state(struct mlx5e_rq *rq, int curr_state, int next_state);
 void mlx5e_activate_rq(struct mlx5e_rq *rq);
 void mlx5e_deactivate_rq(struct mlx5e_rq *rq);
@@ -1090,10 +1101,17 @@ int mlx5e_create_indirect_rqt(struct mlx5e_priv *priv);
 int mlx5e_create_indirect_tirs(struct mlx5e_priv *priv, bool inner_ttc);
 void mlx5e_destroy_indirect_tirs(struct mlx5e_priv *priv);
 
+<<<<<<< HEAD
 int mlx5e_create_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs);
 void mlx5e_destroy_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs);
 int mlx5e_create_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs);
 void mlx5e_destroy_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs);
+=======
+int mlx5e_create_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n);
+void mlx5e_destroy_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n);
+int mlx5e_create_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n);
+void mlx5e_destroy_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void mlx5e_destroy_rqt(struct mlx5e_priv *priv, struct mlx5e_rqt *rqt);
 
 int mlx5e_create_tis(struct mlx5_core_dev *mdev, void *in, u32 *tisn);
@@ -1159,6 +1177,15 @@ int mlx5e_ethtool_set_pauseparam(struct mlx5e_priv *priv,
 /* mlx5e generic netdev management API */
 static inline unsigned int
 mlx5e_calc_max_nch(struct mlx5e_priv *priv, const struct mlx5e_profile *profile)
+<<<<<<< HEAD
+=======
+{
+	return priv->netdev->num_rx_queues / max_t(u8, profile->rq_groups, 1);
+}
+
+static inline bool
+mlx5e_tx_mpwqe_supported(struct mlx5_core_dev *mdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return priv->netdev->num_rx_queues / max_t(u8, profile->rq_groups, 1);
 }
@@ -1176,8 +1203,11 @@ int mlx5e_netdev_change_profile(struct mlx5e_priv *priv,
 				const struct mlx5e_profile *new_profile, void *new_ppriv);
 void mlx5e_set_netdev_mtu_boundaries(struct mlx5e_priv *priv);
 void mlx5e_build_nic_params(struct mlx5e_priv *priv, struct mlx5e_xsk *xsk, u16 mtu);
+<<<<<<< HEAD
 void mlx5e_build_rq_params(struct mlx5_core_dev *mdev,
 			   struct mlx5e_params *params);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void mlx5e_build_rss_params(struct mlx5e_rss_params *rss_params,
 			    u16 num_channels);
 void mlx5e_rx_dim_work(struct work_struct *work);

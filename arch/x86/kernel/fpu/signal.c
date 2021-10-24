@@ -403,6 +403,7 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 	fpregs_unlock();
 
 	if (use_xsave() && !fx_only) {
+<<<<<<< HEAD
 		u64 init_bv = xfeatures_mask_user() & ~user_xfeatures;
 
 		if (using_compacted_format()) {
@@ -415,6 +416,19 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 		}
 		if (ret)
 			goto err_out;
+=======
+		ret = copy_sigframe_from_user_to_xstate(&fpu->state.xsave, buf_fx);
+		if (ret)
+			return ret;
+	} else {
+		if (__copy_from_user(&fpu->state.fxsave, buf_fx,
+				     sizeof(fpu->state.fxsave)))
+			return -EFAULT;
+
+		/* Reject invalid MXCSR values. */
+		if (fpu->state.fxsave.mxcsr & ~mxcsr_feature_mask)
+			return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		sanitize_restored_user_xstate(&fpu->state, envp, user_xfeatures,
 					      fx_only);

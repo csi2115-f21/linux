@@ -1118,9 +1118,13 @@ static void __exit moxa_exit(void)
 
 	del_timer_sync(&moxaTimer);
 
+<<<<<<< HEAD
 	if (tty_unregister_driver(moxaDriver))
 		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
 				"serial driver\n");
+=======
+	tty_unregister_driver(moxaDriver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_tty_driver(moxaDriver);
 }
 
@@ -2040,7 +2044,11 @@ static int moxa_get_serial_info(struct tty_struct *tty,
 	ss->line = info->port.tty->index,
 	ss->flags = info->port.flags,
 	ss->baud_base = 921600,
+<<<<<<< HEAD
 	ss->close_delay = info->port.close_delay;
+=======
+	ss->close_delay = jiffies_to_msecs(info->port.close_delay) / 10;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&info->port.mutex);
 	return 0;
 }

@@ -58,11 +58,14 @@ int sclp_console_drop = 1;
 /* Number of times the console dropped buffer pages */
 unsigned long sclp_console_full;
 
+<<<<<<< HEAD
 static void sclp_suspend_req_cb(struct sclp_req *req, void *data)
 {
 	complete(&sclp_request_queue_flushed);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int __init sclp_setup_console_pages(char *str)
 {
 	int pages, rc;

@@ -16,6 +16,10 @@
 #include <linux/ip.h>
 #include <linux/mii.h>
 #include <linux/netdevice.h>
+<<<<<<< HEAD
+=======
+#include <linux/wwan.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/skbuff.h>
 #include <linux/usb.h>
 #include <linux/usb/cdc.h>
@@ -26,6 +30,18 @@
 
 #define MBIM_NDP16_SIGN_MASK 0x00ffffff
 
+<<<<<<< HEAD
+=======
+/* Usual WWAN MTU */
+#define MHI_MBIM_DEFAULT_MTU 1500
+
+/* 3500 allows to optimize skb allocation, the skbs will basically fit in
+ * one 4K page. Large MBIM packets will simply be split over several MHI
+ * transfers and chained by the MHI net layer (zerocopy).
+ */
+#define MHI_MBIM_DEFAULT_MRU 3500
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct mbim_context {
 	u16 rx_seq;
 	u16 tx_seq;
@@ -47,7 +63,11 @@ static void __mbim_errors_inc(struct mhi_net_dev *dev)
 
 static int mbim_rx_verify_nth16(struct sk_buff *skb)
 {
+<<<<<<< HEAD
 	struct mhi_net_dev *dev = netdev_priv(skb->dev);
+=======
+	struct mhi_net_dev *dev = wwan_netdev_drvpriv(skb->dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mbim_context *ctx = dev->proto_data;
 	struct usb_cdc_ncm_nth16 *nth16;
 	int len;
@@ -91,6 +111,7 @@ static int mbim_rx_verify_nth16(struct sk_buff *skb)
 	return le16_to_cpu(nth16->wNdpIndex);
 }
 
+<<<<<<< HEAD
 static int mbim_rx_verify_ndp16(struct sk_buff *skb, int ndpoffset)
 {
 	struct mhi_net_dev *dev = netdev_priv(skb->dev);
@@ -105,6 +126,13 @@ static int mbim_rx_verify_ndp16(struct sk_buff *skb, int ndpoffset)
 
 	ndp16 = (struct usb_cdc_ncm_ndp16 *)(skb->data + ndpoffset);
 
+=======
+static int mbim_rx_verify_ndp16(struct sk_buff *skb, struct usb_cdc_ncm_ndp16 *ndp16)
+{
+	struct mhi_net_dev *dev = wwan_netdev_drvpriv(skb->dev);
+	int ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (le16_to_cpu(ndp16->wLength) < USB_CDC_NCM_NDP16_LENGTH_MIN) {
 		netif_dbg(dev, rx_err, dev->ndev, "invalid DPT16 length <%u>\n",
 			  le16_to_cpu(ndp16->wLength));
@@ -130,9 +158,12 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 	struct net_device *ndev = mhi_netdev->ndev;
 	int ndpoffset;
 
+<<<<<<< HEAD
 	if (skb_linearize(skb))
 		goto error;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Check NTB header and retrieve first NDP offset */
 	ndpoffset = mbim_rx_verify_nth16(skb);
 	if (ndpoffset < 0) {
@@ -142,12 +173,28 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 
 	/* Process each NDP */
 	while (1) {
+<<<<<<< HEAD
 		struct usb_cdc_ncm_ndp16 *ndp16;
 		struct usb_cdc_ncm_dpe16 *dpe16;
 		int nframes, n;
 
 		/* Check NDP header and retrieve number of datagrams */
 		nframes = mbim_rx_verify_ndp16(skb, ndpoffset);
+=======
+		struct usb_cdc_ncm_ndp16 ndp16;
+		struct usb_cdc_ncm_dpe16 dpe16;
+		int nframes, n, dpeoffset;
+
+		if (skb_copy_bits(skb, ndpoffset, &ndp16, sizeof(ndp16))) {
+			net_err_ratelimited("%s: Incorrect NDP offset (%u)\n",
+					    ndev->name, ndpoffset);
+			__mbim_length_errors_inc(mhi_netdev);
+			goto error;
+		}
+
+		/* Check NDP header and retrieve number of datagrams */
+		nframes = mbim_rx_verify_ndp16(skb, &ndp16);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (nframes < 0) {
 			net_err_ratelimited("%s: Incorrect NDP16\n", ndev->name);
 			__mbim_length_errors_inc(mhi_netdev);
@@ -155,8 +202,12 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 		}
 
 		 /* Only IP data type supported, no DSS in MHI context */
+<<<<<<< HEAD
 		ndp16 = (struct usb_cdc_ncm_ndp16 *)(skb->data + ndpoffset);
 		if ((ndp16->dwSignature & cpu_to_le32(MBIM_NDP16_SIGN_MASK))
+=======
+		if ((ndp16.dwSignature & cpu_to_le32(MBIM_NDP16_SIGN_MASK))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				!= cpu_to_le32(USB_CDC_MBIM_NDP16_IPS_SIGN)) {
 			net_err_ratelimited("%s: Unsupported NDP type\n", ndev->name);
 			__mbim_errors_inc(mhi_netdev);
@@ -164,19 +215,37 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 		}
 
 		/* Only primary IP session 0 (0x00) supported for now */
+<<<<<<< HEAD
 		if (ndp16->dwSignature & ~cpu_to_le32(MBIM_NDP16_SIGN_MASK)) {
+=======
+		if (ndp16.dwSignature & ~cpu_to_le32(MBIM_NDP16_SIGN_MASK)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			net_err_ratelimited("%s: bad packet session\n", ndev->name);
 			__mbim_errors_inc(mhi_netdev);
 			goto next_ndp;
 		}
 
 		/* de-aggregate and deliver IP packets */
+<<<<<<< HEAD
 		dpe16 = ndp16->dpe16;
 		for (n = 0; n < nframes; n++, dpe16++) {
 			u16 dgram_offset = le16_to_cpu(dpe16->wDatagramIndex);
 			u16 dgram_len = le16_to_cpu(dpe16->wDatagramLength);
 			struct sk_buff *skbn;
 
+=======
+		dpeoffset = ndpoffset + sizeof(struct usb_cdc_ncm_ndp16);
+		for (n = 0; n < nframes; n++, dpeoffset += sizeof(dpe16)) {
+			u16 dgram_offset, dgram_len;
+			struct sk_buff *skbn;
+
+			if (skb_copy_bits(skb, dpeoffset, &dpe16, sizeof(dpe16)))
+				break;
+
+			dgram_offset = le16_to_cpu(dpe16.wDatagramIndex);
+			dgram_len = le16_to_cpu(dpe16.wDatagramLength);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (!dgram_offset || !dgram_len)
 				break; /* null terminator */
 
@@ -185,7 +254,11 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 				continue;
 
 			skb_put(skbn, dgram_len);
+<<<<<<< HEAD
 			memcpy(skbn->data, skb->data + dgram_offset, dgram_len);
+=======
+			skb_copy_bits(skb, dgram_offset, skbn->data, dgram_len);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			switch (skbn->data[0] & 0xf0) {
 			case 0x40:
@@ -206,7 +279,11 @@ static void mbim_rx(struct mhi_net_dev *mhi_netdev, struct sk_buff *skb)
 		}
 next_ndp:
 		/* Other NDP to process? */
+<<<<<<< HEAD
 		ndpoffset = (int)le16_to_cpu(ndp16->wNextNdpIndex);
+=======
+		ndpoffset = (int)le16_to_cpu(ndp16.wNextNdpIndex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!ndpoffset)
 			break;
 	}
@@ -282,6 +359,11 @@ static int mbim_init(struct mhi_net_dev *mhi_netdev)
 		return -ENOMEM;
 
 	ndev->needed_headroom = sizeof(struct mbim_tx_hdr);
+<<<<<<< HEAD
+=======
+	ndev->mtu = MHI_MBIM_DEFAULT_MTU;
+	mhi_netdev->mru = MHI_MBIM_DEFAULT_MRU;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

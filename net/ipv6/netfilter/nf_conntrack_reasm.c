@@ -47,6 +47,10 @@
 
 static const char nf_frags_cache_name[] = "nf-frags";
 
+<<<<<<< HEAD
+=======
+unsigned int nf_frag_pernet_id __read_mostly;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct inet_frags nf_frags;
 
 #ifdef CONFIG_SYSCTL

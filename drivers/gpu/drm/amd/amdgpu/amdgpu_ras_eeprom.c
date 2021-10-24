@@ -31,6 +31,10 @@
 #define EEPROM_I2C_TARGET_ADDR_ARCTURUS		0xA8
 #define EEPROM_I2C_TARGET_ADDR_ARCTURUS_D342	0xA0
 #define EEPROM_I2C_TARGET_ADDR_SIENNA_CICHLID   0xA0
+<<<<<<< HEAD
+=======
+#define EEPROM_I2C_TARGET_ADDR_ALDEBARAN        0xA0
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * The 2 macros bellow represent the actual size in bytes that
@@ -64,7 +68,12 @@ static bool __is_ras_eeprom_supported(struct amdgpu_device *adev)
 {
 	if ((adev->asic_type == CHIP_VEGA20) ||
 	    (adev->asic_type == CHIP_ARCTURUS) ||
+<<<<<<< HEAD
 	    (adev->asic_type == CHIP_SIENNA_CICHLID))
+=======
+	    (adev->asic_type == CHIP_SIENNA_CICHLID) ||
+	    (adev->asic_type == CHIP_ALDEBARAN))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return true;
 
 	return false;
@@ -104,6 +113,13 @@ static bool __get_eeprom_i2c_addr(struct amdgpu_device *adev,
 
 	case CHIP_SIENNA_CICHLID:
 		*i2c_addr = EEPROM_I2C_TARGET_ADDR_SIENNA_CICHLID;
+<<<<<<< HEAD
+=======
+		break;
+
+	case CHIP_ALDEBARAN:
+		*i2c_addr = EEPROM_I2C_TARGET_ADDR_ALDEBARAN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 
 	default:
@@ -174,6 +190,7 @@ static uint32_t  __calc_hdr_byte_sum(struct amdgpu_ras_eeprom_control *control)
 	/* Header checksum, skip checksum field in the calculation */
 	for (i = 0; i < sizeof(control->tbl_hdr) - sizeof(control->tbl_hdr.checksum); i++)
 		tbl_sum += *(((unsigned char *)&control->tbl_hdr) + i);
+<<<<<<< HEAD
 
 	return tbl_sum;
 }
@@ -188,6 +205,22 @@ static uint32_t  __calc_recs_byte_sum(struct eeprom_table_record *records,
 	for (i = 0; i < num; i++) {
 		struct eeprom_table_record *record = &records[i];
 
+=======
+
+	return tbl_sum;
+}
+
+static uint32_t  __calc_recs_byte_sum(struct eeprom_table_record *records,
+				      int num)
+{
+	int i, j;
+	uint32_t tbl_sum = 0;
+
+	/* Records checksum */
+	for (i = 0; i < num; i++) {
+		struct eeprom_table_record *record = &records[i];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		for (j = 0; j < sizeof(*record); j++) {
 			tbl_sum += *(((unsigned char *)record) + j);
 		}
@@ -256,6 +289,7 @@ static int amdgpu_ras_eeprom_correct_header_tag(
 int amdgpu_ras_eeprom_reset_table(struct amdgpu_ras_eeprom_control *control)
 {
 	unsigned char buff[EEPROM_ADDRESS_SIZE + EEPROM_TABLE_HEADER_SIZE] = { 0 };
+<<<<<<< HEAD
 	struct amdgpu_ras_eeprom_table_header *hdr = &control->tbl_hdr;
 	int ret = 0;
 
@@ -347,6 +381,99 @@ int amdgpu_ras_eeprom_init(struct amdgpu_ras_eeprom_control *control,
 	return ret == 1 ? 0 : -EIO;
 }
 
+=======
+	struct amdgpu_ras_eeprom_table_header *hdr = &control->tbl_hdr;
+	int ret = 0;
+
+	mutex_lock(&control->tbl_mutex);
+
+	hdr->header = EEPROM_TABLE_HDR_VAL;
+	hdr->version = EEPROM_TABLE_VER;
+	hdr->first_rec_offset = EEPROM_RECORD_START;
+	hdr->tbl_size = EEPROM_TABLE_HEADER_SIZE;
+
+	control->tbl_byte_sum = 0;
+	__update_tbl_checksum(control, NULL, 0, 0);
+	control->next_addr = EEPROM_RECORD_START;
+
+	ret = __update_table_header(control, buff);
+
+	mutex_unlock(&control->tbl_mutex);
+
+	return ret;
+
+}
+
+int amdgpu_ras_eeprom_init(struct amdgpu_ras_eeprom_control *control,
+			bool *exceed_err_limit)
+{
+	int ret = 0;
+	struct amdgpu_device *adev = to_amdgpu_device(control);
+	unsigned char buff[EEPROM_ADDRESS_SIZE + EEPROM_TABLE_HEADER_SIZE] = { 0 };
+	struct amdgpu_ras_eeprom_table_header *hdr = &control->tbl_hdr;
+	struct amdgpu_ras *ras = amdgpu_ras_get_context(adev);
+	struct i2c_msg msg = {
+			.addr	= 0,
+			.flags	= I2C_M_RD,
+			.len	= EEPROM_ADDRESS_SIZE + EEPROM_TABLE_HEADER_SIZE,
+			.buf	= buff,
+	};
+
+	*exceed_err_limit = false;
+
+	if (!__is_ras_eeprom_supported(adev))
+		return 0;
+
+	/* Verify i2c adapter is initialized */
+	if (!adev->pm.smu_i2c.algo)
+		return -ENOENT;
+
+	if (!__get_eeprom_i2c_addr(adev, &control->i2c_address))
+		return -EINVAL;
+
+	mutex_init(&control->tbl_mutex);
+
+	msg.addr = control->i2c_address;
+	/* Read/Create table header from EEPROM address 0 */
+	ret = i2c_transfer(&adev->pm.smu_i2c, &msg, 1);
+	if (ret < 1) {
+		DRM_ERROR("Failed to read EEPROM table header, ret:%d", ret);
+		return ret;
+	}
+
+	__decode_table_header_from_buff(hdr, &buff[2]);
+
+	if (hdr->header == EEPROM_TABLE_HDR_VAL) {
+		control->num_recs = (hdr->tbl_size - EEPROM_TABLE_HEADER_SIZE) /
+				    EEPROM_TABLE_RECORD_SIZE;
+		control->tbl_byte_sum = __calc_hdr_byte_sum(control);
+		control->next_addr = EEPROM_RECORD_START;
+
+		DRM_DEBUG_DRIVER("Found existing EEPROM table with %d records",
+				 control->num_recs);
+
+	} else if ((hdr->header == EEPROM_TABLE_HDR_BAD) &&
+			(amdgpu_bad_page_threshold != 0)) {
+		if (ras->bad_page_cnt_threshold > control->num_recs) {
+			dev_info(adev->dev, "Using one valid bigger bad page "
+				"threshold and correcting eeprom header tag.\n");
+			ret = amdgpu_ras_eeprom_correct_header_tag(control,
+							EEPROM_TABLE_HDR_VAL);
+		} else {
+			*exceed_err_limit = true;
+			dev_err(adev->dev, "Exceeding the bad_page_threshold parameter, "
+				"disabling the GPU.\n");
+		}
+	} else {
+		DRM_INFO("Creating new EEPROM table");
+
+		ret = amdgpu_ras_eeprom_reset_table(control);
+	}
+
+	return ret == 1 ? 0 : -EIO;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __encode_table_record_to_buff(struct amdgpu_ras_eeprom_control *control,
 					  struct eeprom_table_record *record,
 					  unsigned char *buff)
@@ -409,6 +536,7 @@ static void __decode_table_record_from_buff(struct amdgpu_ras_eeprom_control *co
 static uint32_t __correct_eeprom_dest_address(uint32_t curr_address)
 {
 	uint32_t next_address = curr_address + EEPROM_TABLE_RECORD_SIZE;
+<<<<<<< HEAD
 
 	/* When all EEPROM memory used jump back to 0 address */
 	if (next_address > EEPROM_SIZE_BYTES) {
@@ -451,10 +579,121 @@ int amdgpu_ras_eeprom_check_err_threshold(
 	int ret;
 
 	*exceed_err_limit = false;
+=======
+
+	/* When all EEPROM memory used jump back to 0 address */
+	if (next_address > EEPROM_SIZE_BYTES) {
+		DRM_INFO("Reached end of EEPROM memory, jumping to 0 "
+			 "and overriding old record");
+		return EEPROM_RECORD_START;
+	}
+
+	/*
+	 * To check if we overflow page boundary  compare next address with
+	 * current and see if bits 17/8 of the EEPROM address will change
+	 * If they do start from the next 256b page
+	 *
+	 * https://www.st.com/resource/en/datasheet/m24m02-dr.pdf sec. 5.1.2
+	 */
+	if ((curr_address & EEPROM_ADDR_MSB_MASK) != (next_address & EEPROM_ADDR_MSB_MASK)) {
+		DRM_DEBUG_DRIVER("Reached end of EEPROM memory page, jumping to next: %lx",
+				(next_address & EEPROM_ADDR_MSB_MASK));
+
+		return  (next_address & EEPROM_ADDR_MSB_MASK);
+	}
+
+	return curr_address;
+}
+
+bool amdgpu_ras_eeprom_check_err_threshold(struct amdgpu_device *adev)
+{
+	struct amdgpu_ras *con = amdgpu_ras_get_context(adev);
+
+	if (!__is_ras_eeprom_supported(adev))
+		return false;
+
+	/* skip check eeprom table for VEGA20 Gaming */
+	if (!con)
+		return false;
+	else
+		if (!(con->features & BIT(AMDGPU_RAS_BLOCK__UMC)))
+			return false;
+
+	if (con->eeprom_control.tbl_hdr.header == EEPROM_TABLE_HDR_BAD) {
+		dev_warn(adev->dev, "This GPU is in BAD status.");
+		dev_warn(adev->dev, "Please retire it or setting one bigger "
+				"threshold value when reloading driver.\n");
+		return true;
+	}
+
+	return false;
+}
+
+int amdgpu_ras_eeprom_process_recods(struct amdgpu_ras_eeprom_control *control,
+					    struct eeprom_table_record *records,
+					    bool write,
+					    int num)
+{
+	int i, ret = 0;
+	struct i2c_msg *msgs, *msg;
+	unsigned char *buffs, *buff;
+	struct eeprom_table_record *record;
+	struct amdgpu_device *adev = to_amdgpu_device(control);
+	struct amdgpu_ras *ras = amdgpu_ras_get_context(adev);
 
 	if (!__is_ras_eeprom_supported(adev))
 		return 0;
 
+	buffs = kcalloc(num, EEPROM_ADDRESS_SIZE + EEPROM_TABLE_RECORD_SIZE,
+			 GFP_KERNEL);
+	if (!buffs)
+		return -ENOMEM;
+
+	mutex_lock(&control->tbl_mutex);
+
+	msgs = kcalloc(num, sizeof(*msgs), GFP_KERNEL);
+	if (!msgs) {
+		ret = -ENOMEM;
+		goto free_buff;
+	}
+
+	/*
+	 * If saved bad pages number exceeds the bad page threshold for
+	 * the whole VRAM, update table header to mark the BAD GPU tag
+	 * and schedule one ras recovery after eeprom write is done,
+	 * this can avoid the missing for latest records.
+	 *
+	 * This new header will be picked up and checked in the bootup
+	 * by ras recovery, which may break bootup process to notify
+	 * user this GPU is in bad state and to retire such GPU for
+	 * further check.
+	 */
+	if (write && (amdgpu_bad_page_threshold != 0) &&
+		((control->num_recs + num) >= ras->bad_page_cnt_threshold)) {
+		dev_warn(adev->dev,
+			"Saved bad pages(%d) reaches threshold value(%d).\n",
+			control->num_recs + num, ras->bad_page_cnt_threshold);
+		control->tbl_hdr.header = EEPROM_TABLE_HDR_BAD;
+	}
+
+	/* In case of overflow just start from beginning to not lose newest records */
+	if (write && (control->next_addr + EEPROM_TABLE_RECORD_SIZE * num > EEPROM_SIZE_BYTES))
+		control->next_addr = EEPROM_RECORD_START;
+
+	/*
+	 * TODO Currently makes EEPROM writes for each record, this creates
+	 * internal fragmentation. Optimized the code to do full page write of
+	 * 256b
+	 */
+	for (i = 0; i < num; i++) {
+		buff = &buffs[i * (EEPROM_ADDRESS_SIZE + EEPROM_TABLE_RECORD_SIZE)];
+		record = &records[i];
+		msg = &msgs[i];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+		control->next_addr = __correct_eeprom_dest_address(control->next_addr);
+
+<<<<<<< HEAD
 	/* read EEPROM table header */
 	mutex_lock(&control->tbl_mutex);
 	ret = i2c_transfer(&adev->pm.smu_i2c, &msg, 1);
@@ -621,6 +860,89 @@ free_buff:
 
 	mutex_unlock(&control->tbl_mutex);
 
+=======
+		/*
+		 * Update bits 16,17 of EEPROM address in I2C address by setting them
+		 * to bits 1,2 of Device address byte
+		 */
+		msg->addr = control->i2c_address |
+			        ((control->next_addr & EEPROM_ADDR_MSB_MASK) >> 15);
+		msg->flags	= write ? 0 : I2C_M_RD;
+		msg->len	= EEPROM_ADDRESS_SIZE + EEPROM_TABLE_RECORD_SIZE;
+		msg->buf	= buff;
+
+		/* Insert the EEPROM dest addess, bits 0-15 */
+		buff[0] = ((control->next_addr >> 8) & 0xff);
+		buff[1] = (control->next_addr & 0xff);
+
+		/* EEPROM table content is stored in LE format */
+		if (write)
+			__encode_table_record_to_buff(control, record, buff + EEPROM_ADDRESS_SIZE);
+
+		/*
+		 * The destination EEPROM address might need to be corrected to account
+		 * for page or entire memory wrapping
+		 */
+		control->next_addr += EEPROM_TABLE_RECORD_SIZE;
+	}
+
+	/* i2c may be unstable in gpu reset */
+	down_read(&adev->reset_sem);
+	ret = i2c_transfer(&adev->pm.smu_i2c, msgs, num);
+	up_read(&adev->reset_sem);
+
+	if (ret < 1) {
+		DRM_ERROR("Failed to process EEPROM table records, ret:%d", ret);
+
+		/* TODO Restore prev next EEPROM address ? */
+		goto free_msgs;
+	}
+
+
+	if (!write) {
+		for (i = 0; i < num; i++) {
+			buff = &buffs[i*(EEPROM_ADDRESS_SIZE + EEPROM_TABLE_RECORD_SIZE)];
+			record = &records[i];
+
+			__decode_table_record_from_buff(control, record, buff + EEPROM_ADDRESS_SIZE);
+		}
+	}
+
+	if (write) {
+		uint32_t old_hdr_byte_sum = __calc_hdr_byte_sum(control);
+
+		/*
+		 * Update table header with size and CRC and account for table
+		 * wrap around where the assumption is that we treat it as empty
+		 * table
+		 *
+		 * TODO - Check the assumption is correct
+		 */
+		control->num_recs += num;
+		control->num_recs %= EEPROM_MAX_RECORD_NUM;
+		control->tbl_hdr.tbl_size += EEPROM_TABLE_RECORD_SIZE * num;
+		if (control->tbl_hdr.tbl_size > EEPROM_SIZE_BYTES)
+			control->tbl_hdr.tbl_size = EEPROM_TABLE_HEADER_SIZE +
+			control->num_recs * EEPROM_TABLE_RECORD_SIZE;
+
+		__update_tbl_checksum(control, records, num, old_hdr_byte_sum);
+
+		__update_table_header(control, buffs);
+	} else if (!__validate_tbl_checksum(control, records, num)) {
+		DRM_WARN("EEPROM Table checksum mismatch!");
+		/* TODO Uncomment when EEPROM read/write is relliable */
+		/* ret = -EIO; */
+	}
+
+free_msgs:
+	kfree(msgs);
+
+free_buff:
+	kfree(buffs);
+
+	mutex_unlock(&control->tbl_mutex);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret == num ? 0 : -EIO;
 }
 

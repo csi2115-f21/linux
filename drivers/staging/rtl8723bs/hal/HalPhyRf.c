@@ -23,7 +23,11 @@
 	} while (0)
 
 
+<<<<<<< HEAD
 void ConfigureTxpowerTrack(PDM_ODM_T pDM_Odm, PTXPWRTRACK_CFG pConfig)
+=======
+void ConfigureTxpowerTrack(struct dm_odm_t *pDM_Odm, struct txpwrtrack_cfg *pConfig)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	ConfigureTxpowerTrack_8723B(pConfig);
 }
@@ -108,6 +112,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 	pDM_Odm->RFCalibrateInfo.TXPowerTrackingCallbackCnt++;
 	pDM_Odm->RFCalibrateInfo.bTXPowerTrackingInit = true;
 
+<<<<<<< HEAD
 	ODM_RT_TRACE(
 		pDM_Odm,
 		ODM_COMP_TX_PWR_TRACK,
@@ -120,6 +125,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 		)
 	);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ThermalValue = (u8)PHY_QueryRFReg(pDM_Odm->Adapter, ODM_RF_PATH_A, c.ThermalRegAddr, 0xfc00);	/* 0x42: RF Reg[15:10] 88E */
 	if (
 		!pDM_Odm->RFCalibrateInfo.TxPowerTrackControl ||
@@ -224,6 +231,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 
 		/* 4 7.1 The Final Power Index = BaseIndex + PowerIndexOffset */
 		if (ThermalValue > pHalData->EEPROMThermalMeter) {
+<<<<<<< HEAD
 			ODM_RT_TRACE(
 				pDM_Odm,
 				ODM_COMP_TX_PWR_TRACK,
@@ -234,6 +242,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 					deltaSwingTableIdx_TUP_A[delta]
 				)
 			);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[ODM_RF_PATH_A] =
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_A];
 			pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_A] =
@@ -254,6 +264,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 			);
 
 			if (c.RfPathCount > 1) {
+<<<<<<< HEAD
 				ODM_RT_TRACE(
 					pDM_Odm,
 					ODM_COMP_TX_PWR_TRACK,
@@ -264,6 +275,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 						deltaSwingTableIdx_TUP_B[delta]
 					)
 				);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[ODM_RF_PATH_B] =
 					pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_B];
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_B] =
@@ -284,6 +297,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 			}
 
 		} else {
+<<<<<<< HEAD
 			ODM_RT_TRACE(
 				pDM_Odm,
 				ODM_COMP_TX_PWR_TRACK,
@@ -295,6 +309,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 				)
 			);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[ODM_RF_PATH_A] =
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_A];
 			pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_A] =
@@ -315,6 +331,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 			);
 
 			if (c.RfPathCount > 1) {
+<<<<<<< HEAD
 				ODM_RT_TRACE(
 					pDM_Odm,
 					ODM_COMP_TX_PWR_TRACK,
@@ -326,6 +343,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 					)
 				);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[ODM_RF_PATH_B] =
 					pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_B];
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[ODM_RF_PATH_B] =
@@ -348,6 +367,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 		}
 
 		for (p = ODM_RF_PATH_A; p < c.RfPathCount; p++) {
+<<<<<<< HEAD
 			ODM_RT_TRACE(
 				pDM_Odm,
 				ODM_COMP_TX_PWR_TRACK,
@@ -358,6 +378,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 				)
 			);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[p] ==
 				pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[p]
@@ -436,6 +458,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 		/* else if (pDM_Odm->RFCalibrateInfo.CCK_index < 0) */
 			/* pDM_Odm->RFCalibrateInfo.CCK_index = 0; */
 	} else {
+<<<<<<< HEAD
 		ODM_RT_TRACE(
 			pDM_Odm,
 			ODM_COMP_TX_PWR_TRACK,
@@ -448,6 +471,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 			)
 		);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			for (p = ODM_RF_PATH_A; p < c.RfPathCount; p++)
 				pDM_Odm->RFCalibrateInfo.PowerIndexOffset[p] = 0;
 	}
@@ -464,6 +489,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 
 	/* Print Swing base & current */
 	for (p = ODM_RF_PATH_A; p < c.RfPathCount; p++) {
+<<<<<<< HEAD
 		ODM_RT_TRACE(
 			pDM_Odm,
 			ODM_COMP_TX_PWR_TRACK,
@@ -475,6 +501,8 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 				pDM_Odm->BbSwingIdxOfdmBase[p]
 			)
 		);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (
@@ -553,6 +581,7 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 		}
 
 		if (ThermalValue > pHalData->EEPROMThermalMeter) {
+<<<<<<< HEAD
 			ODM_RT_TRACE(
 				pDM_Odm,
 				ODM_COMP_TX_PWR_TRACK,
@@ -590,6 +619,11 @@ void ODM_TXPowerTrackingCallback_ThermalMeter(struct adapter *Adapter)
 				ODM_DBG_LOUD,
 				("**********Enter POWER Tracking MIX_MODE**********\n")
 			);
+=======
+			for (p = ODM_RF_PATH_A; p < c.RfPathCount; p++)
+					(*c.ODM_TxPwrTrackSetPwr)(pDM_Odm, MIX_MODE, p, 0);
+		} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			for (p = ODM_RF_PATH_A; p < c.RfPathCount; p++)
 				(*c.ODM_TxPwrTrackSetPwr)(pDM_Odm, MIX_MODE, p, Indexforchannel);
 		}

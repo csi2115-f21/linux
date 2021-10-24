@@ -33,5 +33,8 @@ selftest(evict, i915_gem_evict_mock_selftests)
 selftest(gtt, i915_gem_gtt_mock_selftests)
 selftest(hugepages, i915_gem_huge_page_mock_selftests)
 selftest(contexts, i915_gem_context_mock_selftests)
+<<<<<<< HEAD
 selftest(buddy, i915_buddy_mock_selftests)
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 selftest(memory_region, intel_memory_region_mock_selftests)

@@ -79,8 +79,11 @@
 #include <linux/task_work.h>
 #include <linux/pagemap.h>
 #include <linux/io_uring.h>
+<<<<<<< HEAD
 #include <linux/blk-cgroup.h>
 #include <linux/audit.h>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/io_uring.h>
@@ -103,6 +106,15 @@
 #define IORING_MAX_RESTRICTIONS	(IORING_RESTRICTION_LAST + \
 				 IORING_REGISTER_LAST + IORING_OP_LAST)
 
+<<<<<<< HEAD
+=======
+#define IO_RSRC_TAG_TABLE_SHIFT	9
+#define IO_RSRC_TAG_TABLE_MAX	(1U << IO_RSRC_TAG_TABLE_SHIFT)
+#define IO_RSRC_TAG_TABLE_MASK	(IO_RSRC_TAG_TABLE_MAX - 1)
+
+#define IORING_MAX_REG_BUFFERS	(1U << 14)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define SQE_VALID_FLAGS	(IOSQE_FIXED_FILE|IOSQE_IO_DRAIN|IOSQE_IO_LINK|	\
 				IOSQE_IO_HARDLINK | IOSQE_ASYNC | \
 				IOSQE_BUFFER_SELECT)
@@ -213,8 +225,14 @@ struct io_rsrc_put {
 	};
 };
 
+<<<<<<< HEAD
 struct fixed_rsrc_table {
 	struct file		**files;
+=======
+struct io_file_table {
+	/* two level table */
+	struct io_fixed_file **files;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct fixed_rsrc_ref_node {
@@ -288,11 +306,16 @@ struct io_sq_data {
 struct io_comp_state {
 	struct io_kiocb		*reqs[IO_COMPL_BATCH];
 	unsigned int		nr;
+<<<<<<< HEAD
 	unsigned int		locked_free_nr;
 	/* inline/task_work completion list, under ->uring_lock */
 	struct list_head	free_list;
 	/* IRQ completion list, under ->completion_lock */
 	struct list_head	locked_free_list;
+=======
+	/* inline/task_work completion list, under ->uring_lock */
+	struct list_head	free_list;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct io_submit_link {
@@ -423,6 +446,7 @@ struct io_ring_ctx {
 		unsigned		cq_entries;
 		unsigned		cq_mask;
 		atomic_t		cq_timeouts;
+		struct fasync_struct	*cq_fasync;
 		unsigned		cq_last_tm_flush;
 		unsigned long		cq_check_overflow;
 		struct wait_queue_head	cq_wait;
@@ -460,8 +484,26 @@ struct io_ring_ctx {
 
 	struct wait_queue_head		hash_wait;
 
+<<<<<<< HEAD
 	/* Keep this last, we don't need it for the fast path */
 	struct work_struct		exit_work;
+=======
+struct io_uring_task {
+	/* submission side */
+	int			cached_refs;
+	struct xarray		xa;
+	struct wait_queue_head	wait;
+	const struct io_ring_ctx *last;
+	struct io_wq		*io_wq;
+	struct percpu_counter	inflight;
+	atomic_t		inflight_tracked;
+	atomic_t		in_idle;
+
+	spinlock_t		task_lock;
+	struct io_wq_work_list	task_list;
+	unsigned long		task_state;
+	struct callback_head	task_work;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /*
@@ -646,7 +688,11 @@ struct io_unlink {
 struct io_completion {
 	struct file			*file;
 	struct list_head		list;
+<<<<<<< HEAD
 	int				cflags;
+=======
+	u32				cflags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct io_async_connect {
@@ -687,10 +733,22 @@ enum {
 	REQ_F_NEED_CLEANUP_BIT,
 	REQ_F_POLLED_BIT,
 	REQ_F_BUFFER_SELECTED_BIT,
+<<<<<<< HEAD
 	REQ_F_NO_FILE_TABLE_BIT,
 	REQ_F_WORK_INITIALIZED_BIT,
 	REQ_F_LTIMEOUT_ACTIVE_BIT,
 	REQ_F_COMPLETE_INLINE_BIT,
+=======
+	REQ_F_LTIMEOUT_ACTIVE_BIT,
+	REQ_F_COMPLETE_INLINE_BIT,
+	REQ_F_REISSUE_BIT,
+	REQ_F_DONT_REISSUE_BIT,
+	REQ_F_CREDS_BIT,
+	/* keep async read/write and isreg together and in order */
+	REQ_F_ASYNC_READ_BIT,
+	REQ_F_ASYNC_WRITE_BIT,
+	REQ_F_ISREG_BIT,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* not a real bit, just to check we're not overflowing the space */
 	__REQ_F_LAST_BIT,
@@ -728,14 +786,32 @@ enum {
 	REQ_F_POLLED		= BIT(REQ_F_POLLED_BIT),
 	/* buffer already selected */
 	REQ_F_BUFFER_SELECTED	= BIT(REQ_F_BUFFER_SELECTED_BIT),
+<<<<<<< HEAD
 	/* doesn't need file table for this request */
 	REQ_F_NO_FILE_TABLE	= BIT(REQ_F_NO_FILE_TABLE_BIT),
 	/* io_wq_work is initialized */
 	REQ_F_WORK_INITIALIZED	= BIT(REQ_F_WORK_INITIALIZED_BIT),
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* linked timeout is active, i.e. prepared by link's head */
 	REQ_F_LTIMEOUT_ACTIVE	= BIT(REQ_F_LTIMEOUT_ACTIVE_BIT),
 	/* completion is deferred through io_comp_state */
 	REQ_F_COMPLETE_INLINE	= BIT(REQ_F_COMPLETE_INLINE_BIT),
+<<<<<<< HEAD
+=======
+	/* caller should reissue async */
+	REQ_F_REISSUE		= BIT(REQ_F_REISSUE_BIT),
+	/* don't attempt request reissue, see io_rw_reissue() */
+	REQ_F_DONT_REISSUE	= BIT(REQ_F_DONT_REISSUE_BIT),
+	/* supports async reads */
+	REQ_F_ASYNC_READ	= BIT(REQ_F_ASYNC_READ_BIT),
+	/* supports async writes */
+	REQ_F_ASYNC_WRITE	= BIT(REQ_F_ASYNC_WRITE_BIT),
+	/* regular file */
+	REQ_F_ISREG		= BIT(REQ_F_ISREG_BIT),
+	/* has creds assigned */
+	REQ_F_CREDS		= BIT(REQ_F_CREDS_BIT),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct async_poll {
@@ -743,6 +819,11 @@ struct async_poll {
 	struct io_poll_iocb	*double_poll;
 };
 
+<<<<<<< HEAD
+=======
+typedef void (*io_req_tw_func_t)(struct io_kiocb *req);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct io_task_work {
 	struct io_wq_work_node	node;
 	task_work_func_t	func;
@@ -990,6 +1071,7 @@ static const struct io_op_def io_op_defs[] = {
 	[IORING_OP_UNLINKAT] = {},
 };
 
+<<<<<<< HEAD
 static void io_uring_try_cancel_requests(struct io_ring_ctx *ctx,
 					 struct task_struct *task,
 					 struct files_struct *files);
@@ -1014,6 +1096,28 @@ static int __io_sqe_files_update(struct io_ring_ctx *ctx,
 				 struct io_uring_rsrc_update *ip,
 				 unsigned nr_args);
 static void __io_clean_op(struct io_kiocb *req);
+=======
+static bool io_disarm_next(struct io_kiocb *req);
+static void io_uring_del_tctx_node(unsigned long index);
+static void io_uring_try_cancel_requests(struct io_ring_ctx *ctx,
+					 struct task_struct *task,
+					 bool cancel_all);
+static void io_uring_cancel_generic(bool cancel_all, struct io_sq_data *sqd);
+static struct io_rsrc_node *io_rsrc_node_alloc(struct io_ring_ctx *ctx);
+
+static bool io_cqring_fill_event(struct io_ring_ctx *ctx, u64 user_data,
+				 long res, unsigned int cflags);
+static void io_put_req(struct io_kiocb *req);
+static void io_put_req_deferred(struct io_kiocb *req, int nr);
+static void io_dismantle_req(struct io_kiocb *req);
+static void io_put_task(struct task_struct *task, int nr);
+static struct io_kiocb *io_prep_linked_timeout(struct io_kiocb *req);
+static void io_queue_linked_timeout(struct io_kiocb *req);
+static int __io_register_rsrc_update(struct io_ring_ctx *ctx, unsigned type,
+				     struct io_uring_rsrc_update2 *up,
+				     unsigned nr_args);
+static void io_clean_op(struct io_kiocb *req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct file *io_file_get(struct io_submit_state *state,
 				struct io_kiocb *req, int fd, bool fixed);
 static void __io_queue_sqe(struct io_kiocb *req);
@@ -1025,8 +1129,16 @@ static int io_setup_async_rw(struct io_kiocb *req, const struct iovec *iovec,
 			     const struct iovec *fast_iov,
 			     struct iov_iter *iter, bool force);
 static void io_req_task_queue(struct io_kiocb *req);
+<<<<<<< HEAD
 static void io_submit_flush_completions(struct io_comp_state *cs,
 					struct io_ring_ctx *ctx);
+=======
+static void io_submit_flush_completions(struct io_ring_ctx *ctx);
+static bool io_poll_remove_waitqs(struct io_kiocb *req);
+static int io_req_prep_async(struct io_kiocb *req);
+
+static void io_fallback_req_func(struct work_struct *unused);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static struct kmem_cache *req_cachep;
 
@@ -1048,6 +1160,7 @@ EXPORT_SYMBOL(io_uring_get_socket);
 #define io_for_each_link(pos, head) \
 	for (pos = (head); pos; pos = pos->link)
 
+<<<<<<< HEAD
 static inline void io_clean_op(struct io_kiocb *req)
 {
 	if (req->flags & (REQ_F_NEED_CLEANUP | REQ_F_BUFFER_SELECTED))
@@ -1055,6 +1168,9 @@ static inline void io_clean_op(struct io_kiocb *req)
 }
 
 static inline void io_set_resource_node(struct io_kiocb *req)
+=======
+static inline void io_req_set_rsrc_node(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_ring_ctx *ctx = req->ctx;
 
@@ -1096,6 +1212,7 @@ static inline void req_set_fail_links(struct io_kiocb *req)
 		req->flags |= REQ_F_FAIL_LINK;
 }
 
+<<<<<<< HEAD
 static inline void __io_req_init_async(struct io_kiocb *req)
 {
 	memset(&req->work, 0, sizeof(req->work));
@@ -1114,6 +1231,8 @@ static inline void io_req_init_async(struct io_kiocb *req)
 	__io_req_init_async(req);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void io_ring_ctx_ref_free(struct percpu_ref *ref)
 {
 	struct io_ring_ctx *ctx = container_of(ref, struct io_ring_ctx, refs);
@@ -1169,14 +1288,24 @@ static struct io_ring_ctx *io_ring_ctx_alloc(struct io_uring_params *p)
 	INIT_LIST_HEAD(&ctx->iopoll_list);
 	INIT_LIST_HEAD(&ctx->defer_list);
 	INIT_LIST_HEAD(&ctx->timeout_list);
+<<<<<<< HEAD
 	spin_lock_init(&ctx->inflight_lock);
 	INIT_LIST_HEAD(&ctx->inflight_list);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_init(&ctx->rsrc_ref_lock);
 	INIT_LIST_HEAD(&ctx->rsrc_ref_list);
 	INIT_DELAYED_WORK(&ctx->rsrc_put_work, io_rsrc_put_work);
 	init_llist_head(&ctx->rsrc_put_llist);
+<<<<<<< HEAD
 	INIT_LIST_HEAD(&ctx->submit_state.comp.free_list);
 	INIT_LIST_HEAD(&ctx->submit_state.comp.locked_free_list);
+=======
+	INIT_LIST_HEAD(&ctx->tctx_list);
+	INIT_LIST_HEAD(&ctx->submit_state.comp.free_list);
+	INIT_LIST_HEAD(&ctx->locked_free_list);
+	INIT_DELAYED_WORK(&ctx->fallback_work, io_fallback_req_func);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ctx;
 err:
 	kfree(ctx->cancel_hash);
@@ -1196,6 +1325,7 @@ static bool req_need_defer(struct io_kiocb *req, u32 seq)
 	return false;
 }
 
+<<<<<<< HEAD
 static void io_req_clean_work(struct io_kiocb *req)
 {
 	if (!(req->flags & REQ_F_WORK_INITIALIZED))
@@ -1204,12 +1334,20 @@ static void io_req_clean_work(struct io_kiocb *req)
 	if (req->work.creds) {
 		put_cred(req->work.creds);
 		req->work.creds = NULL;
+=======
+static void io_req_track_inflight(struct io_kiocb *req)
+{
+	if (!(req->flags & REQ_F_INFLIGHT)) {
+		req->flags |= REQ_F_INFLIGHT;
+		atomic_inc(&current->io_uring->inflight_tracked);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	if (req->flags & REQ_F_INFLIGHT) {
 		struct io_ring_ctx *ctx = req->ctx;
 		struct io_uring_task *tctx = req->task->io_uring;
 		unsigned long flags;
 
+<<<<<<< HEAD
 		spin_lock_irqsave(&ctx->inflight_lock, flags);
 		list_del(&req->inflight_entry);
 		spin_unlock_irqrestore(&ctx->inflight_lock, flags);
@@ -1235,6 +1373,8 @@ static void io_req_track_inflight(struct io_kiocb *req)
 	}
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void io_prep_async_work(struct io_kiocb *req)
 {
 	const struct io_op_def *def = &io_op_defs[req->opcode];
@@ -1260,11 +1400,28 @@ static void io_prep_async_link(struct io_kiocb *req)
 {
 	struct io_kiocb *cur;
 
+<<<<<<< HEAD
 	io_for_each_link(cur, req)
 		io_prep_async_work(cur);
 }
 
 static struct io_kiocb *__io_queue_async_work(struct io_kiocb *req)
+=======
+	if (req->flags & REQ_F_LINK_TIMEOUT) {
+		struct io_ring_ctx *ctx = req->ctx;
+
+		spin_lock_irq(&ctx->completion_lock);
+		io_for_each_link(cur, req)
+			io_prep_async_work(cur);
+		spin_unlock_irq(&ctx->completion_lock);
+	} else {
+		io_for_each_link(cur, req)
+			io_prep_async_work(cur);
+	}
+}
+
+static void io_queue_async_work(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_ring_ctx *ctx = req->ctx;
 	struct io_kiocb *link = io_prep_linked_timeout(req);
@@ -1291,17 +1448,30 @@ static void io_queue_async_work(struct io_kiocb *req)
 		io_queue_linked_timeout(link);
 }
 
+<<<<<<< HEAD
 static void io_kill_timeout(struct io_kiocb *req)
+=======
+static void io_kill_timeout(struct io_kiocb *req, int status)
+	__must_hold(&req->ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_timeout_data *io = req->async_data;
 	int ret;
 
+<<<<<<< HEAD
 	ret = hrtimer_try_to_cancel(&io->timer);
 	if (ret != -1) {
 		atomic_set(&req->ctx->cq_timeouts,
 			atomic_read(&req->ctx->cq_timeouts) + 1);
 		list_del_init(&req->timeout.list);
 		io_cqring_fill_event(req, 0);
+=======
+	if (hrtimer_try_to_cancel(&io->timer) != -1) {
+		atomic_set(&req->ctx->cq_timeouts,
+			atomic_read(&req->ctx->cq_timeouts) + 1);
+		list_del_init(&req->timeout.list);
+		io_cqring_fill_event(req->ctx, req->user_data, status, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		io_put_req_deferred(req, 1);
 	}
 }
@@ -1347,9 +1517,13 @@ static void io_flush_timeouts(struct io_ring_ctx *ctx)
 	if (list_empty(&ctx->timeout_list))
 		return;
 
+<<<<<<< HEAD
 	seq = ctx->cached_cq_tail - atomic_read(&ctx->cq_timeouts);
 
 	do {
+=======
+	while (!list_empty(&ctx->timeout_list)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		u32 events_needed, events_got;
 		struct io_kiocb *req = list_first_entry(&ctx->timeout_list,
 						struct io_kiocb, timeout.list);
@@ -1432,14 +1606,24 @@ static void io_cqring_ev_posted(struct io_ring_ctx *ctx)
 	/* see waitqueue_active() comment */
 	smp_mb();
 
+<<<<<<< HEAD
 	if (waitqueue_active(&ctx->wait))
 		wake_up(&ctx->wait);
+=======
+	if (waitqueue_active(&ctx->cq_wait))
+		wake_up(&ctx->cq_wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ctx->sq_data && waitqueue_active(&ctx->sq_data->wait))
 		wake_up(&ctx->sq_data->wait);
 	if (io_should_trigger_evfd(ctx))
 		eventfd_signal(ctx->cq_ev_fd, 1);
+<<<<<<< HEAD
 	if (waitqueue_active(&ctx->cq_wait)) {
 		wake_up_interruptible(&ctx->cq_wait);
+=======
+	if (waitqueue_active(&ctx->poll_wait)) {
+		wake_up_interruptible(&ctx->poll_wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kill_fasync(&ctx->cq_fasync, SIGIO, POLL_IN);
 	}
 }
@@ -1450,6 +1634,7 @@ static void io_cqring_ev_posted_iopoll(struct io_ring_ctx *ctx)
 	smp_mb();
 
 	if (ctx->flags & IORING_SETUP_SQPOLL) {
+<<<<<<< HEAD
 		if (waitqueue_active(&ctx->wait))
 			wake_up(&ctx->wait);
 	}
@@ -1457,6 +1642,15 @@ static void io_cqring_ev_posted_iopoll(struct io_ring_ctx *ctx)
 		eventfd_signal(ctx->cq_ev_fd, 1);
 	if (waitqueue_active(&ctx->cq_wait)) {
 		wake_up_interruptible(&ctx->cq_wait);
+=======
+		if (waitqueue_active(&ctx->cq_wait))
+			wake_up(&ctx->cq_wait);
+	}
+	if (io_should_trigger_evfd(ctx))
+		eventfd_signal(ctx->cq_ev_fd, 1);
+	if (waitqueue_active(&ctx->poll_wait)) {
+		wake_up_interruptible(&ctx->poll_wait);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kill_fasync(&ctx->cq_fasync, SIGIO, POLL_IN);
 	}
 }
@@ -1466,9 +1660,12 @@ static bool __io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force,
 				       struct task_struct *tsk,
 				       struct files_struct *files)
 {
+<<<<<<< HEAD
 	struct io_rings *rings = ctx->rings;
 	struct io_kiocb *req, *tmp;
 	struct io_uring_cqe *cqe;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long flags;
 	bool all_flushed, posted;
 	LIST_HEAD(list);
@@ -1478,9 +1675,15 @@ static bool __io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force,
 
 	posted = false;
 	spin_lock_irqsave(&ctx->completion_lock, flags);
+<<<<<<< HEAD
 	list_for_each_entry_safe(req, tmp, &ctx->cq_overflow_list, compl.list) {
 		if (!io_match_task(req, tsk, files))
 			continue;
+=======
+	while (!list_empty(&ctx->cq_overflow_list)) {
+		struct io_uring_cqe *cqe = io_get_cqe(ctx);
+		struct io_overflow_cqe *ocqe;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		cqe = io_get_cqring(ctx);
 		if (!cqe && !force)
@@ -1501,8 +1704,12 @@ static bool __io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force,
 
 	all_flushed = list_empty(&ctx->cq_overflow_list);
 	if (all_flushed) {
+<<<<<<< HEAD
 		clear_bit(0, &ctx->sq_check_overflow);
 		clear_bit(0, &ctx->cq_check_overflow);
+=======
+		clear_bit(0, &ctx->check_cq_overflow);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ctx->rings->sq_flags &= ~IORING_SQ_CQ_OVERFLOW;
 	}
 
@@ -1521,21 +1728,95 @@ static bool __io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force,
 	return all_flushed;
 }
 
+<<<<<<< HEAD
 static void io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force,
 				     struct task_struct *tsk,
 				     struct files_struct *files)
+=======
+static bool io_cqring_overflow_flush(struct io_ring_ctx *ctx, bool force)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (test_bit(0, &ctx->cq_check_overflow)) {
 		/* iopoll syncs against uring_lock, not completion_lock */
 		if (ctx->flags & IORING_SETUP_IOPOLL)
 			mutex_lock(&ctx->uring_lock);
+<<<<<<< HEAD
 		__io_cqring_overflow_flush(ctx, force, tsk, files);
+=======
+		ret = __io_cqring_overflow_flush(ctx, force);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ctx->flags & IORING_SETUP_IOPOLL)
 			mutex_unlock(&ctx->uring_lock);
 	}
 }
 
+<<<<<<< HEAD
 static void __io_cqring_fill_event(struct io_kiocb *req, long res, long cflags)
+=======
+/*
+ * Shamelessly stolen from the mm implementation of page reference checking,
+ * see commit f958d7b528b1 for details.
+ */
+#define req_ref_zero_or_close_to_overflow(req)	\
+	((unsigned int) atomic_read(&(req->refs)) + 127u <= 127u)
+
+static inline bool req_ref_inc_not_zero(struct io_kiocb *req)
+{
+	return atomic_inc_not_zero(&req->refs);
+}
+
+static inline bool req_ref_sub_and_test(struct io_kiocb *req, int refs)
+{
+	WARN_ON_ONCE(req_ref_zero_or_close_to_overflow(req));
+	return atomic_sub_and_test(refs, &req->refs);
+}
+
+static inline bool req_ref_put_and_test(struct io_kiocb *req)
+{
+	WARN_ON_ONCE(req_ref_zero_or_close_to_overflow(req));
+	return atomic_dec_and_test(&req->refs);
+}
+
+static inline void req_ref_put(struct io_kiocb *req)
+{
+	WARN_ON_ONCE(req_ref_put_and_test(req));
+}
+
+static inline void req_ref_get(struct io_kiocb *req)
+{
+	WARN_ON_ONCE(req_ref_zero_or_close_to_overflow(req));
+	atomic_inc(&req->refs);
+}
+
+static bool io_cqring_event_overflow(struct io_ring_ctx *ctx, u64 user_data,
+				     long res, unsigned int cflags)
+{
+	struct io_overflow_cqe *ocqe;
+
+	ocqe = kmalloc(sizeof(*ocqe), GFP_ATOMIC | __GFP_ACCOUNT);
+	if (!ocqe) {
+		/*
+		 * If we're in ring overflow flush mode, or in task cancel mode,
+		 * or cannot allocate an overflow entry, then we need to drop it
+		 * on the floor.
+		 */
+		io_account_cq_overflow(ctx);
+		return false;
+	}
+	if (list_empty(&ctx->cq_overflow_list)) {
+		set_bit(0, &ctx->check_cq_overflow);
+		ctx->rings->sq_flags |= IORING_SQ_CQ_OVERFLOW;
+	}
+	ocqe->cqe.user_data = user_data;
+	ocqe->cqe.res = res;
+	ocqe->cqe.flags = cflags;
+	list_add_tail(&ocqe->list, &ctx->cq_overflow_list);
+	return true;
+}
+
+static inline bool __io_cqring_fill_event(struct io_ring_ctx *ctx, u64 user_data,
+					  long res, unsigned int cflags)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_ring_ctx *ctx = req->ctx;
 	struct io_uring_cqe *cqe;
@@ -1587,12 +1868,17 @@ static inline void io_req_complete_post(struct io_kiocb *req, long res,
 	unsigned long flags;
 
 	spin_lock_irqsave(&ctx->completion_lock, flags);
+<<<<<<< HEAD
 	__io_cqring_fill_event(req, res, cflags);
 	io_commit_cqring(ctx);
+=======
+	__io_cqring_fill_event(ctx, req->user_data, res, cflags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * If we're the last reference to this request, add to our locked
 	 * free_list cache.
 	 */
+<<<<<<< HEAD
 	if (refcount_dec_and_test(&req->refs)) {
 		struct io_comp_state *cs = &ctx->submit_state.comp;
 
@@ -1602,6 +1888,26 @@ static inline void io_req_complete_post(struct io_kiocb *req, long res,
 		cs->locked_free_nr++;
 	} else
 		req = NULL;
+=======
+	if (req_ref_put_and_test(req)) {
+		if (req->flags & (REQ_F_LINK | REQ_F_HARDLINK)) {
+			if (req->flags & (REQ_F_LINK_TIMEOUT | REQ_F_FAIL))
+				io_disarm_next(req);
+			if (req->link) {
+				io_req_task_queue(req->link);
+				req->link = NULL;
+			}
+		}
+		io_dismantle_req(req);
+		io_put_task(req->task, 1);
+		list_add(&req->compl.list, &ctx->locked_free_list);
+		ctx->locked_free_nr++;
+	} else {
+		if (!percpu_ref_tryget(&ctx->refs))
+			req = NULL;
+	}
+	io_commit_cqring(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
 
 	io_cqring_ev_posted(ctx);
@@ -1634,17 +1940,42 @@ static inline void io_req_complete(struct io_kiocb *req, long res)
 	__io_req_complete(req, 0, res, 0);
 }
 
+<<<<<<< HEAD
+=======
+static void io_req_complete_failed(struct io_kiocb *req, long res)
+{
+	req_set_fail(req);
+	io_put_req(req);
+	io_req_complete_post(req, res, 0);
+}
+
+static void io_flush_cached_locked_reqs(struct io_ring_ctx *ctx,
+					struct io_comp_state *cs)
+{
+	spin_lock_irq(&ctx->completion_lock);
+	list_splice_init(&ctx->locked_free_list, &cs->free_list);
+	ctx->locked_free_nr = 0;
+	spin_unlock_irq(&ctx->completion_lock);
+}
+
+/* Returns true IFF there are requests in the cache */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool io_flush_cached_reqs(struct io_ring_ctx *ctx)
 {
 	struct io_submit_state *state = &ctx->submit_state;
 	struct io_comp_state *cs = &state->comp;
+<<<<<<< HEAD
 	struct io_kiocb *req = NULL;
+=======
+	int nr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If we have more than a batch's worth of requests in our IRQ side
 	 * locked cache, grab the lock and move them over to our submission
 	 * side cache.
 	 */
+<<<<<<< HEAD
 	if (READ_ONCE(cs->locked_free_nr) > IO_COMPL_BATCH) {
 		spin_lock_irq(&ctx->completion_lock);
 		list_splice_init(&cs->locked_free_list, &cs->free_list);
@@ -1658,6 +1989,19 @@ static bool io_flush_cached_reqs(struct io_ring_ctx *ctx)
 		list_del(&req->compl.list);
 		state->reqs[state->free_reqs++] = req;
 		if (state->free_reqs == ARRAY_SIZE(state->reqs))
+=======
+	if (READ_ONCE(ctx->locked_free_nr) > IO_COMPL_BATCH)
+		io_flush_cached_locked_reqs(ctx, cs);
+
+	nr = state->free_reqs;
+	while (!list_empty(&cs->free_list)) {
+		struct io_kiocb *req = list_first_entry(&cs->free_list,
+						struct io_kiocb, compl.list);
+
+		list_del(&req->compl.list);
+		state->reqs[nr++] = req;
+		if (nr == ARRAY_SIZE(state->reqs))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 	}
 
@@ -1672,13 +2016,18 @@ static struct io_kiocb *io_alloc_req(struct io_ring_ctx *ctx)
 
 	if (!state->free_reqs) {
 		gfp_t gfp = GFP_KERNEL | __GFP_NOWARN;
+<<<<<<< HEAD
 		int ret;
+=======
+		int ret, i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (io_flush_cached_reqs(ctx))
 			goto got_req;
 
 		ret = kmem_cache_alloc_bulk(req_cachep, gfp, IO_REQ_ALLOC_BATCH,
 					    state->reqs);
+<<<<<<< HEAD
 
 		/*
 		 * Bulk alloc is all-or-nothing. If we fail to get a batch,
@@ -1689,6 +2038,32 @@ static struct io_kiocb *io_alloc_req(struct io_ring_ctx *ctx)
 			if (!state->reqs[0])
 				return NULL;
 			ret = 1;
+=======
+
+		/*
+		 * Bulk alloc is all-or-nothing. If we fail to get a batch,
+		 * retry single alloc to be on the safe side.
+		 */
+		if (unlikely(ret <= 0)) {
+			state->reqs[0] = kmem_cache_alloc(req_cachep, gfp);
+			if (!state->reqs[0])
+				return NULL;
+			ret = 1;
+		}
+
+		/*
+		 * Don't initialise the fields below on every allocation, but
+		 * do that in advance and keep valid on free.
+		 */
+		for (i = 0; i < ret; i++) {
+			struct io_kiocb *req = state->reqs[i];
+
+			req->ctx = ctx;
+			req->link = NULL;
+			req->async_data = NULL;
+			/* not necessary, but safer to zero */
+			req->result = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		state->free_reqs = ret;
 	}
@@ -1727,6 +2102,17 @@ static inline void io_put_task(struct task_struct *task, int nr)
 	put_task_struct_many(task, nr);
 }
 
+/* must to be called somewhat shortly after putting a request */
+static inline void io_put_task(struct task_struct *task, int nr)
+{
+	struct io_uring_task *tctx = task->io_uring;
+
+	percpu_counter_sub(&tctx->inflight, nr);
+	if (unlikely(atomic_read(&tctx->in_idle)))
+		wake_up(&tctx->wait);
+	put_task_struct_many(task, nr);
+}
+
 static void __io_free_req(struct io_kiocb *req)
 {
 	struct io_ring_ctx *ctx = req->ctx;
@@ -1746,16 +2132,24 @@ static inline void io_remove_next_linked(struct io_kiocb *req)
 	nxt->link = NULL;
 }
 
+<<<<<<< HEAD
 static void io_kill_linked_timeout(struct io_kiocb *req)
+=======
+static bool io_kill_linked_timeout(struct io_kiocb *req)
+	__must_hold(&req->ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_ring_ctx *ctx = req->ctx;
 	struct io_kiocb *link;
 	bool cancelled = false;
 	unsigned long flags;
 
+<<<<<<< HEAD
 	spin_lock_irqsave(&ctx->completion_lock, flags);
 	link = req->link;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * Can happen if a linked timeout fired and link had been like
 	 * req -> link t-out -> link t-out [-> ...]
@@ -1766,11 +2160,19 @@ static void io_kill_linked_timeout(struct io_kiocb *req)
 
 		io_remove_next_linked(req);
 		link->timeout.head = NULL;
+<<<<<<< HEAD
 		ret = hrtimer_try_to_cancel(&io->timer);
 		if (ret != -1) {
 			io_cqring_fill_event(link, -ECANCELED);
 			io_commit_cqring(ctx);
 			cancelled = true;
+=======
+		if (hrtimer_try_to_cancel(&io->timer) != -1) {
+			io_cqring_fill_event(link->ctx, link->user_data,
+					     -ECANCELED, 0);
+			io_put_req_deferred(link, 1);
+			return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 	req->flags &= ~REQ_F_LINK_TIMEOUT;
@@ -1792,12 +2194,16 @@ static void io_fail_links(struct io_kiocb *req)
 	spin_lock_irqsave(&ctx->completion_lock, flags);
 	link = req->link;
 	req->link = NULL;
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	while (link) {
 		nxt = link->link;
 		link->link = NULL;
 
 		trace_io_uring_fail_link(req, link);
+<<<<<<< HEAD
 		io_cqring_fill_event(link, -ECANCELED);
 
 		/*
@@ -1815,6 +2221,27 @@ static void io_fail_links(struct io_kiocb *req)
 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
 
 	io_cqring_ev_posted(ctx);
+=======
+		io_cqring_fill_event(link->ctx, link->user_data, -ECANCELED, 0);
+		io_put_req_deferred(link, 2);
+		link = nxt;
+	}
+}
+
+static bool io_disarm_next(struct io_kiocb *req)
+	__must_hold(&req->ctx->completion_lock)
+{
+	bool posted = false;
+
+	if (likely(req->flags & REQ_F_LINK_TIMEOUT))
+		posted = io_kill_linked_timeout(req);
+	if (unlikely((req->flags & REQ_F_FAIL) &&
+		     !(req->flags & REQ_F_HARDLINK))) {
+		posted |= (req->link != NULL);
+		io_fail_links(req);
+	}
+	return posted;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct io_kiocb *__io_req_find_next(struct io_kiocb *req)
@@ -1828,11 +2255,26 @@ static struct io_kiocb *__io_req_find_next(struct io_kiocb *req)
 	 * dependencies to the next request. In case of failure, fail the rest
 	 * of the chain.
 	 */
+<<<<<<< HEAD
 	if (likely(!(req->flags & REQ_F_FAIL_LINK))) {
 		struct io_kiocb *nxt = req->link;
 
 		req->link = NULL;
 		return nxt;
+=======
+	if (req->flags & (REQ_F_LINK_TIMEOUT | REQ_F_FAIL)) {
+		struct io_ring_ctx *ctx = req->ctx;
+		unsigned long flags;
+		bool posted;
+
+		spin_lock_irqsave(&ctx->completion_lock, flags);
+		posted = io_disarm_next(req);
+		if (posted)
+			io_commit_cqring(req->ctx);
+		spin_unlock_irqrestore(&ctx->completion_lock, flags);
+		if (posted)
+			io_cqring_ev_posted(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	io_fail_links(req);
 	return NULL;
@@ -1845,6 +2287,7 @@ static inline struct io_kiocb *io_req_find_next(struct io_kiocb *req)
 	return __io_req_find_next(req);
 }
 
+<<<<<<< HEAD
 static bool __tctx_task_work(struct io_uring_task *tctx)
 {
 	struct io_ring_ctx *ctx = NULL;
@@ -1883,6 +2326,15 @@ static bool __tctx_task_work(struct io_uring_task *tctx)
 	if (ctx && ctx->submit_state.comp.nr) {
 		mutex_lock(&ctx->uring_lock);
 		io_submit_flush_completions(&ctx->submit_state.comp, ctx);
+=======
+static void ctx_flush_and_put(struct io_ring_ctx *ctx)
+{
+	if (!ctx)
+		return;
+	if (ctx->submit_state.comp.nr) {
+		mutex_lock(&ctx->uring_lock);
+		io_submit_flush_completions(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mutex_unlock(&ctx->uring_lock);
 	}
 
@@ -1891,12 +2343,56 @@ static bool __tctx_task_work(struct io_uring_task *tctx)
 
 static void tctx_task_work(struct callback_head *cb)
 {
+<<<<<<< HEAD
 	struct io_uring_task *tctx = container_of(cb, struct io_uring_task, task_work);
 
 	while (__tctx_task_work(tctx))
+=======
+	struct io_ring_ctx *ctx = NULL;
+	struct io_uring_task *tctx = container_of(cb, struct io_uring_task,
+						  task_work);
+
+	while (1) {
+		struct io_wq_work_node *node;
+
+		spin_lock_irq(&tctx->task_lock);
+		node = tctx->task_list.first;
+		INIT_WQ_LIST(&tctx->task_list);
+		spin_unlock_irq(&tctx->task_lock);
+
+		while (node) {
+			struct io_wq_work_node *next = node->next;
+			struct io_kiocb *req = container_of(node, struct io_kiocb,
+							    io_task_work.node);
+
+			if (req->ctx != ctx) {
+				ctx_flush_and_put(ctx);
+				ctx = req->ctx;
+				percpu_ref_get(&ctx->refs);
+			}
+			req->io_task_work.func(req);
+			node = next;
+		}
+		if (wq_list_empty(&tctx->task_list)) {
+			spin_lock_irq(&tctx->task_lock);
+			clear_bit(0, &tctx->task_state);
+			if (wq_list_empty(&tctx->task_list)) {
+				spin_unlock_irq(&tctx->task_lock);
+				break;
+			}
+			spin_unlock_irq(&tctx->task_lock);
+			/* another tctx_task_work() is enqueued, yield */
+			if (test_and_set_bit(0, &tctx->task_state))
+				break;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		cond_resched();
 
+<<<<<<< HEAD
 	clear_bit(0, &tctx->task_state);
+=======
+	ctx_flush_and_put(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int io_task_work_add(struct task_struct *tsk, struct io_kiocb *req,
@@ -1905,7 +2401,10 @@ static int io_task_work_add(struct task_struct *tsk, struct io_kiocb *req,
 	struct io_uring_task *tctx = tsk->io_uring;
 	struct io_wq_work_node *node, *prev;
 	unsigned long flags;
+<<<<<<< HEAD
 	int ret;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	WARN_ON_ONCE(!tctx);
 
@@ -1916,6 +2415,7 @@ static int io_task_work_add(struct task_struct *tsk, struct io_kiocb *req,
 	/* task_work already pending, we're done */
 	if (test_bit(0, &tctx->task_state) ||
 	    test_and_set_bit(0, &tctx->task_state))
+<<<<<<< HEAD
 		return 0;
 
 	if (!task_work_add(tsk, &tctx->task_work, notify))
@@ -1948,6 +2448,11 @@ static int io_req_task_work_add(struct io_kiocb *req)
 
 	if (tsk->flags & PF_EXITING)
 		return -ESRCH;
+=======
+		return;
+	if (unlikely(tsk->flags & PF_EXITING))
+		goto fail;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * SQPOLL kernel thread doesn't need notification, just a wakeup. For
@@ -1962,9 +2467,20 @@ static int io_req_task_work_add(struct io_kiocb *req)
 	ret = io_task_work_add(tsk, req, notify);
 	if (!ret)
 		wake_up_process(tsk);
+<<<<<<< HEAD
 
 	return ret;
 }
+=======
+		return;
+	}
+fail:
+	clear_bit(0, &tctx->task_state);
+	spin_lock_irqsave(&tctx->task_lock, flags);
+	node = tctx->task_list.first;
+	INIT_WQ_LIST(&tctx->task_list);
+	spin_unlock_irqrestore(&tctx->task_lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static void io_req_task_work_add_fallback(struct io_kiocb *req,
 					  task_work_func_t cb)
@@ -1993,11 +2509,16 @@ static void __io_req_task_cancel(struct io_kiocb *req, int error)
 	io_double_put_req(req);
 }
 
+<<<<<<< HEAD
 static void io_req_task_cancel(struct callback_head *cb)
+=======
+static void io_req_task_cancel(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_kiocb *req = container_of(cb, struct io_kiocb, task_work);
 	struct io_ring_ctx *ctx = req->ctx;
 
+<<<<<<< HEAD
 	mutex_lock(&ctx->uring_lock);
 	__io_req_task_cancel(req, req->result);
 	mutex_unlock(&ctx->uring_lock);
@@ -2005,15 +2526,31 @@ static void io_req_task_cancel(struct callback_head *cb)
 }
 
 static void __io_req_task_submit(struct io_kiocb *req)
+=======
+	/* ctx is guaranteed to stay alive while we hold uring_lock */
+	mutex_lock(&ctx->uring_lock);
+	io_req_complete_failed(req, req->result);
+	mutex_unlock(&ctx->uring_lock);
+}
+
+static void io_req_task_submit(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_ring_ctx *ctx = req->ctx;
 
 	/* ctx stays valid until unlock, even if we drop all ours ctx->refs */
 	mutex_lock(&ctx->uring_lock);
+<<<<<<< HEAD
 	if (!ctx->sqo_dead && !(current->flags & PF_EXITING) && !current->in_execve)
 		__io_queue_sqe(req);
 	else
 		__io_req_task_cancel(req, -EFAULT);
+=======
+	if (!(req->task->flags & PF_EXITING) && !req->task->in_execve)
+		__io_queue_sqe(req);
+	else
+		io_req_complete_failed(req, -EFAULT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&ctx->uring_lock);
 }
 
@@ -2104,6 +2641,7 @@ static void io_req_free_batch(struct req_batch *rb, struct io_kiocb *req,
 		list_add(&req->compl.list, &state->comp.free_list);
 }
 
+<<<<<<< HEAD
 static void io_submit_flush_completions(struct io_comp_state *cs,
 					struct io_ring_ctx *ctx)
 {
@@ -2119,13 +2657,38 @@ static void io_submit_flush_completions(struct io_comp_state *cs,
 	}
 	io_commit_cqring(ctx);
 	spin_unlock_irq(&ctx->completion_lock);
+=======
+static void io_submit_flush_completions(struct io_ring_ctx *ctx)
+{
+	struct io_comp_state *cs = &ctx->submit_state.comp;
+	int i, nr = cs->nr;
+	struct req_batch rb;
+
+	spin_lock_irq(&ctx->completion_lock);
+	for (i = 0; i < nr; i++) {
+		struct io_kiocb *req = cs->reqs[i];
+
+		__io_cqring_fill_event(ctx, req->user_data, req->result,
+					req->compl.cflags);
+	}
+	io_commit_cqring(ctx);
+	spin_unlock_irq(&ctx->completion_lock);
+	io_cqring_ev_posted(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	io_cqring_ev_posted(ctx);
 	for (i = 0; i < nr; i++) {
+<<<<<<< HEAD
 		req = cs->reqs[i];
 
 		/* submission and completion refs */
 		if (refcount_sub_and_test(2, &req->refs))
+=======
+		struct io_kiocb *req = cs->reqs[i];
+
+		/* submission and completion refs */
+		if (req_ref_sub_and_test(req, 2))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			io_req_free_batch(&rb, req, &ctx->submit_state);
 	}
 
@@ -2154,6 +2717,7 @@ static void io_put_req(struct io_kiocb *req)
 		io_free_req(req);
 }
 
+<<<<<<< HEAD
 static void io_put_req_deferred_cb(struct callback_head *cb)
 {
 	struct io_kiocb *req = container_of(cb, struct io_kiocb, task_work);
@@ -2169,10 +2733,17 @@ static void io_free_req_deferred(struct io_kiocb *req)
 	ret = io_req_task_work_add(req);
 	if (unlikely(ret))
 		io_req_task_work_add_fallback(req, io_put_req_deferred_cb);
+=======
+static void io_free_req_deferred(struct io_kiocb *req)
+{
+	req->io_task_work.func = io_free_req;
+	io_req_task_work_add(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline void io_put_req_deferred(struct io_kiocb *req, int refs)
 {
+<<<<<<< HEAD
 	if (refcount_sub_and_test(refs, &req->refs))
 		io_free_req_deferred(req);
 }
@@ -2182,6 +2753,10 @@ static void io_double_put_req(struct io_kiocb *req)
 	/* drop both submit and complete references */
 	if (refcount_sub_and_test(2, &req->refs))
 		io_free_req(req);
+=======
+	if (req_ref_sub_and_test(req, refs))
+		io_free_req_deferred(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static unsigned io_cqring_events(struct io_ring_ctx *ctx)
@@ -2220,12 +2795,15 @@ static inline unsigned int io_put_rw_kbuf(struct io_kiocb *req)
 
 static inline bool io_run_task_work(void)
 {
+<<<<<<< HEAD
 	/*
 	 * Not safe to run on exiting task, and the task_work handling will
 	 * not add work to such a task.
 	 */
 	if (unlikely(current->flags & PF_EXITING))
 		return false;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (current->task_works) {
 		__set_current_state(TASK_RUNNING);
 		task_work_run();
@@ -2239,7 +2817,7 @@ static inline bool io_run_task_work(void)
  * Find and free completed poll iocbs
  */
 static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
-			       struct list_head *done)
+			       struct list_head *done, bool resubmit)
 {
 	struct req_batch rb;
 	struct io_kiocb *req;
@@ -2254,16 +2832,29 @@ static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
 		req = list_first_entry(done, struct io_kiocb, inflight_entry);
 		list_del(&req->inflight_entry);
 
+<<<<<<< HEAD
 		if (READ_ONCE(req->result) == -EAGAIN) {
 			req->iopoll_completed = 0;
 			if (io_rw_reissue(req))
 				continue;
+=======
+		if (READ_ONCE(req->result) == -EAGAIN && resubmit &&
+		    !(req->flags & REQ_F_DONT_REISSUE)) {
+			req->iopoll_completed = 0;
+			req_ref_get(req);
+			io_req_task_queue_reissue(req);
+			continue;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		if (req->flags & REQ_F_BUFFER_SELECTED)
 			cflags = io_put_rw_kbuf(req);
 
+<<<<<<< HEAD
 		__io_cqring_fill_event(req, req->result, cflags);
+=======
+		__io_cqring_fill_event(ctx, req->user_data, req->result, cflags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		(*nr_events)++;
 
 		if (refcount_dec_and_test(&req->refs))
@@ -2276,7 +2867,7 @@ static void io_iopoll_complete(struct io_ring_ctx *ctx, unsigned int *nr_events,
 }
 
 static int io_do_iopoll(struct io_ring_ctx *ctx, unsigned int *nr_events,
-			long min)
+			long min, bool resubmit)
 {
 	struct io_kiocb *req, *tmp;
 	LIST_HEAD(done);
@@ -2319,9 +2910,10 @@ static int io_do_iopoll(struct io_ring_ctx *ctx, unsigned int *nr_events,
 	}
 
 	if (!list_empty(&done))
-		io_iopoll_complete(ctx, nr_events, &done);
+		io_iopoll_complete(ctx, nr_events, &done, resubmit);
 
 	return ret;
+<<<<<<< HEAD
 }
 
 /*
@@ -2343,6 +2935,8 @@ static int io_iopoll_getevents(struct io_ring_ctx *ctx, unsigned int *nr_events,
 	}
 
 	return 1;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -2358,7 +2952,7 @@ static void io_iopoll_try_reap_events(struct io_ring_ctx *ctx)
 	while (!list_empty(&ctx->iopoll_list)) {
 		unsigned int nr_events = 0;
 
-		io_do_iopoll(ctx, &nr_events, 0);
+		io_do_iopoll(ctx, &nr_events, 0, false);
 
 		/* let it sleep and repeat later if can't complete a request */
 		if (nr_events == 0)
@@ -2414,6 +3008,7 @@ static int io_iopoll_check(struct io_ring_ctx *ctx, long min)
 			io_run_task_work();
 			mutex_lock(&ctx->uring_lock);
 		}
+<<<<<<< HEAD
 
 		ret = io_iopoll_getevents(ctx, &nr_events, min);
 		if (ret <= 0)
@@ -2421,6 +3016,11 @@ static int io_iopoll_check(struct io_ring_ctx *ctx, long min)
 		ret = 0;
 	} while (min && !nr_events && !need_resched());
 
+=======
+		ret = io_do_iopoll(ctx, &nr_events, min, true);
+	} while (!ret && nr_events < min && !need_resched());
+out:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&ctx->uring_lock);
 	return ret;
 }
@@ -2467,10 +3067,18 @@ static bool io_resubmit_prep(struct io_kiocb *req)
 		return false;
 	}
 
+<<<<<<< HEAD
 	ret = io_import_iovec(rw, req, &iovec, &iter, false);
 	if (ret < 0)
 		return false;
 	return !io_setup_async_rw(req, iovec, inline_vecs, &iter, false);
+=======
+	if (!rw)
+		return !io_req_prep_async(req);
+	/* may have left rw->iter inconsistent on -EIOCBQUEUED */
+	iov_iter_revert(&rw->iter, req->result - iov_iter_count(&rw->iter));
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 #endif
 
@@ -2490,6 +3098,7 @@ static bool io_rw_reissue(struct io_kiocb *req)
 	 */
 	if (percpu_ref_is_dying(&req->ctx->refs))
 		return false;
+<<<<<<< HEAD
 
 	lockdep_assert_held(&req->ctx->uring_lock);
 
@@ -2501,6 +3110,30 @@ static bool io_rw_reissue(struct io_kiocb *req)
 	req_set_fail_links(req);
 #endif
 	return false;
+=======
+	return true;
+}
+#else
+static bool io_resubmit_prep(struct io_kiocb *req)
+{
+	return false;
+}
+static bool io_rw_should_reissue(struct io_kiocb *req)
+{
+	return false;
+}
+#endif
+
+static void io_fallback_req_func(struct work_struct *work)
+{
+	struct io_ring_ctx *ctx = container_of(work, struct io_ring_ctx,
+						fallback_work.work);
+	struct llist_node *node = llist_del_all(&ctx->fallback_llist);
+	struct io_kiocb *req, *tmp;
+
+	llist_for_each_entry_safe(req, tmp, node, io_task_work.fallback_node)
+		req->io_task_work.func(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void __io_complete_rw(struct io_kiocb *req, long res, long res2,
@@ -2508,6 +3141,7 @@ static void __io_complete_rw(struct io_kiocb *req, long res, long res2,
 {
 	int cflags = 0;
 
+<<<<<<< HEAD
 	if ((res == -EAGAIN || res == -EOPNOTSUPP) && io_rw_reissue(req))
 		return;
 	if (res != req->result)
@@ -2515,6 +3149,18 @@ static void __io_complete_rw(struct io_kiocb *req, long res, long res2,
 
 	if (req->rw.kiocb.ki_flags & IOCB_WRITE)
 		kiocb_end_write(req);
+=======
+	if (req->rw.kiocb.ki_flags & IOCB_WRITE)
+		kiocb_end_write(req);
+	if (res != req->result) {
+		if ((res == -EAGAIN || res == -EOPNOTSUPP) &&
+		    io_rw_should_reissue(req)) {
+			req->flags |= REQ_F_REISSUE;
+			return;
+		}
+		req_set_fail(req);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (req->flags & REQ_F_BUFFER_SELECTED)
 		cflags = io_put_rw_kbuf(req);
 	__io_req_complete(req, issue_flags, res, cflags);
@@ -2533,9 +3179,19 @@ static void io_complete_rw_iopoll(struct kiocb *kiocb, long res, long res2)
 
 	if (kiocb->ki_flags & IOCB_WRITE)
 		kiocb_end_write(req);
+<<<<<<< HEAD
 
 	if (res != -EAGAIN && res != req->result)
 		req_set_fail_links(req);
+=======
+	if (unlikely(res != req->result)) {
+		if (!(res == -EAGAIN && io_rw_should_reissue(req) &&
+		    io_resubmit_prep(req))) {
+			req_set_fail(req);
+			req->flags |= REQ_F_DONT_REISSUE;
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	WRITE_ONCE(req->result, res);
 	/* order with io_poll_complete() checking ->result */
@@ -2622,6 +3278,40 @@ static struct file *__io_file_get(struct io_submit_state *state, int fd)
 	return state->file;
 }
 
+static inline void io_state_file_put(struct io_submit_state *state)
+{
+	if (state->file_refs) {
+		fput_many(state->file, state->file_refs);
+		state->file_refs = 0;
+	}
+}
+
+/*
+ * Get as many references to a file as we have IOs left in this submission,
+ * assuming most submissions are for one file, or at least that each file
+ * has more than one submission.
+ */
+static struct file *__io_file_get(struct io_submit_state *state, int fd)
+{
+	if (!state)
+		return fget(fd);
+
+	if (state->file_refs) {
+		if (state->fd == fd) {
+			state->file_refs--;
+			return state->file;
+		}
+		io_state_file_put(state);
+	}
+	state->file = fget_many(fd, state->ios_left);
+	if (unlikely(!state->file))
+		return NULL;
+
+	state->fd = fd;
+	state->file_refs = state->ios_left - 1;
+	return state->file;
+}
+
 static bool io_bdev_nowait(struct block_device *bdev)
 {
 	return !bdev || blk_queue_nowait(bdev_get_queue(bdev));
@@ -2632,7 +3322,11 @@ static bool io_bdev_nowait(struct block_device *bdev)
  * any file. For now, just ensure that anything potentially problematic is done
  * inline.
  */
+<<<<<<< HEAD
 static bool io_file_supports_async(struct file *file, int rw)
+=======
+static bool __io_file_supports_async(struct file *file, int rw)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	umode_t mode = file_inode(file)->i_mode;
 
@@ -2665,6 +3359,19 @@ static bool io_file_supports_async(struct file *file, int rw)
 	return file->f_op->write_iter != NULL;
 }
 
+<<<<<<< HEAD
+=======
+static bool io_file_supports_async(struct io_kiocb *req, int rw)
+{
+	if (rw == READ && (req->flags & REQ_F_ASYNC_READ))
+		return true;
+	else if (rw == WRITE && (req->flags & REQ_F_ASYNC_WRITE))
+		return true;
+
+	return __io_file_supports_async(req->file, rw);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int io_prep_rw(struct io_kiocb *req, const struct io_uring_sqe *sqe)
 {
 	struct io_ring_ctx *ctx = req->ctx;
@@ -2673,7 +3380,11 @@ static int io_prep_rw(struct io_kiocb *req, const struct io_uring_sqe *sqe)
 	unsigned ioprio;
 	int ret;
 
+<<<<<<< HEAD
 	if (S_ISREG(file_inode(file)->i_mode))
+=======
+	if (!(req->flags & REQ_F_ISREG) && S_ISREG(file_inode(file)->i_mode))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		req->flags |= REQ_F_ISREG;
 
 	kiocb->ki_pos = READ_ONCE(sqe->off);
@@ -2747,6 +3458,7 @@ static void kiocb_done(struct kiocb *kiocb, ssize_t ret,
 {
 	struct io_kiocb *req = container_of(kiocb, struct io_kiocb, rw.kiocb);
 	struct io_async_rw *io = req->async_data;
+	bool check_reissue = kiocb->ki_complete == io_complete_rw;
 
 	/* add previously done IO, if any */
 	if (io && io->bytes_done > 0) {
@@ -2758,10 +3470,32 @@ static void kiocb_done(struct kiocb *kiocb, ssize_t ret,
 
 	if (req->flags & REQ_F_CUR_POS)
 		req->file->f_pos = kiocb->ki_pos;
+<<<<<<< HEAD
 	if (ret >= 0 && kiocb->ki_complete == io_complete_rw)
 		__io_complete_rw(req, ret, 0, issue_flags);
 	else
 		io_rw_done(kiocb, ret);
+=======
+	if (ret >= 0 && check_reissue)
+		__io_complete_rw(req, ret, 0, issue_flags);
+	else
+		io_rw_done(kiocb, ret);
+
+	if (check_reissue && (req->flags & REQ_F_REISSUE)) {
+		req->flags &= ~REQ_F_REISSUE;
+		if (io_resubmit_prep(req)) {
+			req_ref_get(req);
+			io_req_task_queue_reissue(req);
+		} else {
+			int cflags = 0;
+
+			req_set_fail(req);
+			if (req->flags & REQ_F_BUFFER_SELECTED)
+				cflags = io_put_rw_kbuf(req);
+			__io_req_complete(req, issue_flags, ret, cflags);
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int io_import_fixed(struct io_kiocb *req, int rw, struct iov_iter *iter)
@@ -3120,7 +3854,11 @@ static int io_setup_async_rw(struct io_kiocb *req, const struct iovec *iovec,
 	if (!force && !io_op_defs[req->opcode].needs_async_data)
 		return 0;
 	if (!req->async_data) {
+<<<<<<< HEAD
 		if (__io_alloc_async_data(req)) {
+=======
+		if (io_alloc_async_data(req)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			kfree(iovec);
 			return -ENOMEM;
 		}
@@ -3180,7 +3918,11 @@ static int io_async_buf_func(struct wait_queue_entry *wait, unsigned mode,
 	list_del_init(&wait->entry);
 
 	/* submit ref gets dropped, acquire a new one */
+<<<<<<< HEAD
 	refcount_inc(&req->refs);
+=======
+	req_ref_get(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_req_task_queue(req);
 	return 1;
 }
@@ -3265,7 +4007,11 @@ static int io_read(struct io_kiocb *req, unsigned int issue_flags)
 		kiocb->ki_flags |= IOCB_NOWAIT;
 
 	/* If the file doesn't support async, just async punt */
+<<<<<<< HEAD
 	if (force_nonblock && !io_file_supports_async(req->file, READ)) {
+=======
+	if (force_nonblock && !io_file_supports_async(req, READ)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = io_setup_async_rw(req, iovec, inline_vecs, iter, true);
 		return ret ?: -EAGAIN;
 	}
@@ -3290,6 +4036,11 @@ static int io_read(struct io_kiocb *req, unsigned int issue_flags)
 		/* some cases will consume bytes even on error returns */
 		iov_iter_revert(iter, io_size - iov_iter_count(iter));
 		ret = 0;
+<<<<<<< HEAD
+=======
+	} else if (ret == -EIOCBQUEUED) {
+		goto out_free;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else if (ret <= 0 || ret == io_size || !force_nonblock ||
 		   (req->flags & REQ_F_NOWAIT) || !(req->flags & REQ_F_ISREG)) {
 		/* read all, failed, already did sync or don't want to retry */
@@ -3324,6 +4075,10 @@ static int io_read(struct io_kiocb *req, unsigned int issue_flags)
 		if (ret == -EIOCBQUEUED)
 			return 0;
 		/* we got some bytes, but not all. retry. */
+<<<<<<< HEAD
+=======
+		kiocb->ki_flags &= ~IOCB_WAITQ;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} while (ret > 0 && ret < io_size);
 done:
 	kiocb_done(kiocb, ret, issue_flags);
@@ -3368,7 +4123,11 @@ static int io_write(struct io_kiocb *req, unsigned int issue_flags)
 		kiocb->ki_flags |= IOCB_NOWAIT;
 
 	/* If the file doesn't support async, just async punt */
+<<<<<<< HEAD
 	if (force_nonblock && !io_file_supports_async(req->file, WRITE))
+=======
+	if (force_nonblock && !io_file_supports_async(req, WRITE))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto copy_iov;
 
 	/* file path doesn't support NOWAIT for non-direct_IO */
@@ -3436,6 +4195,13 @@ static int io_renameat_prep(struct io_kiocb *req,
 	struct io_rename *ren = &req->rename;
 	const char __user *oldf, *newf;
 
+<<<<<<< HEAD
+=======
+	if (unlikely(req->ctx->flags & IORING_SETUP_IOPOLL))
+		return -EINVAL;
+	if (sqe->ioprio || sqe->buf_index)
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(req->flags & REQ_F_FIXED_FILE))
 		return -EBADF;
 
@@ -3483,6 +4249,13 @@ static int io_unlinkat_prep(struct io_kiocb *req,
 	struct io_unlink *un = &req->unlink;
 	const char __user *fname;
 
+<<<<<<< HEAD
+=======
+	if (unlikely(req->ctx->flags & IORING_SETUP_IOPOLL))
+		return -EINVAL;
+	if (sqe->ioprio || sqe->off || sqe->len || sqe->buf_index)
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(req->flags & REQ_F_FIXED_FILE))
 		return -EBADF;
 
@@ -3516,7 +4289,11 @@ static int io_unlinkat(struct io_kiocb *req, unsigned int issue_flags)
 
 	req->flags &= ~REQ_F_NEED_CLEANUP;
 	if (ret < 0)
+<<<<<<< HEAD
 		req_set_fail_links(req);
+=======
+		req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_req_complete(req, ret);
 	return 0;
 }
@@ -3841,6 +4618,7 @@ static int io_openat2(struct io_kiocb *req, unsigned int issue_flags)
 		 * So just put it, and we'll get a new one when we retry.
 		 */
 		put_unused_fd(ret);
+<<<<<<< HEAD
 		return -EAGAIN;
 	}
 
@@ -3853,6 +4631,21 @@ static int io_openat2(struct io_kiocb *req, unsigned int issue_flags)
 		fsnotify_open(file);
 		fd_install(ret, file);
 	}
+=======
+
+		ret = PTR_ERR(file);
+		/* only retry if RESOLVE_CACHED wasn't already set by application */
+		if (ret == -EAGAIN &&
+		    (!resolve_nonblock && (issue_flags & IO_URING_F_NONBLOCK)))
+			return -EAGAIN;
+		goto err;
+	}
+
+	if ((issue_flags & IO_URING_F_NONBLOCK) && !nonblock_set)
+		file->f_flags &= ~O_NONBLOCK;
+	fsnotify_open(file);
+	fd_install(ret, file);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err:
 	putname(req->open.filename);
 	req->flags &= ~REQ_F_NEED_CLEANUP;
@@ -4214,11 +5007,17 @@ static int io_close(struct io_kiocb *req, unsigned int issue_flags)
 	struct files_struct *files = current->files;
 	struct io_close *close = &req->close;
 	struct fdtable *fdt;
+<<<<<<< HEAD
 	struct file *file;
 	int ret;
 
 	file = NULL;
 	ret = -EBADF;
+=======
+	struct file *file = NULL;
+	int ret = -EBADF;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock(&files->file_lock);
 	fdt = files_fdtable(files);
 	if (close->fd >= fdt->max_fds) {
@@ -4721,7 +5520,11 @@ static int io_accept(struct io_kiocb *req, unsigned int issue_flags)
 	if (ret < 0) {
 		if (ret == -ERESTARTSYS)
 			ret = -EINTR;
+<<<<<<< HEAD
 		req_set_fail_links(req);
+=======
+		req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	__io_req_complete(req, issue_flags, ret, 0);
 	return 0;
@@ -4861,6 +5664,12 @@ static bool io_poll_rewait(struct io_kiocb *req, struct io_poll_iocb *poll)
 {
 	struct io_ring_ctx *ctx = req->ctx;
 
+<<<<<<< HEAD
+=======
+	if (unlikely(req->task->flags & PF_EXITING))
+		WRITE_ONCE(poll->canceled, true);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!req->result && !READ_ONCE(poll->canceled)) {
 		struct poll_table_struct pt = { ._key = poll->events };
 
@@ -4909,6 +5718,7 @@ static void io_poll_remove_double(struct io_kiocb *req)
 	}
 }
 
+<<<<<<< HEAD
 static void io_poll_complete(struct io_kiocb *req, __poll_t mask, int error)
 {
 	struct io_ring_ctx *ctx = req->ctx;
@@ -4920,6 +5730,35 @@ static void io_poll_complete(struct io_kiocb *req, __poll_t mask, int error)
 }
 
 static void io_poll_task_func(struct callback_head *cb)
+=======
+static bool io_poll_complete(struct io_kiocb *req, __poll_t mask)
+	__must_hold(&req->ctx->completion_lock)
+{
+	struct io_ring_ctx *ctx = req->ctx;
+	unsigned flags = IORING_CQE_F_MORE;
+	int error;
+
+	if (READ_ONCE(req->poll.canceled)) {
+		error = -ECANCELED;
+		req->poll.events |= EPOLLONESHOT;
+	} else {
+		error = mangle_poll(mask);
+	}
+	if (req->poll.events & EPOLLONESHOT)
+		flags = 0;
+	if (!io_cqring_fill_event(ctx, req->user_data, error, flags)) {
+		req->poll.done = true;
+		flags = 0;
+	}
+	if (flags & IORING_CQE_F_MORE)
+		ctx->cq_extra++;
+
+	io_commit_cqring(ctx);
+	return !(flags & IORING_CQE_F_MORE);
+}
+
+static void io_poll_task_func(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_kiocb *req = container_of(cb, struct io_kiocb, task_work);
 	struct io_ring_ctx *ctx = req->ctx;
@@ -4932,10 +5771,29 @@ static void io_poll_task_func(struct callback_head *cb)
 		io_poll_complete(req, req->result, 0);
 		spin_unlock_irq(&ctx->completion_lock);
 
+<<<<<<< HEAD
 		nxt = io_put_req_find_next(req);
 		io_cqring_ev_posted(ctx);
 		if (nxt)
 			__io_req_task_submit(nxt);
+=======
+		done = io_poll_complete(req, req->result);
+		if (done) {
+			io_poll_remove_double(req);
+			hash_del(&req->hash_node);
+		} else {
+			req->result = 0;
+			add_wait_queue(req->poll.head, &req->poll.wait);
+		}
+		spin_unlock_irq(&ctx->completion_lock);
+		io_cqring_ev_posted(ctx);
+
+		if (done) {
+			nxt = io_put_req_find_next(req);
+			if (nxt)
+				io_req_task_submit(nxt);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	percpu_ref_put(&ctx->refs);
@@ -5003,6 +5861,18 @@ static void __io_queue_proc(struct io_poll_iocb *poll, struct io_poll_table *pt,
 			pt->error = -EINVAL;
 			return;
 		}
+<<<<<<< HEAD
+=======
+		/*
+		 * Can't handle multishot for double wait for now, turn it
+		 * into one-shot mode.
+		 */
+		if (!(poll_one->events & EPOLLONESHOT))
+			poll_one->events |= EPOLLONESHOT;
+		/* double add on the same waitqueue head, ignore */
+		if (poll_one->head == head)
+			return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		poll = kmalloc(sizeof(*poll), GFP_ATOMIC);
 		if (!poll) {
 			pt->error = -ENOMEM;
@@ -5032,7 +5902,11 @@ static void io_async_queue_proc(struct file *file, struct wait_queue_head *head,
 	__io_queue_proc(&apoll->poll, pt, head, &apoll->double_poll);
 }
 
+<<<<<<< HEAD
 static void io_async_task_func(struct callback_head *cb)
+=======
+static void io_async_task_func(struct io_kiocb *req)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_kiocb *req = container_of(cb, struct io_kiocb, task_work);
 	struct async_poll *apoll = req->apoll;
@@ -5042,7 +5916,10 @@ static void io_async_task_func(struct callback_head *cb)
 
 	if (io_poll_rewait(req, &apoll->poll)) {
 		spin_unlock_irq(&ctx->completion_lock);
+<<<<<<< HEAD
 		percpu_ref_put(&ctx->refs);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
@@ -5054,7 +5931,11 @@ static void io_async_task_func(struct callback_head *cb)
 	spin_unlock_irq(&ctx->completion_lock);
 
 	if (!READ_ONCE(apoll->poll.canceled))
+<<<<<<< HEAD
 		__io_req_task_submit(req);
+=======
+		io_req_task_submit(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else
 		__io_req_task_cancel(req, -ECANCELED);
 
@@ -5105,6 +5986,11 @@ static __poll_t __io_arm_poll_handler(struct io_kiocb *req,
 	mask = vfs_poll(req->file, &ipt->pt) & poll->events;
 
 	spin_lock_irq(&ctx->completion_lock);
+<<<<<<< HEAD
+=======
+	if (ipt->error || (mask && (poll->events & EPOLLONESHOT)))
+		io_poll_remove_double(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (likely(poll->head)) {
 		spin_lock(&poll->head->lock);
 		if (unlikely(list_empty(&poll->wait.entry))) {
@@ -5145,8 +6031,13 @@ static bool io_arm_poll_handler(struct io_kiocb *req)
 	else
 		return false;
 	/* if we can't nonblock try, then no point in arming a poll handler */
+<<<<<<< HEAD
 	if (!io_file_supports_async(req->file, rw))
 		return false;
+=======
+	if (!io_file_supports_async(req, rw))
+		return IO_APOLL_ABORTED;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	apoll = kmalloc(sizeof(*apoll), GFP_ATOMIC);
 	if (unlikely(!apoll))
@@ -5174,6 +6065,7 @@ static bool io_arm_poll_handler(struct io_kiocb *req)
 	ret = __io_arm_poll_handler(req, &apoll->poll, &ipt, mask,
 					io_async_wake);
 	if (ret || ipt.error) {
+<<<<<<< HEAD
 		io_poll_remove_double(req);
 		spin_unlock_irq(&ctx->completion_lock);
 		kfree(apoll->double_poll);
@@ -5184,6 +6076,17 @@ static bool io_arm_poll_handler(struct io_kiocb *req)
 	trace_io_uring_poll_arm(ctx, req->opcode, req->user_data, mask,
 					apoll->poll.events);
 	return true;
+=======
+		spin_unlock_irq(&ctx->completion_lock);
+		if (ret)
+			return IO_APOLL_READY;
+		return IO_APOLL_ABORTED;
+	}
+	spin_unlock_irq(&ctx->completion_lock);
+	trace_io_uring_poll_arm(ctx, req, req->opcode, req->user_data,
+				mask, apoll->poll.events);
+	return IO_APOLL_OK;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool __io_poll_remove_one(struct io_kiocb *req,
@@ -5191,8 +6094,16 @@ static bool __io_poll_remove_one(struct io_kiocb *req,
 {
 	bool do_complete = false;
 
+<<<<<<< HEAD
 	spin_lock(&poll->head->lock);
 	WRITE_ONCE(poll->canceled, true);
+=======
+	if (!poll->head)
+		return false;
+	spin_lock(&poll->head->lock);
+	if (do_cancel)
+		WRITE_ONCE(poll->canceled, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!list_empty(&poll->wait.entry)) {
 		list_del_init(&poll->wait.entry);
 		do_complete = true;
@@ -5202,7 +6113,12 @@ static bool __io_poll_remove_one(struct io_kiocb *req,
 	return do_complete;
 }
 
+<<<<<<< HEAD
 static bool io_poll_remove_one(struct io_kiocb *req)
+=======
+static bool io_poll_remove_waitqs(struct io_kiocb *req)
+	__must_hold(&req->ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool do_complete;
 
@@ -5222,10 +6138,27 @@ static bool io_poll_remove_one(struct io_kiocb *req)
 		}
 	}
 
+	if (req->opcode != IORING_OP_POLL_ADD && do_complete) {
+		/* non-poll requests have submit ref still */
+		req_ref_put(req);
+	}
+	return do_complete;
+}
+
+static bool io_poll_remove_one(struct io_kiocb *req)
+	__must_hold(&req->ctx->completion_lock)
+{
+	bool do_complete;
+
+	do_complete = io_poll_remove_waitqs(req);
 	if (do_complete) {
 		io_cqring_fill_event(req, -ECANCELED);
 		io_commit_cqring(req->ctx);
+<<<<<<< HEAD
 		req_set_fail_links(req);
+=======
+		req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		io_put_req_deferred(req, 1);
 	}
 
@@ -5282,8 +6215,19 @@ static int io_poll_remove_prep(struct io_kiocb *req,
 {
 	if (unlikely(req->ctx->flags & IORING_SETUP_IOPOLL))
 		return -EINVAL;
+<<<<<<< HEAD
 	if (sqe->ioprio || sqe->off || sqe->len || sqe->buf_index ||
 	    sqe->poll_events)
+=======
+	if (sqe->ioprio || sqe->buf_index)
+		return -EINVAL;
+	flags = READ_ONCE(sqe->len);
+	if (flags & ~(IORING_POLL_UPDATE_EVENTS | IORING_POLL_UPDATE_USER_DATA |
+		      IORING_POLL_ADD_MULTI))
+		return -EINVAL;
+	/* meaningless without update */
+	if (flags == IORING_POLL_ADD_MULTI)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EINVAL;
 
 	req->poll_remove.addr = READ_ONCE(sqe->addr);
@@ -5336,12 +6280,16 @@ static int io_poll_add_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe
 	if (sqe->addr || sqe->ioprio || sqe->off || sqe->len || sqe->buf_index)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	events = READ_ONCE(sqe->poll32_events);
 #ifdef __BIG_ENDIAN
 	events = swahw32(events);
 #endif
 	poll->events = demangle_poll(events) | EPOLLERR | EPOLLHUP |
 		       (events & EPOLLEXCLUSIVE);
+=======
+	poll->events = io_poll_parse_events(sqe, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -5351,6 +6299,77 @@ static int io_poll_add(struct io_kiocb *req, unsigned int issue_flags)
 	struct io_ring_ctx *ctx = req->ctx;
 	struct io_poll_table ipt;
 	__poll_t mask;
+<<<<<<< HEAD
+=======
+
+	ipt.pt._qproc = io_poll_queue_proc;
+
+	mask = __io_arm_poll_handler(req, &req->poll, &ipt, poll->events,
+					io_poll_wake);
+
+	if (mask) { /* no async, we'd stolen it */
+		ipt.error = 0;
+		io_poll_complete(req, mask);
+	}
+	spin_unlock_irq(&ctx->completion_lock);
+
+	if (mask) {
+		io_cqring_ev_posted(ctx);
+		if (poll->events & EPOLLONESHOT)
+			io_put_req(req);
+	}
+	return ipt.error;
+}
+
+static int io_poll_update(struct io_kiocb *req, unsigned int issue_flags)
+{
+	struct io_ring_ctx *ctx = req->ctx;
+	struct io_kiocb *preq;
+	bool completing;
+	int ret;
+
+	spin_lock_irq(&ctx->completion_lock);
+	preq = io_poll_find(ctx, req->poll_update.old_user_data, true);
+	if (!preq) {
+		ret = -ENOENT;
+		goto err;
+	}
+
+	if (!req->poll_update.update_events && !req->poll_update.update_user_data) {
+		completing = true;
+		ret = io_poll_remove_one(preq) ? 0 : -EALREADY;
+		goto err;
+	}
+
+	/*
+	 * Don't allow racy completion with singleshot, as we cannot safely
+	 * update those. For multishot, if we're racing with completion, just
+	 * let completion re-add it.
+	 */
+	completing = !__io_poll_remove_one(preq, &preq->poll, false);
+	if (completing && (preq->poll.events & EPOLLONESHOT)) {
+		ret = -EALREADY;
+		goto err;
+	}
+	/* we now have a detached poll request. reissue. */
+	ret = 0;
+err:
+	if (ret < 0) {
+		spin_unlock_irq(&ctx->completion_lock);
+		req_set_fail(req);
+		io_req_complete(req, ret);
+		return 0;
+	}
+	/* only mask one event flags, keep behavior flags */
+	if (req->poll_update.update_events) {
+		preq->poll.events &= ~0xffff;
+		preq->poll.events |= req->poll_update.events & 0xffff;
+		preq->poll.events |= IO_POLL_UNMASK;
+	}
+	if (req->poll_update.update_user_data)
+		preq->user_data = req->poll_update.new_user_data;
+	spin_unlock_irq(&ctx->completion_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ipt.pt._qproc = io_poll_queue_proc;
 
@@ -5363,6 +6382,7 @@ static int io_poll_add(struct io_kiocb *req, unsigned int issue_flags)
 	}
 	spin_unlock_irq(&ctx->completion_lock);
 
+<<<<<<< HEAD
 	if (mask) {
 		io_cqring_ev_posted(ctx);
 		io_put_req(req);
@@ -5370,6 +6390,8 @@ static int io_poll_add(struct io_kiocb *req, unsigned int issue_flags)
 	return ipt.error;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static enum hrtimer_restart io_timeout_fn(struct hrtimer *timer)
 {
 	struct io_timeout_data *data = container_of(timer,
@@ -5383,18 +6405,30 @@ static enum hrtimer_restart io_timeout_fn(struct hrtimer *timer)
 	atomic_set(&req->ctx->cq_timeouts,
 		atomic_read(&req->ctx->cq_timeouts) + 1);
 
+<<<<<<< HEAD
 	io_cqring_fill_event(req, -ETIME);
+=======
+	io_cqring_fill_event(ctx, req->user_data, -ETIME, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_commit_cqring(ctx);
 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
 
 	io_cqring_ev_posted(ctx);
+<<<<<<< HEAD
 	req_set_fail_links(req);
+=======
+	req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_put_req(req);
 	return HRTIMER_NORESTART;
 }
 
 static struct io_kiocb *io_timeout_extract(struct io_ring_ctx *ctx,
 					   __u64 user_data)
+<<<<<<< HEAD
+=======
+	__must_hold(&ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_timeout_data *io;
 	struct io_kiocb *req;
@@ -5419,20 +6453,33 @@ static struct io_kiocb *io_timeout_extract(struct io_ring_ctx *ctx,
 }
 
 static int io_timeout_cancel(struct io_ring_ctx *ctx, __u64 user_data)
+<<<<<<< HEAD
+=======
+	__must_hold(&ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_kiocb *req = io_timeout_extract(ctx, user_data);
 
 	if (IS_ERR(req))
 		return PTR_ERR(req);
 
+<<<<<<< HEAD
 	req_set_fail_links(req);
 	io_cqring_fill_event(req, -ECANCELED);
+=======
+	req_set_fail(req);
+	io_cqring_fill_event(ctx, req->user_data, -ECANCELED, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_put_req_deferred(req, 1);
 	return 0;
 }
 
 static int io_timeout_update(struct io_ring_ctx *ctx, __u64 user_data,
 			     struct timespec64 *ts, enum hrtimer_mode mode)
+<<<<<<< HEAD
+=======
+	__must_hold(&ctx->completion_lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_kiocb *req = io_timeout_extract(ctx, user_data);
 	struct io_timeout_data *data;
@@ -5498,12 +6545,20 @@ static int io_timeout_remove(struct io_kiocb *req, unsigned int issue_flags)
 		ret = io_timeout_update(ctx, tr->addr, &tr->ts,
 					io_translate_timeout_mode(tr->flags));
 
+<<<<<<< HEAD
 	io_cqring_fill_event(req, ret);
+=======
+	io_cqring_fill_event(ctx, req->user_data, ret, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_commit_cqring(ctx);
 	spin_unlock_irq(&ctx->completion_lock);
 	io_cqring_ev_posted(ctx);
 	if (ret < 0)
+<<<<<<< HEAD
 		req_set_fail_links(req);
+=======
+		req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_put_req(req);
 	return 0;
 }
@@ -5538,6 +6593,11 @@ static int io_timeout_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe,
 
 	data->mode = io_translate_timeout_mode(flags);
 	hrtimer_init(&data->timer, CLOCK_MONOTONIC, data->mode);
+<<<<<<< HEAD
+=======
+	if (is_timeout_link)
+		io_req_track_inflight(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -5629,6 +6689,7 @@ static void io_async_find_and_cancel(struct io_ring_ctx *ctx,
 	unsigned long flags;
 	int ret;
 
+<<<<<<< HEAD
 	ret = io_async_cancel_one(req->task->io_uring,
 					(void *) (unsigned long) sqe_addr);
 	if (ret != -ENOENT) {
@@ -5645,13 +6706,31 @@ done:
 	if (!ret)
 		ret = success_ret;
 	io_cqring_fill_event(req, ret);
+=======
+	ret = io_async_cancel_one(req->task->io_uring, sqe_addr, ctx);
+	spin_lock_irqsave(&ctx->completion_lock, flags);
+	if (ret != -ENOENT)
+		goto done;
+	ret = io_timeout_cancel(ctx, sqe_addr);
+	if (ret != -ENOENT)
+		goto done;
+	ret = io_poll_cancel(ctx, sqe_addr, false);
+done:
+	if (!ret)
+		ret = success_ret;
+	io_cqring_fill_event(ctx, req->user_data, ret, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_commit_cqring(ctx);
 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
 	io_cqring_ev_posted(ctx);
 
 	if (ret < 0)
+<<<<<<< HEAD
 		req_set_fail_links(req);
 	io_put_req(req);
+=======
+		req_set_fail(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int io_async_cancel_prep(struct io_kiocb *req,
@@ -5671,8 +6750,50 @@ static int io_async_cancel_prep(struct io_kiocb *req,
 static int io_async_cancel(struct io_kiocb *req, unsigned int issue_flags)
 {
 	struct io_ring_ctx *ctx = req->ctx;
+<<<<<<< HEAD
 
 	io_async_find_and_cancel(ctx, req, req->cancel.addr, 0);
+=======
+	u64 sqe_addr = req->cancel.addr;
+	struct io_tctx_node *node;
+	int ret;
+
+	/* tasks should wait for their io-wq threads, so safe w/o sync */
+	ret = io_async_cancel_one(req->task->io_uring, sqe_addr, ctx);
+	spin_lock_irq(&ctx->completion_lock);
+	if (ret != -ENOENT)
+		goto done;
+	ret = io_timeout_cancel(ctx, sqe_addr);
+	if (ret != -ENOENT)
+		goto done;
+	ret = io_poll_cancel(ctx, sqe_addr, false);
+	if (ret != -ENOENT)
+		goto done;
+	spin_unlock_irq(&ctx->completion_lock);
+
+	/* slow path, try all io-wq's */
+	io_ring_submit_lock(ctx, !(issue_flags & IO_URING_F_NONBLOCK));
+	ret = -ENOENT;
+	list_for_each_entry(node, &ctx->tctx_list, ctx_node) {
+		struct io_uring_task *tctx = node->task->io_uring;
+
+		ret = io_async_cancel_one(tctx, req->cancel.addr, ctx);
+		if (ret != -ENOENT)
+			break;
+	}
+	io_ring_submit_unlock(ctx, !(issue_flags & IO_URING_F_NONBLOCK));
+
+	spin_lock_irq(&ctx->completion_lock);
+done:
+	io_cqring_fill_event(ctx, req->user_data, ret, 0);
+	io_commit_cqring(ctx);
+	spin_unlock_irq(&ctx->completion_lock);
+	io_cqring_ev_posted(ctx);
+
+	if (ret < 0)
+		req_set_fail(req);
+	io_put_req(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -5707,7 +6828,12 @@ static int io_files_update(struct io_kiocb *req, unsigned int issue_flags)
 	up.data = req->rsrc_update.arg;
 
 	mutex_lock(&ctx->uring_lock);
+<<<<<<< HEAD
 	ret = __io_sqe_files_update(ctx, &up, req->rsrc_update.nr_args);
+=======
+	ret = __io_register_rsrc_update(ctx, IORING_RSRC_FILE,
+					&up, req->rsrc_update.nr_args);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&ctx->uring_lock);
 
 	if (ret < 0)
@@ -5849,6 +6975,28 @@ static int io_req_defer(struct io_kiocb *req)
 	int ret;
 	u32 seq;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * If we need to drain a request in the middle of a link, drain the
+	 * head request and the next request/link after the current link.
+	 * Considering sequential execution of links, IOSQE_IO_DRAIN will be
+	 * maintained for every request of our link.
+	 */
+	if (ctx->drain_next) {
+		req->flags |= REQ_F_IO_DRAIN;
+		ctx->drain_next = false;
+	}
+	/* not interested in head, start from the first linked */
+	io_for_each_link(pos, req->link) {
+		if (pos->flags & REQ_F_IO_DRAIN) {
+			ctx->drain_next = true;
+			req->flags |= REQ_F_IO_DRAIN;
+			break;
+		}
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Still need defer if there is pending req in defer list. */
 	if (likely(list_empty_careful(&ctx->defer_list) &&
 		!(req->flags & REQ_F_IO_DRAIN)))
@@ -5872,7 +7020,11 @@ static int io_req_defer(struct io_kiocb *req)
 		spin_unlock_irq(&ctx->completion_lock);
 		kfree(de);
 		io_queue_async_work(req);
+<<<<<<< HEAD
 		return -EIOCBQUEUED;
+=======
+		return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	trace_io_uring_defer(ctx, req, req->user_data);
@@ -5880,7 +7032,11 @@ static int io_req_defer(struct io_kiocb *req)
 	de->seq = seq;
 	list_add_tail(&de->list, &ctx->defer_list);
 	spin_unlock_irq(&ctx->completion_lock);
+<<<<<<< HEAD
 	return -EIOCBQUEUED;
+=======
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void __io_clean_op(struct io_kiocb *req)
@@ -6064,6 +7220,7 @@ static int io_issue_sqe(struct io_kiocb *req, unsigned int issue_flags)
 		if (in_async)
 			mutex_lock(&ctx->uring_lock);
 
+<<<<<<< HEAD
 		io_iopoll_req_issued(req, in_async);
 
 		if (in_async)
@@ -6073,6 +7230,8 @@ static int io_issue_sqe(struct io_kiocb *req, unsigned int issue_flags)
 	return 0;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void io_wq_submit_work(struct io_wq_work *work)
 {
 	struct io_kiocb *req = container_of(work, struct io_kiocb, work);
@@ -6103,9 +7262,33 @@ static void io_wq_submit_work(struct io_wq_work *work)
 	/* avoid locking problems by failing it from a clean context */
 	if (ret) {
 		/* io-wq is going to take one down */
+<<<<<<< HEAD
 		refcount_inc(&req->refs);
 		io_req_task_queue_fail(req, ret);
 	}
+=======
+		req_ref_get(req);
+		io_req_task_queue_fail(req, ret);
+	}
+}
+
+#define FFS_ASYNC_READ		0x1UL
+#define FFS_ASYNC_WRITE		0x2UL
+#ifdef CONFIG_64BIT
+#define FFS_ISREG		0x4UL
+#else
+#define FFS_ISREG		0x0UL
+#endif
+#define FFS_MASK		~(FFS_ASYNC_READ|FFS_ASYNC_WRITE|FFS_ISREG)
+
+static inline struct io_fixed_file *io_fixed_file_slot(struct io_file_table *table,
+						      unsigned i)
+{
+	struct io_fixed_file *table_l2;
+
+	table_l2 = table->files[i >> IORING_FILE_TABLE_SHIFT];
+	return &table_l2[i & IORING_FILE_TABLE_MASK];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline struct file *io_file_from_index(struct io_ring_ctx *ctx,
@@ -6113,8 +7296,18 @@ static inline struct file *io_file_from_index(struct io_ring_ctx *ctx,
 {
 	struct fixed_rsrc_table *table;
 
+<<<<<<< HEAD
 	table = &ctx->file_data->table[index >> IORING_FILE_TABLE_SHIFT];
 	return table->files[index & IORING_FILE_TABLE_MASK];
+=======
+	if (__io_file_supports_async(file, READ))
+		file_ptr |= FFS_ASYNC_READ;
+	if (__io_file_supports_async(file, WRITE))
+		file_ptr |= FFS_ASYNC_WRITE;
+	if (S_ISREG(file_inode(file)->i_mode))
+		file_ptr |= FFS_ISREG;
+	file_slot->file_ptr = file_ptr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct file *io_file_get(struct io_submit_state *state,
@@ -6122,6 +7315,7 @@ static struct file *io_file_get(struct io_submit_state *state,
 {
 	struct io_ring_ctx *ctx = req->ctx;
 	struct file *file;
+<<<<<<< HEAD
 
 	if (fixed) {
 		if (unlikely((unsigned int)fd >= ctx->nr_user_files))
@@ -6136,6 +7330,30 @@ static struct file *io_file_get(struct io_submit_state *state,
 
 	if (file && unlikely(file->f_op == &io_uring_fops))
 		io_req_track_inflight(req);
+=======
+
+	if (fixed) {
+		unsigned long file_ptr;
+
+		if (unlikely((unsigned int)fd >= ctx->nr_user_files))
+			return NULL;
+		fd = array_index_nospec(fd, ctx->nr_user_files);
+		file_ptr = io_fixed_file_slot(&ctx->file_table, fd)->file_ptr;
+		file = (struct file *) (file_ptr & FFS_MASK);
+		file_ptr &= ~FFS_MASK;
+		/* mask in overlapping REQ_F and FFS bits */
+		req->flags |= (file_ptr << REQ_F_ASYNC_READ_BIT);
+		io_req_set_rsrc_node(req);
+	} else {
+		trace_io_uring_file_get(ctx, fd);
+		file = __io_file_get(state, fd);
+
+		/* we don't allow fixed io_uring files */
+		if (file && unlikely(file->f_op == &io_uring_fops))
+			io_req_track_inflight(req);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return file;
 }
 
@@ -6157,6 +7375,7 @@ static enum hrtimer_restart io_link_timeout_fn(struct hrtimer *timer)
 	 */
 	if (prev && refcount_inc_not_zero(&prev->refs))
 		io_remove_next_linked(prev);
+<<<<<<< HEAD
 	else
 		prev = NULL;
 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
@@ -6168,12 +7387,31 @@ static enum hrtimer_restart io_link_timeout_fn(struct hrtimer *timer)
 	} else {
 		io_req_complete_post(req, -ETIME, 0);
 		io_put_req_deferred(req, 1);
+=======
+		if (!req_ref_inc_not_zero(prev))
+			prev = NULL;
+	}
+	spin_unlock_irqrestore(&ctx->completion_lock, flags);
+
+	if (prev) {
+		io_async_find_and_cancel(ctx, req, prev->user_data, -ETIME);
+		io_put_req_deferred(prev, 1);
+		io_put_req_deferred(req, 1);
+	} else {
+		io_req_complete_post(req, -ETIME, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return HRTIMER_NORESTART;
 }
 
 static void __io_queue_linked_timeout(struct io_kiocb *req)
 {
+<<<<<<< HEAD
+=======
+	struct io_ring_ctx *ctx = req->ctx;
+
+	spin_lock_irq(&ctx->completion_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * If the back reference is NULL, then our linked request finished
 	 * before we got a chance to setup the timer
@@ -6185,6 +7423,7 @@ static void __io_queue_linked_timeout(struct io_kiocb *req)
 		hrtimer_start(&data->timer, timespec64_to_ktime(data->ts),
 				data->mode);
 	}
+<<<<<<< HEAD
 }
 
 static void io_queue_linked_timeout(struct io_kiocb *req)
@@ -6195,6 +7434,9 @@ static void io_queue_linked_timeout(struct io_kiocb *req)
 	__io_queue_linked_timeout(req);
 	spin_unlock_irq(&ctx->completion_lock);
 
+=======
+	spin_unlock_irq(&ctx->completion_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* drop submission reference */
 	io_put_req(req);
 }
@@ -6216,7 +7458,10 @@ static struct io_kiocb *io_prep_linked_timeout(struct io_kiocb *req)
 static void __io_queue_sqe(struct io_kiocb *req)
 {
 	struct io_kiocb *linked_timeout = io_prep_linked_timeout(req);
+<<<<<<< HEAD
 	const struct cred *old_creds = NULL;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	if ((req->flags & REQ_F_WORK_INITIALIZED) && req->work.creds &&
@@ -6232,13 +7477,34 @@ static void __io_queue_sqe(struct io_kiocb *req)
 	 * We async punt it if the file wasn't marked NOWAIT, or if the file
 	 * doesn't support non-blocking read/write attempts
 	 */
+<<<<<<< HEAD
 	if (ret == -EAGAIN && !(req->flags & REQ_F_NOWAIT)) {
 		if (!io_arm_poll_handler(req)) {
+=======
+	if (likely(!ret)) {
+		/* drop submission reference */
+		if (req->flags & REQ_F_COMPLETE_INLINE) {
+			struct io_ring_ctx *ctx = req->ctx;
+			struct io_comp_state *cs = &ctx->submit_state.comp;
+
+			cs->reqs[cs->nr++] = req;
+			if (cs->nr == ARRAY_SIZE(cs->reqs))
+				io_submit_flush_completions(ctx);
+		} else {
+			io_put_req(req);
+		}
+	} else if (ret == -EAGAIN && !(req->flags & REQ_F_NOWAIT)) {
+		switch (io_arm_poll_handler(req)) {
+		case IO_APOLL_READY:
+			goto issue_sqe;
+		case IO_APOLL_ABORTED:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/*
 			 * Queued up for async execution, worker will release
 			 * submit reference when the iocb is actually submitted.
 			 */
 			io_queue_async_work(req);
+<<<<<<< HEAD
 		}
 	} else if (likely(!ret)) {
 		/* drop submission reference */
@@ -6252,6 +7518,10 @@ static void __io_queue_sqe(struct io_kiocb *req)
 		} else {
 			io_put_req(req);
 		}
+=======
+			break;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		req_set_fail_links(req);
 		io_put_req(req);
@@ -6261,9 +7531,21 @@ static void __io_queue_sqe(struct io_kiocb *req)
 		io_queue_linked_timeout(linked_timeout);
 }
 
+<<<<<<< HEAD
 static void io_queue_sqe(struct io_kiocb *req)
 {
 	int ret;
+=======
+static inline void io_queue_sqe(struct io_kiocb *req)
+{
+	if (unlikely(req->ctx->drain_active) && io_drain_req(req))
+		return;
+
+	if (likely(!(req->flags & REQ_F_FORCE_ASYNC))) {
+		__io_queue_sqe(req);
+	} else {
+		int ret = io_req_prep_async(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = io_req_defer(req);
 	if (ret) {
@@ -6276,10 +7558,16 @@ fail_req:
 	} else if (req->flags & REQ_F_FORCE_ASYNC) {
 		ret = io_req_defer_prep(req);
 		if (unlikely(ret))
+<<<<<<< HEAD
 			goto fail_req;
 		io_queue_async_work(req);
 	} else {
 		__io_queue_sqe(req);
+=======
+			io_req_complete_failed(req, ret);
+		else
+			io_queue_async_work(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -6326,7 +7614,11 @@ static int io_init_req(struct io_ring_ctx *ctx, struct io_kiocb *req,
 	req->link = NULL;
 	req->fixed_rsrc_refs = NULL;
 	/* one is dropped after submission, the other at completion */
+<<<<<<< HEAD
 	refcount_set(&req->refs, 2);
+=======
+	atomic_set(&req->refs, 2);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	req->task = current;
 	req->result = 0;
 
@@ -6388,6 +7680,7 @@ static int io_submit_sqe(struct io_ring_ctx *ctx, struct io_kiocb *req,
 	ret = io_init_req(ctx, req, sqe);
 	if (unlikely(ret)) {
 fail_req:
+<<<<<<< HEAD
 		io_put_req(req);
 		io_req_complete(req, ret);
 		if (link->head) {
@@ -6397,8 +7690,21 @@ fail_req:
 			io_req_complete(link->head, -ECANCELED);
 			link->head = NULL;
 		}
+=======
+		if (link->head) {
+			/* fail even hard links since we don't submit */
+			req_set_fail(link->head);
+			io_req_complete_failed(link->head, -ECANCELED);
+			link->head = NULL;
+		}
+		io_req_complete_failed(req, ret);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return ret;
 	}
+	ret = io_req_prep(req, sqe);
+	if (unlikely(ret))
+		goto fail_req;
+
 	ret = io_req_prep(req, sqe);
 	if (unlikely(ret))
 		goto fail_req;
@@ -6417,6 +7723,7 @@ fail_req:
 	if (link->head) {
 		struct io_kiocb *head = link->head;
 
+<<<<<<< HEAD
 		/*
 		 * Taking sequential execution of a link, draining both sides
 		 * of the link also fullfils IOSQE_IO_DRAIN semantics for all
@@ -6429,6 +7736,9 @@ fail_req:
 			ctx->drain_next = 1;
 		}
 		ret = io_req_defer_prep(req);
+=======
+		ret = io_req_prep_async(req);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (unlikely(ret))
 			goto fail_req;
 		trace_io_uring_link(ctx, req, head);
@@ -6465,7 +7775,11 @@ static void io_submit_state_end(struct io_submit_state *state,
 	if (state->link.head)
 		io_queue_sqe(state->link.head);
 	if (state->comp.nr)
+<<<<<<< HEAD
 		io_submit_flush_completions(&state->comp, ctx);
+=======
+		io_submit_flush_completions(ctx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (state->plug_started)
 		blk_finish_plug(&state->plug);
 	io_state_file_put(state);
@@ -6528,6 +7842,7 @@ static const struct io_uring_sqe *io_get_sqe(struct io_ring_ctx *ctx)
 
 static int io_submit_sqes(struct io_ring_ctx *ctx, unsigned int nr)
 {
+	struct io_uring_task *tctx;
 	int submitted = 0;
 
 	/* if we have a backlog and couldn't flush it all, return BUSY */
@@ -6542,8 +7857,20 @@ static int io_submit_sqes(struct io_ring_ctx *ctx, unsigned int nr)
 	if (!percpu_ref_tryget_many(&ctx->refs, nr))
 		return -EAGAIN;
 
+<<<<<<< HEAD
 	percpu_counter_add(&current->io_uring->inflight, nr);
 	refcount_add(nr, &current->usage);
+=======
+	tctx = current->io_uring;
+	tctx->cached_refs -= nr;
+	if (unlikely(tctx->cached_refs < 0)) {
+		unsigned int refill = -tctx->cached_refs + IO_TCTX_REFS_CACHE_NR;
+
+		percpu_counter_add(&tctx->inflight, refill);
+		refcount_add(refill, &current->usage);
+		tctx->cached_refs += refill;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	io_submit_state_start(&ctx->submit_state, nr);
 
 	while (submitted < nr) {
@@ -6614,7 +7941,7 @@ static int __io_sq_thread(struct io_ring_ctx *ctx, bool cap_entries)
 
 		mutex_lock(&ctx->uring_lock);
 		if (!list_empty(&ctx->iopoll_list))
-			io_do_iopoll(ctx, &nr_events, 0);
+			io_do_iopoll(ctx, &nr_events, 0, true);
 
 		if (to_submit && !ctx->sqo_dead &&
 		    likely(!percpu_ref_is_dying(&ctx->refs)))
@@ -6886,7 +8213,11 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 	int ret;
 
 	do {
+<<<<<<< HEAD
 		io_cqring_overflow_flush(ctx, false, NULL, NULL);
+=======
+		io_cqring_overflow_flush(ctx, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (io_cqring_events(ctx) >= min_events)
 			return 0;
 		if (!io_run_task_work())
@@ -6908,6 +8239,7 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 
 	if (uts) {
 		struct timespec64 ts;
+<<<<<<< HEAD
 
 		if (get_timespec64(&ts, uts))
 			return -EFAULT;
@@ -6919,6 +8251,23 @@ static int io_cqring_wait(struct io_ring_ctx *ctx, int min_events,
 	do {
 		io_cqring_overflow_flush(ctx, false, NULL, NULL);
 		prepare_to_wait_exclusive(&ctx->wait, &iowq.wq,
+=======
+
+		if (get_timespec64(&ts, uts))
+			return -EFAULT;
+		timeout = timespec64_to_jiffies(&ts);
+	}
+
+	iowq.nr_timeouts = atomic_read(&ctx->cq_timeouts);
+	trace_io_uring_cqring_wait(ctx, min_events);
+	do {
+		/* if we can't even flush overflow, don't wait for more */
+		if (!io_cqring_overflow_flush(ctx, false)) {
+			ret = -EBUSY;
+			break;
+		}
+		prepare_to_wait_exclusive(&ctx->cq_wait, &iowq.wq,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						TASK_INTERRUPTIBLE);
 		ret = io_cqring_wait_schedule(ctx, &iowq, &timeout);
 		finish_wait(&ctx->wait, &iowq.wq);
@@ -6936,6 +8285,7 @@ static void __io_sqe_files_unregister(struct io_ring_ctx *ctx)
 		struct sock *sock = ctx->ring_sock->sk;
 		struct sk_buff *skb;
 
+<<<<<<< HEAD
 		while ((skb = skb_dequeue(&sock->sk_receive_queue)) != NULL)
 			kfree_skb(skb);
 	}
@@ -6968,17 +8318,73 @@ static inline void io_rsrc_ref_lock(struct io_ring_ctx *ctx)
 static inline void io_rsrc_ref_unlock(struct io_ring_ctx *ctx)
 {
 	spin_unlock_bh(&ctx->rsrc_ref_lock);
+=======
+	table = kcalloc(nr_tables, sizeof(*table), GFP_KERNEL);
+	if (!table)
+		return NULL;
+
+	for (i = 0; i < nr_tables; i++) {
+		unsigned int this_size = min_t(size_t, size, PAGE_SIZE);
+
+		table[i] = kzalloc(this_size, GFP_KERNEL);
+		if (!table[i]) {
+			io_free_page_table(table, init_size);
+			return NULL;
+		}
+		size -= this_size;
+	}
+	return table;
+}
+
+static inline void io_rsrc_ref_lock(struct io_ring_ctx *ctx)
+{
+	spin_lock_bh(&ctx->rsrc_ref_lock);
+}
+
+static inline void io_rsrc_ref_unlock(struct io_ring_ctx *ctx)
+{
+	spin_unlock_bh(&ctx->rsrc_ref_lock);
+}
+
+static void io_rsrc_node_destroy(struct io_rsrc_node *ref_node)
+{
+	percpu_ref_exit(&ref_node->refs);
+	kfree(ref_node);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_sqe_rsrc_set_node(struct io_ring_ctx *ctx,
 				 struct fixed_rsrc_data *rsrc_data,
 				 struct fixed_rsrc_ref_node *ref_node)
 {
+<<<<<<< HEAD
 	io_rsrc_ref_lock(ctx);
 	rsrc_data->node = ref_node;
 	list_add_tail(&ref_node->node, &ctx->rsrc_ref_list);
 	io_rsrc_ref_unlock(ctx);
 	percpu_ref_get(&rsrc_data->refs);
+=======
+	WARN_ON_ONCE(!ctx->rsrc_backup_node);
+	WARN_ON_ONCE(data_to_kill && !ctx->rsrc_node);
+
+	if (data_to_kill) {
+		struct io_rsrc_node *rsrc_node = ctx->rsrc_node;
+
+		rsrc_node->rsrc_data = data_to_kill;
+		io_rsrc_ref_lock(ctx);
+		list_add_tail(&rsrc_node->node, &ctx->rsrc_ref_list);
+		io_rsrc_ref_unlock(ctx);
+
+		atomic_inc(&data_to_kill->refs);
+		percpu_ref_kill(&rsrc_node->refs);
+		ctx->rsrc_node = NULL;
+	}
+
+	if (!ctx->rsrc_node) {
+		ctx->rsrc_node = ctx->rsrc_backup_node;
+		ctx->rsrc_backup_node = NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_sqe_rsrc_kill_node(struct io_ring_ctx *ctx, struct fixed_rsrc_data *data)
@@ -7013,8 +8419,14 @@ static int io_rsrc_ref_quiesce(struct fixed_rsrc_data *data,
 		backup_node->rsrc_data = data;
 		backup_node->rsrc_put = rsrc_put;
 
+<<<<<<< HEAD
 		io_sqe_rsrc_kill_node(ctx, data);
 		percpu_ref_kill(&data->refs);
+=======
+		/* kill initial ref, already quiesced if zero */
+		if (atomic_dec_and_test(&data->refs))
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		flush_delayed_work(&ctx->rsrc_put_work);
 
 		ret = wait_for_completion_interruptible(&data->done);
@@ -7025,6 +8437,10 @@ static int io_rsrc_ref_quiesce(struct fixed_rsrc_data *data,
 		io_sqe_rsrc_set_node(ctx, data, backup_node);
 		backup_node = NULL;
 		reinit_completion(&data->done);
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mutex_unlock(&ctx->uring_lock);
 		ret = io_run_task_work_sig();
 		mutex_lock(&ctx->uring_lock);
@@ -7051,14 +8467,64 @@ static struct fixed_rsrc_data *alloc_fixed_rsrc_data(struct io_ring_ctx *ctx)
 	}
 	data->ctx = ctx;
 	init_completion(&data->done);
+<<<<<<< HEAD
 	return data;
+=======
+	*pdata = data;
+	return 0;
+fail:
+	io_rsrc_data_free(data);
+	return ret;
+}
+
+static bool io_alloc_file_tables(struct io_file_table *table, unsigned nr_files)
+{
+	size_t size = nr_files * sizeof(struct io_fixed_file);
+
+	table->files = (struct io_fixed_file **)io_alloc_page_table(size);
+	return !!table->files;
+}
+
+static void io_free_file_tables(struct io_file_table *table, unsigned nr_files)
+{
+	size_t size = nr_files * sizeof(struct io_fixed_file);
+
+	io_free_page_table((void **)table->files, size);
+	table->files = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void free_fixed_rsrc_data(struct fixed_rsrc_data *data)
 {
+<<<<<<< HEAD
 	percpu_ref_exit(&data->refs);
 	kfree(data->table);
 	kfree(data);
+=======
+#if defined(CONFIG_UNIX)
+	if (ctx->ring_sock) {
+		struct sock *sock = ctx->ring_sock->sk;
+		struct sk_buff *skb;
+
+		while ((skb = skb_dequeue(&sock->sk_receive_queue)) != NULL)
+			kfree_skb(skb);
+	}
+#else
+	int i;
+
+	for (i = 0; i < ctx->nr_user_files; i++) {
+		struct file *file;
+
+		file = io_file_from_index(ctx, i);
+		if (file)
+			fput(file);
+	}
+#endif
+	io_free_file_tables(&ctx->file_table, ctx->nr_user_files);
+	io_rsrc_data_free(ctx->file_data);
+	ctx->file_data = NULL;
+	ctx->nr_user_files = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int io_sqe_files_unregister(struct io_ring_ctx *ctx)
@@ -7403,7 +8869,25 @@ static void __io_rsrc_put_work(struct fixed_rsrc_ref_node *ref_node)
 
 	list_for_each_entry_safe(prsrc, tmp, &ref_node->rsrc_list, list) {
 		list_del(&prsrc->list);
+<<<<<<< HEAD
 		ref_node->rsrc_put(ctx, prsrc);
+=======
+
+		if (prsrc->tag) {
+			bool lock_ring = ctx->flags & IORING_SETUP_IOPOLL;
+
+			io_ring_submit_lock(ctx, lock_ring);
+			spin_lock_irq(&ctx->completion_lock);
+			io_cqring_fill_event(ctx, prsrc->tag, 0, 0);
+			ctx->cq_extra++;
+			io_commit_cqring(ctx);
+			spin_unlock_irq(&ctx->completion_lock);
+			io_cqring_ev_posted(ctx);
+			io_ring_submit_unlock(ctx, lock_ring);
+		}
+
+		rsrc_data->do_put(ctx, prsrc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(prsrc);
 	}
 
@@ -7430,6 +8914,7 @@ static void io_rsrc_put_work(struct work_struct *work)
 	}
 }
 
+<<<<<<< HEAD
 static struct file **io_fixed_file_slot(struct fixed_rsrc_data *file_data,
 					unsigned i)
 {
@@ -7478,6 +8963,35 @@ static struct fixed_rsrc_ref_node *alloc_fixed_rsrc_ref_node(
 			struct io_ring_ctx *ctx)
 {
 	struct fixed_rsrc_ref_node *ref_node;
+=======
+static void io_rsrc_node_ref_zero(struct percpu_ref *ref)
+{
+	struct io_rsrc_node *node = container_of(ref, struct io_rsrc_node, refs);
+	struct io_ring_ctx *ctx = node->rsrc_data->ctx;
+	bool first_add = false;
+
+	io_rsrc_ref_lock(ctx);
+	node->done = true;
+
+	while (!list_empty(&ctx->rsrc_ref_list)) {
+		node = list_first_entry(&ctx->rsrc_ref_list,
+					    struct io_rsrc_node, node);
+		/* recycle ref nodes in order */
+		if (!node->done)
+			break;
+		list_del(&node->node);
+		first_add |= llist_add(&node->llist, &ctx->rsrc_put_llist);
+	}
+	io_rsrc_ref_unlock(ctx);
+
+	if (first_add)
+		mod_delayed_work(system_wq, &ctx->rsrc_put_work, HZ);
+}
+
+static struct io_rsrc_node *io_rsrc_node_alloc(struct io_ring_ctx *ctx)
+{
+	struct io_rsrc_node *ref_node;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ref_node = kzalloc(sizeof(*ref_node), GFP_KERNEL);
 	if (!ref_node)
@@ -7494,6 +9008,7 @@ static struct fixed_rsrc_ref_node *alloc_fixed_rsrc_ref_node(
 	return ref_node;
 }
 
+<<<<<<< HEAD
 static void init_fixed_file_ref_node(struct io_ring_ctx *ctx,
 				     struct fixed_rsrc_ref_node *ref_node)
 {
@@ -7508,6 +9023,8 @@ static void destroy_fixed_rsrc_ref_node(struct fixed_rsrc_ref_node *ref_node)
 }
 
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int io_sqe_files_register(struct io_ring_ctx *ctx, void __user *arg,
 				 unsigned nr_args)
 {
@@ -7524,6 +9041,16 @@ static int io_sqe_files_register(struct io_ring_ctx *ctx, void __user *arg,
 		return -EINVAL;
 	if (nr_args > IORING_MAX_FIXED_FILES)
 		return -EMFILE;
+<<<<<<< HEAD
+=======
+	ret = io_rsrc_node_switch_start(ctx);
+	if (ret)
+		return ret;
+	ret = io_rsrc_data_alloc(ctx, io_rsrc_file_put, tags, nr_args,
+				 &ctx->file_data);
+	if (ret)
+		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	file_data = alloc_fixed_rsrc_data(ctx);
 	if (!file_data)
@@ -7588,8 +9115,12 @@ out_fput:
 		if (file)
 			fput(file);
 	}
+<<<<<<< HEAD
 	for (i = 0; i < nr_tables; i++)
 		kfree(file_data->table[i].files);
+=======
+	io_free_file_tables(&ctx->file_table, nr_args);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ctx->nr_user_files = 0;
 out_free:
 	free_fixed_rsrc_data(ctx->file_data);
@@ -7650,6 +9181,7 @@ static int io_queue_rsrc_removal(struct fixed_rsrc_data *data, void *rsrc)
 		return -ENOMEM;
 
 	prsrc->rsrc = rsrc;
+<<<<<<< HEAD
 	list_add(&prsrc->list, &ref_node->rsrc_list);
 
 	return 0;
@@ -7661,6 +9193,12 @@ static inline int io_queue_file_removal(struct fixed_rsrc_data *data,
 	return io_queue_rsrc_removal(data, (void *)file);
 }
 
+=======
+	list_add(&prsrc->list, &node->rsrc_list);
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int __io_sqe_files_update(struct io_ring_ctx *ctx,
 				 struct io_uring_rsrc_update *up,
 				 unsigned nr_args)
@@ -7741,6 +9279,7 @@ static int __io_sqe_files_update(struct io_ring_ctx *ctx,
 	return done ? done : err;
 }
 
+<<<<<<< HEAD
 static int io_sqe_files_update(struct io_ring_ctx *ctx, void __user *arg,
 			       unsigned nr_args)
 {
@@ -7758,6 +9297,8 @@ static int io_sqe_files_update(struct io_ring_ctx *ctx, void __user *arg,
 	return __io_sqe_files_update(ctx, &up, nr_args);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct io_wq_work *io_free_work(struct io_wq_work *work)
 {
 	struct io_kiocb *req = container_of(work, struct io_kiocb, work);
@@ -7766,7 +9307,12 @@ static struct io_wq_work *io_free_work(struct io_wq_work *work)
 	return req ? &req->work : NULL;
 }
 
+<<<<<<< HEAD
 static struct io_wq *io_init_wq_offload(struct io_ring_ctx *ctx)
+=======
+static struct io_wq *io_init_wq_offload(struct io_ring_ctx *ctx,
+					struct task_struct *task)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct io_wq_hash *hash;
 	struct io_wq_data data;
@@ -7783,6 +9329,10 @@ static struct io_wq *io_init_wq_offload(struct io_ring_ctx *ctx)
 	}
 
 	data.hash = hash;
+<<<<<<< HEAD
+=======
+	data.task = task;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	data.free_work = io_free_work;
 	data.do_work = io_wq_submit_work;
 
@@ -8362,6 +9912,7 @@ static int __io_destroy_buffers(int id, void *p, void *data)
 	struct io_ring_ctx *ctx = data;
 	struct io_buffer *buf = p;
 
+<<<<<<< HEAD
 	__io_remove_buffers(ctx, buf, id, -1U);
 	return 0;
 }
@@ -8370,6 +9921,10 @@ static void io_destroy_buffers(struct io_ring_ctx *ctx)
 {
 	idr_for_each(&ctx->io_buffer_idr, __io_destroy_buffers, ctx);
 	idr_destroy(&ctx->io_buffer_idr);
+=======
+	xa_for_each(&ctx->io_buffers, index, buf)
+		__io_remove_buffers(ctx, buf, index, -1U);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_req_cache_free(struct list_head *list, struct task_struct *tsk)
@@ -8397,6 +9952,7 @@ static void io_req_caches_free(struct io_ring_ctx *ctx, struct task_struct *tsk)
 		submit_state->free_reqs = 0;
 	}
 
+<<<<<<< HEAD
 	spin_lock_irq(&ctx->completion_lock);
 	list_splice_init(&cs->locked_free_list, &cs->free_list);
 	cs->locked_free_nr = 0;
@@ -8405,6 +9961,20 @@ static void io_req_caches_free(struct io_ring_ctx *ctx, struct task_struct *tsk)
 	io_req_cache_free(&cs->free_list, NULL);
 
 	mutex_unlock(&ctx->uring_lock);
+=======
+	io_flush_cached_locked_reqs(ctx, cs);
+	io_req_cache_free(&cs->free_list, NULL);
+	mutex_unlock(&ctx->uring_lock);
+}
+
+static bool io_wait_rsrc_data(struct io_rsrc_data *data)
+{
+	if (!data)
+		return false;
+	if (!atomic_dec_and_test(&data->refs))
+		wait_for_completion(&data->done);
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void io_ring_ctx_free(struct io_ring_ctx *ctx)
@@ -8426,7 +9996,16 @@ static void io_ring_ctx_free(struct io_ring_ctx *ctx)
 	}
 
 	mutex_lock(&ctx->uring_lock);
+<<<<<<< HEAD
 	io_sqe_files_unregister(ctx);
+=======
+	if (io_wait_rsrc_data(ctx->buf_data))
+		__io_sqe_buffers_unregister(ctx);
+	if (io_wait_rsrc_data(ctx->file_data))
+		__io_sqe_files_unregister(ctx);
+	if (ctx->rings)
+		__io_cqring_overflow_flush(ctx, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&ctx->uring_lock);
 	io_eventfd_unregister(ctx);
 	io_destroy_buffers(ctx);
@@ -8536,8 +10115,16 @@ static void io_run_ctx_fallback(struct io_ring_ctx *ctx)
 
 static void io_ring_exit_work(struct work_struct *work)
 {
+<<<<<<< HEAD
 	struct io_ring_ctx *ctx = container_of(work, struct io_ring_ctx,
 					       exit_work);
+=======
+	struct io_ring_ctx *ctx = container_of(work, struct io_ring_ctx, exit_work);
+	unsigned long timeout = jiffies + HZ * 60 * 5;
+	struct io_tctx_exit exit;
+	struct io_tctx_node *node;
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If we're doing polled IO and end up having requests being
@@ -8546,12 +10133,86 @@ static void io_ring_exit_work(struct work_struct *work)
 	 * as nobody else will be looking for them.
 	 */
 	do {
+<<<<<<< HEAD
 		io_uring_try_cancel_requests(ctx, NULL, NULL);
 		io_run_ctx_fallback(ctx);
 	} while (!wait_for_completion_timeout(&ctx->ref_comp, HZ/20));
 	io_ring_ctx_free(ctx);
 }
 
+=======
+		io_uring_try_cancel_requests(ctx, NULL, true);
+		if (ctx->sq_data) {
+			struct io_sq_data *sqd = ctx->sq_data;
+			struct task_struct *tsk;
+
+			io_sq_thread_park(sqd);
+			tsk = sqd->thread;
+			if (tsk && tsk->io_uring && tsk->io_uring->io_wq)
+				io_wq_cancel_cb(tsk->io_uring->io_wq,
+						io_cancel_ctx_cb, ctx, true);
+			io_sq_thread_unpark(sqd);
+		}
+
+		WARN_ON_ONCE(time_after(jiffies, timeout));
+	} while (!wait_for_completion_timeout(&ctx->ref_comp, HZ/20));
+
+	init_completion(&exit.completion);
+	init_task_work(&exit.task_work, io_tctx_exit_cb);
+	exit.ctx = ctx;
+	/*
+	 * Some may use context even when all refs and requests have been put,
+	 * and they are free to do so while still holding uring_lock or
+	 * completion_lock, see io_req_task_submit(). Apart from other work,
+	 * this lock/unlock section also waits them to finish.
+	 */
+	mutex_lock(&ctx->uring_lock);
+	while (!list_empty(&ctx->tctx_list)) {
+		WARN_ON_ONCE(time_after(jiffies, timeout));
+
+		node = list_first_entry(&ctx->tctx_list, struct io_tctx_node,
+					ctx_node);
+		/* don't spin on a single task if cancellation failed */
+		list_rotate_left(&ctx->tctx_list);
+		ret = task_work_add(node->task, &exit.task_work, TWA_SIGNAL);
+		if (WARN_ON_ONCE(ret))
+			continue;
+		wake_up_process(node->task);
+
+		mutex_unlock(&ctx->uring_lock);
+		wait_for_completion(&exit.completion);
+		mutex_lock(&ctx->uring_lock);
+	}
+	mutex_unlock(&ctx->uring_lock);
+	spin_lock_irq(&ctx->completion_lock);
+	spin_unlock_irq(&ctx->completion_lock);
+
+	io_ring_ctx_free(ctx);
+}
+
+/* Returns true if we found and killed one or more timeouts */
+static bool io_kill_timeouts(struct io_ring_ctx *ctx, struct task_struct *tsk,
+			     bool cancel_all)
+{
+	struct io_kiocb *req, *tmp;
+	int canceled = 0;
+
+	spin_lock_irq(&ctx->completion_lock);
+	list_for_each_entry_safe(req, tmp, &ctx->timeout_list, timeout.list) {
+		if (io_match_task(req, tsk, cancel_all)) {
+			io_kill_timeout(req, -ECANCELED);
+			canceled++;
+		}
+	}
+	if (canceled != 0)
+		io_commit_cqring(ctx);
+	spin_unlock_irq(&ctx->completion_lock);
+	if (canceled != 0)
+		io_cqring_ev_posted(ctx);
+	return canceled != 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void io_ring_ctx_wait_and_kill(struct io_ring_ctx *ctx)
 {
 	mutex_lock(&ctx->uring_lock);
@@ -8603,13 +10264,21 @@ static bool io_cancel_task_cb(struct io_wq_work *work, void *data)
 	struct io_task_cancel *cancel = data;
 	bool ret;
 
+<<<<<<< HEAD
 	if (cancel->files && (req->flags & REQ_F_LINK_TIMEOUT)) {
+=======
+	if (!cancel->all && (req->flags & REQ_F_LINK_TIMEOUT)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		unsigned long flags;
 		struct io_ring_ctx *ctx = req->ctx;
 
 		/* protect against races with linked timeouts */
 		spin_lock_irqsave(&ctx->completion_lock, flags);
+<<<<<<< HEAD
 		ret = io_match_task(req, cancel->task, cancel->files);
+=======
+		ret = io_match_task(req, cancel->task, cancel->all);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		spin_unlock_irqrestore(&ctx->completion_lock, flags);
 	} else {
 		ret = io_match_task(req, cancel->task, cancel->files);
@@ -8632,6 +10301,11 @@ static void io_cancel_defer_files(struct io_ring_ctx *ctx,
 		}
 	}
 	spin_unlock_irq(&ctx->completion_lock);
+<<<<<<< HEAD
+=======
+	if (list_empty(&list))
+		return false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	while (!list_empty(&list)) {
 		de = list_first_entry(&list, struct io_defer_entry, list);
@@ -8834,6 +10508,7 @@ void __io_uring_files_cancel(struct files_struct *files)
 	struct file *file;
 	unsigned long index;
 
+<<<<<<< HEAD
 	/* make sure overflow events are dropped */
 	atomic_inc(&tctx->in_idle);
 	xa_for_each(&tctx->xa, index, file)
@@ -8846,6 +10521,17 @@ void __io_uring_files_cancel(struct files_struct *files)
 			io_wq_put(tctx->io_wq);
 			tctx->io_wq = NULL;
 		}
+=======
+	xa_for_each(&tctx->xa, index, node)
+		io_uring_del_tctx_node(index);
+	if (wq) {
+		/*
+		 * Must be after io_uring_del_task_file() (removes nodes under
+		 * uring_lock) to avoid race with io_uring_try_cancel_iowq().
+		 */
+		tctx->io_wq = NULL;
+		io_wq_put_and_exit(wq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -8861,6 +10547,7 @@ static void io_uring_cancel_sqpoll(struct io_ring_ctx *ctx)
 	s64 inflight;
 	DEFINE_WAIT(wait);
 
+<<<<<<< HEAD
 	if (!sqd)
 		return;
 	io_disable_sqo_submit(ctx);
@@ -8888,6 +10575,11 @@ static void io_uring_cancel_sqpoll(struct io_ring_ctx *ctx)
 	} while (1);
 	atomic_dec(&tctx->in_idle);
 	io_sq_thread_unpark(sqd);
+=======
+	tctx->cached_refs = 0;
+	percpu_counter_sub(&tctx->inflight, refs);
+	put_task_struct_many(task, refs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -8912,6 +10604,11 @@ void __io_uring_task_cancel(void)
 			io_uring_cancel_sqpoll(file->private_data);
 	}
 
+<<<<<<< HEAD
+=======
+	io_uring_drop_tctx_refs(current);
+	atomic_inc(&tctx->in_idle);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	do {
 		/* read completions before cancelations */
 		inflight = tctx_inflight(tctx);
@@ -8920,7 +10617,10 @@ void __io_uring_task_cancel(void)
 		__io_uring_files_cancel(NULL);
 
 		prepare_to_wait(&tctx->wait, &wait, TASK_UNINTERRUPTIBLE);
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/*
 		 * If we've seen completions, retry without waiting. This
 		 * avoids a race where a completion comes in before we did
@@ -8936,6 +10636,7 @@ void __io_uring_task_cancel(void)
 	io_uring_remove_task_files(tctx);
 }
 
+<<<<<<< HEAD
 static int io_uring_flush(struct file *file, void *data)
 {
 	struct io_uring_task *tctx = current->io_uring;
@@ -8980,6 +10681,11 @@ static int io_uring_flush(struct file *file, void *data)
 	if (!(ctx->flags & IORING_SETUP_SQPOLL) || ctx->sqo_task == current)
 		io_uring_del_task_file(file);
 	return 0;
+=======
+void __io_uring_cancel(struct files_struct *files)
+{
+	io_uring_cancel_generic(!files, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void *io_uring_validate_mmap_request(struct file *file,
@@ -9148,6 +10854,7 @@ SYSCALL_DEFINE6(io_uring_enter, unsigned int, fd, u32, to_submit,
 	 */
 	ret = 0;
 	if (ctx->flags & IORING_SETUP_SQPOLL) {
+<<<<<<< HEAD
 		io_cqring_overflow_flush(ctx, false, NULL, NULL);
 
 		if (unlikely(ctx->sqo_exec)) {
@@ -9158,6 +10865,12 @@ SYSCALL_DEFINE6(io_uring_enter, unsigned int, fd, u32, to_submit,
 		}
 		ret = -EOWNERDEAD;
 		if (unlikely(ctx->sqo_dead))
+=======
+		io_cqring_overflow_flush(ctx, false);
+
+		ret = -EOWNERDEAD;
+		if (unlikely(ctx->sq_data->thread == NULL))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto out;
 		if (flags & IORING_ENTER_SQ_WAKEUP)
 			wake_up(&ctx->sq_data->wait);
@@ -9623,10 +11336,18 @@ static int io_register_personality(struct io_ring_ctx *ctx)
 
 	creds = get_current_cred();
 
+<<<<<<< HEAD
 	ret = idr_alloc_cyclic(&ctx->personality_idr, (void *) creds, 1,
 				USHRT_MAX, GFP_KERNEL);
 	if (ret < 0)
 		put_cred(creds);
+=======
+	ret = xa_alloc_cyclic(&ctx->personalities, &id, (void *)creds,
+			XA_LIMIT(0, USHRT_MAX), &ctx->pers_next, GFP_KERNEL);
+	if (!ret)
+		return id;
+	put_cred(creds);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -9709,10 +11430,130 @@ static int io_register_enable_rings(struct io_ring_ctx *ctx)
 		ctx->restricted = 1;
 
 	ctx->flags &= ~IORING_SETUP_R_DISABLED;
+<<<<<<< HEAD
 
 	io_sq_offload_start(ctx);
 
 	return 0;
+=======
+	if (ctx->sq_data && wq_has_sleeper(&ctx->sq_data->wait))
+		wake_up(&ctx->sq_data->wait);
+	return 0;
+}
+
+static int __io_register_rsrc_update(struct io_ring_ctx *ctx, unsigned type,
+				     struct io_uring_rsrc_update2 *up,
+				     unsigned nr_args)
+{
+	__u32 tmp;
+	int err;
+
+	if (up->resv)
+		return -EINVAL;
+	if (check_add_overflow(up->offset, nr_args, &tmp))
+		return -EOVERFLOW;
+	err = io_rsrc_node_switch_start(ctx);
+	if (err)
+		return err;
+
+	switch (type) {
+	case IORING_RSRC_FILE:
+		return __io_sqe_files_update(ctx, up, nr_args);
+	case IORING_RSRC_BUFFER:
+		return __io_sqe_buffers_update(ctx, up, nr_args);
+	}
+	return -EINVAL;
+}
+
+static int io_register_files_update(struct io_ring_ctx *ctx, void __user *arg,
+				    unsigned nr_args)
+{
+	struct io_uring_rsrc_update2 up;
+
+	if (!nr_args)
+		return -EINVAL;
+	memset(&up, 0, sizeof(up));
+	if (copy_from_user(&up, arg, sizeof(struct io_uring_rsrc_update)))
+		return -EFAULT;
+	return __io_register_rsrc_update(ctx, IORING_RSRC_FILE, &up, nr_args);
+}
+
+static int io_register_rsrc_update(struct io_ring_ctx *ctx, void __user *arg,
+				   unsigned size, unsigned type)
+{
+	struct io_uring_rsrc_update2 up;
+
+	if (size != sizeof(up))
+		return -EINVAL;
+	if (copy_from_user(&up, arg, sizeof(up)))
+		return -EFAULT;
+	if (!up.nr || up.resv)
+		return -EINVAL;
+	return __io_register_rsrc_update(ctx, type, &up, up.nr);
+}
+
+static int io_register_rsrc(struct io_ring_ctx *ctx, void __user *arg,
+			    unsigned int size, unsigned int type)
+{
+	struct io_uring_rsrc_register rr;
+
+	/* keep it extendible */
+	if (size != sizeof(rr))
+		return -EINVAL;
+
+	memset(&rr, 0, sizeof(rr));
+	if (copy_from_user(&rr, arg, size))
+		return -EFAULT;
+	if (!rr.nr || rr.resv || rr.resv2)
+		return -EINVAL;
+
+	switch (type) {
+	case IORING_RSRC_FILE:
+		return io_sqe_files_register(ctx, u64_to_user_ptr(rr.data),
+					     rr.nr, u64_to_user_ptr(rr.tags));
+	case IORING_RSRC_BUFFER:
+		return io_sqe_buffers_register(ctx, u64_to_user_ptr(rr.data),
+					       rr.nr, u64_to_user_ptr(rr.tags));
+	}
+	return -EINVAL;
+}
+
+static int io_register_iowq_aff(struct io_ring_ctx *ctx, void __user *arg,
+				unsigned len)
+{
+	struct io_uring_task *tctx = current->io_uring;
+	cpumask_var_t new_mask;
+	int ret;
+
+	if (!tctx || !tctx->io_wq)
+		return -EINVAL;
+
+	if (!alloc_cpumask_var(&new_mask, GFP_KERNEL))
+		return -ENOMEM;
+
+	cpumask_clear(new_mask);
+	if (len > cpumask_size())
+		len = cpumask_size();
+
+	if (copy_from_user(new_mask, arg, len)) {
+		free_cpumask_var(new_mask);
+		return -EFAULT;
+	}
+
+	ret = io_wq_cpu_affinity(tctx->io_wq, new_mask);
+	free_cpumask_var(new_mask);
+	return ret;
+}
+
+static int io_unregister_iowq_aff(struct io_ring_ctx *ctx)
+{
+	struct io_uring_task *tctx = current->io_uring;
+
+	if (!tctx || !tctx->io_wq)
+		return -EINVAL;
+
+	return io_wq_cpu_affinity(tctx->io_wq, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool io_register_op_must_quiesce(int op)
@@ -9723,6 +11564,15 @@ static bool io_register_op_must_quiesce(int op)
 	case IORING_REGISTER_PROBE:
 	case IORING_REGISTER_PERSONALITY:
 	case IORING_UNREGISTER_PERSONALITY:
+<<<<<<< HEAD
+=======
+	case IORING_REGISTER_FILES2:
+	case IORING_REGISTER_FILES_UPDATE2:
+	case IORING_REGISTER_BUFFERS2:
+	case IORING_REGISTER_BUFFERS_UPDATE:
+	case IORING_REGISTER_IOWQ_AFF:
+	case IORING_UNREGISTER_IOWQ_AFF:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	default:
 		return true;
@@ -9773,6 +11623,7 @@ static int __io_uring_register(struct io_ring_ctx *ctx, unsigned opcode,
 		}
 	}
 
+<<<<<<< HEAD
 	if (ctx->restricted) {
 		if (opcode >= IORING_REGISTER_LAST) {
 			ret = -EINVAL;
@@ -9782,6 +11633,33 @@ static int __io_uring_register(struct io_ring_ctx *ctx, unsigned opcode,
 		if (!test_bit(opcode, ctx->restrictions.register_op)) {
 			ret = -EACCES;
 			goto out;
+=======
+	if (io_register_op_must_quiesce(opcode)) {
+		percpu_ref_kill(&ctx->refs);
+
+		/*
+		 * Drop uring mutex before waiting for references to exit. If
+		 * another thread is currently inside io_uring_enter() it might
+		 * need to grab the uring_lock to make progress. If we hold it
+		 * here across the drain wait, then we can deadlock. It's safe
+		 * to drop the mutex here, since no new references will come in
+		 * after we've killed the percpu ref.
+		 */
+		mutex_unlock(&ctx->uring_lock);
+		do {
+			ret = wait_for_completion_interruptible(&ctx->ref_comp);
+			if (!ret)
+				break;
+			ret = io_run_task_work_sig();
+			if (ret < 0)
+				break;
+		} while (1);
+		mutex_lock(&ctx->uring_lock);
+
+		if (ret) {
+			io_refs_resurrect(&ctx->refs, &ctx->ref_comp);
+			return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -9853,6 +11731,35 @@ static int __io_uring_register(struct io_ring_ctx *ctx, unsigned opcode,
 	case IORING_REGISTER_RESTRICTIONS:
 		ret = io_register_restrictions(ctx, arg, nr_args);
 		break;
+<<<<<<< HEAD
+=======
+	case IORING_REGISTER_FILES2:
+		ret = io_register_rsrc(ctx, arg, nr_args, IORING_RSRC_FILE);
+		break;
+	case IORING_REGISTER_FILES_UPDATE2:
+		ret = io_register_rsrc_update(ctx, arg, nr_args,
+					      IORING_RSRC_FILE);
+		break;
+	case IORING_REGISTER_BUFFERS2:
+		ret = io_register_rsrc(ctx, arg, nr_args, IORING_RSRC_BUFFER);
+		break;
+	case IORING_REGISTER_BUFFERS_UPDATE:
+		ret = io_register_rsrc_update(ctx, arg, nr_args,
+					      IORING_RSRC_BUFFER);
+		break;
+	case IORING_REGISTER_IOWQ_AFF:
+		ret = -EINVAL;
+		if (!arg || !nr_args)
+			break;
+		ret = io_register_iowq_aff(ctx, arg, nr_args);
+		break;
+	case IORING_UNREGISTER_IOWQ_AFF:
+		ret = -EINVAL;
+		if (arg || nr_args)
+			break;
+		ret = io_unregister_iowq_aff(ctx);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		ret = -EINVAL;
 		break;
@@ -9935,9 +11842,23 @@ static int __init io_uring_init(void)
 	BUILD_BUG_SQE_ELEM(40, __u16,  buf_index);
 	BUILD_BUG_SQE_ELEM(42, __u16,  personality);
 	BUILD_BUG_SQE_ELEM(44, __s32,  splice_fd_in);
+<<<<<<< HEAD
 
 	BUILD_BUG_ON(ARRAY_SIZE(io_op_defs) != IORING_OP_LAST);
 	BUILD_BUG_ON(__REQ_F_LAST_BIT >= 8 * sizeof(int));
+=======
+
+	BUILD_BUG_ON(sizeof(struct io_uring_files_update) !=
+		     sizeof(struct io_uring_rsrc_update));
+	BUILD_BUG_ON(sizeof(struct io_uring_rsrc_update) >
+		     sizeof(struct io_uring_rsrc_update2));
+	/* should fit into one byte */
+	BUILD_BUG_ON(SQE_VALID_FLAGS >= (1 << 8));
+
+	BUILD_BUG_ON(ARRAY_SIZE(io_op_defs) != IORING_OP_LAST);
+	BUILD_BUG_ON(__REQ_F_LAST_BIT >= 8 * sizeof(int));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	req_cachep = KMEM_CACHE(io_kiocb, SLAB_HWCACHE_ALIGN | SLAB_PANIC |
 				SLAB_ACCOUNT);
 	return 0;

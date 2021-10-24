@@ -420,6 +420,11 @@ static irqreturn_t xilinx_pcie_intr_handler(int irq, void *data)
 	}
 
 	if (status & (XILINX_PCIE_INTR_INTX | XILINX_PCIE_INTR_MSI)) {
+<<<<<<< HEAD
+=======
+		unsigned int irq;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		val = pcie_read(port, XILINX_PCIE_REG_RPIFR1);
 
 		/* Check whether interrupt valid */
@@ -432,20 +437,33 @@ static irqreturn_t xilinx_pcie_intr_handler(int irq, void *data)
 		if (val & XILINX_PCIE_RPIFR1_MSI_INTR) {
 			val = pcie_read(port, XILINX_PCIE_REG_RPIFR2) &
 				XILINX_PCIE_RPIFR2_MSG_DATA;
+<<<<<<< HEAD
 		} else {
 			val = (val & XILINX_PCIE_RPIFR1_INTR_MASK) >>
 				XILINX_PCIE_RPIFR1_INTR_SHIFT;
 			val = irq_find_mapping(port->leg_domain, val);
+=======
+			irq = irq_find_mapping(port->msi_domain->parent, val);
+		} else {
+			val = (val & XILINX_PCIE_RPIFR1_INTR_MASK) >>
+				XILINX_PCIE_RPIFR1_INTR_SHIFT;
+			irq = irq_find_mapping(port->leg_domain, val);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		/* Clear interrupt FIFO register 1 */
 		pcie_write(port, XILINX_PCIE_RPIFR1_ALL_MASK,
 			   XILINX_PCIE_REG_RPIFR1);
 
+<<<<<<< HEAD
 		/* Handle the interrupt */
 		if (IS_ENABLED(CONFIG_PCI_MSI) ||
 		    !(val & XILINX_PCIE_RPIFR1_MSI_INTR))
 			generic_handle_irq(val);
+=======
+		if (irq)
+			generic_handle_irq(irq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (status & XILINX_PCIE_INTR_SLV_UNSUPP)

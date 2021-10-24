@@ -629,6 +629,7 @@ void lru_add_drain_cpu(int cpu)
 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
 
 	activate_page_drain(cpu);
+	invalidate_bh_lrus_cpu(cpu);
 }
 
 /**
@@ -835,6 +836,37 @@ void lru_add_drain_all(void)
 }
 #endif /* CONFIG_SMP */
 
+<<<<<<< HEAD
+=======
+atomic_t lru_disable_count = ATOMIC_INIT(0);
+
+/*
+ * lru_cache_disable() needs to be called before we start compiling
+ * a list of pages to be migrated using isolate_lru_page().
+ * It drains pages on LRU cache and then disable on all cpus until
+ * lru_cache_enable is called.
+ *
+ * Must be paired with a call to lru_cache_enable().
+ */
+void lru_cache_disable(void)
+{
+	atomic_inc(&lru_disable_count);
+#ifdef CONFIG_SMP
+	/*
+	 * lru_add_drain_all in the force mode will schedule draining on
+	 * all online CPUs so any calls of lru_cache_disabled wrapped by
+	 * local_lock or preemption disabled would be ordered by that.
+	 * The atomic operation doesn't need to have stronger ordering
+	 * requirements because that is enforeced by the scheduling
+	 * guarantees.
+	 */
+	__lru_add_drain_all(true);
+#else
+	lru_add_drain();
+#endif
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * release_pages - batched put_page()
  * @pages: array of pages to release

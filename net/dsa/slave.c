@@ -283,6 +283,12 @@ static int dsa_slave_port_attr_set(struct net_device *dev,
 
 	switch (attr->id) {
 	case SWITCHDEV_ATTR_ID_PORT_STP_STATE:
+<<<<<<< HEAD
+=======
+		if (!dsa_port_offloads_bridge_port(dp, attr->orig_dev))
+			return -EOPNOTSUPP;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = dsa_port_set_state(dp, attr->u.stp_state);
 		break;
 	case SWITCHDEV_ATTR_ID_BRIDGE_VLAN_FILTERING:
@@ -300,6 +306,12 @@ static int dsa_slave_port_attr_set(struct net_device *dev,
 		ret = dsa_port_bridge_flags(dp, attr->u.brport_flags, extack);
 		break;
 	case SWITCHDEV_ATTR_ID_BRIDGE_MROUTER:
+<<<<<<< HEAD
+=======
+		if (!dsa_port_offloads_bridge(dp, attr->orig_dev))
+			return -EOPNOTSUPP;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret = dsa_port_mrouter(dp->cpu_dp, attr->u.mrouter, extack);
 		break;
 	default:
@@ -1735,7 +1747,11 @@ static int dsa_slave_phy_setup(struct net_device *slave_dev)
 		/* We could not connect to a designated PHY or SFP, so try to
 		 * use the switch internal MDIO bus instead
 		 */
+<<<<<<< HEAD
 		ret = dsa_slave_phy_connect(slave_dev, dp->index);
+=======
+		ret = dsa_slave_phy_connect(slave_dev, dp->index, phy_flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret) {
 			netdev_err(slave_dev,
 				   "failed to connect to port %d: %d\n",
@@ -1767,6 +1783,17 @@ void dsa_slave_setup_tagger(struct net_device *slave)
 	slave->needed_tailroom += master->needed_tailroom;
 
 	p->xmit = cpu_dp->tag_ops->xmit;
+<<<<<<< HEAD
+=======
+
+	slave->features = master->vlan_features | NETIF_F_HW_TC;
+	if (ds->ops->port_vlan_add && ds->ops->port_vlan_del)
+		slave->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+	slave->hw_features |= NETIF_F_HW_TC;
+	slave->features |= NETIF_F_LLTX;
+	if (slave->needed_tailroom)
+		slave->features &= ~(NETIF_F_SG | NETIF_F_FRAGLIST);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct lock_class_key dsa_slave_netdev_xmit_lock_key;
@@ -1993,6 +2020,29 @@ static int dsa_slave_changeupper(struct net_device *dev,
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static int dsa_slave_prechangeupper(struct net_device *dev,
+				    struct netdev_notifier_changeupper_info *info)
+{
+	struct dsa_port *dp = dsa_slave_to_port(dev);
+	struct netlink_ext_ack *extack;
+	int err = 0;
+
+	extack = netdev_notifier_info_to_extack(&info->info);
+
+	if (netif_is_bridge_master(info->upper_dev) && !info->linking)
+		err = dsa_port_pre_bridge_leave(dp, info->upper_dev, extack);
+	else if (netif_is_lag_master(info->upper_dev) && !info->linking)
+		err = dsa_port_pre_lag_leave(dp, info->upper_dev, extack);
+	/* dsa_port_pre_hsr_leave is not yet necessary since hsr cannot be
+	 * meaningfully enslaved to a bridge yet
+	 */
+
+	return notifier_from_errno(err);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int
 dsa_slave_lag_changeupper(struct net_device *dev,
 			  struct netdev_notifier_changeupper_info *info)
@@ -2251,6 +2301,10 @@ static int dsa_slave_switchdev_event(struct notifier_block *unused,
 	struct net_device *dev = switchdev_notifier_info_to_dev(ptr);
 	const struct switchdev_notifier_fdb_info *fdb_info;
 	struct dsa_switchdev_event_work *switchdev_work;
+<<<<<<< HEAD
+=======
+	bool host_addr = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct dsa_port *dp;
 	int err;
 
@@ -2265,6 +2319,7 @@ static int dsa_slave_switchdev_event(struct notifier_block *unused,
 		fdb_info = ptr;
 
 		if (dsa_slave_dev_check(dev)) {
+<<<<<<< HEAD
 			if (!fdb_info->added_by_user)
 				return NOTIFY_OK;
 
@@ -2273,11 +2328,34 @@ static int dsa_slave_switchdev_event(struct notifier_block *unused,
 			/* Snoop addresses learnt on foreign interfaces
 			 * bridged with us, for switches that don't
 			 * automatically learn SA from CPU-injected traffic
+=======
+			dp = dsa_slave_to_port(dev);
+
+			if (fdb_info->is_local)
+				host_addr = true;
+			else if (!fdb_info->added_by_user)
+				return NOTIFY_OK;
+		} else {
+			/* Snoop addresses added to foreign interfaces
+			 * bridged with us, or the bridge
+			 * itself. Dynamically learned addresses can
+			 * also be added for switches that don't
+			 * automatically learn SA from CPU-injected
+			 * traffic.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			 */
 			struct net_device *br_dev;
 			struct dsa_slave_priv *p;
 
+<<<<<<< HEAD
 			br_dev = netdev_master_upper_dev_get_rcu(dev);
+=======
+			if (netif_is_bridge_master(dev))
+				br_dev = dev;
+			else
+				br_dev = netdev_master_upper_dev_get_rcu(dev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (!br_dev)
 				return NOTIFY_DONE;
 
@@ -2288,17 +2366,41 @@ static int dsa_slave_switchdev_event(struct notifier_block *unused,
 			if (!p)
 				return NOTIFY_DONE;
 
+<<<<<<< HEAD
 			dp = p->dp->cpu_dp;
 
 			if (!dp->ds->assisted_learning_on_cpu_port)
+=======
+			dp = p->dp;
+			host_addr = fdb_info->is_local;
+
+			/* FDB entries learned by the software bridge should
+			 * be installed as host addresses only if the driver
+			 * requests assisted learning.
+			 * On the other hand, FDB entries for local termination
+			 * should always be installed.
+			 */
+			if (!fdb_info->added_by_user && !fdb_info->is_local &&
+			    !dp->ds->assisted_learning_on_cpu_port)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				return NOTIFY_DONE;
 
 			/* When the bridge learns an address on an offloaded
 			 * LAG we don't want to send traffic to the CPU, the
 			 * other ports bridged with the LAG should be able to
 			 * autonomously forward towards it.
+<<<<<<< HEAD
 			 */
 			if (dsa_tree_offloads_netdev(dp->ds->dst, dev))
+=======
+			 * On the other hand, if the address is local
+			 * (therefore not learned) then we want to trap it to
+			 * the CPU regardless of whether the interface it
+			 * belongs to is offloaded or not.
+			 */
+			if (dsa_tree_offloads_bridge_port(dp->ds->dst, dev) &&
+			    !fdb_info->is_local)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				return NOTIFY_DONE;
 		}
 
@@ -2314,14 +2416,25 @@ static int dsa_slave_switchdev_event(struct notifier_block *unused,
 		switchdev_work->ds = dp->ds;
 		switchdev_work->port = dp->index;
 		switchdev_work->event = event;
+<<<<<<< HEAD
+=======
+		switchdev_work->dev = dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		ether_addr_copy(switchdev_work->addr,
 				fdb_info->addr);
 		switchdev_work->vid = fdb_info->vid;
+<<<<<<< HEAD
 
 		/* Hold a reference on the slave for dsa_fdb_offload_notify */
 		if (dsa_is_user_port(dp->ds, dp->index))
 			dev_hold(dev);
+=======
+		switchdev_work->host_addr = host_addr;
+
+		/* Hold a reference for dsa_fdb_offload_notify */
+		dev_hold(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dsa_schedule_work(&switchdev_work->work);
 		break;
 	default:

@@ -309,6 +309,17 @@ static ssize_t amdgpu_ras_debugfs_ctrl_write(struct file *f, const char __user *
 	ret = amdgpu_ras_debugfs_ctrl_parse_data(f, buf, size, pos, &data);
 	if (ret)
 		return -EINVAL;
+<<<<<<< HEAD
+=======
+
+	if (data.op == 3) {
+		ret = amdgpu_reserve_page_direct(adev, data.inject.address);
+		if (!ret)
+			return size;
+		else
+			return ret;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!amdgpu_ras_is_supported(adev, data.head.block))
 		return -EINVAL;
@@ -451,9 +462,14 @@ static inline void put_obj(struct ras_manager *obj)
 {
 	if (obj && --obj->use == 0)
 		list_del(&obj->node);
+<<<<<<< HEAD
 	if (obj && obj->use < 0) {
 		 DRM_ERROR("RAS ERROR: Unbalance obj(%s) use\n", obj->head.name);
 	}
+=======
+	if (obj && (obj->use < 0))
+		DRM_ERROR("RAS ERROR: Unbalance obj(%s) use\n", obj->head.name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* make one obj and return it. */
@@ -1140,6 +1156,7 @@ static int amdgpu_ras_sysfs_remove_all(struct amdgpu_device *adev)
 static void amdgpu_ras_debugfs_create_ctrl_node(struct amdgpu_device *adev)
 {
 	struct amdgpu_ras *con = amdgpu_ras_get_context(adev);
+<<<<<<< HEAD
 	struct drm_minor *minor = adev_to_drm(adev)->primary;
 
 	con->dir = debugfs_create_dir(RAS_FS_NAME, minor->debugfs_root);
@@ -1147,6 +1164,20 @@ static void amdgpu_ras_debugfs_create_ctrl_node(struct amdgpu_device *adev)
 				adev, &amdgpu_ras_debugfs_ctrl_ops);
 	debugfs_create_file("ras_eeprom_reset", S_IWUGO | S_IRUGO, con->dir,
 				adev, &amdgpu_ras_debugfs_eeprom_ops);
+=======
+	struct drm_minor  *minor = adev_to_drm(adev)->primary;
+	struct dentry     *dir;
+
+	dir = debugfs_create_dir(RAS_FS_NAME, minor->debugfs_root);
+	debugfs_create_file("ras_ctrl", S_IWUGO | S_IRUGO, dir, adev,
+			    &amdgpu_ras_debugfs_ctrl_ops);
+	debugfs_create_file("ras_eeprom_reset", S_IWUGO | S_IRUGO, dir, adev,
+			    &amdgpu_ras_debugfs_eeprom_ops);
+	debugfs_create_u32("bad_page_cnt_threshold", 0444, dir,
+			   &con->bad_page_cnt_threshold);
+	debugfs_create_x32("ras_hw_enabled", 0444, dir, &adev->ras_hw_enabled);
+	debugfs_create_x32("ras_enabled", 0444, dir, &adev->ras_enabled);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * After one uncorrectable error happens, usually GPU recovery will
@@ -1718,9 +1749,15 @@ static int amdgpu_ras_load_bad_pages(struct amdgpu_device *adev)
 		ret = -EIO;
 		goto out;
 	}
+<<<<<<< HEAD
 
 	ret = amdgpu_ras_add_bad_pages(adev, bps, control->num_recs);
 
+=======
+
+	ret = amdgpu_ras_add_bad_pages(adev, bps, control->num_recs);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	kfree(bps);
 	return ret;
@@ -1809,7 +1846,11 @@ int amdgpu_ras_recovery_init(struct amdgpu_device *adev)
 	bool exc_err_limit = false;
 	int ret;
 
+<<<<<<< HEAD
 	if (con)
+=======
+	if (adev->ras_enabled && con)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		data = &con->eh_data;
 	else
 		return 0;
@@ -1840,6 +1881,12 @@ int amdgpu_ras_recovery_init(struct amdgpu_device *adev)
 		ret = amdgpu_ras_load_bad_pages(adev);
 		if (ret)
 			goto free;
+<<<<<<< HEAD
+=======
+
+		if (adev->smu.ppt_funcs && adev->smu.ppt_funcs->send_hbm_bad_pages_num)
+			adev->smu.ppt_funcs->send_hbm_bad_pages_num(&adev->smu, con->eeprom_control.num_recs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return 0;

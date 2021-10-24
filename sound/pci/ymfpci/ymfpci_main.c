@@ -2334,7 +2334,12 @@ int snd_ymfpci_create(struct snd_card *card,
 	*rchip = NULL;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
@@ -2357,7 +2362,12 @@ int snd_ymfpci_create(struct snd_card *card,
 	pci_set_master(pci);
 	chip->src441_used = -1;
 
+<<<<<<< HEAD
 	if ((chip->res_reg_area = request_mem_region(chip->reg_area_phys, 0x8000, "YMFPCI")) == NULL) {
+=======
+	chip->res_reg_area = request_mem_region(chip->reg_area_phys, 0x8000, "YMFPCI");
+	if (!chip->res_reg_area) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dev_err(chip->card->dev,
 			"unable to grab memory region 0x%lx-0x%lx\n",
 			chip->reg_area_phys, chip->reg_area_phys + 0x8000 - 1);

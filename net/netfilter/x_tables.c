@@ -38,6 +38,13 @@ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
 #define XT_PCPU_BLOCK_SIZE 4096
 #define XT_MAX_TABLE_SIZE	(512 * 1024 * 1024)
 
+<<<<<<< HEAD
+=======
+struct xt_pernet {
+	struct list_head tables[NFPROTO_NUMPROTO];
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct compat_delta {
 	unsigned int offset; /* offset in kernel */
 	int delta; /* delta in 32bit user land */
@@ -1201,6 +1208,10 @@ EXPORT_SYMBOL(xt_free_table_info);
 struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
 				    const char *name)
 {
+<<<<<<< HEAD
+=======
+	struct xt_pernet *xt_net = net_generic(net, xt_pernet_id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct xt_table *t, *found = NULL;
 
 	mutex_lock(&xt[af].mutex);
@@ -1212,7 +1223,12 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
 		goto out;
 
 	/* Table doesn't exist in this netns, re-try init */
+<<<<<<< HEAD
 	list_for_each_entry(t, &init_net.xt.tables[af], list) {
+=======
+	xt_net = net_generic(&init_net, xt_pernet_id);
+	list_for_each_entry(t, &xt_net->tables[af], list) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		int err;
 
 		if (strcmp(t->name, name))
@@ -1235,6 +1251,10 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
 	if (!found)
 		goto out;
 
+<<<<<<< HEAD
+=======
+	xt_net = net_generic(net, xt_pernet_id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* and once again: */
 	list_for_each_entry(t, &net->xt.tables[af], list)
 		if (strcmp(t->name, name) == 0)

@@ -1308,7 +1308,12 @@ static int snd_rme32_create(struct rme32 *rme32)
 	rme32->irq = -1;
 	spin_lock_init(&rme32->lock);
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	if ((err = pci_request_regions(pci, "RME32")) < 0)
@@ -1900,7 +1905,12 @@ snd_rme32_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	rme32->pci = pci;
         if (fullduplex[dev])
 		rme32->fullduplex_mode = 1;
+<<<<<<< HEAD
 	if ((err = snd_rme32_create(rme32)) < 0) {
+=======
+	err = snd_rme32_create(rme32);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1920,7 +1930,12 @@ snd_rme32_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	sprintf(card->longname, "%s (Rev. %d) at 0x%lx, irq %d",
 		card->shortname, rme32->rev, rme32->port, rme32->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

@@ -1059,7 +1059,12 @@ static int snd_fm801_mixer(struct fm801 *chip)
 	memset(&ac97, 0, sizeof(ac97));
 	ac97.private_data = chip;
 	ac97.private_free = snd_fm801_mixer_free_ac97;
+<<<<<<< HEAD
 	if ((err = snd_ac97_mixer(chip->ac97_bus, &ac97, &chip->ac97)) < 0)
+=======
+	err = snd_ac97_mixer(chip->ac97_bus, &ac97, &chip->ac97);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	if (chip->secondary) {
 		ac97.num = 1;
@@ -1215,7 +1220,12 @@ static int snd_fm801_create(struct snd_card *card,
 	};
 
 	*rchip = NULL;
+<<<<<<< HEAD
 	if ((err = pcim_enable_device(pci)) < 0)
+=======
+	err = pcim_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	chip = devm_kzalloc(&pci->dev, sizeof(*chip), GFP_KERNEL);
 	if (chip == NULL)
@@ -1256,7 +1266,12 @@ static int snd_fm801_create(struct snd_card *card,
 
 	snd_fm801_chip_init(chip);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_fm801_free(chip);
 		return err;
 	}
@@ -1329,7 +1344,12 @@ static int snd_card_fm801_probe(struct pci_dev *pci,
 			   0, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_fm801_create(card, pci, tea575x_tuner[dev], radio_nr[dev], &chip)) < 0) {
+=======
+	err = snd_fm801_create(card, pci, tea575x_tuner[dev], radio_nr[dev], &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1344,6 +1364,7 @@ static int snd_card_fm801_probe(struct pci_dev *pci,
 	if (chip->tea575x_tuner & TUNER_ONLY)
 		goto __fm801_tuner_only;
 
+<<<<<<< HEAD
 	if ((err = snd_fm801_pcm(chip, 0)) < 0) {
 		snd_card_free(card);
 		return err;
@@ -1367,12 +1388,47 @@ static int snd_card_fm801_probe(struct pci_dev *pci,
 		return err;
 	}
 	if ((err = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+	err = snd_fm801_pcm(chip, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_fm801_mixer(chip);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_mpu401_uart_new(card, 0, MPU401_HW_FM801,
+				  chip->port + FM801_MPU401_DATA,
+				  MPU401_INFO_INTEGRATED |
+				  MPU401_INFO_IRQ_HOOK,
+				  -1, &chip->rmidi);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_opl3_create(card, chip->port + FM801_OPL3_BANK0,
+			      chip->port + FM801_OPL3_BANK1,
+			      OPL3_HW_OPL3_FM801, 1, &opl3);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 
       __fm801_tuner_only:
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

@@ -173,8 +173,13 @@ static int mpc7448_machine_check_exception(struct pt_regs *regs)
 	/* Are we prepared to handle this fault */
 	if ((entry = search_exception_tables(regs->nip)) != NULL) {
 		tsi108_clear_pci_cfg_error();
+<<<<<<< HEAD
 		regs->msr |= MSR_RI;
 		regs->nip = extable_fixup(entry);
+=======
+		regs_set_return_msr(regs, regs->msr | MSR_RI);
+		regs_set_return_ip(regs, extable_fixup(entry));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 1;
 	}
 	return 0;

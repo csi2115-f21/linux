@@ -1062,6 +1062,25 @@ struct rq {
 #endif
 	unsigned int		push_busy;
 	struct cpu_stop_work	push_work;
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_SCHED_CORE
+	/* per rq */
+	struct rq		*core;
+	struct task_struct	*core_pick;
+	unsigned int		core_enabled;
+	unsigned int		core_sched_seq;
+	struct rb_root		core_tree;
+
+	/* shared state */
+	unsigned int		core_task_seq;
+	unsigned int		core_pick_seq;
+	unsigned long		core_cookie;
+	unsigned char		core_forceidle;
+	unsigned int		core_forceidle_seq;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #ifdef CONFIG_FAIR_GROUP_SCHED

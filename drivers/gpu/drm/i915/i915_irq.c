@@ -2279,10 +2279,17 @@ static u32 gen8_de_port_aux_mask(struct drm_i915_private *dev_priv)
 			GEN9_AUX_CHANNEL_C |
 			GEN9_AUX_CHANNEL_D;
 
+<<<<<<< HEAD
 	if (IS_CNL_WITH_PORT_F(dev_priv) || IS_GEN(dev_priv, 11))
 		mask |= CNL_AUX_CHANNEL_F;
 
 	if (IS_GEN(dev_priv, 11))
+=======
+	if (IS_CNL_WITH_PORT_F(dev_priv) || DISPLAY_VER(dev_priv) == 11)
+		mask |= CNL_AUX_CHANNEL_F;
+
+	if (DISPLAY_VER(dev_priv) == 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mask |= ICL_AUX_CHANNEL_E;
 
 	return mask;
@@ -2710,6 +2717,7 @@ static u32 dg1_master_intr_disable_and_ack(void __iomem * const regs)
 
 	/* Get the indication levels and ack the master unit */
 	val = raw_reg_read(regs, DG1_MSTR_UNIT_INTR);
+<<<<<<< HEAD
 	if (unlikely(!val))
 		return 0;
 
@@ -2724,6 +2732,22 @@ static u32 dg1_master_intr_disable_and_ack(void __iomem * const regs)
 	if (unlikely(!val))
 		return 0;
 
+=======
+	if (unlikely(!val))
+		return 0;
+
+	raw_reg_write(regs, DG1_MSTR_UNIT_INTR, val);
+
+	/*
+	 * Now with master disabled, get a sample of level indications
+	 * for this interrupt and ack them right away - we keep GEN11_MASTER_IRQ
+	 * out as this bit doesn't exist anymore for DG1
+	 */
+	val = raw_reg_read(regs, GEN11_GFX_MSTR_IRQ) & ~GEN11_MASTER_IRQ;
+	if (unlikely(!val))
+		return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	raw_reg_write(regs, GEN11_GFX_MSTR_IRQ, val);
 
 	return val;
@@ -3023,7 +3047,29 @@ static void valleyview_irq_reset(struct drm_i915_private *dev_priv)
 	spin_unlock_irq(&dev_priv->irq_lock);
 }
 
+<<<<<<< HEAD
 static void gen8_irq_reset(struct drm_i915_private *dev_priv)
+=======
+static void cnp_display_clock_wa(struct drm_i915_private *dev_priv)
+{
+	struct intel_uncore *uncore = &dev_priv->uncore;
+
+	/*
+	 * Wa_14010685332:cnp/cmp,tgp,adp
+	 * TODO: Clarify which platforms this applies to
+	 * TODO: Figure out if this workaround can be applied in the s0ix suspend/resume handlers as
+	 * on earlier platforms and whether the workaround is also needed for runtime suspend/resume
+	 */
+	if (INTEL_PCH_TYPE(dev_priv) == PCH_CNP ||
+	    (INTEL_PCH_TYPE(dev_priv) >= PCH_TGP && INTEL_PCH_TYPE(dev_priv) < PCH_DG1)) {
+		intel_uncore_rmw(uncore, SOUTH_CHICKEN1, SBCLK_RUN_REFCLK_DIS,
+				 SBCLK_RUN_REFCLK_DIS);
+		intel_uncore_rmw(uncore, SOUTH_CHICKEN1, SBCLK_RUN_REFCLK_DIS, 0);
+	}
+}
+
+static void gen8_display_irq_reset(struct drm_i915_private *dev_priv)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct intel_uncore *uncore = &dev_priv->uncore;
 	enum pipe pipe;
@@ -3046,6 +3092,11 @@ static void gen8_irq_reset(struct drm_i915_private *dev_priv)
 
 	if (HAS_PCH_SPLIT(dev_priv))
 		ibx_irq_reset(dev_priv);
+<<<<<<< HEAD
+=======
+
+	cnp_display_clock_wa(dev_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void gen11_display_irq_reset(struct drm_i915_private *dev_priv)
@@ -3087,6 +3138,7 @@ static void gen11_display_irq_reset(struct drm_i915_private *dev_priv)
 	if (INTEL_PCH_TYPE(dev_priv) >= PCH_ICP)
 		GEN3_IRQ_RESET(uncore, SDE);
 
+<<<<<<< HEAD
 	/* Wa_14010685332:cnp/cmp,tgp,adp */
 	if (INTEL_PCH_TYPE(dev_priv) == PCH_CNP ||
 	    (INTEL_PCH_TYPE(dev_priv) >= PCH_TGP &&
@@ -3096,6 +3148,9 @@ static void gen11_display_irq_reset(struct drm_i915_private *dev_priv)
 		intel_uncore_rmw(uncore, SOUTH_CHICKEN1,
 				 SBCLK_RUN_REFCLK_DIS, 0);
 	}
+=======
+	cnp_display_clock_wa(dev_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void gen11_irq_reset(struct drm_i915_private *dev_priv)
@@ -3779,8 +3834,11 @@ static void gen11_irq_postinstall(struct drm_i915_private *dev_priv)
 
 	GEN3_IRQ_INIT(uncore, GEN11_GU_MISC_, ~gu_misc_masked, gu_misc_masked);
 
+<<<<<<< HEAD
 	intel_uncore_write(&dev_priv->uncore, GEN11_DISPLAY_INT_CTL, GEN11_DISPLAY_IRQ_ENABLE);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (HAS_MASTER_UNIT_IRQ(dev_priv)) {
 		dg1_master_intr_enable(uncore->regs);
 		intel_uncore_posting_read(&dev_priv->uncore, DG1_MSTR_UNIT_INTR);
@@ -4324,7 +4382,11 @@ static irq_handler_t intel_irq_handler(struct drm_i915_private *dev_priv)
 	} else {
 		if (HAS_MASTER_UNIT_IRQ(dev_priv))
 			return dg1_irq_handler;
+<<<<<<< HEAD
 		if (INTEL_GEN(dev_priv) >= 11)
+=======
+		if (GRAPHICS_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return gen11_irq_handler;
 		else if (INTEL_GEN(dev_priv) >= 8)
 			return gen8_irq_handler;
@@ -4347,7 +4409,11 @@ static void intel_irq_reset(struct drm_i915_private *dev_priv)
 		else
 			i8xx_irq_reset(dev_priv);
 	} else {
+<<<<<<< HEAD
 		if (INTEL_GEN(dev_priv) >= 11)
+=======
+		if (GRAPHICS_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			gen11_irq_reset(dev_priv);
 		else if (INTEL_GEN(dev_priv) >= 8)
 			gen8_irq_reset(dev_priv);
@@ -4370,7 +4436,11 @@ static void intel_irq_postinstall(struct drm_i915_private *dev_priv)
 		else
 			i8xx_irq_postinstall(dev_priv);
 	} else {
+<<<<<<< HEAD
 		if (INTEL_GEN(dev_priv) >= 11)
+=======
+		if (GRAPHICS_VER(dev_priv) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			gen11_irq_postinstall(dev_priv);
 		else if (INTEL_GEN(dev_priv) >= 8)
 			gen8_irq_postinstall(dev_priv);

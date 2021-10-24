@@ -368,7 +368,11 @@ static void cfg_tap(struct hantro_ctx *ctx,
 }
 
 static void cfg_ref(struct hantro_ctx *ctx,
+<<<<<<< HEAD
 		    const struct v4l2_ctrl_vp8_frame_header *hdr)
+=======
+		    const struct v4l2_ctrl_vp8_frame *hdr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct hantro_dev *vpu = ctx->dev;
 	struct vb2_v4l2_buffer *vb2_dst;
@@ -399,7 +403,11 @@ static void cfg_ref(struct hantro_ctx *ctx,
 }
 
 static void cfg_buffers(struct hantro_ctx *ctx,
+<<<<<<< HEAD
 			const struct v4l2_ctrl_vp8_frame_header *hdr)
+=======
+			const struct v4l2_ctrl_vp8_frame *hdr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	const struct v4l2_vp8_segment_header *seg = &hdr->segment_header;
 	struct hantro_dev *vpu = ctx->dev;

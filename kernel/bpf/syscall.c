@@ -999,6 +999,20 @@ static void *__bpf_copy_key(void __user *ukey, u64 key_size)
 	return NULL;
 }
 
+<<<<<<< HEAD
+=======
+static void *___bpf_copy_key(bpfptr_t ukey, u64 key_size)
+{
+	if (key_size)
+		return memdup_bpfptr(ukey, key_size);
+
+	if (!bpfptr_is_null(ukey))
+		return ERR_PTR(-EINVAL);
+
+	return NULL;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* last field in 'union bpf_attr' used by this command */
 #define BPF_MAP_LOOKUP_ELEM_LAST_FIELD flags
 
@@ -4034,6 +4048,7 @@ static int link_create(union bpf_attr *attr)
 		goto out;
 
 	if (prog->type == BPF_PROG_TYPE_EXT) {
+<<<<<<< HEAD
 		ret = tracing_bpf_link_attach(attr, prog);
 		goto out;
 	}
@@ -4042,6 +4057,16 @@ static int link_create(union bpf_attr *attr)
 	if (ptype == BPF_PROG_TYPE_UNSPEC || ptype != prog->type) {
 		ret = -EINVAL;
 		goto out;
+=======
+		ret = tracing_bpf_link_attach(attr, uattr, prog);
+		goto out;
+	}
+
+	ptype = attach_type_to_prog_type(attr->link_create.attach_type);
+	if (ptype == BPF_PROG_TYPE_UNSPEC || ptype != prog->type) {
+		ret = -EINVAL;
+		goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	switch (ptype) {

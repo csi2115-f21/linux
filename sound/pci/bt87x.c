@@ -721,7 +721,12 @@ static int snd_bt87x_create(struct snd_card *card,
 	chip->irq = -1;
 	spin_lock_init(&chip->reg_lock);
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "Bt87x audio")) < 0) {
+=======
+	err = pci_request_regions(pci, "Bt87x audio");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;

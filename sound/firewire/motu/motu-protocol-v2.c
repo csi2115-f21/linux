@@ -12,6 +12,16 @@
 #define  V2_CLOCK_RATE_SHIFT			3
 #define  V2_CLOCK_SRC_MASK			0x00000007
 #define  V2_CLOCK_SRC_SHIFT			0
+<<<<<<< HEAD
+=======
+#define   V2_CLOCK_SRC_AESEBU_ON_XLR		0x07
+#define   V2_CLOCK_SRC_ADAT_ON_DSUB		0x05
+#define   V2_CLOCK_SRC_WORD_ON_BNC		0x04
+#define   V2_CLOCK_SRC_SPH			0x03
+#define   V2_CLOCK_SRC_SPDIF			0x02	// on either coaxial or optical
+#define   V2_CLOCK_SRC_ADAT_ON_OPT		0x01
+#define   V2_CLOCK_SRC_INTERNAL			0x00
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define  V2_CLOCK_FETCH_ENABLE			0x02000000
 #define  V2_CLOCK_MODEL_SPECIFIC		0x04000000
 
@@ -87,6 +97,7 @@ static int detect_clock_source_optical_model(struct snd_motu *motu, u32 data,
 		break;
 	case 1:
 	{
+<<<<<<< HEAD
 		__be32 reg;
 
 		// To check the configuration of optical interface.
@@ -99,6 +110,28 @@ static int detect_clock_source_optical_model(struct snd_motu *motu, u32 data,
 			*src = SND_MOTU_CLOCK_SOURCE_SPDIF_ON_OPT;
 		else
 			*src = SND_MOTU_CLOCK_SOURCE_ADAT_ON_OPT;
+=======
+		bool support_iec60958_on_opt = (motu->spec == &snd_motu_spec_828mk2 ||
+						motu->spec == &snd_motu_spec_traveler);
+
+		if (!support_iec60958_on_opt) {
+			*src = SND_MOTU_CLOCK_SOURCE_SPDIF_ON_COAX;
+		} else {
+			__be32 reg;
+
+			// To check the configuration of optical interface.
+			int err = snd_motu_transaction_read(motu, V2_IN_OUT_CONF_OFFSET, &reg,
+							    sizeof(reg));
+			if (err < 0)
+				return err;
+
+			if (((data & V2_OPT_IN_IFACE_MASK) >> V2_OPT_IN_IFACE_SHIFT) ==
+			    V2_OPT_IFACE_MODE_SPDIF)
+				*src = SND_MOTU_CLOCK_SOURCE_SPDIF_ON_OPT;
+			else
+				*src = SND_MOTU_CLOCK_SOURCE_SPDIF_ON_COAX;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	}
 	case 2:
@@ -113,6 +146,7 @@ static int detect_clock_source_optical_model(struct snd_motu *motu, u32 data,
 	case 5:
 		*src = SND_MOTU_CLOCK_SOURCE_ADAT_ON_DSUB;
 		break;
+<<<<<<< HEAD
 	default:
 		*src = SND_MOTU_CLOCK_SOURCE_UNKNOWN;
 		break;
@@ -136,6 +170,10 @@ static int v2_detect_clock_source(struct snd_motu *motu, u32 data,
 		break;
 	case 4:
 		*src = SND_MOTU_CLOCK_SOURCE_WORD_ON_BNC;
+=======
+	case V2_CLOCK_SRC_AESEBU_ON_XLR:
+		*src = SND_MOTU_CLOCK_SOURCE_AESEBU_ON_XLR;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		*src = SND_MOTU_CLOCK_SOURCE_UNKNOWN;

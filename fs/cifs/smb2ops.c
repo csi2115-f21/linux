@@ -690,6 +690,13 @@ smb2_close_cached_fid(struct kref *ref)
 		cfid->is_valid = false;
 		cfid->file_all_info_is_valid = false;
 		cfid->has_lease = false;
+<<<<<<< HEAD
+=======
+		if (cfid->dentry) {
+			dput(cfid->dentry);
+			cfid->dentry = NULL;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 

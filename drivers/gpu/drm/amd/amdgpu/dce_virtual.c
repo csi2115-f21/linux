@@ -39,6 +39,10 @@
 #include "dce_v11_0.h"
 #include "dce_virtual.h"
 #include "ivsrcid/ivsrcid_vislands30.h"
+<<<<<<< HEAD
+=======
+#include "amdgpu_display.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define DCE_VIRTUAL_VBLANK_PERIOD 16666666
 
@@ -420,6 +424,14 @@ static int dce_virtual_sw_init(void *handle)
 static int dce_virtual_sw_fini(void *handle)
 {
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+<<<<<<< HEAD
+=======
+	int i = 0;
+
+	for (i = 0; i < adev->mode_info.num_crtc; i++)
+		if (adev->mode_info.crtcs[i])
+			hrtimer_cancel(&adev->mode_info.crtcs[i]->vblank_timer);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	kfree(adev->mode_info.bios_hardcoded_edid);
 
@@ -479,6 +491,7 @@ static int dce_virtual_hw_init(void *handle)
 
 static int dce_virtual_hw_fini(void *handle)
 {
+<<<<<<< HEAD
 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 	int i = 0;
 
@@ -486,17 +499,38 @@ static int dce_virtual_hw_fini(void *handle)
 		if (adev->mode_info.crtcs[i])
 			hrtimer_cancel(&adev->mode_info.crtcs[i]->vblank_timer);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
 static int dce_virtual_suspend(void *handle)
 {
+<<<<<<< HEAD
+=======
+	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	int r;
+
+	r = amdgpu_display_suspend_helper(adev);
+	if (r)
+		return r;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return dce_virtual_hw_fini(handle);
 }
 
 static int dce_virtual_resume(void *handle)
 {
+<<<<<<< HEAD
 	return dce_virtual_hw_init(handle);
+=======
+	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	int r;
+
+	r = dce_virtual_hw_init(handle);
+	if (r)
+		return r;
+	return amdgpu_display_resume_helper(adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static bool dce_virtual_is_idle(void *handle)
@@ -755,7 +789,11 @@ static const struct amdgpu_irq_src_funcs dce_virtual_crtc_irq_funcs = {
 
 static void dce_virtual_set_irq_funcs(struct amdgpu_device *adev)
 {
+<<<<<<< HEAD
 	adev->crtc_irq.num_types = AMDGPU_CRTC_IRQ_VBLANK6 + 1;
+=======
+	adev->crtc_irq.num_types = adev->mode_info.num_crtc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	adev->crtc_irq.funcs = &dce_virtual_crtc_irq_funcs;
 }
 

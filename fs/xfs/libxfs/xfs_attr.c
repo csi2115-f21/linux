@@ -260,7 +260,17 @@ xfs_attr_set_shortform(
 		return error;
 	}
 
+<<<<<<< HEAD
 	return 0;
+=======
+	/*
+	 * We're still in XFS_DAS_UNINIT state here.  We've converted
+	 * the attr fork to leaf format and will restart with the leaf
+	 * add.
+	 */
+	dac->flags |= XFS_DAC_DEFER_FINISH;
+	return -EAGAIN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -270,9 +280,80 @@ int
 xfs_attr_set_args(
 	struct xfs_da_args	*args)
 {
+<<<<<<< HEAD
 	struct xfs_inode	*dp = args->dp;
 	struct xfs_buf          *leaf_bp = NULL;
 	int			error = 0;
+=======
+	struct xfs_da_args              *args = dac->da_args;
+	struct xfs_inode		*dp = args->dp;
+	struct xfs_buf			*bp = NULL;
+	int				forkoff, error = 0;
+
+	/* State machine switch */
+	switch (dac->dela_state) {
+	case XFS_DAS_UNINIT:
+		/*
+		 * If the fork is shortform, attempt to add the attr. If there
+		 * is no space, this converts to leaf format and returns
+		 * -EAGAIN with the leaf buffer held across the roll. The caller
+		 * will deal with a transaction roll error, but otherwise
+		 * release the hold once we return with a clean transaction.
+		 */
+		if (xfs_attr_is_shortform(dp))
+			return xfs_attr_sf_addname(dac, leaf_bp);
+		if (*leaf_bp != NULL) {
+			xfs_trans_bhold_release(args->trans, *leaf_bp);
+			*leaf_bp = NULL;
+		}
+
+		if (xfs_attr_is_leaf(dp)) {
+			error = xfs_attr_leaf_try_add(args, *leaf_bp);
+			if (error == -ENOSPC) {
+				error = xfs_attr3_leaf_to_node(args);
+				if (error)
+					return error;
+
+				/*
+				 * Finish any deferred work items and roll the
+				 * transaction once more.  The goal here is to
+				 * call node_addname with the inode and
+				 * transaction in the same state (inode locked
+				 * and joined, transaction clean) no matter how
+				 * we got to this step.
+				 *
+				 * At this point, we are still in
+				 * XFS_DAS_UNINIT, but when we come back, we'll
+				 * be a node, so we'll fall down into the node
+				 * handling code below
+				 */
+				dac->flags |= XFS_DAC_DEFER_FINISH;
+				return -EAGAIN;
+			} else if (error) {
+				return error;
+			}
+
+			dac->dela_state = XFS_DAS_FOUND_LBLK;
+		} else {
+			error = xfs_attr_node_addname_find_attr(dac);
+			if (error)
+				return error;
+
+			error = xfs_attr_node_addname(dac);
+			if (error)
+				return error;
+
+			dac->dela_state = XFS_DAS_FOUND_NBLK;
+		}
+		return -EAGAIN;
+	case XFS_DAS_FOUND_LBLK:
+		/*
+		 * If there was an out-of-line value, allocate the blocks we
+		 * identified for its storage and copy the value.  This is done
+		 * after we create the attribute so that we don't overflow the
+		 * maximum size of a transaction and/or hit a deadlock.
+		 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If the attribute list is already in leaf format, jump straight to
@@ -288,8 +369,20 @@ xfs_attr_set_args(
 		 * converted from shortform to leaf, and the transaction is
 		 * retained.
 		 */
+<<<<<<< HEAD
 		error = xfs_attr_set_shortform(args, &leaf_bp);
 		if (error || !args->trans)
+=======
+		if (dac->blkcnt > 0) {
+			error = xfs_attr_rmtval_set_blk(dac);
+			if (error)
+				return error;
+			return -EAGAIN;
+		}
+
+		error = xfs_attr_rmtval_set_value(args);
+		if (error)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return error;
 	}
 
@@ -301,10 +394,47 @@ xfs_attr_set_args(
 		/*
 		 * Promote the attribute list to the Btree format.
 		 */
+<<<<<<< HEAD
 		error = xfs_attr3_leaf_to_node(args);
 		if (error)
 			return error;
 
+=======
+		error = xfs_attr3_leaf_flipflags(args);
+		if (error)
+			return error;
+		/*
+		 * Commit the flag value change and start the next trans in
+		 * series.
+		 */
+		dac->dela_state = XFS_DAS_FLIP_LFLAG;
+		return -EAGAIN;
+	case XFS_DAS_FLIP_LFLAG:
+		/*
+		 * Dismantle the "old" attribute/value pair by removing a
+		 * "remote" value (if it exists).
+		 */
+		xfs_attr_restore_rmt_blk(args);
+		error = xfs_attr_rmtval_invalidate(args);
+		if (error)
+			return error;
+
+		fallthrough;
+	case XFS_DAS_RM_LBLK:
+		/* Set state in case xfs_attr_rmtval_remove returns -EAGAIN */
+		dac->dela_state = XFS_DAS_RM_LBLK;
+		if (args->rmtblkno) {
+			error = __xfs_attr_rmtval_remove(dac);
+			if (error)
+				return error;
+
+			dac->dela_state = XFS_DAS_RD_LEAF;
+			return -EAGAIN;
+		}
+
+		fallthrough;
+	case XFS_DAS_RD_LEAF:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/*
 		 * Finish any deferred work items and roll the transaction once
 		 * more.  The goal here is to call node_addname with the inode
@@ -319,9 +449,104 @@ xfs_attr_set_args(
 		 * Commit the current trans (including the inode) and
 		 * start a new one.
 		 */
+<<<<<<< HEAD
 		error = xfs_trans_roll_inode(&args->trans, dp);
 		if (error)
 			return error;
+=======
+		if (args->rmtblkno > 0) {
+			error = xfs_attr_rmtval_find_space(dac);
+			if (error)
+				return error;
+		}
+
+		fallthrough;
+	case XFS_DAS_ALLOC_NODE:
+		/*
+		 * If there was an out-of-line value, allocate the blocks we
+		 * identified for its storage and copy the value.  This is done
+		 * after we create the attribute so that we don't overflow the
+		 * maximum size of a transaction and/or hit a deadlock.
+		 */
+		dac->dela_state = XFS_DAS_ALLOC_NODE;
+		if (args->rmtblkno > 0) {
+			if (dac->blkcnt > 0) {
+				error = xfs_attr_rmtval_set_blk(dac);
+				if (error)
+					return error;
+				return -EAGAIN;
+			}
+
+			error = xfs_attr_rmtval_set_value(args);
+			if (error)
+				return error;
+		}
+
+		/*
+		 * If this was not a rename, clear the incomplete flag and we're
+		 * done.
+		 */
+		if (!(args->op_flags & XFS_DA_OP_RENAME)) {
+			if (args->rmtblkno > 0)
+				error = xfs_attr3_leaf_clearflag(args);
+			goto out;
+		}
+
+		/*
+		 * If this is an atomic rename operation, we must "flip" the
+		 * incomplete flags on the "new" and "old" attribute/value pairs
+		 * so that one disappears and one appears atomically.  Then we
+		 * must remove the "old" attribute/value pair.
+		 *
+		 * In a separate transaction, set the incomplete flag on the
+		 * "old" attr and clear the incomplete flag on the "new" attr.
+		 */
+		error = xfs_attr3_leaf_flipflags(args);
+		if (error)
+			goto out;
+		/*
+		 * Commit the flag value change and start the next trans in
+		 * series
+		 */
+		dac->dela_state = XFS_DAS_FLIP_NFLAG;
+		return -EAGAIN;
+
+	case XFS_DAS_FLIP_NFLAG:
+		/*
+		 * Dismantle the "old" attribute/value pair by removing a
+		 * "remote" value (if it exists).
+		 */
+		xfs_attr_restore_rmt_blk(args);
+
+		error = xfs_attr_rmtval_invalidate(args);
+		if (error)
+			return error;
+
+		fallthrough;
+	case XFS_DAS_RM_NBLK:
+		/* Set state in case xfs_attr_rmtval_remove returns -EAGAIN */
+		dac->dela_state = XFS_DAS_RM_NBLK;
+		if (args->rmtblkno) {
+			error = __xfs_attr_rmtval_remove(dac);
+			if (error)
+				return error;
+
+			dac->dela_state = XFS_DAS_CLR_FLAG;
+			return -EAGAIN;
+		}
+
+		fallthrough;
+	case XFS_DAS_CLR_FLAG:
+		/*
+		 * The last state for node format. Look up the old attr and
+		 * remove it.
+		 */
+		error = xfs_attr_node_addname_clear_incomplete(dac);
+		break;
+	default:
+		ASSERT(0);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	error = xfs_attr_node_addname(args);
@@ -977,11 +1202,16 @@ restart:
 			 * Commit the node conversion and start the next
 			 * trans in the chain.
 			 */
+<<<<<<< HEAD
 			error = xfs_trans_roll_inode(&args->trans, dp);
 			if (error)
 				goto out;
 
 			goto restart;
+=======
+			dac->flags |= XFS_DAC_DEFER_FINISH;
+			return -EAGAIN;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		/*
@@ -1238,9 +1468,72 @@ xfs_attr_node_removename(
 
 	trace_xfs_attr_node_removename(args);
 
+<<<<<<< HEAD
 	error = xfs_attr_node_removename_setup(args, &state);
 	if (error)
 		goto out;
+=======
+	switch (dac->dela_state) {
+	case XFS_DAS_UNINIT:
+		if (!xfs_inode_hasattr(dp))
+			return -ENOATTR;
+
+		/*
+		 * Shortform or leaf formats don't require transaction rolls and
+		 * thus state transitions. Call the right helper and return.
+		 */
+		if (dp->i_afp->if_format == XFS_DINODE_FMT_LOCAL)
+			return xfs_attr_sf_removename(args);
+
+		if (xfs_attr_is_leaf(dp))
+			return xfs_attr_leaf_removename(args);
+
+		/*
+		 * Node format may require transaction rolls. Set up the
+		 * state context and fall into the state machine.
+		 */
+		if (!dac->da_state) {
+			error = xfs_attr_node_removename_setup(dac);
+			if (error)
+				return error;
+			state = dac->da_state;
+		}
+
+		fallthrough;
+	case XFS_DAS_RMTBLK:
+		dac->dela_state = XFS_DAS_RMTBLK;
+
+		/*
+		 * If there is an out-of-line value, de-allocate the blocks.
+		 * This is done before we remove the attribute so that we don't
+		 * overflow the maximum size of a transaction and/or hit a
+		 * deadlock.
+		 */
+		if (args->rmtblkno > 0) {
+			/*
+			 * May return -EAGAIN. Roll and repeat until all remote
+			 * blocks are removed.
+			 */
+			error = __xfs_attr_rmtval_remove(dac);
+			if (error == -EAGAIN)
+				return error;
+			else if (error)
+				goto out;
+
+			/*
+			 * Refill the state structure with buffers (the prior
+			 * calls released our buffers) and close out this
+			 * transaction before proceeding.
+			 */
+			ASSERT(args->rmtblkno == 0);
+			error = xfs_attr_refillstate(state);
+			if (error)
+				goto out;
+			dac->dela_state = XFS_DAS_RM_NAME;
+			dac->flags |= XFS_DAC_DEFER_FINISH;
+			return -EAGAIN;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If there is an out-of-line value, de-allocate the blocks.
@@ -1279,11 +1572,18 @@ xfs_attr_node_removename(
 			goto out;
 	}
 
+<<<<<<< HEAD
 	/*
 	 * If the result is small enough, push it all into the inode.
 	 */
 	if (xfs_bmap_one_block(dp, XFS_ATTR_FORK))
 		error = xfs_attr_node_shrink(args, state);
+=======
+			dac->flags |= XFS_DAC_DEFER_FINISH;
+			dac->dela_state = XFS_DAS_RM_SHRINK;
+			return -EAGAIN;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 out:
 	if (state)

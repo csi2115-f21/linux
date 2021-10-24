@@ -1930,7 +1930,11 @@ static int mlx5e_open_queues(struct mlx5e_channel *c,
 			goto err_close_sqs;
 	}
 
+<<<<<<< HEAD
 	err = mlx5e_open_rq(c, params, &cparam->rq, NULL, NULL, &c->rq);
+=======
+	err = mlx5e_open_rxq_rq(c, params, &cparam->rq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_close_xdp_sq;
 
@@ -2032,7 +2036,11 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
 	c->cpu      = cpu;
 	c->pdev     = mlx5_core_dma_dev(priv->mdev);
 	c->netdev   = priv->netdev;
+<<<<<<< HEAD
 	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.mkey.key);
+=======
+	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.hw_objs.mkey.key);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	c->num_tc   = params->num_tc;
 	c->xdp      = !!params->xdp_prog;
 	c->stats    = &priv->channel_stats[ix].ch;
@@ -2514,6 +2522,7 @@ void mlx5e_close_channels(struct mlx5e_channels *chs)
 
 static int
 mlx5e_create_rqt(struct mlx5e_priv *priv, int sz, struct mlx5e_rqt *rqt)
+<<<<<<< HEAD
 {
 	struct mlx5_core_dev *mdev = priv->mdev;
 	void *rqtc;
@@ -2540,6 +2549,399 @@ mlx5e_create_rqt(struct mlx5e_priv *priv, int sz, struct mlx5e_rqt *rqt)
 		rqt->enabled = true;
 
 	kvfree(in);
+=======
+{
+	struct mlx5_core_dev *mdev = priv->mdev;
+	void *rqtc;
+	int inlen;
+	int err;
+	u32 *in;
+	int i;
+
+	inlen = MLX5_ST_SZ_BYTES(create_rqt_in) + sizeof(u32) * sz;
+	in = kvzalloc(inlen, GFP_KERNEL);
+	if (!in)
+		return -ENOMEM;
+
+	rqtc = MLX5_ADDR_OF(create_rqt_in, in, rqt_context);
+
+	MLX5_SET(rqtc, rqtc, rqt_actual_size, sz);
+	MLX5_SET(rqtc, rqtc, rqt_max_size, sz);
+
+	for (i = 0; i < sz; i++)
+		MLX5_SET(rqtc, rqtc, rq_num[i], priv->drop_rq.rqn);
+
+	err = mlx5_core_create_rqt(mdev, in, inlen, &rqt->rqtn);
+	if (!err)
+		rqt->enabled = true;
+
+	kvfree(in);
+	return err;
+}
+
+void mlx5e_destroy_rqt(struct mlx5e_priv *priv, struct mlx5e_rqt *rqt)
+{
+	rqt->enabled = false;
+	mlx5_core_destroy_rqt(priv->mdev, rqt->rqtn);
+}
+
+int mlx5e_create_indirect_rqt(struct mlx5e_priv *priv)
+{
+	struct mlx5e_rqt *rqt = &priv->indir_rqt;
+	int err;
+
+	err = mlx5e_create_rqt(priv, MLX5E_INDIR_RQT_SIZE, rqt);
+	if (err)
+		mlx5_core_warn(priv->mdev, "create indirect rqts failed, %d\n", err);
+	return err;
+}
+
+int mlx5e_create_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n)
+{
+	int err;
+	int ix;
+
+	for (ix = 0; ix < n; ix++) {
+		err = mlx5e_create_rqt(priv, 1 /*size */, &tirs[ix].rqt);
+		if (unlikely(err))
+			goto err_destroy_rqts;
+	}
+
+	return 0;
+
+err_destroy_rqts:
+	mlx5_core_warn(priv->mdev, "create rqts failed, %d\n", err);
+	for (ix--; ix >= 0; ix--)
+		mlx5e_destroy_rqt(priv, &tirs[ix].rqt);
+
+	return err;
+}
+
+void mlx5e_destroy_direct_rqts(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n)
+{
+	int i;
+
+	for (i = 0; i < n; i++)
+		mlx5e_destroy_rqt(priv, &tirs[i].rqt);
+}
+
+static int mlx5e_rx_hash_fn(int hfunc)
+{
+	return (hfunc == ETH_RSS_HASH_TOP) ?
+	       MLX5_RX_HASH_FN_TOEPLITZ :
+	       MLX5_RX_HASH_FN_INVERTED_XOR8;
+}
+
+int mlx5e_bits_invert(unsigned long a, int size)
+{
+	int inv = 0;
+	int i;
+
+	for (i = 0; i < size; i++)
+		inv |= (test_bit(size - i - 1, &a) ? 1 : 0) << i;
+
+	return inv;
+}
+
+static void mlx5e_fill_rqt_rqns(struct mlx5e_priv *priv, int sz,
+				struct mlx5e_redirect_rqt_param rrp, void *rqtc)
+{
+	int i;
+
+	for (i = 0; i < sz; i++) {
+		u32 rqn;
+
+		if (rrp.is_rss) {
+			int ix = i;
+
+			if (rrp.rss.hfunc == ETH_RSS_HASH_XOR)
+				ix = mlx5e_bits_invert(i, ilog2(sz));
+
+			ix = priv->rss_params.indirection_rqt[ix];
+			rqn = rrp.rss.channels->c[ix]->rq.rqn;
+		} else {
+			rqn = rrp.rqn;
+		}
+		MLX5_SET(rqtc, rqtc, rq_num[i], rqn);
+	}
+}
+
+int mlx5e_redirect_rqt(struct mlx5e_priv *priv, u32 rqtn, int sz,
+		       struct mlx5e_redirect_rqt_param rrp)
+{
+	struct mlx5_core_dev *mdev = priv->mdev;
+	void *rqtc;
+	int inlen;
+	u32 *in;
+	int err;
+
+	inlen = MLX5_ST_SZ_BYTES(modify_rqt_in) + sizeof(u32) * sz;
+	in = kvzalloc(inlen, GFP_KERNEL);
+	if (!in)
+		return -ENOMEM;
+
+	rqtc = MLX5_ADDR_OF(modify_rqt_in, in, ctx);
+
+	MLX5_SET(rqtc, rqtc, rqt_actual_size, sz);
+	MLX5_SET(modify_rqt_in, in, bitmask.rqn_list, 1);
+	mlx5e_fill_rqt_rqns(priv, sz, rrp, rqtc);
+	err = mlx5_core_modify_rqt(mdev, rqtn, in, inlen);
+
+	kvfree(in);
+	return err;
+}
+
+static u32 mlx5e_get_direct_rqn(struct mlx5e_priv *priv, int ix,
+				struct mlx5e_redirect_rqt_param rrp)
+{
+	if (!rrp.is_rss)
+		return rrp.rqn;
+
+	if (ix >= rrp.rss.channels->num)
+		return priv->drop_rq.rqn;
+
+	return rrp.rss.channels->c[ix]->rq.rqn;
+}
+
+static void mlx5e_redirect_rqts(struct mlx5e_priv *priv,
+				struct mlx5e_redirect_rqt_param rrp,
+				struct mlx5e_redirect_rqt_param *ptp_rrp)
+{
+	u32 rqtn;
+	int ix;
+
+	if (priv->indir_rqt.enabled) {
+		/* RSS RQ table */
+		rqtn = priv->indir_rqt.rqtn;
+		mlx5e_redirect_rqt(priv, rqtn, MLX5E_INDIR_RQT_SIZE, rrp);
+	}
+
+	for (ix = 0; ix < priv->max_nch; ix++) {
+		struct mlx5e_redirect_rqt_param direct_rrp = {
+			.is_rss = false,
+			{
+				.rqn    = mlx5e_get_direct_rqn(priv, ix, rrp)
+			},
+		};
+
+		/* Direct RQ Tables */
+		if (!priv->direct_tir[ix].rqt.enabled)
+			continue;
+
+		rqtn = priv->direct_tir[ix].rqt.rqtn;
+		mlx5e_redirect_rqt(priv, rqtn, 1, direct_rrp);
+	}
+	if (ptp_rrp) {
+		rqtn = priv->ptp_tir.rqt.rqtn;
+		mlx5e_redirect_rqt(priv, rqtn, 1, *ptp_rrp);
+	}
+}
+
+static void mlx5e_redirect_rqts_to_channels(struct mlx5e_priv *priv,
+					    struct mlx5e_channels *chs)
+{
+	bool rx_ptp_support = priv->profile->rx_ptp_support;
+	struct mlx5e_redirect_rqt_param *ptp_rrp_p = NULL;
+	struct mlx5e_redirect_rqt_param rrp = {
+		.is_rss        = true,
+		{
+			.rss = {
+				.channels  = chs,
+				.hfunc     = priv->rss_params.hfunc,
+			}
+		},
+	};
+	struct mlx5e_redirect_rqt_param ptp_rrp;
+
+	if (rx_ptp_support) {
+		u32 ptp_rqn;
+
+		ptp_rrp.is_rss = false;
+		ptp_rrp.rqn = mlx5e_ptp_get_rqn(priv->channels.ptp, &ptp_rqn) ?
+			      priv->drop_rq.rqn : ptp_rqn;
+		ptp_rrp_p = &ptp_rrp;
+	}
+	mlx5e_redirect_rqts(priv, rrp, ptp_rrp_p);
+}
+
+static void mlx5e_redirect_rqts_to_drop(struct mlx5e_priv *priv)
+{
+	bool rx_ptp_support = priv->profile->rx_ptp_support;
+	struct mlx5e_redirect_rqt_param drop_rrp = {
+		.is_rss = false,
+		{
+			.rqn = priv->drop_rq.rqn,
+		},
+	};
+
+	mlx5e_redirect_rqts(priv, drop_rrp, rx_ptp_support ? &drop_rrp : NULL);
+}
+
+static const struct mlx5e_tirc_config tirc_default_config[MLX5E_NUM_INDIR_TIRS] = {
+	[MLX5E_TT_IPV4_TCP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV4,
+				.l4_prot_type = MLX5_L4_PROT_TYPE_TCP,
+				.rx_hash_fields = MLX5_HASH_IP_L4PORTS,
+	},
+	[MLX5E_TT_IPV6_TCP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV6,
+				.l4_prot_type = MLX5_L4_PROT_TYPE_TCP,
+				.rx_hash_fields = MLX5_HASH_IP_L4PORTS,
+	},
+	[MLX5E_TT_IPV4_UDP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV4,
+				.l4_prot_type = MLX5_L4_PROT_TYPE_UDP,
+				.rx_hash_fields = MLX5_HASH_IP_L4PORTS,
+	},
+	[MLX5E_TT_IPV6_UDP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV6,
+				.l4_prot_type = MLX5_L4_PROT_TYPE_UDP,
+				.rx_hash_fields = MLX5_HASH_IP_L4PORTS,
+	},
+	[MLX5E_TT_IPV4_IPSEC_AH] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV4,
+				     .l4_prot_type = 0,
+				     .rx_hash_fields = MLX5_HASH_IP_IPSEC_SPI,
+	},
+	[MLX5E_TT_IPV6_IPSEC_AH] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV6,
+				     .l4_prot_type = 0,
+				     .rx_hash_fields = MLX5_HASH_IP_IPSEC_SPI,
+	},
+	[MLX5E_TT_IPV4_IPSEC_ESP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV4,
+				      .l4_prot_type = 0,
+				      .rx_hash_fields = MLX5_HASH_IP_IPSEC_SPI,
+	},
+	[MLX5E_TT_IPV6_IPSEC_ESP] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV6,
+				      .l4_prot_type = 0,
+				      .rx_hash_fields = MLX5_HASH_IP_IPSEC_SPI,
+	},
+	[MLX5E_TT_IPV4] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV4,
+			    .l4_prot_type = 0,
+			    .rx_hash_fields = MLX5_HASH_IP,
+	},
+	[MLX5E_TT_IPV6] = { .l3_prot_type = MLX5_L3_PROT_TYPE_IPV6,
+			    .l4_prot_type = 0,
+			    .rx_hash_fields = MLX5_HASH_IP,
+	},
+};
+
+struct mlx5e_tirc_config mlx5e_tirc_get_default_config(enum mlx5e_traffic_types tt)
+{
+	return tirc_default_config[tt];
+}
+
+static void mlx5e_build_tir_ctx_lro(struct mlx5e_params *params, void *tirc)
+{
+	if (!params->lro_en)
+		return;
+
+#define ROUGH_MAX_L2_L3_HDR_SZ 256
+
+	MLX5_SET(tirc, tirc, lro_enable_mask,
+		 MLX5_TIRC_LRO_ENABLE_MASK_IPV4_LRO |
+		 MLX5_TIRC_LRO_ENABLE_MASK_IPV6_LRO);
+	MLX5_SET(tirc, tirc, lro_max_ip_payload_size,
+		 (MLX5E_PARAMS_DEFAULT_LRO_WQE_SZ - ROUGH_MAX_L2_L3_HDR_SZ) >> 8);
+	MLX5_SET(tirc, tirc, lro_timeout_period_usecs, params->lro_timeout);
+}
+
+void mlx5e_build_indir_tir_ctx_hash(struct mlx5e_rss_params *rss_params,
+				    const struct mlx5e_tirc_config *ttconfig,
+				    void *tirc, bool inner)
+{
+	void *hfso = inner ? MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_inner) :
+			     MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_outer);
+
+	MLX5_SET(tirc, tirc, rx_hash_fn, mlx5e_rx_hash_fn(rss_params->hfunc));
+	if (rss_params->hfunc == ETH_RSS_HASH_TOP) {
+		void *rss_key = MLX5_ADDR_OF(tirc, tirc,
+					     rx_hash_toeplitz_key);
+		size_t len = MLX5_FLD_SZ_BYTES(tirc,
+					       rx_hash_toeplitz_key);
+
+		MLX5_SET(tirc, tirc, rx_hash_symmetric, 1);
+		memcpy(rss_key, rss_params->toeplitz_hash_key, len);
+	}
+	MLX5_SET(rx_hash_field_select, hfso, l3_prot_type,
+		 ttconfig->l3_prot_type);
+	MLX5_SET(rx_hash_field_select, hfso, l4_prot_type,
+		 ttconfig->l4_prot_type);
+	MLX5_SET(rx_hash_field_select, hfso, selected_fields,
+		 ttconfig->rx_hash_fields);
+}
+
+static void mlx5e_update_rx_hash_fields(struct mlx5e_tirc_config *ttconfig,
+					enum mlx5e_traffic_types tt,
+					u32 rx_hash_fields)
+{
+	*ttconfig                = tirc_default_config[tt];
+	ttconfig->rx_hash_fields = rx_hash_fields;
+}
+
+void mlx5e_modify_tirs_hash(struct mlx5e_priv *priv, void *in)
+{
+	void *tirc = MLX5_ADDR_OF(modify_tir_in, in, ctx);
+	struct mlx5e_rss_params *rss = &priv->rss_params;
+	struct mlx5_core_dev *mdev = priv->mdev;
+	int ctxlen = MLX5_ST_SZ_BYTES(tirc);
+	struct mlx5e_tirc_config ttconfig;
+	int tt;
+
+	MLX5_SET(modify_tir_in, in, bitmask.hash, 1);
+
+	for (tt = 0; tt < MLX5E_NUM_INDIR_TIRS; tt++) {
+		memset(tirc, 0, ctxlen);
+		mlx5e_update_rx_hash_fields(&ttconfig, tt,
+					    rss->rx_hash_fields[tt]);
+		mlx5e_build_indir_tir_ctx_hash(rss, &ttconfig, tirc, false);
+		mlx5_core_modify_tir(mdev, priv->indir_tir[tt].tirn, in);
+	}
+
+	/* Verify inner tirs resources allocated */
+	if (!priv->inner_indir_tir[0].tirn)
+		return;
+
+	for (tt = 0; tt < MLX5E_NUM_INDIR_TIRS; tt++) {
+		memset(tirc, 0, ctxlen);
+		mlx5e_update_rx_hash_fields(&ttconfig, tt,
+					    rss->rx_hash_fields[tt]);
+		mlx5e_build_indir_tir_ctx_hash(rss, &ttconfig, tirc, true);
+		mlx5_core_modify_tir(mdev, priv->inner_indir_tir[tt].tirn, in);
+	}
+}
+
+static int mlx5e_modify_tirs_lro(struct mlx5e_priv *priv)
+{
+	struct mlx5_core_dev *mdev = priv->mdev;
+
+	void *in;
+	void *tirc;
+	int inlen;
+	int err;
+	int tt;
+	int ix;
+
+	inlen = MLX5_ST_SZ_BYTES(modify_tir_in);
+	in = kvzalloc(inlen, GFP_KERNEL);
+	if (!in)
+		return -ENOMEM;
+
+	MLX5_SET(modify_tir_in, in, bitmask.lro, 1);
+	tirc = MLX5_ADDR_OF(modify_tir_in, in, ctx);
+
+	mlx5e_build_tir_ctx_lro(&priv->channels.params, tirc);
+
+	for (tt = 0; tt < MLX5E_NUM_INDIR_TIRS; tt++) {
+		err = mlx5_core_modify_tir(mdev, priv->indir_tir[tt].tirn, in);
+		if (err)
+			goto free_in;
+	}
+
+	for (ix = 0; ix < priv->max_nch; ix++) {
+		err = mlx5_core_modify_tir(mdev, priv->direct_tir[ix].tirn, in);
+		if (err)
+			goto free_in;
+	}
+
+free_in:
+	kvfree(in);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return err;
 }
 
@@ -3005,7 +3407,11 @@ static int mlx5e_update_netdev_queues(struct mlx5e_priv *priv)
 	int err;
 
 	old_num_txqs = netdev->real_num_tx_queues;
+<<<<<<< HEAD
 	old_ntc = netdev->num_tc;
+=======
+	old_ntc = netdev->num_tc ? : 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	nch = priv->channels.params.num_channels;
 	ntc = priv->channels.params.num_tc;
@@ -3494,7 +3900,11 @@ static void mlx5e_cleanup_nic_tx(struct mlx5e_priv *priv)
 static void mlx5e_build_indir_tir_ctx_common(struct mlx5e_priv *priv,
 					     u32 rqtn, u32 *tirc)
 {
+<<<<<<< HEAD
 	MLX5_SET(tirc, tirc, transport_domain, priv->mdev->mlx5e_res.td.tdn);
+=======
+	MLX5_SET(tirc, tirc, transport_domain, priv->mdev->mlx5e_res.hw_objs.td.tdn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	MLX5_SET(tirc, tirc, disp_type, MLX5_TIRC_DISP_TYPE_INDIRECT);
 	MLX5_SET(tirc, tirc, indirect_table, rqtn);
 	MLX5_SET(tirc, tirc, tunneled_offload_en,
@@ -3586,7 +3996,11 @@ err_destroy_inner_tirs:
 	return err;
 }
 
+<<<<<<< HEAD
 int mlx5e_create_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs)
+=======
+int mlx5e_create_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mlx5e_tir *tir;
 	void *tirc;
@@ -3600,7 +4014,11 @@ int mlx5e_create_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs)
 	if (!in)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	for (ix = 0; ix < priv->max_nch; ix++) {
+=======
+	for (ix = 0; ix < n; ix++) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memset(in, 0, inlen);
 		tir = &tirs[ix];
 		tirc = MLX5_ADDR_OF(create_tir_in, in, ctx);
@@ -3638,11 +4056,19 @@ void mlx5e_destroy_indirect_tirs(struct mlx5e_priv *priv)
 		mlx5e_destroy_tir(priv->mdev, &priv->inner_indir_tir[i]);
 }
 
+<<<<<<< HEAD
 void mlx5e_destroy_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs)
 {
 	int i;
 
 	for (i = 0; i < priv->max_nch; i++)
+=======
+void mlx5e_destroy_direct_tirs(struct mlx5e_priv *priv, struct mlx5e_tir *tirs, int n)
+{
+	int i;
+
+	for (i = 0; i < n; i++)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mlx5e_destroy_tir(priv->mdev, &tirs[i]);
 }
 
@@ -3662,7 +4088,11 @@ static int mlx5e_modify_channels_scatter_fcs(struct mlx5e_channels *chs, bool en
 
 static int mlx5e_modify_channels_vsd(struct mlx5e_channels *chs, bool vsd)
 {
+<<<<<<< HEAD
 	int err = 0;
+=======
+	int err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int i;
 
 	for (i = 0; i < chs->num; i++) {
@@ -3670,6 +4100,11 @@ static int mlx5e_modify_channels_vsd(struct mlx5e_channels *chs, bool vsd)
 		if (err)
 			return err;
 	}
+<<<<<<< HEAD
+=======
+	if (chs->ptp && test_bit(MLX5E_PTP_STATE_RX, chs->ptp->state))
+		return mlx5e_modify_rq_vsd(&chs->ptp->rq, vsd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -3677,7 +4112,11 @@ static int mlx5e_modify_channels_vsd(struct mlx5e_channels *chs, bool vsd)
 static int mlx5e_setup_tc_mqprio(struct mlx5e_priv *priv,
 				 struct tc_mqprio_qopt *mqprio)
 {
+<<<<<<< HEAD
 	struct mlx5e_channels new_channels = {};
+=======
+	struct mlx5e_params new_params;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 tc = mqprio->num_tc;
 	int err = 0;
 
@@ -3694,6 +4133,7 @@ static int mlx5e_setup_tc_mqprio(struct mlx5e_priv *priv,
 	if (WARN_ON(priv->htb.maj_id)) {
 		err = -EINVAL;
 		goto out;
+<<<<<<< HEAD
 	}
 
 	new_channels.params = priv->channels.params;
@@ -3713,6 +4153,15 @@ static int mlx5e_setup_tc_mqprio(struct mlx5e_priv *priv,
 
 	err = mlx5e_safe_switch_channels(priv, &new_channels,
 					 mlx5e_num_channels_changed_ctx, NULL);
+=======
+	}
+
+	new_params = priv->channels.params;
+	new_params.num_tc = tc ? tc : 1;
+
+	err = mlx5e_safe_switch_params(priv, &new_params,
+				       mlx5e_num_channels_changed_ctx, NULL, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 out:
 	priv->max_opened_tc = max_t(u8, priv->max_opened_tc,
@@ -4245,6 +4694,50 @@ static int mlx5e_change_nic_mtu(struct net_device *netdev, int new_mtu)
 	return mlx5e_change_mtu(netdev, new_mtu, mlx5e_set_dev_port_mtu_ctx);
 }
 
+<<<<<<< HEAD
+=======
+int mlx5e_ptp_rx_manage_fs_ctx(struct mlx5e_priv *priv, void *ctx)
+{
+	bool set  = *(bool *)ctx;
+
+	return mlx5e_ptp_rx_manage_fs(priv, set);
+}
+
+static int mlx5e_hwstamp_config_no_ptp_rx(struct mlx5e_priv *priv, bool rx_filter)
+{
+	bool rx_cqe_compress_def = priv->channels.params.rx_cqe_compress_def;
+	int err;
+
+	if (!rx_filter)
+		/* Reset CQE compression to Admin default */
+		return mlx5e_modify_rx_cqe_compression_locked(priv, rx_cqe_compress_def);
+
+	if (!MLX5E_GET_PFLAG(&priv->channels.params, MLX5E_PFLAG_RX_CQE_COMPRESS))
+		return 0;
+
+	/* Disable CQE compression */
+	netdev_warn(priv->netdev, "Disabling RX cqe compression\n");
+	err = mlx5e_modify_rx_cqe_compression_locked(priv, false);
+	if (err)
+		netdev_err(priv->netdev, "Failed disabling cqe compression err=%d\n", err);
+
+	return err;
+}
+
+static int mlx5e_hwstamp_config_ptp_rx(struct mlx5e_priv *priv, bool ptp_rx)
+{
+	struct mlx5e_params new_params;
+
+	if (ptp_rx == priv->channels.params.ptp_rx)
+		return 0;
+
+	new_params = priv->channels.params;
+	new_params.ptp_rx = ptp_rx;
+	return mlx5e_safe_switch_params(priv, &new_params, mlx5e_ptp_rx_manage_fs_ctx,
+					&new_params.ptp_rx, true);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int mlx5e_hwstamp_set(struct mlx5e_priv *priv, struct ifreq *ifr)
 {
 	struct hwtstamp_config config;
@@ -4810,6 +5303,7 @@ void mlx5e_build_default_indir_rqt(u32 *indirection_rqt, int len,
 		indirection_rqt[i] = i % num_channels;
 }
 
+<<<<<<< HEAD
 static bool slow_pci_heuristic(struct mlx5_core_dev *mdev)
 {
 	u32 link_speed = 0;
@@ -4897,6 +5391,8 @@ void mlx5e_set_rx_cq_mode_params(struct mlx5e_params *params, u8 cq_period_mode)
 				MLX5_CQ_PERIOD_MODE_START_FROM_CQE);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static u32 mlx5e_choose_lro_timeout(struct mlx5_core_dev *mdev, u32 wanted_timeout)
 {
 	int i;
@@ -4909,6 +5405,7 @@ static u32 mlx5e_choose_lro_timeout(struct mlx5_core_dev *mdev, u32 wanted_timeo
 	return MLX5_CAP_ETH(mdev, lro_timer_supported_periods[i]);
 }
 
+<<<<<<< HEAD
 void mlx5e_build_rq_params(struct mlx5_core_dev *mdev,
 			   struct mlx5e_params *params)
 {
@@ -4928,6 +5425,8 @@ void mlx5e_build_rq_params(struct mlx5_core_dev *mdev,
 	mlx5e_init_rq_type_params(mdev, params);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void mlx5e_build_rss_params(struct mlx5e_rss_params *rss_params,
 			    u16 num_channels)
 {
@@ -4957,6 +5456,14 @@ void mlx5e_build_nic_params(struct mlx5e_priv *priv, struct mlx5e_xsk *xsk, u16 
 	params->num_channels = min_t(unsigned int, MLX5E_MAX_NUM_CHANNELS / 2,
 				     priv->max_nch);
 	params->num_tc       = 1;
+<<<<<<< HEAD
+=======
+
+	/* Set an initial non-zero value, so that mlx5e_select_queue won't
+	 * divide by zero if called before first activating channels.
+	 */
+	priv->num_tc_x_num_ch = params->num_channels * params->num_tc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* SQ */
 	params->log_sq_size = is_kdump_kernel() ?
@@ -5238,6 +5745,7 @@ static int mlx5e_nic_init(struct mlx5_core_dev *mdev,
 			  struct net_device *netdev)
 {
 	struct mlx5e_priv *priv = netdev_priv(netdev);
+	struct devlink_port *dl_port;
 	int err;
 
 	mlx5e_build_nic_params(priv, &priv->xsk, netdev->mtu);
@@ -5253,19 +5761,32 @@ static int mlx5e_nic_init(struct mlx5_core_dev *mdev,
 	if (err)
 		mlx5_core_err(mdev, "TLS initialization failed, %d\n", err);
 
+<<<<<<< HEAD
 	err = mlx5e_devlink_port_register(priv);
 	if (err)
 		mlx5_core_err(mdev, "mlx5e_devlink_port_register failed, %d\n", err);
 
 	mlx5e_health_create_reporters(priv);
+=======
+	dl_port = mlx5e_devlink_get_dl_port(priv);
+	if (dl_port->registered)
+		mlx5e_health_create_reporters(priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
 
 static void mlx5e_nic_cleanup(struct mlx5e_priv *priv)
 {
+<<<<<<< HEAD
 	mlx5e_health_destroy_reporters(priv);
 	mlx5e_devlink_port_unregister(priv);
+=======
+	struct devlink_port *dl_port = mlx5e_devlink_get_dl_port(priv);
+
+	if (dl_port->registered)
+		mlx5e_health_destroy_reporters(priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mlx5e_tls_cleanup(priv);
 	mlx5e_ipsec_cleanup(priv);
 }
@@ -5273,6 +5794,10 @@ static void mlx5e_nic_cleanup(struct mlx5e_priv *priv)
 static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
 {
 	struct mlx5_core_dev *mdev = priv->mdev;
+<<<<<<< HEAD
+=======
+	u16 max_nch = priv->max_nch;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int err;
 
 	mlx5e_create_q_counters(priv);
@@ -5287,7 +5812,11 @@ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
 	if (err)
 		goto err_close_drop_rq;
 
+<<<<<<< HEAD
 	err = mlx5e_create_direct_rqts(priv, priv->direct_tir);
+=======
+	err = mlx5e_create_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_destroy_indirect_rqts;
 
@@ -5295,6 +5824,7 @@ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
 	if (err)
 		goto err_destroy_direct_rqts;
 
+<<<<<<< HEAD
 	err = mlx5e_create_direct_tirs(priv, priv->direct_tir);
 	if (err)
 		goto err_destroy_indirect_tirs;
@@ -5311,6 +5841,32 @@ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
 	if (err) {
 		mlx5_core_warn(mdev, "create flow steering failed, %d\n", err);
 		goto err_destroy_xsk_tirs;
+=======
+	err = mlx5e_create_direct_tirs(priv, priv->direct_tir, max_nch);
+	if (err)
+		goto err_destroy_indirect_tirs;
+
+	err = mlx5e_create_direct_rqts(priv, priv->xsk_tir, max_nch);
+	if (unlikely(err))
+		goto err_destroy_direct_tirs;
+
+	err = mlx5e_create_direct_tirs(priv, priv->xsk_tir, max_nch);
+	if (unlikely(err))
+		goto err_destroy_xsk_rqts;
+
+	err = mlx5e_create_direct_rqts(priv, &priv->ptp_tir, 1);
+	if (err)
+		goto err_destroy_xsk_tirs;
+
+	err = mlx5e_create_direct_tirs(priv, &priv->ptp_tir, 1);
+	if (err)
+		goto err_destroy_ptp_rqt;
+
+	err = mlx5e_create_flow_steering(priv);
+	if (err) {
+		mlx5_core_warn(mdev, "create flow steering failed, %d\n", err);
+		goto err_destroy_ptp_direct_tir;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	err = mlx5e_tc_nic_init(priv);
@@ -5331,6 +5887,7 @@ err_tc_nic_cleanup:
 	mlx5e_tc_nic_cleanup(priv);
 err_destroy_flow_steering:
 	mlx5e_destroy_flow_steering(priv);
+<<<<<<< HEAD
 err_destroy_xsk_tirs:
 	mlx5e_destroy_direct_tirs(priv, priv->xsk_tir);
 err_destroy_xsk_rqts:
@@ -5341,6 +5898,22 @@ err_destroy_indirect_tirs:
 	mlx5e_destroy_indirect_tirs(priv);
 err_destroy_direct_rqts:
 	mlx5e_destroy_direct_rqts(priv, priv->direct_tir);
+=======
+err_destroy_ptp_direct_tir:
+	mlx5e_destroy_direct_tirs(priv, &priv->ptp_tir, 1);
+err_destroy_ptp_rqt:
+	mlx5e_destroy_direct_rqts(priv, &priv->ptp_tir, 1);
+err_destroy_xsk_tirs:
+	mlx5e_destroy_direct_tirs(priv, priv->xsk_tir, max_nch);
+err_destroy_xsk_rqts:
+	mlx5e_destroy_direct_rqts(priv, priv->xsk_tir, max_nch);
+err_destroy_direct_tirs:
+	mlx5e_destroy_direct_tirs(priv, priv->direct_tir, max_nch);
+err_destroy_indirect_tirs:
+	mlx5e_destroy_indirect_tirs(priv);
+err_destroy_direct_rqts:
+	mlx5e_destroy_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_destroy_indirect_rqts:
 	mlx5e_destroy_rqt(priv, &priv->indir_rqt);
 err_close_drop_rq:
@@ -5352,14 +5925,26 @@ err_destroy_q_counters:
 
 static void mlx5e_cleanup_nic_rx(struct mlx5e_priv *priv)
 {
+	u16 max_nch = priv->max_nch;
+
 	mlx5e_accel_cleanup_rx(priv);
 	mlx5e_tc_nic_cleanup(priv);
 	mlx5e_destroy_flow_steering(priv);
+<<<<<<< HEAD
 	mlx5e_destroy_direct_tirs(priv, priv->xsk_tir);
 	mlx5e_destroy_direct_rqts(priv, priv->xsk_tir);
 	mlx5e_destroy_direct_tirs(priv, priv->direct_tir);
 	mlx5e_destroy_indirect_tirs(priv);
 	mlx5e_destroy_direct_rqts(priv, priv->direct_tir);
+=======
+	mlx5e_destroy_direct_tirs(priv, &priv->ptp_tir, 1);
+	mlx5e_destroy_direct_rqts(priv, &priv->ptp_tir, 1);
+	mlx5e_destroy_direct_tirs(priv, priv->xsk_tir, max_nch);
+	mlx5e_destroy_direct_rqts(priv, priv->xsk_tir, max_nch);
+	mlx5e_destroy_direct_tirs(priv, priv->direct_tir, max_nch);
+	mlx5e_destroy_indirect_tirs(priv);
+	mlx5e_destroy_direct_rqts(priv, priv->direct_tir, max_nch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mlx5e_destroy_rqt(priv, &priv->indir_rqt);
 	mlx5e_close_drop_rq(&priv->drop_rq);
 	mlx5e_destroy_q_counters(priv);
@@ -5664,8 +6249,12 @@ int mlx5e_netdev_change_profile(struct mlx5e_priv *priv,
 
 	/* sanity */
 	if (new_max_nch != priv->max_nch) {
+<<<<<<< HEAD
 		netdev_warn(priv->netdev,
 			    "%s: Replacing profile with different max channels\n",
+=======
+		netdev_warn(netdev, "%s: Replacing profile with different max channels\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			    __func__);
 		return -EINVAL;
 	}

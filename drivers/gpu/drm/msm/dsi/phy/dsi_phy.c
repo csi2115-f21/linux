@@ -460,6 +460,7 @@ int msm_dsi_dphy_timing_calc_v4(struct msm_dsi_dphy_timing *timing,
 	return 0;
 }
 
+<<<<<<< HEAD
 void msm_dsi_phy_set_src_pll(struct msm_dsi_phy *phy, int pll_id, u32 reg,
 				u32 bit_mask)
 {
@@ -477,6 +478,8 @@ void msm_dsi_phy_set_src_pll(struct msm_dsi_phy *phy, int pll_id, u32 reg,
 		dsi_phy_write(phy->base + reg, val & (~bit_mask));
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int dsi_phy_regulator_init(struct msm_dsi_phy *phy)
 {
 	struct regulator_bulk_data *s = phy->supplies;
@@ -670,6 +673,17 @@ static int dsi_phy_driver_probe(struct platform_device *pdev)
 	if (!match)
 		return -ENODEV;
 
+<<<<<<< HEAD
+=======
+	phy->provided_clocks = devm_kzalloc(dev,
+			struct_size(phy->provided_clocks, hws, NUM_PROVIDED_CLKS),
+			GFP_KERNEL);
+	if (!phy->provided_clocks)
+		return -ENOMEM;
+
+	phy->provided_clocks->num = NUM_PROVIDED_CLKS;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	phy->cfg = match->data;
 	phy->pdev = pdev;
 
@@ -766,7 +780,11 @@ void __exit msm_dsi_phy_driver_unregister(void)
 	platform_driver_unregister(&dsi_phy_platform_driver);
 }
 
+<<<<<<< HEAD
 int msm_dsi_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
+=======
+int msm_dsi_phy_enable(struct msm_dsi_phy *phy,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			struct msm_dsi_phy_clk_request *clk_req)
 {
 	struct device *dev = &phy->pdev->dev;
@@ -836,6 +854,33 @@ void msm_dsi_phy_disable(struct msm_dsi_phy *phy)
 
 void msm_dsi_phy_get_shared_timings(struct msm_dsi_phy *phy,
 			struct msm_dsi_phy_shared_timings *shared_timings)
+<<<<<<< HEAD
+=======
+{
+	memcpy(shared_timings, &phy->timing.shared_timings,
+	       sizeof(*shared_timings));
+}
+
+void msm_dsi_phy_set_usecase(struct msm_dsi_phy *phy,
+			     enum msm_dsi_phy_usecase uc)
+{
+	if (phy)
+		phy->usecase = uc;
+}
+
+int msm_dsi_phy_get_clk_provider(struct msm_dsi_phy *phy,
+	struct clk **byte_clk_provider, struct clk **pixel_clk_provider)
+{
+	if (byte_clk_provider)
+		*byte_clk_provider = phy->provided_clocks->hws[DSI_BYTE_PLL_CLK]->clk;
+	if (pixel_clk_provider)
+		*pixel_clk_provider = phy->provided_clocks->hws[DSI_PIXEL_PLL_CLK]->clk;
+
+	return 0;
+}
+
+void msm_dsi_phy_pll_save_state(struct msm_dsi_phy *phy)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	memcpy(shared_timings, &phy->timing.shared_timings,
 	       sizeof(*shared_timings));

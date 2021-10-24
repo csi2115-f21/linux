@@ -130,6 +130,10 @@ static struct class	*mbochs_class;
 static struct cdev	mbochs_cdev;
 static struct device	mbochs_dev;
 static int		mbochs_used_mbytes;
+<<<<<<< HEAD
+=======
+static const struct vfio_device_ops mbochs_dev_ops;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct vfio_region_info_ext {
 	struct vfio_region_info          base;
@@ -518,18 +522,30 @@ static int mbochs_reset(struct mdev_device *mdev)
 
 static int mbochs_create(struct kobject *kobj, struct mdev_device *mdev)
 {
+<<<<<<< HEAD
 	const struct mbochs_type *type = mbochs_find_type(kobj);
+=======
+	const struct mbochs_type *type =
+		&mbochs_types[mdev_get_type_group_id(mdev)];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct device *dev = mdev_dev(mdev);
 	struct mdev_state *mdev_state;
 
+<<<<<<< HEAD
 	if (!type)
 		type = &mbochs_types[0];
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (type->mbytes + mbochs_used_mbytes > max_mbytes)
 		return -ENOMEM;
 
 	mdev_state = kzalloc(sizeof(struct mdev_state), GFP_KERNEL);
 	if (mdev_state == NULL)
 		return -ENOMEM;
+<<<<<<< HEAD
+=======
+	vfio_init_group_dev(&mdev_state->vdev, &mdev->dev, &mbochs_dev_ops);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mdev_state->vconfig = kzalloc(MBOCHS_CONFIG_SPACE_SIZE, GFP_KERNEL);
 	if (mdev_state->vconfig == NULL)
@@ -561,12 +577,24 @@ static int mbochs_create(struct kobject *kobj, struct mdev_device *mdev)
 	mbochs_reset(mdev);
 
 	mbochs_used_mbytes += type->mbytes;
+<<<<<<< HEAD
+=======
+
+	ret = vfio_register_group_dev(&mdev_state->vdev);
+	if (ret)
+		goto err_mem;
+	dev_set_drvdata(&mdev->dev, mdev_state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 err_mem:
 	kfree(mdev_state->vconfig);
 	kfree(mdev_state);
+<<<<<<< HEAD
 	return -ENOMEM;
+=======
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int mbochs_remove(struct mdev_device *mdev)
@@ -574,7 +602,11 @@ static int mbochs_remove(struct mdev_device *mdev)
 	struct mdev_state *mdev_state = mdev_get_drvdata(mdev);
 
 	mbochs_used_mbytes -= mdev_state->type->mbytes;
+<<<<<<< HEAD
 	mdev_set_drvdata(mdev, NULL);
+=======
+	vfio_unregister_group_dev(&mdev_state->vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(mdev_state->pages);
 	kfree(mdev_state->vconfig);
 	kfree(mdev_state);
@@ -1283,7 +1315,19 @@ static long mbochs_ioctl(struct mdev_device *mdev, unsigned int cmd,
 	return -ENOTTY;
 }
 
+<<<<<<< HEAD
 static int mbochs_open(struct mdev_device *mdev)
+=======
+static int mbochs_open(struct vfio_device *vdev)
+{
+	if (!try_module_get(THIS_MODULE))
+		return -ENODEV;
+
+	return 0;
+}
+
+static void mbochs_close(struct vfio_device *vdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
@@ -1359,7 +1403,12 @@ MDEV_TYPE_ATTR_RO(description);
 static ssize_t
 available_instances_show(struct kobject *kobj, struct device *dev, char *buf)
 {
+<<<<<<< HEAD
 	const struct mbochs_type *type = mbochs_find_type(kobj);
+=======
+	const struct mbochs_type *type =
+		&mbochs_types[mtype_get_type_group_id(mtype)];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int count = (max_mbytes - mbochs_used_mbytes) / type->mbytes;
 
 	return sprintf(buf, "%d\n", count);
@@ -1403,6 +1452,29 @@ static struct attribute_group *mdev_type_groups[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static const struct vfio_device_ops mbochs_dev_ops = {
+	.open = mbochs_open,
+	.release = mbochs_close,
+	.read = mbochs_read,
+	.write = mbochs_write,
+	.ioctl = mbochs_ioctl,
+	.mmap = mbochs_mmap,
+};
+
+static struct mdev_driver mbochs_driver = {
+	.driver = {
+		.name = "mbochs",
+		.owner = THIS_MODULE,
+		.mod_name = KBUILD_MODNAME,
+		.dev_groups = mdev_dev_groups,
+	},
+	.probe = mbochs_probe,
+	.remove	= mbochs_remove,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct mdev_parent_ops mdev_fops = {
 	.owner			= THIS_MODULE,
 	.mdev_attr_groups	= mdev_dev_groups,

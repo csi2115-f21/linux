@@ -786,8 +786,13 @@ static void blkcg_rstat_flush(struct cgroup_subsys_state *css, int cpu)
 		blkg_iostat_add(&bisc->last, &delta);
 		u64_stats_update_end(&blkg->iostat.sync);
 
+<<<<<<< HEAD
 		/* propagate global delta to parent */
 		if (parent) {
+=======
+		/* propagate global delta to parent (unless that's root) */
+		if (parent && parent->parent) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			u64_stats_update_begin(&parent->iostat.sync);
 			blkg_iostat_set(&delta, &blkg->iostat.cur);
 			blkg_iostat_sub(&delta, &blkg->iostat.last);
@@ -891,6 +896,7 @@ static int blkcg_print_stat(struct seq_file *sf, void *v)
 
 		do {
 			seq = u64_stats_fetch_begin(&bis->sync);
+<<<<<<< HEAD
 
 			rbytes = bis->cur.bytes[BLKG_IOSTAT_READ];
 			wbytes = bis->cur.bytes[BLKG_IOSTAT_WRITE];
@@ -900,6 +906,17 @@ static int blkcg_print_stat(struct seq_file *sf, void *v)
 			dios = bis->cur.ios[BLKG_IOSTAT_DISCARD];
 		} while (u64_stats_fetch_retry(&bis->sync, seq));
 
+=======
+
+			rbytes = bis->cur.bytes[BLKG_IOSTAT_READ];
+			wbytes = bis->cur.bytes[BLKG_IOSTAT_WRITE];
+			dbytes = bis->cur.bytes[BLKG_IOSTAT_DISCARD];
+			rios = bis->cur.ios[BLKG_IOSTAT_READ];
+			wios = bis->cur.ios[BLKG_IOSTAT_WRITE];
+			dios = bis->cur.ios[BLKG_IOSTAT_DISCARD];
+		} while (u64_stats_fetch_retry(&bis->sync, seq));
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (rbytes || wbytes || rios || wios) {
 			has_stats = true;
 			off += scnprintf(buf+off, size-off,
@@ -1178,15 +1195,26 @@ int blkcg_init_queue(struct request_queue *q)
 	if (preloaded)
 		radix_tree_preload_end();
 
+<<<<<<< HEAD
 	ret = blk_throtl_init(q);
+=======
+	ret = blk_iolatency_init(q);
 	if (ret)
 		goto err_destroy_all;
 
-	ret = blk_iolatency_init(q);
-	if (ret) {
-		blk_throtl_exit(q);
+	ret = blk_ioprio_init(q);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	if (ret)
 		goto err_destroy_all;
+
+	ret = blk_throtl_init(q);
+	if (ret)
+		goto err_destroy_all;
+<<<<<<< HEAD
 	}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 err_destroy_all:

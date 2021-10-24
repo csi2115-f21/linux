@@ -671,6 +671,13 @@ struct nqe_cn {
 #define HWRM_MIN_TIMEOUT		25
 #define HWRM_MAX_TIMEOUT		40
 
+<<<<<<< HEAD
+=======
+#define HWRM_WAIT_MUST_ABORT(bp, req)					\
+	(le16_to_cpu((req)->req_type) != HWRM_VER_GET &&		\
+	 !bnxt_is_fw_healthy(bp))
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define HWRM_TOTAL_TIMEOUT(n)	(((n) <= HWRM_SHORT_TIMEOUT_COUNTER) ?	\
 	((n) * HWRM_SHORT_MIN_TIMEOUT) :				\
 	(HWRM_SHORT_TIMEOUT_COUNTER * HWRM_SHORT_MIN_TIMEOUT +		\
@@ -1867,7 +1874,10 @@ struct bnxt {
 	#define BNXT_FW_CAP_VLAN_RX_STRIP		0x01000000
 	#define BNXT_FW_CAP_VLAN_TX_INSERT		0x02000000
 	#define BNXT_FW_CAP_EXT_HW_STATS_SUPPORTED	0x04000000
+<<<<<<< HEAD
 	#define BNXT_FW_CAP_PORT_STATS_NO_RESET		0x10000000
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	#define BNXT_FW_CAP_RING_MONITOR		0x40000000
 
 #define BNXT_NEW_RM(bp)		((bp)->fw_cap & BNXT_FW_CAP_NEW_RM)

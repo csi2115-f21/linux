@@ -571,6 +571,48 @@ static int i2c_device_remove(struct device *dev)
 	client->irq = 0;
 	if (client->flags & I2C_CLIENT_HOST_NOTIFY)
 		pm_runtime_put(&client->adapter->dev);
+<<<<<<< HEAD
+=======
+
+	/* return always 0 because there is WIP to make remove-functions void */
+	return 0;
+}
+
+#ifdef CONFIG_PM_SLEEP
+static int i2c_resume_early(struct device *dev)
+{
+	struct i2c_client *client = i2c_verify_client(dev);
+	int err;
+
+	if (!client)
+		return 0;
+
+	if (pm_runtime_status_suspended(&client->dev) &&
+		client->adapter->bus_regulator) {
+		err = regulator_enable(client->adapter->bus_regulator);
+		if (err)
+			return err;
+	}
+
+	return pm_generic_resume_early(&client->dev);
+}
+
+static int i2c_suspend_late(struct device *dev)
+{
+	struct i2c_client *client = i2c_verify_client(dev);
+	int err;
+
+	if (!client)
+		return 0;
+
+	err = pm_generic_suspend_late(&client->dev);
+	if (err)
+		return err;
+
+	if (!pm_runtime_status_suspended(&client->dev) &&
+		client->adapter->bus_regulator)
+		return regulator_disable(client->adapter->bus_regulator);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* return always 0 because there is WIP to make remove-functions void */
 	return 0;

@@ -492,12 +492,16 @@ int efx_xdp_tx_buffers(struct efx_nic *efx, int n, struct xdp_frame **xdpfs,
 	if (flush && i > 0)
 		efx_nic_push_buffers(tx_queue);
 
+<<<<<<< HEAD
 	if (i == 0)
 		return -EIO;
 
 	efx_xdp_return_frames(n - i, xdpfs + i);
 
 	return i;
+=======
+	return i == 0 ? -EIO : i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* Initiate a packet transmission.  We use one channel per CPU

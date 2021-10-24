@@ -67,6 +67,10 @@ struct pt_regs
 		};
 		unsigned long __pad[4];	/* Maintain 16 byte interrupt stack alignment */
 	};
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 #endif
 
@@ -244,12 +248,46 @@ static inline bool trap_is_syscall(struct pt_regs *regs)
 
 static inline bool trap_norestart(struct pt_regs *regs)
 {
+<<<<<<< HEAD
 	return regs->trap & 0x10;
 }
 
 static inline void set_trap_norestart(struct pt_regs *regs)
 {
 	regs->trap |= 0x10;
+=======
+	return regs->trap & 0x1;
+}
+
+static __always_inline void set_trap_norestart(struct pt_regs *regs)
+{
+	regs->trap |= 0x1;
+}
+
+#define kernel_stack_pointer(regs) ((regs)->gpr[1])
+static inline int is_syscall_success(struct pt_regs *regs)
+{
+	if (trap_is_scv(regs))
+		return !IS_ERR_VALUE((unsigned long)regs->gpr[3]);
+	else
+		return !(regs->ccr & 0x10000000);
+}
+
+static inline long regs_return_value(struct pt_regs *regs)
+{
+	if (trap_is_scv(regs))
+		return regs->gpr[3];
+
+	if (is_syscall_success(regs))
+		return regs->gpr[3];
+	else
+		return -regs->gpr[3];
+}
+
+static inline void regs_set_return_value(struct pt_regs *regs, unsigned long rc)
+{
+	regs->gpr[3] = rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #define arch_has_single_step()	(1)

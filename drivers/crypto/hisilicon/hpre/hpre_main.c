@@ -70,6 +70,7 @@
 #define HPRE_DBGFS_VAL_MAX_LEN		20
 #define HPRE_PCI_DEVICE_ID		0xa258
 #define HPRE_PCI_VF_DEVICE_ID		0xa259
+<<<<<<< HEAD
 #define HPRE_ADDR(qm, offset)		((qm)->io_base + (offset))
 #define HPRE_QM_USR_CFG_MASK		0xfffffffe
 #define HPRE_QM_AXI_CFG_MASK		0xffff
@@ -77,6 +78,19 @@
 #define HPRE_BD_USR_MASK		0x3
 #define HPRE_CLUSTER_CORE_MASK_V2	0xf
 #define HPRE_CLUSTER_CORE_MASK_V3	0xff
+=======
+#define HPRE_QM_USR_CFG_MASK		GENMASK(31, 1)
+#define HPRE_QM_AXI_CFG_MASK		GENMASK(15, 0)
+#define HPRE_QM_VFG_AX_MASK		GENMASK(7, 0)
+#define HPRE_BD_USR_MASK		GENMASK(1, 0)
+#define HPRE_CLUSTER_CORE_MASK_V2	GENMASK(3, 0)
+#define HPRE_CLUSTER_CORE_MASK_V3	GENMASK(7, 0)
+#define HPRE_PREFETCH_CFG		0x301130
+#define HPRE_SVA_PREFTCH_DFX		0x30115C
+#define HPRE_PREFETCH_ENABLE		(~(BIT(0) | BIT(30)))
+#define HPRE_PREFETCH_DISABLE		BIT(30)
+#define HPRE_SVA_DISABLE_READY		(BIT(4) | BIT(8))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define HPRE_AM_OOO_SHUTDOWN_ENB	0x301044
 #define HPRE_AM_OOO_SHUTDOWN_ENABLE	BIT(0)
@@ -331,8 +345,54 @@ static void disable_flr_of_bme(struct hisi_qm *qm)
 	val = readl(HPRE_ADDR(qm, QM_PEH_AXUSER_CFG));
 	val &= ~(HPRE_QM_BME_FLR | HPRE_QM_SRIOV_FLR);
 	val |= HPRE_QM_PM_FLR;
+<<<<<<< HEAD
 	writel(val, HPRE_ADDR(qm, QM_PEH_AXUSER_CFG));
 	writel(PEH_AXUSER_CFG_ENABLE, HPRE_ADDR(qm, QM_PEH_AXUSER_CFG_ENABLE));
+=======
+	writel(val, qm->io_base + QM_PEH_AXUSER_CFG);
+	writel(PEH_AXUSER_CFG_ENABLE, qm->io_base + QM_PEH_AXUSER_CFG_ENABLE);
+}
+
+static void hpre_open_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	/* Enable prefetch */
+	val = readl_relaxed(qm->io_base + HPRE_PREFETCH_CFG);
+	val &= HPRE_PREFETCH_ENABLE;
+	writel(val, qm->io_base + HPRE_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + HPRE_PREFETCH_CFG,
+					 val, !(val & HPRE_PREFETCH_DISABLE),
+					 HPRE_REG_RD_INTVRL_US,
+					 HPRE_REG_RD_TMOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to open sva prefetch\n");
+}
+
+static void hpre_close_sva_prefetch(struct hisi_qm *qm)
+{
+	u32 val;
+	int ret;
+
+	if (qm->ver < QM_HW_V3)
+		return;
+
+	val = readl_relaxed(qm->io_base + HPRE_PREFETCH_CFG);
+	val |= HPRE_PREFETCH_DISABLE;
+	writel(val, qm->io_base + HPRE_PREFETCH_CFG);
+
+	ret = readl_relaxed_poll_timeout(qm->io_base + HPRE_SVA_PREFTCH_DFX,
+					 val, !(val & HPRE_SVA_DISABLE_READY),
+					 HPRE_REG_RD_INTVRL_US,
+					 HPRE_REG_RD_TMOUT_US);
+	if (ret)
+		pci_err(qm->pdev, "failed to close sva prefetch\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int hpre_set_user_domain_and_cache(struct hisi_qm *qm)
@@ -341,9 +401,15 @@ static int hpre_set_user_domain_and_cache(struct hisi_qm *qm)
 	u32 val;
 	int ret;
 
+<<<<<<< HEAD
 	writel(HPRE_QM_USR_CFG_MASK, HPRE_ADDR(qm, QM_ARUSER_M_CFG_ENABLE));
 	writel(HPRE_QM_USR_CFG_MASK, HPRE_ADDR(qm, QM_AWUSER_M_CFG_ENABLE));
 	writel_relaxed(HPRE_QM_AXI_CFG_MASK, HPRE_ADDR(qm, QM_AXI_M_CFG));
+=======
+	writel(HPRE_QM_USR_CFG_MASK, qm->io_base + QM_ARUSER_M_CFG_ENABLE);
+	writel(HPRE_QM_USR_CFG_MASK, qm->io_base + QM_AWUSER_M_CFG_ENABLE);
+	writel_relaxed(HPRE_QM_AXI_CFG_MASK, qm->io_base + QM_AXI_M_CFG);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* HPRE need more time, we close this interrupt */
 	val = readl_relaxed(HPRE_ADDR(qm, HPRE_QM_ABNML_INT_MASK));
@@ -387,10 +453,15 @@ static int hpre_set_user_domain_and_cache(struct hisi_qm *qm)
 
 		disable_flr_of_bme(qm);
 
+<<<<<<< HEAD
 		/* Enable data buffer pasid */
 		if (qm->use_sva)
 			hpre_pasid_enable(qm);
 	}
+=======
+	/* Config data buffer pasid needed by Kunpeng 920 */
+	hpre_config_pasid(qm);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -1016,7 +1087,10 @@ static void hpre_remove(struct pci_dev *pdev)
 	hisi_qm_uninit(qm);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct pci_error_handlers hpre_err_handler = {
 	.error_detected		= hisi_qm_dev_err_detected,
 	.slot_reset		= hisi_qm_dev_slot_reset,

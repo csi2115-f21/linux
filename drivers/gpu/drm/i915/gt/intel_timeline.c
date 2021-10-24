@@ -296,6 +296,11 @@ static void intel_timeline_fini(struct intel_timeline *timeline)
 		i915_gem_object_unpin_map(timeline->hwsp_ggtt->obj);
 
 	i915_vma_put(timeline->hwsp_ggtt);
+<<<<<<< HEAD
+=======
+	i915_active_fini(&timeline->active);
+	kfree(timeline);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 struct intel_timeline *

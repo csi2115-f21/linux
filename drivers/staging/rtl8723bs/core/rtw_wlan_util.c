@@ -29,9 +29,12 @@ static unsigned char AIRGOCAP_OUI[] = {0x00, 0x0a, 0xf5};
 static unsigned char RSN_TKIP_CIPHER[4] = {0x00, 0x0f, 0xac, 0x02};
 static unsigned char WPA_TKIP_CIPHER[4] = {0x00, 0x50, 0xf2, 0x02};
 
+<<<<<<< HEAD
 extern unsigned char RTW_WPA_OUI[];
 extern unsigned char WPA_TKIP_CIPHER[4];
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define R2T_PHY_DELAY	(0)
 
 /* define WAIT_FOR_BCN_TO_MIN	(3000) */
@@ -62,9 +65,12 @@ u8 networktype_to_raid_ex(struct adapter *adapter, struct sta_info *psta)
 
 	if (cur_rf_type == RF_1T1R) {
 		rf_type = RF_1T1R;
+<<<<<<< HEAD
 	} else if (IsSupportedVHT(psta->wireless_mode)) {
 		if (psta->ra_mask & 0xffc00000)
 			rf_type = RF_2T2R;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else if (IsSupportedHT(psta->wireless_mode)) {
 		if (psta->ra_mask & 0xfff00000)
 			rf_type = RF_2T2R;
@@ -946,9 +952,12 @@ static void bwmode_update_check(struct adapter *padapter, struct ndis_80211_var_
 	if (phtpriv->ht_option == false)
 		return;
 
+<<<<<<< HEAD
 	if (pmlmeext->cur_bwmode >= CHANNEL_WIDTH_80)
 		return;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (pIE->Length > sizeof(struct HT_info_element))
 		return;
 
@@ -1075,6 +1084,7 @@ void HT_caps_handler(struct adapter *padapter, struct ndis_80211_var_ie *pIE)
 		break;
 	case RF_2T2R:
 	default:
+<<<<<<< HEAD
 #ifdef CONFIG_DISABLE_MCS13TO15
 		if (pmlmeext->cur_bwmode == CHANNEL_WIDTH_40 && pregistrypriv->wifi_spec != 1)
 			set_mcs_rate_by_mask(pmlmeinfo->HT_caps.u.HT_cap_element.MCS_rate, MCS_RATE_2R_13TO15_OFF);
@@ -1083,6 +1093,9 @@ void HT_caps_handler(struct adapter *padapter, struct ndis_80211_var_ie *pIE)
 #else /* CONFIG_DISABLE_MCS13TO15 */
 		set_mcs_rate_by_mask(pmlmeinfo->HT_caps.u.HT_cap_element.MCS_rate, MCS_RATE_2R);
 #endif /* CONFIG_DISABLE_MCS13TO15 */
+=======
+		set_mcs_rate_by_mask(pmlmeinfo->HT_caps.u.HT_cap_element.MCS_rate, MCS_RATE_2R);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
@@ -1259,9 +1272,13 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 		return _FAIL;
 	}
 
+<<<<<<< HEAD
 	if (memcmp(cur_network->network.MacAddress, pbssid, 6)) {
 		DBG_871X("Oops: rtw_check_network_encrypt linked but recv other bssid bcn %pM %pM\n",
 				MAC_ARG(pbssid), MAC_ARG(cur_network->network.MacAddress));
+=======
+	if (memcmp(cur_network->network.MacAddress, pbssid, 6))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return true;
 	}
 
@@ -1302,6 +1319,7 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 			pht_info = (struct HT_info_element *)(p + 2);
 			ht_info_infos_0 = pht_info->infos[0];
 	} else {
+<<<<<<< HEAD
 			ht_info_infos_0 = 0;
 	}
 	if (ht_cap_info != cur_network->BcnInfo.ht_cap_info ||
@@ -1318,6 +1336,19 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 				/* to do : need to check that whether modify related register of BB or not */
 			}
 			/* goto _mismatch; */
+=======
+		ht_info_infos_0 = 0;
+	}
+	if (ht_cap_info != cur_network->BcnInfo.ht_cap_info ||
+	    ((ht_info_infos_0&0x03) != (cur_network->BcnInfo.ht_info_infos_0&0x03))) {
+		{
+			/* bcn_info_update */
+			cur_network->BcnInfo.ht_cap_info = ht_cap_info;
+			cur_network->BcnInfo.ht_info_infos_0 = ht_info_infos_0;
+			/* to do : need to check that whether modify related register of BB or not */
+		}
+		/* goto _mismatch; */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* Checking for channel */
@@ -1325,6 +1356,7 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 	if (p) {
 			bcn_channel = *(p + 2);
 	} else {/* In 5G, some ap do not have DSSET IE checking HT info for channel */
+<<<<<<< HEAD
 			rtw_get_ie(bssid->IEs + _FIXED_IE_LENGTH_, WLAN_EID_HT_OPERATION, &len, bssid->IELength - _FIXED_IE_LENGTH_);
 			if (pht_info) {
 					bcn_channel = pht_info->primary_channel;
@@ -1337,6 +1369,14 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 			DBG_871X("%s beacon channel:%d cur channel:%d disconnect\n", __func__,
 						   bcn_channel, Adapter->mlmeextpriv.cur_channel);
 			goto _mismatch;
+=======
+		rtw_get_ie(bssid->IEs + _FIXED_IE_LENGTH_, WLAN_EID_HT_OPERATION,
+			   &len, bssid->IELength - _FIXED_IE_LENGTH_);
+		if (pht_info)
+			bcn_channel = pht_info->primary_channel;
+		else /* we don't find channel IE, so don't check it */
+			bcn_channel = Adapter->mlmeextpriv.cur_channel;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* checking SSID */
@@ -1350,6 +1390,7 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 	memcpy(bssid->Ssid.Ssid, (p + 2), ssid_len);
 	bssid->Ssid.SsidLength = ssid_len;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s bssid.Ssid.Ssid:%s bssid.Ssid.SsidLength:%d "
 				"cur_network->network.Ssid.Ssid:%s len:%d\n", __func__, bssid->Ssid.Ssid,
 				bssid->Ssid.SsidLength, cur_network->network.Ssid.Ssid,
@@ -1359,6 +1400,12 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 			bssid->Ssid.SsidLength != cur_network->network.Ssid.SsidLength) {
 		if (bssid->Ssid.Ssid[0] != '\0' && bssid->Ssid.SsidLength != 0) { /* not hidden ssid */
 			DBG_871X("%s(), SSID is not match\n", __func__);
+=======
+	if (memcmp(bssid->Ssid.Ssid, cur_network->network.Ssid.Ssid, 32) ||
+			bssid->Ssid.SsidLength != cur_network->network.Ssid.SsidLength)
+		if (bssid->Ssid.Ssid[0] != '\0' &&
+		    bssid->Ssid.SsidLength != 0) /* not hidden ssid */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto _mismatch;
 		}
 	}
@@ -1371,11 +1418,15 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 	else
 		bssid->Privacy = 0;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_,
 			("%s(): cur_network->network.Privacy is %d, bssid.Privacy is %d\n",
 			 __func__, cur_network->network.Privacy, bssid->Privacy));
 	if (cur_network->network.Privacy != bssid->Privacy) {
 		DBG_871X("%s(), privacy is not match\n", __func__);
+=======
+	if (cur_network->network.Privacy != bssid->Privacy)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _mismatch;
 	}
 
@@ -1385,13 +1436,21 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 		encryp_protocol = ENCRYP_PROTOCOL_WPA2;
 	} else if (wpa_len > 0) {
 		encryp_protocol = ENCRYP_PROTOCOL_WPA;
+<<<<<<< HEAD
 	} else {
+=======
+	else
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (bssid->Privacy)
 			encryp_protocol = ENCRYP_PROTOCOL_WEP;
 	}
 
+<<<<<<< HEAD
 	if (cur_network->BcnInfo.encryp_protocol != encryp_protocol) {
 		DBG_871X("%s(): enctyp is not match\n", __func__);
+=======
+	if (cur_network->BcnInfo.encryp_protocol != encryp_protocol)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _mismatch;
 	}
 
@@ -1406,6 +1465,7 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 		} else {
 			pbuf = rtw_get_wpa2_ie(&bssid->IEs[12], &wpa_ielen, bssid->IELength-12);
 
+<<<<<<< HEAD
 			if (pbuf && (wpa_ielen > 0)) {
 				if (_SUCCESS == rtw_parse_wpa2_ie(pbuf, wpa_ielen+2, &group_cipher, &pairwise_cipher, &is_8021x)) {
 					RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_,
@@ -1421,11 +1481,24 @@ int rtw_check_bcn_info(struct adapter *Adapter, u8 *pframe, u32 packet_len)
 			DBG_871X("%s pairwise_cipher(%x:%x) or group_cipher(%x:%x) is not match\n", __func__,
 					pairwise_cipher, cur_network->BcnInfo.pairwise_cipher,
 					group_cipher, cur_network->BcnInfo.group_cipher);
+=======
+			if (pbuf && (wpa_ielen > 0))
+				rtw_parse_wpa2_ie(pbuf, wpa_ielen + 2, &group_cipher,
+						  &pairwise_cipher, &is_8021x);
+		}
+
+		if (pairwise_cipher != cur_network->BcnInfo.pairwise_cipher ||
+		    group_cipher != cur_network->BcnInfo.group_cipher)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto _mismatch;
 		}
 
+<<<<<<< HEAD
 		if (is_8021x != cur_network->BcnInfo.is_8021x) {
 			DBG_871X("%s authentication is not match\n", __func__);
+=======
+		if (is_8021x != cur_network->BcnInfo.is_8021x)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto _mismatch;
 		}
 	}
@@ -1572,6 +1645,36 @@ void set_sta_rate(struct adapter *padapter, struct sta_info *psta)
 	Update_RA_Entry(padapter, psta);
 }
 
+<<<<<<< HEAD
+=======
+static u32 get_realtek_assoc_AP_vender(struct ndis_80211_var_ie *pIE)
+{
+	u32 Vender = HT_IOT_PEER_REALTEK;
+
+	if (pIE->Length >= 5) {
+		if (pIE->data[4] == 1)
+			/* if (pIE->data[5] & RT_HT_CAP_USE_LONG_PREAMBLE) */
+			/* bssDesc->BssHT.RT2RT_HT_Mode |= RT_HT_CAP_USE_LONG_PREAMBLE; */
+			if (pIE->data[5] & RT_HT_CAP_USE_92SE)
+				/* bssDesc->BssHT.RT2RT_HT_Mode |= RT_HT_CAP_USE_92SE; */
+				Vender = HT_IOT_PEER_REALTEK_92SE;
+
+		if (pIE->data[5] & RT_HT_CAP_USE_SOFTAP)
+			Vender = HT_IOT_PEER_REALTEK_SOFTAP;
+
+		if (pIE->data[4] == 2) {
+			if (pIE->data[6] & RT_HT_CAP_USE_JAGUAR_BCUT)
+				Vender = HT_IOT_PEER_REALTEK_JAGUAR_BCUTAP;
+
+			if (pIE->data[6] & RT_HT_CAP_USE_JAGUAR_CCUT)
+				Vender = HT_IOT_PEER_REALTEK_JAGUAR_CCUTAP;
+		}
+	}
+
+	return Vender;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 unsigned char check_assoc_AP(u8 *pframe, uint len)
 {
 	unsigned int	i;

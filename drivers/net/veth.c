@@ -218,6 +218,20 @@ static void veth_get_ethtool_stats(struct net_device *dev,
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void veth_get_channels(struct net_device *dev,
+			      struct ethtool_channels *channels)
+{
+	channels->tx_count = dev->real_num_tx_queues;
+	channels->rx_count = dev->real_num_rx_queues;
+	channels->max_tx = dev->real_num_tx_queues;
+	channels->max_rx = dev->real_num_rx_queues;
+	channels->combined_count = min(dev->real_num_rx_queues, dev->real_num_tx_queues);
+	channels->max_combined = min(dev->real_num_rx_queues, dev->real_num_tx_queues);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct ethtool_ops veth_ethtool_ops = {
 	.get_drvinfo		= veth_get_drvinfo,
 	.get_link		= ethtool_op_get_link,
@@ -226,6 +240,10 @@ static const struct ethtool_ops veth_ethtool_ops = {
 	.get_ethtool_stats	= veth_get_ethtool_stats,
 	.get_link_ksettings	= veth_get_link_ksettings,
 	.get_ts_info		= ethtool_op_get_ts_info,
+<<<<<<< HEAD
+=======
+	.get_channels		= veth_get_channels,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* general routines */
@@ -673,7 +691,11 @@ static struct sk_buff *veth_xdp_rcv_skb(struct veth_rq *rq,
 	int mac_len, delta, off;
 	struct xdp_buff xdp;
 
+<<<<<<< HEAD
 	skb_orphan(skb);
+=======
+	skb_orphan_partial(skb);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rcu_read_lock();
 	xdp_prog = rcu_dereference(rq->xdp_prog);
@@ -890,7 +912,11 @@ static int veth_poll(struct napi_struct *napi, int budget)
 	return done;
 }
 
+<<<<<<< HEAD
 static int veth_napi_add(struct net_device *dev)
+=======
+static int __veth_napi_enable(struct net_device *dev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct veth_priv *priv = netdev_priv(dev);
 	int err, i;
@@ -938,8 +964,19 @@ static void veth_napi_del(struct net_device *dev)
 	}
 }
 
+<<<<<<< HEAD
 static int veth_enable_xdp(struct net_device *dev)
 {
+=======
+static bool veth_gro_requested(const struct net_device *dev)
+{
+	return !!(dev->wanted_features & NETIF_F_GRO);
+}
+
+static int veth_enable_xdp(struct net_device *dev)
+{
+	bool napi_already_on = veth_gro_requested(dev) && (dev->flags & IFF_UP);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct veth_priv *priv = netdev_priv(dev);
 	int err, i;
 
@@ -947,7 +984,12 @@ static int veth_enable_xdp(struct net_device *dev)
 		for (i = 0; i < dev->real_num_rx_queues; i++) {
 			struct veth_rq *rq = &priv->rq[i];
 
+<<<<<<< HEAD
 			netif_napi_add(dev, &rq->xdp_napi, veth_poll, NAPI_POLL_WEIGHT);
+=======
+			if (!napi_already_on)
+				netif_napi_add(dev, &rq->xdp_napi, veth_poll, NAPI_POLL_WEIGHT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			err = xdp_rxq_info_reg(&rq->xdp_rxq, dev, i, rq->xdp_napi.napi_id);
 			if (err < 0)
 				goto err_rxq_reg;
@@ -962,6 +1004,7 @@ static int veth_enable_xdp(struct net_device *dev)
 			rq->xdp_mem = rq->xdp_rxq.mem;
 		}
 
+<<<<<<< HEAD
 		err = veth_napi_add(dev);
 		if (err)
 			goto err_rxq_reg;
@@ -969,6 +1012,27 @@ static int veth_enable_xdp(struct net_device *dev)
 
 	for (i = 0; i < dev->real_num_rx_queues; i++)
 		rcu_assign_pointer(priv->rq[i].xdp_prog, priv->_xdp_prog);
+=======
+		if (!napi_already_on) {
+			err = __veth_napi_enable(dev);
+			if (err)
+				goto err_rxq_reg;
+
+			if (!veth_gro_requested(dev)) {
+				/* user-space did not require GRO, but adding XDP
+				 * is supposed to get GRO working
+				 */
+				dev->features |= NETIF_F_GRO;
+				netdev_features_change(dev);
+			}
+		}
+	}
+
+	for (i = 0; i < dev->real_num_rx_queues; i++) {
+		rcu_assign_pointer(priv->rq[i].xdp_prog, priv->_xdp_prog);
+		rcu_assign_pointer(priv->rq[i].napi, &priv->rq[i].xdp_napi);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 err_reg_mem:
@@ -978,7 +1042,12 @@ err_rxq_reg:
 		struct veth_rq *rq = &priv->rq[i];
 
 		xdp_rxq_info_unreg(&rq->xdp_rxq);
+<<<<<<< HEAD
 		netif_napi_del(&rq->xdp_napi);
+=======
+		if (!napi_already_on)
+			netif_napi_del(&rq->xdp_napi);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return err;
@@ -991,6 +1060,7 @@ static void veth_disable_xdp(struct net_device *dev)
 
 	for (i = 0; i < dev->real_num_rx_queues; i++)
 		rcu_assign_pointer(priv->rq[i].xdp_prog, NULL);
+<<<<<<< HEAD
 	veth_napi_del(dev);
 	for (i = 0; i < dev->real_num_rx_queues; i++) {
 		struct veth_rq *rq = &priv->rq[i];
@@ -998,6 +1068,50 @@ static void veth_disable_xdp(struct net_device *dev)
 		rq->xdp_rxq.mem = rq->xdp_mem;
 		xdp_rxq_info_unreg(&rq->xdp_rxq);
 	}
+=======
+
+	if (!netif_running(dev) || !veth_gro_requested(dev)) {
+		veth_napi_del(dev);
+
+		/* if user-space did not require GRO, since adding XDP
+		 * enabled it, clear it now
+		 */
+		if (!veth_gro_requested(dev) && netif_running(dev)) {
+			dev->features &= ~NETIF_F_GRO;
+			netdev_features_change(dev);
+		}
+	}
+
+	for (i = 0; i < dev->real_num_rx_queues; i++) {
+		struct veth_rq *rq = &priv->rq[i];
+
+		rq->xdp_rxq.mem = rq->xdp_mem;
+		xdp_rxq_info_unreg(&rq->xdp_rxq);
+	}
+}
+
+static int veth_napi_enable(struct net_device *dev)
+{
+	struct veth_priv *priv = netdev_priv(dev);
+	int err, i;
+
+	for (i = 0; i < dev->real_num_rx_queues; i++) {
+		struct veth_rq *rq = &priv->rq[i];
+
+		netif_napi_add(dev, &rq->xdp_napi, veth_poll, NAPI_POLL_WEIGHT);
+	}
+
+	err = __veth_napi_enable(dev);
+	if (err) {
+		for (i = 0; i < dev->real_num_rx_queues; i++) {
+			struct veth_rq *rq = &priv->rq[i];
+
+			netif_napi_del(&rq->xdp_napi);
+		}
+		return err;
+	}
+	return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int veth_open(struct net_device *dev)
@@ -1316,6 +1430,16 @@ static int veth_validate(struct nlattr *tb[], struct nlattr *data[],
 
 static struct rtnl_link_ops veth_link_ops;
 
+<<<<<<< HEAD
+=======
+static void veth_disable_gro(struct net_device *dev)
+{
+	dev->features &= ~NETIF_F_GRO;
+	dev->wanted_features &= ~NETIF_F_GRO;
+	netdev_update_features(dev);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int veth_newlink(struct net *src_net, struct net_device *dev,
 			struct nlattr *tb[], struct nlattr *data[],
 			struct netlink_ext_ack *extack)

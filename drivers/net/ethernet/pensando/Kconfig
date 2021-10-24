@@ -20,6 +20,10 @@ if NET_VENDOR_PENSANDO
 config IONIC
 	tristate "Pensando Ethernet IONIC Support"
 	depends on 64BIT && PCI
+<<<<<<< HEAD
+=======
+	depends on PTP_1588_CLOCK || !PTP_1588_CLOCK
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	select NET_DEVLINK
 	select DIMLIB
 	help

@@ -19,6 +19,10 @@ void ftrace_caller(void);
 
 extern char ftrace_graph_caller_end;
 extern unsigned long ftrace_plt;
+<<<<<<< HEAD
+=======
+extern void *ftrace_func;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct dyn_arch_ftrace { };
 

@@ -717,12 +717,21 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *usc, void __u
 	formatvec = context.sc_formatvec;
 
 	err = restore_fpu_state(&context);
+<<<<<<< HEAD
 
 	if (err || mangle_kernel_stack(regs, formatvec, fp))
 		goto badframe;
 
 	return 0;
 
+=======
+
+	if (err || mangle_kernel_stack(regs, formatvec, fp))
+		goto badframe;
+
+	return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 badframe:
 	return 1;
 }
@@ -771,12 +780,21 @@ rt_restore_ucontext(struct pt_regs *regs, struct switch_stack *sw,
 
 	if (err)
 		goto badframe;
+<<<<<<< HEAD
 
 	if (mangle_kernel_stack(regs, temp, &uc->uc_extra))
 		goto badframe;
 
 	return 0;
 
+=======
+
+	if (mangle_kernel_stack(regs, temp, &uc->uc_extra))
+		goto badframe;
+
+	return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 badframe:
 	return 1;
 }

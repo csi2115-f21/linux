@@ -451,8 +451,12 @@ function dump(first, pastlast, batchnum)
 		print "echo ", cfr[jn], cpusr[jn] ovf ": Starting build. `date` | tee -a " rd "log";
 		print "rm -f " builddir ".*";
 		print "touch " builddir ".wait";
+<<<<<<< HEAD
 		print "mkdir " rd cfr[jn] " || :";
 		print "kvm-test-1-run.sh " CONFIGDIR cf[j], builddir, rd cfr[jn], dur " \"" TORTURE_QEMU_ARG "\" \"" TORTURE_BOOTARGS "\" > " rd cfr[jn]  "/kvm-test-1-run.sh.out 2>&1 &"
+=======
+		print "kvm-test-1-run.sh " CONFIGDIR cf[j], rd cfr[jn], dur " \"" TORTURE_QEMU_ARG "\" \"" TORTURE_BOOTARGS "\" > " rd cfr[jn]  "/kvm-test-1-run.sh.out 2>&1 &"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		print "echo ", cfr[jn], cpusr[jn] ovf ": Waiting for build to complete. `date` | tee -a " rd "log";
 		print "while test -f " builddir ".wait"
 		print "do"
@@ -533,6 +537,10 @@ END {
 	if (ncpus != 0)
 		dump(first, i, batchnum);
 }' >> $T/script
+<<<<<<< HEAD
+=======
+echo kvm-end-run-stats.sh "$resdir/$ds" "$starttime" >> $T/script
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 cat << '___EOF___' >> $T/script
 echo | tee -a $TORTURE_RESDIR/log

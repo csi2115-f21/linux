@@ -3757,6 +3757,495 @@ static int stmmac_rx(struct stmmac_priv *priv, int limit, u32 queue)
 		int entry;
 		u32 hash;
 
+<<<<<<< HEAD
+=======
+	tx_q->tx_skbuff_dma[entry].buf = dma_addr;
+	tx_q->tx_skbuff_dma[entry].map_as_page = false;
+	tx_q->tx_skbuff_dma[entry].len = xdpf->len;
+	tx_q->tx_skbuff_dma[entry].last_segment = true;
+	tx_q->tx_skbuff_dma[entry].is_jumbo = false;
+
+	tx_q->xdpf[entry] = xdpf;
+
+	stmmac_set_desc_addr(priv, tx_desc, dma_addr);
+
+	stmmac_prepare_tx_desc(priv, tx_desc, 1, xdpf->len,
+			       true, priv->mode, true, true,
+			       xdpf->len);
+
+	tx_q->tx_count_frames++;
+
+	if (tx_q->tx_count_frames % priv->tx_coal_frames[queue] == 0)
+		set_ic = true;
+	else
+		set_ic = false;
+
+	if (set_ic) {
+		tx_q->tx_count_frames = 0;
+		stmmac_set_tx_ic(priv, tx_desc);
+		priv->xstats.tx_set_ic_bit++;
+	}
+
+	stmmac_enable_dma_transmission(priv, priv->ioaddr);
+
+	entry = STMMAC_GET_ENTRY(entry, priv->dma_tx_size);
+	tx_q->cur_tx = entry;
+
+	return STMMAC_XDP_TX;
+}
+
+static int stmmac_xdp_get_tx_queue(struct stmmac_priv *priv,
+				   int cpu)
+{
+	int index = cpu;
+
+	if (unlikely(index < 0))
+		index = 0;
+
+	while (index >= priv->plat->tx_queues_to_use)
+		index -= priv->plat->tx_queues_to_use;
+
+	return index;
+}
+
+static int stmmac_xdp_xmit_back(struct stmmac_priv *priv,
+				struct xdp_buff *xdp)
+{
+	struct xdp_frame *xdpf = xdp_convert_buff_to_frame(xdp);
+	int cpu = smp_processor_id();
+	struct netdev_queue *nq;
+	int queue;
+	int res;
+
+	if (unlikely(!xdpf))
+		return STMMAC_XDP_CONSUMED;
+
+	queue = stmmac_xdp_get_tx_queue(priv, cpu);
+	nq = netdev_get_tx_queue(priv->dev, queue);
+
+	__netif_tx_lock(nq, cpu);
+	/* Avoids TX time-out as we are sharing with slow path */
+	nq->trans_start = jiffies;
+
+	res = stmmac_xdp_xmit_xdpf(priv, queue, xdpf, false);
+	if (res == STMMAC_XDP_TX)
+		stmmac_flush_tx_descriptors(priv, queue);
+
+	__netif_tx_unlock(nq);
+
+	return res;
+}
+
+static int __stmmac_xdp_run_prog(struct stmmac_priv *priv,
+				 struct bpf_prog *prog,
+				 struct xdp_buff *xdp)
+{
+	u32 act;
+	int res;
+
+	act = bpf_prog_run_xdp(prog, xdp);
+	switch (act) {
+	case XDP_PASS:
+		res = STMMAC_XDP_PASS;
+		break;
+	case XDP_TX:
+		res = stmmac_xdp_xmit_back(priv, xdp);
+		break;
+	case XDP_REDIRECT:
+		if (xdp_do_redirect(priv->dev, xdp, prog) < 0)
+			res = STMMAC_XDP_CONSUMED;
+		else
+			res = STMMAC_XDP_REDIRECT;
+		break;
+	default:
+		bpf_warn_invalid_xdp_action(act);
+		fallthrough;
+	case XDP_ABORTED:
+		trace_xdp_exception(priv->dev, prog, act);
+		fallthrough;
+	case XDP_DROP:
+		res = STMMAC_XDP_CONSUMED;
+		break;
+	}
+
+	return res;
+}
+
+static struct sk_buff *stmmac_xdp_run_prog(struct stmmac_priv *priv,
+					   struct xdp_buff *xdp)
+{
+	struct bpf_prog *prog;
+	int res;
+
+	prog = READ_ONCE(priv->xdp_prog);
+	if (!prog) {
+		res = STMMAC_XDP_PASS;
+		goto out;
+	}
+
+	res = __stmmac_xdp_run_prog(priv, prog, xdp);
+out:
+	return ERR_PTR(-res);
+}
+
+static void stmmac_finalize_xdp_rx(struct stmmac_priv *priv,
+				   int xdp_status)
+{
+	int cpu = smp_processor_id();
+	int queue;
+
+	queue = stmmac_xdp_get_tx_queue(priv, cpu);
+
+	if (xdp_status & STMMAC_XDP_TX)
+		stmmac_tx_timer_arm(priv, queue);
+
+	if (xdp_status & STMMAC_XDP_REDIRECT)
+		xdp_do_flush();
+}
+
+static struct sk_buff *stmmac_construct_skb_zc(struct stmmac_channel *ch,
+					       struct xdp_buff *xdp)
+{
+	unsigned int metasize = xdp->data - xdp->data_meta;
+	unsigned int datasize = xdp->data_end - xdp->data;
+	struct sk_buff *skb;
+
+	skb = __napi_alloc_skb(&ch->rxtx_napi,
+			       xdp->data_end - xdp->data_hard_start,
+			       GFP_ATOMIC | __GFP_NOWARN);
+	if (unlikely(!skb))
+		return NULL;
+
+	skb_reserve(skb, xdp->data - xdp->data_hard_start);
+	memcpy(__skb_put(skb, datasize), xdp->data, datasize);
+	if (metasize)
+		skb_metadata_set(skb, metasize);
+
+	return skb;
+}
+
+static void stmmac_dispatch_skb_zc(struct stmmac_priv *priv, u32 queue,
+				   struct dma_desc *p, struct dma_desc *np,
+				   struct xdp_buff *xdp)
+{
+	struct stmmac_channel *ch = &priv->channel[queue];
+	unsigned int len = xdp->data_end - xdp->data;
+	enum pkt_hash_types hash_type;
+	int coe = priv->hw->rx_csum;
+	struct sk_buff *skb;
+	u32 hash;
+
+	skb = stmmac_construct_skb_zc(ch, xdp);
+	if (!skb) {
+		priv->dev->stats.rx_dropped++;
+		return;
+	}
+
+	stmmac_get_rx_hwtstamp(priv, p, np, skb);
+	stmmac_rx_vlan(priv->dev, skb);
+	skb->protocol = eth_type_trans(skb, priv->dev);
+
+	if (unlikely(!coe))
+		skb_checksum_none_assert(skb);
+	else
+		skb->ip_summed = CHECKSUM_UNNECESSARY;
+
+	if (!stmmac_get_rx_hash(priv, p, &hash, &hash_type))
+		skb_set_hash(skb, hash, hash_type);
+
+	skb_record_rx_queue(skb, queue);
+	napi_gro_receive(&ch->rxtx_napi, skb);
+
+	priv->dev->stats.rx_packets++;
+	priv->dev->stats.rx_bytes += len;
+}
+
+static bool stmmac_rx_refill_zc(struct stmmac_priv *priv, u32 queue, u32 budget)
+{
+	struct stmmac_rx_queue *rx_q = &priv->rx_queue[queue];
+	unsigned int entry = rx_q->dirty_rx;
+	struct dma_desc *rx_desc = NULL;
+	bool ret = true;
+
+	budget = min(budget, stmmac_rx_dirty(priv, queue));
+
+	while (budget-- > 0 && entry != rx_q->cur_rx) {
+		struct stmmac_rx_buffer *buf = &rx_q->buf_pool[entry];
+		dma_addr_t dma_addr;
+		bool use_rx_wd;
+
+		if (!buf->xdp) {
+			buf->xdp = xsk_buff_alloc(rx_q->xsk_pool);
+			if (!buf->xdp) {
+				ret = false;
+				break;
+			}
+		}
+
+		if (priv->extend_desc)
+			rx_desc = (struct dma_desc *)(rx_q->dma_erx + entry);
+		else
+			rx_desc = rx_q->dma_rx + entry;
+
+		dma_addr = xsk_buff_xdp_get_dma(buf->xdp);
+		stmmac_set_desc_addr(priv, rx_desc, dma_addr);
+		stmmac_set_desc_sec_addr(priv, rx_desc, 0, false);
+		stmmac_refill_desc3(priv, rx_q, rx_desc);
+
+		rx_q->rx_count_frames++;
+		rx_q->rx_count_frames += priv->rx_coal_frames[queue];
+		if (rx_q->rx_count_frames > priv->rx_coal_frames[queue])
+			rx_q->rx_count_frames = 0;
+
+		use_rx_wd = !priv->rx_coal_frames[queue];
+		use_rx_wd |= rx_q->rx_count_frames > 0;
+		if (!priv->use_riwt)
+			use_rx_wd = false;
+
+		dma_wmb();
+		stmmac_set_rx_owner(priv, rx_desc, use_rx_wd);
+
+		entry = STMMAC_GET_ENTRY(entry, priv->dma_rx_size);
+	}
+
+	if (rx_desc) {
+		rx_q->dirty_rx = entry;
+		rx_q->rx_tail_addr = rx_q->dma_rx_phy +
+				     (rx_q->dirty_rx * sizeof(struct dma_desc));
+		stmmac_set_rx_tail_ptr(priv, priv->ioaddr, rx_q->rx_tail_addr, queue);
+	}
+
+	return ret;
+}
+
+static int stmmac_rx_zc(struct stmmac_priv *priv, int limit, u32 queue)
+{
+	struct stmmac_rx_queue *rx_q = &priv->rx_queue[queue];
+	unsigned int count = 0, error = 0, len = 0;
+	int dirty = stmmac_rx_dirty(priv, queue);
+	unsigned int next_entry = rx_q->cur_rx;
+	unsigned int desc_size;
+	struct bpf_prog *prog;
+	bool failure = false;
+	int xdp_status = 0;
+	int status = 0;
+
+	if (netif_msg_rx_status(priv)) {
+		void *rx_head;
+
+		netdev_dbg(priv->dev, "%s: descriptor ring:\n", __func__);
+		if (priv->extend_desc) {
+			rx_head = (void *)rx_q->dma_erx;
+			desc_size = sizeof(struct dma_extended_desc);
+		} else {
+			rx_head = (void *)rx_q->dma_rx;
+			desc_size = sizeof(struct dma_desc);
+		}
+
+		stmmac_display_ring(priv, rx_head, priv->dma_rx_size, true,
+				    rx_q->dma_rx_phy, desc_size);
+	}
+	while (count < limit) {
+		struct stmmac_rx_buffer *buf;
+		unsigned int buf1_len = 0;
+		struct dma_desc *np, *p;
+		int entry;
+		int res;
+
+		if (!count && rx_q->state_saved) {
+			error = rx_q->state.error;
+			len = rx_q->state.len;
+		} else {
+			rx_q->state_saved = false;
+			error = 0;
+			len = 0;
+		}
+
+		if (count >= limit)
+			break;
+
+read_again:
+		buf1_len = 0;
+		entry = next_entry;
+		buf = &rx_q->buf_pool[entry];
+
+		if (dirty >= STMMAC_RX_FILL_BATCH) {
+			failure = failure ||
+				  !stmmac_rx_refill_zc(priv, queue, dirty);
+			dirty = 0;
+		}
+
+		if (priv->extend_desc)
+			p = (struct dma_desc *)(rx_q->dma_erx + entry);
+		else
+			p = rx_q->dma_rx + entry;
+
+		/* read the status of the incoming frame */
+		status = stmmac_rx_status(priv, &priv->dev->stats,
+					  &priv->xstats, p);
+		/* check if managed by the DMA otherwise go ahead */
+		if (unlikely(status & dma_own))
+			break;
+
+		/* Prefetch the next RX descriptor */
+		rx_q->cur_rx = STMMAC_GET_ENTRY(rx_q->cur_rx,
+						priv->dma_rx_size);
+		next_entry = rx_q->cur_rx;
+
+		if (priv->extend_desc)
+			np = (struct dma_desc *)(rx_q->dma_erx + next_entry);
+		else
+			np = rx_q->dma_rx + next_entry;
+
+		prefetch(np);
+
+		if (priv->extend_desc)
+			stmmac_rx_extended_status(priv, &priv->dev->stats,
+						  &priv->xstats,
+						  rx_q->dma_erx + entry);
+		if (unlikely(status == discard_frame)) {
+			xsk_buff_free(buf->xdp);
+			buf->xdp = NULL;
+			dirty++;
+			error = 1;
+			if (!priv->hwts_rx_en)
+				priv->dev->stats.rx_errors++;
+		}
+
+		if (unlikely(error && (status & rx_not_ls)))
+			goto read_again;
+		if (unlikely(error)) {
+			count++;
+			continue;
+		}
+
+		/* Ensure a valid XSK buffer before proceed */
+		if (!buf->xdp)
+			break;
+
+		/* XSK pool expects RX frame 1:1 mapped to XSK buffer */
+		if (likely(status & rx_not_ls)) {
+			xsk_buff_free(buf->xdp);
+			buf->xdp = NULL;
+			dirty++;
+			count++;
+			goto read_again;
+		}
+
+		/* XDP ZC Frame only support primary buffers for now */
+		buf1_len = stmmac_rx_buf1_len(priv, p, status, len);
+		len += buf1_len;
+
+		/* ACS is set; GMAC core strips PAD/FCS for IEEE 802.3
+		 * Type frames (LLC/LLC-SNAP)
+		 *
+		 * llc_snap is never checked in GMAC >= 4, so this ACS
+		 * feature is always disabled and packets need to be
+		 * stripped manually.
+		 */
+		if (likely(!(status & rx_not_ls)) &&
+		    (likely(priv->synopsys_id >= DWMAC_CORE_4_00) ||
+		     unlikely(status != llc_snap))) {
+			buf1_len -= ETH_FCS_LEN;
+			len -= ETH_FCS_LEN;
+		}
+
+		/* RX buffer is good and fit into a XSK pool buffer */
+		buf->xdp->data_end = buf->xdp->data + buf1_len;
+		xsk_buff_dma_sync_for_cpu(buf->xdp, rx_q->xsk_pool);
+
+		prog = READ_ONCE(priv->xdp_prog);
+		res = __stmmac_xdp_run_prog(priv, prog, buf->xdp);
+
+		switch (res) {
+		case STMMAC_XDP_PASS:
+			stmmac_dispatch_skb_zc(priv, queue, p, np, buf->xdp);
+			xsk_buff_free(buf->xdp);
+			break;
+		case STMMAC_XDP_CONSUMED:
+			xsk_buff_free(buf->xdp);
+			priv->dev->stats.rx_dropped++;
+			break;
+		case STMMAC_XDP_TX:
+		case STMMAC_XDP_REDIRECT:
+			xdp_status |= res;
+			break;
+		}
+
+		buf->xdp = NULL;
+		dirty++;
+		count++;
+	}
+
+	if (status & rx_not_ls) {
+		rx_q->state_saved = true;
+		rx_q->state.error = error;
+		rx_q->state.len = len;
+	}
+
+	stmmac_finalize_xdp_rx(priv, xdp_status);
+
+	if (xsk_uses_need_wakeup(rx_q->xsk_pool)) {
+		if (failure || stmmac_rx_dirty(priv, queue) > 0)
+			xsk_set_rx_need_wakeup(rx_q->xsk_pool);
+		else
+			xsk_clear_rx_need_wakeup(rx_q->xsk_pool);
+
+		return (int)count;
+	}
+
+	return failure ? limit : (int)count;
+}
+
+/**
+ * stmmac_rx - manage the receive process
+ * @priv: driver private structure
+ * @limit: napi bugget
+ * @queue: RX queue index.
+ * Description :  this the function called by the napi poll method.
+ * It gets all the frames inside the ring.
+ */
+static int stmmac_rx(struct stmmac_priv *priv, int limit, u32 queue)
+{
+	struct stmmac_rx_queue *rx_q = &priv->rx_queue[queue];
+	struct stmmac_channel *ch = &priv->channel[queue];
+	unsigned int count = 0, error = 0, len = 0;
+	int status = 0, coe = priv->hw->rx_csum;
+	unsigned int next_entry = rx_q->cur_rx;
+	enum dma_data_direction dma_dir;
+	unsigned int desc_size;
+	struct sk_buff *skb = NULL;
+	struct xdp_buff xdp;
+	int xdp_status = 0;
+	int buf_sz;
+
+	dma_dir = page_pool_get_dma_dir(rx_q->page_pool);
+	buf_sz = DIV_ROUND_UP(priv->dma_buf_sz, PAGE_SIZE) * PAGE_SIZE;
+
+	if (netif_msg_rx_status(priv)) {
+		void *rx_head;
+
+		netdev_dbg(priv->dev, "%s: descriptor ring:\n", __func__);
+		if (priv->extend_desc) {
+			rx_head = (void *)rx_q->dma_erx;
+			desc_size = sizeof(struct dma_extended_desc);
+		} else {
+			rx_head = (void *)rx_q->dma_rx;
+			desc_size = sizeof(struct dma_desc);
+		}
+
+		stmmac_display_ring(priv, rx_head, priv->dma_rx_size, true,
+				    rx_q->dma_rx_phy, desc_size);
+	}
+	while (count < limit) {
+		unsigned int buf1_len = 0, buf2_len = 0;
+		enum pkt_hash_types hash_type;
+		struct stmmac_rx_buffer *buf;
+		struct dma_desc *np, *p;
+		int entry;
+		u32 hash;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!count && rx_q->state_saved) {
 			skb = rx_q->state.skb;
 			error = rx_q->state.error;
@@ -3979,6 +4468,45 @@ static int stmmac_napi_poll_tx(struct napi_struct *napi, int budget)
 	return work_done;
 }
 
+<<<<<<< HEAD
+=======
+static int stmmac_napi_poll_rxtx(struct napi_struct *napi, int budget)
+{
+	struct stmmac_channel *ch =
+		container_of(napi, struct stmmac_channel, rxtx_napi);
+	struct stmmac_priv *priv = ch->priv_data;
+	int rx_done, tx_done;
+	u32 chan = ch->index;
+
+	priv->xstats.napi_poll++;
+
+	tx_done = stmmac_tx_clean(priv, budget, chan);
+	tx_done = min(tx_done, budget);
+
+	rx_done = stmmac_rx_zc(priv, budget, chan);
+
+	/* If either TX or RX work is not complete, return budget
+	 * and keep pooling
+	 */
+	if (tx_done >= budget || rx_done >= budget)
+		return budget;
+
+	/* all work done, exit the polling mode */
+	if (napi_complete_done(napi, rx_done)) {
+		unsigned long flags;
+
+		spin_lock_irqsave(&ch->lock, flags);
+		/* Both RX and TX work done are compelte,
+		 * so enable both RX & TX IRQs.
+		 */
+		stmmac_enable_dma_irq(priv, priv->ioaddr, chan, 1, 1);
+		spin_unlock_irqrestore(&ch->lock, flags);
+	}
+
+	return min(rx_done, budget - 1);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  *  stmmac_tx_timeout
  *  @dev : Pointer to net device structure
@@ -5181,6 +5709,7 @@ int stmmac_suspend(struct device *dev)
 	struct net_device *ndev = dev_get_drvdata(dev);
 	struct stmmac_priv *priv = netdev_priv(ndev);
 	u32 chan;
+	int ret;
 
 	if (!ndev || !netif_running(ndev))
 		return 0;
@@ -5219,6 +5748,28 @@ int stmmac_suspend(struct device *dev)
 		phylink_stop(priv->phylink);
 		rtnl_unlock();
 		mutex_lock(&priv->lock);
+<<<<<<< HEAD
+=======
+
+		stmmac_mac_set(priv, priv->ioaddr, false);
+		pinctrl_pm_select_sleep_state(priv->device);
+		/* Disable clock in case of PWM is off */
+		clk_disable_unprepare(priv->plat->clk_ptp_ref);
+		ret = pm_runtime_force_suspend(dev);
+		if (ret) {
+			mutex_unlock(&priv->lock);
+			return ret;
+		}
+	}
+
+	mutex_unlock(&priv->lock);
+
+	if (priv->dma_cap.fpesel) {
+		/* Disable FPE */
+		stmmac_fpe_configure(priv, priv->ioaddr,
+				     priv->plat->tx_queues_to_use,
+				     priv->plat->rx_queues_to_use, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		stmmac_mac_set(priv, priv->ioaddr, false);
 		pinctrl_pm_select_sleep_state(priv->device);
@@ -5289,8 +5840,14 @@ int stmmac_resume(struct device *dev)
 	} else {
 		pinctrl_pm_select_default_state(priv->device);
 		/* enable the clk previously disabled */
+<<<<<<< HEAD
 		clk_prepare_enable(priv->plat->stmmac_clk);
 		clk_prepare_enable(priv->plat->pclk);
+=======
+		ret = pm_runtime_force_resume(dev);
+		if (ret)
+			return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (priv->plat->clk_ptp_ref)
 			clk_prepare_enable(priv->plat->clk_ptp_ref);
 		/* reset the phy so that it's ready */

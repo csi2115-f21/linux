@@ -411,7 +411,15 @@ class KUnitMainTest(unittest.TestCase):
 		mock_linux_init.return_value = self.linux_source_mock
 		kunit.main(['config', '--kunitconfig=mykunitconfig'])
 		# Just verify that we parsed and initialized it correctly here.
+<<<<<<< HEAD
 		mock_linux_init.assert_called_once_with('.kunit', kunitconfig_path='mykunitconfig')
+=======
+		mock_linux_init.assert_called_once_with('.kunit',
+							kunitconfig_path='mykunitconfig',
+							arch='um',
+							cross_compile=None,
+							qemu_config_path=None)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 if __name__ == '__main__':
 	unittest.main()

@@ -48,7 +48,11 @@ static const struct usb_device_id rtw_usb_id_tbl[] = {
 
 MODULE_DEVICE_TABLE(usb, rtw_usb_id_tbl);
 
+<<<<<<< HEAD
 static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
+=======
+static int usb_dvobj_init(struct usb_interface *usb_intf)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int	i;
 	struct dvobj_priv *pdvobjpriv;
@@ -61,7 +65,11 @@ static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 
 	pdvobjpriv = kzalloc(sizeof(*pdvobjpriv), GFP_KERNEL);
 	if (!pdvobjpriv)
+<<<<<<< HEAD
 		return NULL;
+=======
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pdvobjpriv->pusbintf = usb_intf;
 	pusbd = interface_to_usbdev(usb_intf);
@@ -108,7 +116,11 @@ static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 	mutex_init(&pdvobjpriv->usb_vendor_req_mutex);
 	usb_get_dev(pusbd);
 
+<<<<<<< HEAD
 	return pdvobjpriv;
+=======
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void usb_dvobj_deinit(struct usb_interface *usb_intf)
@@ -143,6 +155,7 @@ static void usb_dvobj_deinit(struct usb_interface *usb_intf)
 
 void usb_intf_stop(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("+%s\n", __func__));
 
 	/* disable_hw_interrupt */
@@ -153,6 +166,8 @@ void usb_intf_stop(struct adapter *padapter)
 			 ("SurpriseRemoved == false\n"));
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* cancel in irp */
 	rtw_hal_inirp_deinit(padapter);
 
@@ -160,14 +175,20 @@ void usb_intf_stop(struct adapter *padapter)
 	usb_write_port_cancel(padapter);
 
 	/* todo:cancel other irps */
+<<<<<<< HEAD
 
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("-%s\n", __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void rtw_dev_unload(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("+%s\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (padapter->bup) {
 		pr_debug("===> %s\n", __func__);
 		padapter->bDriverStopped = true;
@@ -186,6 +207,7 @@ static void rtw_dev_unload(struct adapter *padapter)
 		}
 
 		padapter->bup = false;
+<<<<<<< HEAD
 	} else {
 		RT_TRACE(_module_hci_intfs_c_, _drv_err_,
 			 ("r871x_dev_unload():padapter->bup == false\n"));
@@ -194,6 +216,11 @@ static void rtw_dev_unload(struct adapter *padapter)
 	pr_debug("<=== %s\n", __func__);
 
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("-%s\n", __func__));
+=======
+	}
+
+	pr_debug("<=== %s\n", __func__);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int rtw_suspend(struct usb_interface *pusb_intf, pm_message_t message)
@@ -322,6 +349,7 @@ static int rtw_resume(struct usb_interface *pusb_intf)
  *        We accept the new device by returning 0.
  */
 
+<<<<<<< HEAD
 static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 					struct usb_interface *pusb_intf,
 					const struct usb_device_id *pdid)
@@ -334,18 +362,37 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 	padapter = vzalloc(sizeof(*padapter));
 	if (!padapter)
 		goto exit;
+=======
+static int rtw_usb_if1_init(struct usb_interface *pusb_intf)
+{
+	struct dvobj_priv *dvobj = usb_get_intfdata(pusb_intf);
+	struct adapter *padapter;
+	struct net_device *pnetdev;
+	struct net_device *pmondev;
+	int err = 0;
+
+	pnetdev = rtw_init_netdev();
+	if (!pnetdev)
+		return -ENOMEM;
+	SET_NETDEV_DEV(pnetdev, dvobj_to_dev(dvobj));
+
+	padapter = netdev_priv(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	padapter->dvobj = dvobj;
 	dvobj->if1 = padapter;
 
 	padapter->bDriverStopped = true;
 	mutex_init(&padapter->hw_init_mutex);
 
+<<<<<<< HEAD
 	pnetdev = rtw_init_netdev(padapter);
 	if (!pnetdev)
 		goto free_adapter;
 	SET_NETDEV_DEV(pnetdev, dvobj_to_dev(dvobj));
 	padapter = rtw_netdev_priv(pnetdev);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (padapter->registrypriv.monitor_enable) {
 		pmondev = rtl88eu_mon_init();
 		if (!pmondev)
@@ -355,7 +402,11 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 
 	padapter->HalData = kzalloc(sizeof(struct hal_data_8188e), GFP_KERNEL);
 	if (!padapter->HalData) {
+<<<<<<< HEAD
 		DBG_88E("Failed to allocate memory for HAL data\n");
+=======
+		err = -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto free_adapter;
 	}
 
@@ -370,8 +421,12 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 
 	/* step 5. */
 	if (rtw_init_drv_sw(padapter) == _FAIL) {
+<<<<<<< HEAD
 		RT_TRACE(_module_hci_intfs_c_, _drv_err_,
 			 ("Initialize driver software resource Failed!\n"));
+=======
+		err = -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto free_hal_data;
 	}
 
@@ -380,7 +435,10 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 		dvobj->pusbdev->do_remote_wakeup = 1;
 		pusb_intf->needs_remote_wakeup = 1;
 		device_init_wakeup(&pusb_intf->dev, 1);
+<<<<<<< HEAD
 		pr_debug("\n  padapter->pwrctrlpriv.bSupportRemoteWakeup~~~~~~\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pr_debug("\n  padapter->pwrctrlpriv.bSupportRemoteWakeup~~~[%d]~~~\n",
 			 device_may_wakeup(&pusb_intf->dev));
 	}
@@ -391,8 +449,14 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 		pr_debug("can't get autopm:\n");
 
 	/*  alloc dev name after read efuse. */
+<<<<<<< HEAD
 	if (dev_alloc_name(pnetdev, padapter->registrypriv.ifname) < 0)
 		RT_TRACE(_module_os_intfs_c_, _drv_err_, ("dev_alloc_name, fail!\n"));
+=======
+	err = dev_alloc_name(pnetdev, padapter->registrypriv.ifname);
+	if (err < 0)
+		goto free_hal_data;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	netif_carrier_off(pnetdev);
 
@@ -402,8 +466,13 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 		 pnetdev->dev_addr);
 
 	/* step 6. Tell the network stack we exist */
+<<<<<<< HEAD
 	if (register_netdev(pnetdev) != 0) {
 		RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("register_netdev() failed\n"));
+=======
+	err = register_netdev(pnetdev);
+	if (err) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto free_hal_data;
 	}
 
@@ -414,6 +483,7 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 		, padapter->hw_init_completed
 	);
 
+<<<<<<< HEAD
 	status = _SUCCESS;
 
 free_hal_data:
@@ -429,6 +499,15 @@ free_adapter:
 	}
 exit:
 	return padapter;
+=======
+	return 0;
+
+free_hal_data:
+	kfree(padapter->HalData);
+free_adapter:
+	free_netdev(pnetdev);
+	return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void rtw_usb_if1_deinit(struct adapter *if1)
@@ -453,11 +532,17 @@ static void rtw_usb_if1_deinit(struct adapter *if1)
 	pr_debug("+r871xu_dev_remove, hw_init_completed=%d\n",
 		 if1->hw_init_completed);
 	rtw_free_drv_sw(if1);
+<<<<<<< HEAD
 	rtw_free_netdev(pnetdev);
+=======
+	if (pnetdev)
+		free_netdev(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int rtw_drv_init(struct usb_interface *pusb_intf, const struct usb_device_id *pdid)
 {
+<<<<<<< HEAD
 	struct adapter *if1 = NULL;
 	struct dvobj_priv *dvobj;
 
@@ -481,6 +566,24 @@ free_dvobj:
 	usb_dvobj_deinit(pusb_intf);
 exit:
 	return -ENODEV;
+=======
+	int err;
+
+	err = usb_dvobj_init(pusb_intf);
+	if (err) {
+		pr_debug("usb_dvobj_init failed\n");
+		return err;
+	}
+
+	err = rtw_usb_if1_init(pusb_intf);
+	if (err) {
+		pr_debug("rtw_usb_if1_init failed\n");
+		usb_dvobj_deinit(pusb_intf);
+		return err;
+	}
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -494,7 +597,10 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf)
 	struct adapter *padapter = dvobj->if1;
 
 	pr_debug("+%s\n", __func__);
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("+dev_remove()\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!pusb_intf->unregistering)
 		padapter->bSurpriseRemoved = true;
@@ -508,7 +614,10 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf)
 
 	usb_dvobj_deinit(pusb_intf);
 
+<<<<<<< HEAD
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("-dev_remove()\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pr_debug("-r871xu_dev_remove, done\n");
 }
 

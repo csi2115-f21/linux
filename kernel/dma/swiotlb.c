@@ -61,6 +61,7 @@
 
 enum swiotlb_force swiotlb_force;
 
+<<<<<<< HEAD
 /*
  * Used to do a quick range check in swiotlb_tbl_unmap_single and
  * swiotlb_tbl_sync_single_*, to see if the memory was in fact allocated by this
@@ -85,6 +86,9 @@ static unsigned long io_tlb_used;
  */
 static unsigned int *io_tlb_list;
 static unsigned int io_tlb_index;
+=======
+struct io_tlb_mem *io_tlb_default_mem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Max segment that we can provide which (if pages are contingous) will
@@ -142,7 +146,11 @@ EXPORT_SYMBOL_GPL(swiotlb_nr_tbl);
 
 unsigned int swiotlb_max_segment(void)
 {
+<<<<<<< HEAD
 	return unlikely(no_iotlb_memory) ? 0 : max_segment;
+=======
+	return io_tlb_default_mem ? max_segment : 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(swiotlb_max_segment);
 
@@ -183,9 +191,15 @@ void __init swiotlb_adjust_size(unsigned long new_size)
 
 void swiotlb_print_info(void)
 {
+<<<<<<< HEAD
 	unsigned long bytes = io_tlb_nslabs << IO_TLB_SHIFT;
 
 	if (no_iotlb_memory) {
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+
+	if (!mem) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pr_warn("No low mem\n");
 		return;
 	}
@@ -212,6 +226,7 @@ static inline unsigned long nr_slots(u64 val)
  */
 void __init swiotlb_update_mem_attributes(void)
 {
+<<<<<<< HEAD
 	void *vaddr;
 	unsigned long bytes;
 
@@ -220,17 +235,33 @@ void __init swiotlb_update_mem_attributes(void)
 
 	vaddr = phys_to_virt(io_tlb_start);
 	bytes = PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT);
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+	void *vaddr;
+	unsigned long bytes;
+
+	if (!mem || mem->late_alloc)
+		return;
+	vaddr = phys_to_virt(mem->start);
+	bytes = PAGE_ALIGN(mem->nslabs << IO_TLB_SHIFT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	set_memory_decrypted((unsigned long)vaddr, bytes >> PAGE_SHIFT);
 	memset(vaddr, 0, bytes);
 }
 
 int __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
 {
+<<<<<<< HEAD
 	unsigned long i, bytes;
+=======
+	unsigned long bytes = nslabs << IO_TLB_SHIFT, i;
+	struct io_tlb_mem *mem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	size_t alloc_size;
 
 	bytes = nslabs << IO_TLB_SHIFT;
 
+<<<<<<< HEAD
 	io_tlb_nslabs = nslabs;
 	io_tlb_start = __pa(tlb);
 	io_tlb_end = io_tlb_start + bytes;
@@ -249,9 +280,29 @@ int __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
 	alloc_size = PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t));
 	io_tlb_orig_addr = memblock_alloc(alloc_size, PAGE_SIZE);
 	if (!io_tlb_orig_addr)
+=======
+	/* protect against double initialization */
+	if (WARN_ON_ONCE(io_tlb_default_mem))
+		return -ENOMEM;
+
+	alloc_size = PAGE_ALIGN(struct_size(mem, slots, nslabs));
+	mem = memblock_alloc(alloc_size, PAGE_SIZE);
+	if (!mem)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		panic("%s: Failed to allocate %zu bytes align=0x%lx\n",
 		      __func__, alloc_size, PAGE_SIZE);
+	mem->nslabs = nslabs;
+	mem->start = __pa(tlb);
+	mem->end = mem->start + bytes;
+	mem->index = 0;
+	spin_lock_init(&mem->lock);
+	for (i = 0; i < mem->nslabs; i++) {
+		mem->slots[i].list = IO_TLB_SEGSIZE - io_tlb_offset(i);
+		mem->slots[i].orig_addr = INVALID_PHYS_ADDR;
+		mem->slots[i].alloc_size = 0;
+	}
 
+<<<<<<< HEAD
 	alloc_size = PAGE_ALIGN(io_tlb_nslabs * sizeof(size_t));
 	io_tlb_orig_size = memblock_alloc(alloc_size, PAGE_SIZE);
 	if (!io_tlb_orig_size)
@@ -266,6 +317,9 @@ int __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
 	io_tlb_index = 0;
 	no_iotlb_memory = false;
 
+=======
+	io_tlb_default_mem = mem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (verbose)
 		swiotlb_print_info();
 
@@ -365,6 +419,7 @@ static void swiotlb_cleanup(void)
 int
 swiotlb_late_init_with_tbl(char *tlb, unsigned long nslabs)
 {
+<<<<<<< HEAD
 	unsigned long i, bytes;
 
 	bytes = nslabs << IO_TLB_SHIFT;
@@ -372,9 +427,38 @@ swiotlb_late_init_with_tbl(char *tlb, unsigned long nslabs)
 	io_tlb_nslabs = nslabs;
 	io_tlb_start = virt_to_phys(tlb);
 	io_tlb_end = io_tlb_start + bytes;
+=======
+	unsigned long bytes = nslabs << IO_TLB_SHIFT, i;
+	struct io_tlb_mem *mem;
+
+	if (swiotlb_force == SWIOTLB_NO_FORCE)
+		return 0;
+
+	/* protect against double initialization */
+	if (WARN_ON_ONCE(io_tlb_default_mem))
+		return -ENOMEM;
+
+	mem = (void *)__get_free_pages(GFP_KERNEL,
+		get_order(struct_size(mem, slots, nslabs)));
+	if (!mem)
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	mem->nslabs = nslabs;
+	mem->start = virt_to_phys(tlb);
+	mem->end = mem->start + bytes;
+	mem->index = 0;
+	mem->late_alloc = 1;
+	spin_lock_init(&mem->lock);
+	for (i = 0; i < mem->nslabs; i++) {
+		mem->slots[i].list = IO_TLB_SEGSIZE - io_tlb_offset(i);
+		mem->slots[i].orig_addr = INVALID_PHYS_ADDR;
+		mem->slots[i].alloc_size = 0;
+	}
 
 	set_memory_decrypted((unsigned long)tlb, bytes >> PAGE_SHIFT);
 	memset(tlb, 0, bytes);
+<<<<<<< HEAD
 
 	/*
 	 * Allocate and initialize the free list array.  This array is used
@@ -408,7 +492,10 @@ swiotlb_late_init_with_tbl(char *tlb, unsigned long nslabs)
 	}
 	io_tlb_index = 0;
 	no_iotlb_memory = false;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
+	io_tlb_default_mem = mem;
 	swiotlb_print_info();
 
 	late_alloc = 1;
@@ -432,6 +519,7 @@ cleanup3:
 
 void __init swiotlb_exit(void)
 {
+<<<<<<< HEAD
 	if (!io_tlb_orig_addr)
 		return;
 
@@ -455,6 +543,28 @@ void __init swiotlb_exit(void)
 				   PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
 	}
 	swiotlb_cleanup();
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+	size_t size;
+
+	if (!mem)
+		return;
+
+	size = struct_size(mem, slots, mem->nslabs);
+	if (mem->late_alloc)
+		free_pages((unsigned long)mem, get_order(size));
+	else
+		memblock_free_late(__pa(mem), PAGE_ALIGN(size));
+	io_tlb_default_mem = NULL;
+}
+
+/*
+ * Return the offset into a iotlb slot required to keep the device happy.
+ */
+static unsigned int swiotlb_align_offset(struct device *dev, u64 addr)
+{
+	return addr & dma_get_min_align_mask(dev) & (IO_TLB_SIZE - 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -463,8 +573,34 @@ void __init swiotlb_exit(void)
 static void swiotlb_bounce(phys_addr_t orig_addr, phys_addr_t tlb_addr,
 			   size_t size, enum dma_data_direction dir)
 {
+<<<<<<< HEAD
 	unsigned long pfn = PFN_DOWN(orig_addr);
 	unsigned char *vaddr = phys_to_virt(tlb_addr);
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+	int index = (tlb_addr - mem->start) >> IO_TLB_SHIFT;
+	phys_addr_t orig_addr = mem->slots[index].orig_addr;
+	size_t alloc_size = mem->slots[index].alloc_size;
+	unsigned long pfn = PFN_DOWN(orig_addr);
+	unsigned char *vaddr = phys_to_virt(tlb_addr);
+	unsigned int tlb_offset;
+
+	if (orig_addr == INVALID_PHYS_ADDR)
+		return;
+
+	tlb_offset = (tlb_addr & (IO_TLB_SIZE - 1)) -
+		     swiotlb_align_offset(dev, orig_addr);
+
+	orig_addr += tlb_offset;
+	alloc_size -= tlb_offset;
+
+	if (size > alloc_size) {
+		dev_WARN_ONCE(dev, 1,
+			"Buffer overflow detected. Allocation size: %zu. Mapping size: %zu.\n",
+			alloc_size, size);
+		size = alloc_size;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (PageHighMem(pfn_to_page(pfn))) {
 		/* The buffer does not have a mapping.  Map it in and copy */
@@ -531,6 +667,10 @@ static unsigned int wrap_index(unsigned int index)
 static int find_slots(struct device *dev, phys_addr_t orig_addr,
 		size_t alloc_size)
 {
+<<<<<<< HEAD
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long boundary_mask = dma_get_seg_boundary(dev);
 	dma_addr_t tbl_dma_addr =
 		phys_to_dma_unencrypted(dev, io_tlb_start) & boundary_mask;
@@ -560,7 +700,11 @@ static int find_slots(struct device *dev, phys_addr_t orig_addr,
 	do {
 		if ((slot_addr(tbl_dma_addr, index) & iotlb_align_mask) !=
 		    (orig_addr & iotlb_align_mask)) {
+<<<<<<< HEAD
 			index = wrap_index(index + 1);
+=======
+			index = wrap_index(mem, index + 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			continue;
 		}
 
@@ -584,7 +728,11 @@ not_found:
 
 found:
 	for (i = index; i < index + nslots; i++)
+<<<<<<< HEAD
 		io_tlb_list[i] = 0;
+=======
+		mem->slots[i].list = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = index - 1;
 	     io_tlb_offset(i) != IO_TLB_SEGSIZE - 1 &&
 	     io_tlb_list[i]; i--)
@@ -607,6 +755,10 @@ phys_addr_t swiotlb_tbl_map_single(struct device *dev, phys_addr_t orig_addr,
 		size_t mapping_size, size_t alloc_size,
 		enum dma_data_direction dir, unsigned long attrs)
 {
+<<<<<<< HEAD
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int offset = swiotlb_align_offset(dev, orig_addr);
 	unsigned int index, i;
 	phys_addr_t tlb_addr;
@@ -638,16 +790,25 @@ phys_addr_t swiotlb_tbl_map_single(struct device *dev, phys_addr_t orig_addr,
 	 * needed.
 	 */
 	for (i = 0; i < nr_slots(alloc_size + offset); i++) {
+<<<<<<< HEAD
 		io_tlb_orig_addr[index + i] = slot_addr(orig_addr, i);
 		io_tlb_orig_size[index+i] = alloc_size - (i << IO_TLB_SHIFT);
 	}
 	tlb_addr = slot_addr(io_tlb_start, index) + offset;
+=======
+		mem->slots[index + i].orig_addr = slot_addr(orig_addr, i);
+		mem->slots[index + i].alloc_size =
+			alloc_size - (i << IO_TLB_SHIFT);
+	}
+	tlb_addr = slot_addr(mem->start, index) + offset;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
 	    (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL))
 		swiotlb_bounce(orig_addr, tlb_addr, mapping_size, DMA_TO_DEVICE);
 	return tlb_addr;
 }
 
+<<<<<<< HEAD
 static void validate_sync_size_and_truncate(struct device *hwdev, size_t orig_size, size_t *size)
 {
 	if (*size > orig_size) {
@@ -659,10 +820,13 @@ static void validate_sync_size_and_truncate(struct device *hwdev, size_t orig_si
 	}
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * tlb_addr is the physical address of the bounce buffer to unmap.
  */
 void swiotlb_tbl_unmap_single(struct device *hwdev, phys_addr_t tlb_addr,
+<<<<<<< HEAD
 			      size_t mapping_size, size_t alloc_size,
 			      enum dma_data_direction dir, unsigned long attrs)
 {
@@ -681,6 +845,24 @@ void swiotlb_tbl_unmap_single(struct device *hwdev, phys_addr_t tlb_addr,
 	    !(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
 	    ((dir == DMA_FROM_DEVICE) || (dir == DMA_BIDIRECTIONAL)))
 		swiotlb_bounce(orig_addr, tlb_addr, mapping_size, DMA_FROM_DEVICE);
+=======
+			      size_t mapping_size, enum dma_data_direction dir,
+			      unsigned long attrs)
+{
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+	unsigned long flags;
+	unsigned int offset = swiotlb_align_offset(hwdev, tlb_addr);
+	int index = (tlb_addr - offset - mem->start) >> IO_TLB_SHIFT;
+	int nslots = nr_slots(mem->slots[index].alloc_size + offset);
+	int count, i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	/*
+	 * First, sync the memory before unmapping the entry
+	 */
+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
+	    (dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL))
+		swiotlb_bounce(hwdev, tlb_addr, mapping_size, DMA_FROM_DEVICE);
 
 	/*
 	 * Return the buffer to the free list by setting the corresponding
@@ -716,6 +898,7 @@ void swiotlb_tbl_unmap_single(struct device *hwdev, phys_addr_t tlb_addr,
 	spin_unlock_irqrestore(&io_tlb_lock, flags);
 }
 
+<<<<<<< HEAD
 void swiotlb_tbl_sync_single(struct device *hwdev, phys_addr_t tlb_addr,
 			     size_t size, enum dma_data_direction dir,
 			     enum dma_sync_target target)
@@ -726,6 +909,16 @@ void swiotlb_tbl_sync_single(struct device *hwdev, phys_addr_t tlb_addr,
 
 	if (orig_addr == INVALID_PHYS_ADDR)
 		return;
+=======
+void swiotlb_sync_single_for_device(struct device *dev, phys_addr_t tlb_addr,
+		size_t size, enum dma_data_direction dir)
+{
+	if (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL)
+		swiotlb_bounce(dev, tlb_addr, size, DMA_TO_DEVICE);
+	else
+		BUG_ON(dir != DMA_FROM_DEVICE);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	validate_sync_size_and_truncate(hwdev, orig_size, &size);
 
@@ -790,22 +983,36 @@ size_t swiotlb_max_mapping_size(struct device *dev)
 
 bool is_swiotlb_active(void)
 {
+<<<<<<< HEAD
 	/*
 	 * When SWIOTLB is initialized, even if io_tlb_start points to physical
 	 * address zero, io_tlb_end surely doesn't.
 	 */
 	return io_tlb_end != 0;
+=======
+	return io_tlb_default_mem != NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #ifdef CONFIG_DEBUG_FS
 
 static int __init swiotlb_create_debugfs(void)
 {
+<<<<<<< HEAD
 	struct dentry *root;
 
 	root = debugfs_create_dir("swiotlb", NULL);
 	debugfs_create_ulong("io_tlb_nslabs", 0400, root, &io_tlb_nslabs);
 	debugfs_create_ulong("io_tlb_used", 0400, root, &io_tlb_used);
+=======
+	struct io_tlb_mem *mem = io_tlb_default_mem;
+
+	if (!mem)
+		return 0;
+	mem->debugfs = debugfs_create_dir("swiotlb", NULL);
+	debugfs_create_ulong("io_tlb_nslabs", 0400, mem->debugfs, &mem->nslabs);
+	debugfs_create_ulong("io_tlb_used", 0400, mem->debugfs, &mem->used);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 

@@ -713,7 +713,11 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 
 	err = drm_panel_of_backlight(&panel->base);
 	if (err)
+<<<<<<< HEAD
 		goto free_ddc;
+=======
+		goto disable_pm_runtime;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	drm_panel_add(&panel->base);
 
@@ -736,6 +740,11 @@ static int panel_simple_remove(struct device *dev)
 	drm_panel_disable(&panel->base);
 	drm_panel_unprepare(&panel->base);
 
+<<<<<<< HEAD
+=======
+	pm_runtime_dont_use_autosuspend(dev);
+	pm_runtime_disable(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (panel->ddc)
 		put_device(&panel->ddc->dev);
 

@@ -1406,7 +1406,11 @@ static void intel_dsi_prepare(struct intel_encoder *intel_encoder,
 			tmp &= ~READ_REQUEST_PRIORITY_MASK;
 			intel_de_write(dev_priv, MIPI_CTRL(port),
 				       tmp | READ_REQUEST_PRIORITY_HIGH);
+<<<<<<< HEAD
 		} else if (IS_GEN9_LP(dev_priv)) {
+=======
+		} else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			enum pipe pipe = intel_crtc->pipe;
 
 			tmp = intel_de_read(dev_priv, MIPI_CTRL(port));

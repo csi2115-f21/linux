@@ -199,6 +199,23 @@ struct bt_iter_data {
 	bool reserved;
 };
 
+<<<<<<< HEAD
+=======
+static struct request *blk_mq_find_and_get_req(struct blk_mq_tags *tags,
+		unsigned int bitnr)
+{
+	struct request *rq;
+	unsigned long flags;
+
+	spin_lock_irqsave(&tags->lock, flags);
+	rq = tags->rqs[bitnr];
+	if (!rq || !refcount_inc_not_zero(&rq->ref))
+		rq = NULL;
+	spin_unlock_irqrestore(&tags->lock, flags);
+	return rq;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static bool bt_iter(struct sbitmap *bitmap, unsigned int bitnr, void *data)
 {
 	struct bt_iter_data *iter_data = data;

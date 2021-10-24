@@ -151,6 +151,19 @@ static bool iwl_mvm_te_check_disconnect(struct iwl_mvm *mvm,
 	if (errmsg)
 		IWL_ERR(mvm, "%s\n", errmsg);
 
+<<<<<<< HEAD
+=======
+	if (mvmvif->csa_bcn_pending) {
+		struct iwl_mvm_sta *mvmsta;
+
+		rcu_read_lock();
+		mvmsta = iwl_mvm_sta_from_staid_rcu(mvm, mvmvif->ap_sta_id);
+		if (!WARN_ON(!mvmsta))
+			iwl_mvm_sta_modify_disable_tx(mvm, mvmsta, false);
+		rcu_read_unlock();
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	iwl_mvm_connection_loss(mvm, vif, errmsg);
 	return true;
 }
@@ -611,6 +624,15 @@ static bool __iwl_mvm_remove_time_event(struct iwl_mvm *mvm,
 {
 	u32 id;
 	struct iwl_mvm_vif *mvmvif = iwl_mvm_vif_from_mac80211(te_data->vif);
+<<<<<<< HEAD
+=======
+	enum nl80211_iftype iftype;
+
+	if (!te_data->vif)
+		return false;
+
+	iftype = te_data->vif->type;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * It is possible that by the time we got to this point the time
@@ -635,8 +657,13 @@ static bool __iwl_mvm_remove_time_event(struct iwl_mvm *mvm,
 			IWL_UCODE_TLV_CAPA_SESSION_PROT_CMD)) {
 		if (mvmvif && id < SESSION_PROTECT_CONF_MAX_ID) {
 			/* Session protection is still ongoing. Cancel it */
+<<<<<<< HEAD
 			iwl_mvm_cancel_session_protection(mvm, mvmvif);
 			if (te_data->vif->type == NL80211_IFTYPE_P2P_DEVICE) {
+=======
+			iwl_mvm_cancel_session_protection(mvm, mvmvif, id);
+			if (iftype == NL80211_IFTYPE_P2P_DEVICE) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				set_bit(IWL_MVM_STATUS_NEED_FLUSH_P2P, &mvm->status);
 				iwl_mvm_roc_finished(mvm);
 			}
@@ -960,7 +987,12 @@ void iwl_mvm_stop_roc(struct iwl_mvm *mvm, struct ieee80211_vif *vif)
 		mvmvif = iwl_mvm_vif_from_mac80211(vif);
 
 		if (vif->type == NL80211_IFTYPE_P2P_DEVICE) {
+<<<<<<< HEAD
 			iwl_mvm_cancel_session_protection(mvm, mvmvif);
+=======
+			iwl_mvm_cancel_session_protection(mvm, mvmvif,
+							  mvmvif->time_event_data.id);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			set_bit(IWL_MVM_STATUS_NEED_FLUSH_P2P, &mvm->status);
 		} else {
 			iwl_mvm_remove_aux_roc_te(mvm, mvmvif,

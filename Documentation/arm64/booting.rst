@@ -270,6 +270,49 @@ Before jumping into the kernel, the following conditions must be met:
       having 0b1 set for the corresponding bit for each of the auxiliary
       counters present.
 
+<<<<<<< HEAD
+=======
+  For CPUs with the Fine Grained Traps (FEAT_FGT) extension present:
+
+  - If EL3 is present and the kernel is entered at EL2:
+
+    - SCR_EL3.FGTEn (bit 27) must be initialised to 0b1.
+
+  For CPUs with support for HCRX_EL2 (FEAT_HCX) present:
+
+  - If EL3 is present and the kernel is entered at EL2:
+
+    - SCR_EL3.HXEn (bit 38) must be initialised to 0b1.
+
+  For CPUs with Advanced SIMD and floating point support:
+
+  - If EL3 is present:
+
+    - CPTR_EL3.TFP (bit 10) must be initialised to 0b0.
+
+  - If EL2 is present and the kernel is entered at EL1:
+
+    - CPTR_EL2.TFP (bit 10) must be initialised to 0b0.
+
+  For CPUs with the Scalable Vector Extension (FEAT_SVE) present:
+
+  - if EL3 is present:
+
+    - CPTR_EL3.EZ (bit 8) must be initialised to 0b1.
+
+    - ZCR_EL3.LEN must be initialised to the same value for all CPUs the
+      kernel is executed on.
+
+  - If the kernel is entered at EL1 and EL2 is present:
+
+    - CPTR_EL2.TZ (bit 8) must be initialised to 0b0.
+
+    - CPTR_EL2.ZEN (bits 17:16) must be initialised to 0b11.
+
+    - ZCR_EL2.LEN must be initialised to the same value for all CPUs the
+      kernel will execute on.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 The requirements described above for CPU mode, caches, MMUs, architected
 timers, coherency and system registers apply to all CPUs.  All CPUs must
 enter the kernel in the same exception level.

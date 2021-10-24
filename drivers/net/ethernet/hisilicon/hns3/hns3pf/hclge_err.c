@@ -629,6 +629,137 @@ static const struct hclge_hw_error hclge_rocee_qmm_ovf_err_int[] = {
 	{ .int_msk = 0x1E, .msg = "rocee qmm ovf: qpc hopnum err" },
 	{ .int_msk = 0x1F, .msg = "rocee qmm ovf: qpc ba0 err" },
 	{ /* sentinel */ }
+<<<<<<< HEAD
+=======
+};
+
+static const struct hclge_hw_module_id hclge_hw_module_id_st[] = {
+	{
+		.module_id = MODULE_NONE,
+		.msg = "MODULE_NONE"
+	}, {
+		.module_id = MODULE_BIOS_COMMON,
+		.msg = "MODULE_BIOS_COMMON"
+	}, {
+		.module_id = MODULE_GE,
+		.msg = "MODULE_GE"
+	}, {
+		.module_id = MODULE_IGU_EGU,
+		.msg = "MODULE_IGU_EGU"
+	}, {
+		.module_id = MODULE_LGE,
+		.msg = "MODULE_LGE"
+	}, {
+		.module_id = MODULE_NCSI,
+		.msg = "MODULE_NCSI"
+	}, {
+		.module_id = MODULE_PPP,
+		.msg = "MODULE_PPP"
+	}, {
+		.module_id = MODULE_QCN,
+		.msg = "MODULE_QCN"
+	}, {
+		.module_id = MODULE_RCB_RX,
+		.msg = "MODULE_RCB_RX"
+	}, {
+		.module_id = MODULE_RTC,
+		.msg = "MODULE_RTC"
+	}, {
+		.module_id = MODULE_SSU,
+		.msg = "MODULE_SSU"
+	}, {
+		.module_id = MODULE_TM,
+		.msg = "MODULE_TM"
+	}, {
+		.module_id = MODULE_RCB_TX,
+		.msg = "MODULE_RCB_TX"
+	}, {
+		.module_id = MODULE_TXDMA,
+		.msg = "MODULE_TXDMA"
+	}, {
+		.module_id = MODULE_MASTER,
+		.msg = "MODULE_MASTER"
+	}, {
+		.module_id = MODULE_ROCEE_TOP,
+		.msg = "MODULE_ROCEE_TOP"
+	}, {
+		.module_id = MODULE_ROCEE_TIMER,
+		.msg = "MODULE_ROCEE_TIMER"
+	}, {
+		.module_id = MODULE_ROCEE_MDB,
+		.msg = "MODULE_ROCEE_MDB"
+	}, {
+		.module_id = MODULE_ROCEE_TSP,
+		.msg = "MODULE_ROCEE_TSP"
+	}, {
+		.module_id = MODULE_ROCEE_TRP,
+		.msg = "MODULE_ROCEE_TRP"
+	}, {
+		.module_id = MODULE_ROCEE_SCC,
+		.msg = "MODULE_ROCEE_SCC"
+	}, {
+		.module_id = MODULE_ROCEE_CAEP,
+		.msg = "MODULE_ROCEE_CAEP"
+	}, {
+		.module_id = MODULE_ROCEE_GEN_AC,
+		.msg = "MODULE_ROCEE_GEN_AC"
+	}, {
+		.module_id = MODULE_ROCEE_QMM,
+		.msg = "MODULE_ROCEE_QMM"
+	}, {
+		.module_id = MODULE_ROCEE_LSAN,
+		.msg = "MODULE_ROCEE_LSAN"
+	}
+};
+
+static const struct hclge_hw_type_id hclge_hw_type_id_st[] = {
+	{
+		.type_id = NONE_ERROR,
+		.msg = "none_error"
+	}, {
+		.type_id = FIFO_ERROR,
+		.msg = "fifo_error"
+	}, {
+		.type_id = MEMORY_ERROR,
+		.msg = "memory_error"
+	}, {
+		.type_id = POISON_ERROR,
+		.msg = "poison_error"
+	}, {
+		.type_id = MSIX_ECC_ERROR,
+		.msg = "msix_ecc_error"
+	}, {
+		.type_id = TQP_INT_ECC_ERROR,
+		.msg = "tqp_int_ecc_error"
+	}, {
+		.type_id = PF_ABNORMAL_INT_ERROR,
+		.msg = "pf_abnormal_int_error"
+	}, {
+		.type_id = MPF_ABNORMAL_INT_ERROR,
+		.msg = "mpf_abnormal_int_error"
+	}, {
+		.type_id = COMMON_ERROR,
+		.msg = "common_error"
+	}, {
+		.type_id = PORT_ERROR,
+		.msg = "port_error"
+	}, {
+		.type_id = ETS_ERROR,
+		.msg = "ets_error"
+	}, {
+		.type_id = NCSI_ERROR,
+		.msg = "ncsi_error"
+	}, {
+		.type_id = GLB_ERROR,
+		.msg = "glb_error"
+	}, {
+		.type_id = ROCEE_NORMAL_ERR,
+		.msg = "rocee_normal_error"
+	}, {
+		.type_id = ROCEE_OVF_ERR,
+		.msg = "rocee_ovf_error"
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static void hclge_log_error(struct device *dev, char *reg,

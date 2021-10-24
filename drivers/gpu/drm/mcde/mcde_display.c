@@ -1481,7 +1481,11 @@ static struct drm_simple_display_pipe_funcs mcde_display_funcs = {
 	.update = mcde_display_update,
 	.enable_vblank = mcde_display_enable_vblank,
 	.disable_vblank = mcde_display_disable_vblank,
+<<<<<<< HEAD
 	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
+=======
+	.prepare_fb = drm_gem_simple_display_pipe_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 int mcde_display_init(struct drm_device *drm)

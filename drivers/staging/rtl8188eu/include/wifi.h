@@ -7,6 +7,7 @@
 #ifndef _WIFI_H_
 #define _WIFI_H_
 
+<<<<<<< HEAD
 #define WLAN_IEEE_OUI_LEN	3
 #define WLAN_CRC_LEN		4
 #define WLAN_BSSID_LEN		6
@@ -22,6 +23,10 @@
 
 #define WLAN_MIN_ETHFRM_LEN	60
 #define WLAN_MAX_ETHFRM_LEN	1514
+=======
+#define WLAN_HDR_A3_LEN		24
+#define WLAN_HDR_A3_QOS_LEN	26
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define P80211CAPTURE_VERSION	0x80211001
 
@@ -38,6 +43,7 @@ enum WIFI_FRAME_TYPE {
 	WIFI_QOS_DATA_TYPE	= (BIT(7) | BIT(3)),	/*  QoS Data */
 };
 
+<<<<<<< HEAD
 enum WIFI_FRAME_SUBTYPE {
 	/*  below is for mgt frame */
 	WIFI_ASSOCREQ       = (0 | WIFI_MGT_TYPE),
@@ -88,6 +94,8 @@ enum WIFI_REG_DOMAIN {
 	DOMAIN_MAX
 };
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define SetToDs(pbuf)	\
 	*(__le16 *)(pbuf) |= cpu_to_le16(IEEE80211_FCTL_TODS)
 
@@ -199,6 +207,7 @@ enum WIFI_REG_DOMAIN {
 
 #define GetAddr3Ptr(pbuf)	((unsigned char *)((size_t)(pbuf) + 16))
 
+<<<<<<< HEAD
 #define GetAddr4Ptr(pbuf)	((unsigned char *)((size_t)(pbuf) + 24))
 
 static inline unsigned char *get_da(unsigned char *pframe)
@@ -245,6 +254,8 @@ static inline unsigned char *get_sa(unsigned char *pframe)
 	return sa;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 {
 	unsigned char	*sa;
@@ -270,6 +281,7 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 	return sa;
 }
 
+<<<<<<< HEAD
 static inline int IsFrameTypeCtrl(unsigned char *pframe)
 {
 	if (GetFrameType(pframe) == WIFI_CTRL_TYPE)
@@ -294,6 +306,11 @@ static inline int IsFrameTypeCtrl(unsigned char *pframe)
 #define _ACKCTSLNG_		14	/* 14 bytes long, including crclng */
 #define _CRCLNG_		4
 
+=======
+/*-----------------------------------------------------------------------------
+			Below is for the security related definition
+------------------------------------------------------------------------------*/
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define _ASOCREQ_IE_OFFSET_	4	/*  excluding wlan_hdr */
 #define	_ASOCRSP_IE_OFFSET_	6
 #define _REASOCREQ_IE_OFFSET_	10
@@ -324,6 +341,7 @@ static inline int IsFrameTypeCtrl(unsigned char *pframe)
 #define AUTH_ODD_TO		0
 #define AUTH_EVEN_TO		1
 
+<<<<<<< HEAD
 #define WLAN_ETHCONV_ENCAP	1
 #define WLAN_ETHCONV_RFC1042	2
 #define WLAN_ETHCONV_8021h	3
@@ -340,6 +358,8 @@ static inline int IsFrameTypeCtrl(unsigned char *pframe)
 #define cap_QoSi	BIT(9)
 #define cap_ShortSlot	BIT(10)
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*-----------------------------------------------------------------------------
 				Below is the definition for 802.11i / 802.1x
 ------------------------------------------------------------------------------*/
@@ -360,7 +380,10 @@ static inline int IsFrameTypeCtrl(unsigned char *pframe)
 				Below is the definition for WMM
 ------------------------------------------------------------------------------*/
 #define _WMM_IE_Length_				7  /*  for WMM STA */
+<<<<<<< HEAD
 #define _WMM_Para_Element_Length_		24
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*-----------------------------------------------------------------------------
 				Below is the definition for 802.11n
@@ -432,6 +455,7 @@ enum ht_cap_ampdu_factor {
 #define HT_INFO_OPERATION_MODE_TRANSMIT_BURST_LIMIT	((u8)BIT(3))
 #define HT_INFO_OPERATION_MODE_NON_HT_STA_PRESENT	((u8)BIT(4))
 
+<<<<<<< HEAD
 #define HT_INFO_STBC_PARAM_DUAL_BEACON		((u16)BIT(6))
 #define HT_INFO_STBC_PARAM_DUAL_STBC_PROTECT	((u16)BIT(7))
 #define HT_INFO_STBC_PARAM_SECONDARY_BC		((u16)BIT(8))
@@ -439,6 +463,8 @@ enum ht_cap_ampdu_factor {
 #define HT_INFO_STBC_PARAM_PCO_ACTIVE		((u16)BIT(10))
 #define HT_INFO_STBC_PARAM_PCO_PHASE		((u16)BIT(11))
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*	===============WPS Section=============== */
 /*	For WPSv1.0 */
 #define WPSOUI					0x0050f204
@@ -497,6 +523,7 @@ enum ht_cap_ampdu_factor {
 #define WPS_CONFIG_METHOD_VDISPLAY	0x2008
 #define WPS_CONFIG_METHOD_PDISPLAY	0x4008
 
+<<<<<<< HEAD
 /*	Value of Category ID of WPS Primary Device Type Attribute */
 #define WPS_PDT_CID_DISPLAYS		0x0007
 #define WPS_PDT_CID_MULIT_MEDIA		0x0008
@@ -514,10 +541,13 @@ enum ht_cap_ampdu_factor {
 #define WPS_DPID_PBC			0x0004
 #define WPS_DPID_REGISTRAR_SPEC		0x0005
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*	Value of WPS RF Bands Attribute */
 #define WPS_RF_BANDS_2_4_GHZ		0x01
 #define WPS_RF_BANDS_5_GHZ		0x02
 
+<<<<<<< HEAD
 /*	Value of WPS Association State Attribute */
 #define WPS_ASSOC_STATE_NOT_ASSOCIATED		0x00
 #define WPS_ASSOC_STATE_CONNECTION_SUCCESS	0x01
@@ -539,6 +569,8 @@ enum ht_cap_ampdu_factor {
 #define	WPS_CM_SW_DISPLAY_P		0x2008
 #define	WPS_CM_LCD_DISPLAY_P		0x4008
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define IP_MCAST_MAC(mac)				\
 	((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[2] == 0x5e))
 #define ICMPV6_MCAST_MAC(mac)				\

@@ -51,6 +51,7 @@ enum amd_asic_type {
 	CHIP_RAVEN,	/* 22 */
 	CHIP_ARCTURUS,	/* 23 */
 	CHIP_RENOIR,	/* 24 */
+<<<<<<< HEAD
 	CHIP_NAVI10,	/* 25 */
 	CHIP_NAVI14,	/* 26 */
 	CHIP_NAVI12,	/* 27 */
@@ -58,6 +59,18 @@ enum amd_asic_type {
 	CHIP_NAVY_FLOUNDER,	/* 29 */
 	CHIP_VANGOGH,	/* 30 */
 	CHIP_DIMGREY_CAVEFISH,	/* 31 */
+=======
+	CHIP_ALDEBARAN, /* 25 */
+	CHIP_NAVI10,	/* 26 */
+	CHIP_NAVI14,	/* 27 */
+	CHIP_NAVI12,	/* 28 */
+	CHIP_SIENNA_CICHLID,	/* 29 */
+	CHIP_NAVY_FLOUNDER,	/* 30 */
+	CHIP_VANGOGH,	/* 31 */
+	CHIP_DIMGREY_CAVEFISH,	/* 32 */
+	CHIP_BEIGE_GOBY,	/* 33 */
+	CHIP_YELLOW_CARP,	/* 34 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	CHIP_LAST,
 };
 

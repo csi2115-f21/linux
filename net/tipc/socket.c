@@ -1437,6 +1437,10 @@ static int __tipc_sendmsg(struct socket *sock, struct msghdr *m, size_t dlen)
 			return -EINVAL;
 		if (unlikely(dest->family != AF_TIPC))
 			return -EINVAL;
+<<<<<<< HEAD
+=======
+		 atype = ua->addrtype;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (grp) {
@@ -1530,6 +1534,14 @@ static int __tipc_sendmsg(struct socket *sock, struct msghdr *m, size_t dlen)
 
 	if (unlikely(syn && !rc))
 		tipc_set_sk_state(sk, TIPC_CONNECTING);
+<<<<<<< HEAD
+=======
+		if (timeout) {
+			timeout = msecs_to_jiffies(timeout);
+			tipc_wait_for_connect(sock, &timeout);
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return rc ? rc : dlen;
 }

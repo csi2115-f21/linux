@@ -440,6 +440,33 @@ xchk_btree_check_owner(
 	}
 
 	return xchk_btree_check_block_owner(bs, level, XFS_BUF_ADDR(bp));
+<<<<<<< HEAD
+=======
+}
+
+/* Decide if we want to check minrecs of a btree block in the inode root. */
+static inline bool
+xchk_btree_check_iroot_minrecs(
+	struct xchk_btree	*bs)
+{
+	/*
+	 * xfs_bmap_add_attrfork_btree had an implementation bug wherein it
+	 * would miscalculate the space required for the data fork bmbt root
+	 * when adding an attr fork, and promote the iroot contents to an
+	 * external block unnecessarily.  This went unnoticed for many years
+	 * until scrub found filesystems in this state.  Inode rooted btrees are
+	 * not supposed to have immediate child blocks that are small enough
+	 * that the contents could fit in the inode root, but we can't fail
+	 * existing filesystems, so instead we disable the check for data fork
+	 * bmap btrees when there's an attr fork.
+	 */
+	if (bs->cur->bc_btnum == XFS_BTNUM_BMAP &&
+	    bs->cur->bc_ino.whichfork == XFS_DATA_FORK &&
+	    XFS_IFORK_Q(bs->sc->ip))
+		return false;
+
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*

@@ -1235,6 +1235,18 @@ static int cgx_lmac_init(struct cgx *cgx)
 		}
 
 		lmac->cgx = cgx;
+<<<<<<< HEAD
+=======
+		lmac->mac_to_index_bmap.max =
+				MAX_DMAC_ENTRIES_PER_CGX / cgx->lmac_count;
+		err = rvu_alloc_bitmap(&lmac->mac_to_index_bmap);
+		if (err)
+			return err;
+
+		/* Reserve first entry for default MAC address */
+		set_bit(0, lmac->mac_to_index_bmap.bmap);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		init_waitqueue_head(&lmac->wq_cmd_cmplt);
 		mutex_init(&lmac->cmd_lock);
 		spin_lock_init(&lmac->event_cb_lock);

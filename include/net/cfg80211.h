@@ -1244,8 +1244,11 @@ struct cfg80211_csa_settings {
 	u8 count;
 };
 
+<<<<<<< HEAD
 #define CFG80211_MAX_NUM_DIFFERENT_CHANNELS 10
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * struct iface_combination_params - input parameters for interface combinations
  *

@@ -1639,6 +1639,16 @@ static int xs_get_srcport(struct sock_xprt *transport)
 	return port;
 }
 
+<<<<<<< HEAD
+=======
+unsigned short get_srcport(struct rpc_xprt *xprt)
+{
+	struct sock_xprt *sock = container_of(xprt, struct sock_xprt, xprt);
+	return sock->srcport;
+}
+EXPORT_SYMBOL(get_srcport);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static unsigned short xs_next_srcport(struct sock_xprt *transport, unsigned short port)
 {
 	if (transport->srcport != 0)

@@ -1478,7 +1478,12 @@ snd_nm256_create(struct snd_card *card, struct pci_dev *pci,
 
 	*chip_ret = NULL;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
@@ -1570,7 +1575,12 @@ snd_nm256_create(struct snd_card *card, struct pci_dev *pci,
 		chip->buffer_end = buffer_top;
 	else {
 		/* get buffer end pointer from signature */
+<<<<<<< HEAD
 		if ((err = snd_nm256_peek_for_sig(chip)) < 0)
+=======
+		err = snd_nm256_peek_for_sig(chip);
+		if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto __error;
 	}
 
@@ -1620,7 +1630,12 @@ snd_nm256_create(struct snd_card *card, struct pci_dev *pci,
 
 	// pci_set_master(pci); /* needed? */
 	
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0)
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto __error;
 
 	*chip_ret = chip;
@@ -1702,7 +1717,12 @@ static int snd_nm256_probe(struct pci_dev *pci,
 		capture_bufsize = 4;
 	if (capture_bufsize > 128)
 		capture_bufsize = 128;
+<<<<<<< HEAD
 	if ((err = snd_nm256_create(card, pci, &chip)) < 0) {
+=======
+	err = snd_nm256_create(card, pci, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1718,8 +1738,18 @@ static int snd_nm256_probe(struct pci_dev *pci,
 		chip->reset_workaround_2 = 1;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_nm256_pcm(chip, 0)) < 0 ||
 	    (err = snd_nm256_mixer(chip)) < 0) {
+=======
+	err = snd_nm256_pcm(chip, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_nm256_mixer(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1729,7 +1759,12 @@ static int snd_nm256_probe(struct pci_dev *pci,
 		card->shortname,
 		chip->buffer_addr, chip->cport_addr, chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

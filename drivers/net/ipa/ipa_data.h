@@ -18,8 +18,14 @@
  * Boot-time configuration data is used to define the configuration of the
  * IPA and GSI resources to use for a given platform.  This data is supplied
  * via the Device Tree match table, associated with a particular compatible
+<<<<<<< HEAD
  * string.  The data defines information about resources, endpoints, and
  * channels.
+=======
+ * string.  The data defines information about how resources, endpoints and
+ * channels, memory, clocking and so on are allocated and used for the
+ * platform.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * Resources are data structures used internally by the IPA hardware.  The
  * configuration data defines the number (or limits of the number) of various
@@ -288,8 +294,13 @@ struct ipa_clock_data {
  * @endpoint_count:	number of entries in endpoint_data array
  * @endpoint_data:	IPA endpoint/GSI channel data
  * @resource_data:	IPA resource configuration data
+<<<<<<< HEAD
  * @mem_count:		number of entries in mem_data array
  * @mem_data:		IPA-local shared memory region data
+=======
+ * @mem_data:		IPA memory region data
+ * @clock_data:		IPA clock and interconnect data
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct ipa_data {
 	enum ipa_version version;

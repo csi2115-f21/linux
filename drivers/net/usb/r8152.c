@@ -674,8 +674,11 @@ enum rtl8152_flags {
 	PHY_RESET,
 	SCHEDULE_TASKLET,
 	GREEN_ETHERNET,
+<<<<<<< HEAD
 	DELL_TB_RX_AGG_BUG,
 	LENOVO_MACPASSTHRU,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define DEVICE_ID_THINKPAD_THUNDERBOLT3_DOCK_GEN2	0x3082
@@ -3438,6 +3441,15 @@ static void rtl_clear_bp(struct r8152 *tp, u16 type)
 		break;
 	case RTL_VER_08:
 	case RTL_VER_09:
+<<<<<<< HEAD
+=======
+	case RTL_VER_10:
+	case RTL_VER_11:
+	case RTL_VER_12:
+	case RTL_VER_13:
+	case RTL_VER_14:
+	case RTL_VER_15:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		if (type == MCU_TYPE_USB) {
 			ocp_write_byte(tp, MCU_TYPE_USB, USB_BP2_EN, 0);
@@ -3647,6 +3659,14 @@ static bool rtl8152_is_fw_mac_ok(struct r8152 *tp, struct fw_mac *mac)
 		case RTL_VER_06:
 		case RTL_VER_08:
 		case RTL_VER_09:
+<<<<<<< HEAD
+=======
+		case RTL_VER_11:
+		case RTL_VER_12:
+		case RTL_VER_13:
+		case RTL_VER_14:
+		case RTL_VER_15:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			fw_reg = 0xf800;
 			bp_ba_addr = PLA_BP_BA;
 			bp_en_addr = PLA_BP_EN;

@@ -16,6 +16,10 @@ properties:
           - qcom,msm8996-dwc3
           - qcom,msm8998-dwc3
           - qcom,sc7180-dwc3
+<<<<<<< HEAD
+=======
+          - qcom,sc7280-dwc3
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
           - qcom,sdm845-dwc3
           - qcom,sdx55-dwc3
           - qcom,sm8150-dwc3

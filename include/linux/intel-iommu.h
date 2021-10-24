@@ -125,6 +125,13 @@
 #define DMAR_VCCAP_REG		0xe00 /* Virtual command capability register */
 #define DMAR_VCMD_REG		0xe10 /* Virtual command register */
 #define DMAR_VCRSP_REG		0xe20 /* Virtual command response register */
+<<<<<<< HEAD
+=======
+
+#define DMAR_IQER_REG_IQEI(reg)		FIELD_GET(GENMASK_ULL(3, 0), reg)
+#define DMAR_IQER_REG_ITESID(reg)	FIELD_GET(GENMASK_ULL(47, 32), reg)
+#define DMAR_IQER_REG_ICESID(reg)	FIELD_GET(GENMASK_ULL(63, 48), reg)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define OFFSET_STRIDE		(9)
 

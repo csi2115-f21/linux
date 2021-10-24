@@ -1945,6 +1945,12 @@ static int __ext4_journalled_writepage(struct page *page,
 out:
 	unlock_page(page);
 out_no_pagelock:
+<<<<<<< HEAD
+=======
+	if (!inline_data && page_bufs)
+		ext4_walk_page_buffers(NULL, page_bufs, 0, len,
+				       NULL, bput_one);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	brelse(inode_bh);
 	return ret;
 }
@@ -2987,6 +2993,7 @@ retry_grab:
 	if (!page)
 		return -ENOMEM;
 	unlock_page(page);
+<<<<<<< HEAD
 
 	/*
 	 * With delayed allocation, we don't log the i_disksize update
@@ -3002,6 +3009,23 @@ retry_journal:
 		return PTR_ERR(handle);
 	}
 
+=======
+
+	/*
+	 * With delayed allocation, we don't log the i_disksize update
+	 * if there is delayed block allocation. But we still need
+	 * to journalling the i_disksize update if writes to the end
+	 * of file which has an already mapped buffer.
+	 */
+retry_journal:
+	handle = ext4_journal_start(inode, EXT4_HT_WRITE_PAGE,
+				ext4_da_write_credits(inode, pos, len));
+	if (IS_ERR(handle)) {
+		put_page(page);
+		return PTR_ERR(handle);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	lock_page(page);
 	if (page->mapping != mapping) {
 		/* The page got truncated from under us */
@@ -3102,6 +3126,7 @@ static int ext4_da_write_end(struct file *file,
 			ret = ext4_mark_inode_dirty(handle, inode);
 		}
 	}
+<<<<<<< HEAD
 
 	if (write_mode != CONVERT_INLINE_DATA &&
 	    ext4_test_inode_state(inode, EXT4_STATE_MAY_INLINE_DATA) &&
@@ -3119,6 +3144,25 @@ static int ext4_da_write_end(struct file *file,
 	if (unlikely(ret2 && !ret))
 		ret = ret2;
 
+=======
+
+	if (write_mode != CONVERT_INLINE_DATA &&
+	    ext4_test_inode_state(inode, EXT4_STATE_MAY_INLINE_DATA) &&
+	    ext4_has_inline_data(inode))
+		ret2 = ext4_da_write_inline_data_end(inode, pos, len, copied,
+						     page);
+	else
+		ret2 = generic_write_end(file, mapping, pos, len, copied,
+							page, fsdata);
+
+	copied = ret2;
+	if (ret2 < 0)
+		ret = ret2;
+	ret2 = ext4_journal_stop(handle);
+	if (unlikely(ret2 && !ret))
+		ret = ret2;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret ? ret : copied;
 }
 
@@ -5138,9 +5182,15 @@ static int ext4_do_update_inode(handle_t *handle,
 					      bh->b_data);
 
 	BUFFER_TRACE(bh, "call ext4_handle_dirty_metadata");
+<<<<<<< HEAD
 	rc = ext4_handle_dirty_metadata(handle, NULL, bh);
 	if (!err)
 		err = rc;
+=======
+	err = ext4_handle_dirty_metadata(handle, NULL, bh);
+	if (err)
+		goto out_brelse;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ext4_clear_inode_state(inode, EXT4_STATE_NEW);
 	if (set_large_file) {
 		BUFFER_TRACE(EXT4_SB(sb)->s_sbh, "get write access");

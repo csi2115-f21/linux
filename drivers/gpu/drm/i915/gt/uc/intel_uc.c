@@ -529,8 +529,11 @@ static int __uc_init_hw(struct intel_uc *uc)
 	/*
 	 * We've failed to load the firmware :(
 	 */
+<<<<<<< HEAD
 err_communication:
 	guc_disable_communication(guc);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_log_capture:
 	__uc_capture_load_err_log(uc);
 err_out:
@@ -577,7 +580,10 @@ void intel_uc_reset_prepare(struct intel_uc *uc)
 	if (!intel_guc_is_ready(guc))
 		return;
 
+<<<<<<< HEAD
 	guc_disable_communication(guc);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__uc_sanitize(uc);
 }
 

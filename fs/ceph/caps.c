@@ -3720,9 +3720,15 @@ static void handle_cap_flushsnap_ack(struct inode *inode, u64 flush_tid,
 		     inode, capsnap, follows);
 		list_del(&capsnap->ci_item);
 		wake_ci |= __detach_cap_flush_from_ci(ci, &capsnap->cap_flush);
+<<<<<<< HEAD
 
 		spin_lock(&mdsc->cap_dirty_lock);
 
+=======
+
+		spin_lock(&mdsc->cap_dirty_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (list_empty(&ci->i_cap_flush_list))
 			list_del_init(&ci->i_flushing_item);
 
@@ -4206,8 +4212,12 @@ done:
 	mutex_unlock(&session->s_mutex);
 done_unlocked:
 	ceph_put_string(extra_info.pool_ns);
+<<<<<<< HEAD
 	/* avoid calling iput_final() in mds dispatch threads */
 	ceph_async_iput(inode);
+=======
+	iput(inode);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return;
 
 flush_cap_releases:

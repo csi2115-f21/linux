@@ -11,7 +11,10 @@
 #include <linux/minmax.h>
 #include <linux/timer.h>
 #include <linux/workqueue.h>
+<<<<<<< HEAD
 #include <linux/pagemap.h>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/backing-dev-defs.h>
 #include <linux/wait.h>
 #include <linux/mempool.h>
@@ -443,8 +446,11 @@ struct request_queue {
 	 */
 	gfp_t			bounce_gfp;
 
+<<<<<<< HEAD
 	spinlock_t		queue_lock;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * queue kobject
 	 */
@@ -686,6 +692,8 @@ static inline bool blk_account_rq(struct request *rq)
 #define dma_map_bvec(dev, bv, dir, attrs) \
 	dma_map_page_attrs(dev, (bv)->bv_page, (bv)->bv_offset, (bv)->bv_len, \
 	(dir), (attrs))
+
+#define queue_to_disk(q)	(dev_to_disk(kobj_to_dev((q)->kobj.parent)))
 
 static inline bool queue_is_mq(struct request_queue *q)
 {

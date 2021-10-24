@@ -360,7 +360,10 @@ int intel_iommu_enabled = 0;
 EXPORT_SYMBOL_GPL(intel_iommu_enabled);
 
 static int dmar_map_gfx = 1;
+<<<<<<< HEAD
 static int dmar_forcedac;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int intel_iommu_strict;
 static int intel_iommu_superpage = 1;
 static int iommu_identity_mapping;
@@ -2306,7 +2309,11 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 
 	attr = prot & (DMA_PTE_READ | DMA_PTE_WRITE | DMA_PTE_SNP);
 	if (domain_use_first_level(domain)) {
+<<<<<<< HEAD
 		attr |= DMA_FL_PTE_PRESENT | DMA_FL_PTE_XD | DMA_FL_PTE_US;
+=======
+		attr |= DMA_FL_PTE_XD | DMA_FL_PTE_US;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (domain->domain.type == IOMMU_DOMAIN_DMA) {
 			attr |= DMA_FL_PTE_ACCESS;
@@ -4377,6 +4384,20 @@ int __init intel_iommu_init(void)
 
 	down_read(&dmar_global_lock);
 	for_each_active_iommu(iommu, drhd) {
+<<<<<<< HEAD
+=======
+		/*
+		 * The flush queue implementation does not perform
+		 * page-selective invalidations that are required for efficient
+		 * TLB flushes in virtual environments.  The benefit of batching
+		 * is likely to be much lower than the overhead of synchronizing
+		 * the virtual and physical IOMMU page-tables.
+		 */
+		if (!intel_iommu_strict && cap_caching_mode(iommu->cap)) {
+			pr_warn("IOMMU batching is disabled due to virtualization");
+			intel_iommu_strict = 1;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		iommu_device_sysfs_add(&iommu->iommu, NULL,
 				       intel_iommu_groups,
 				       "%s", iommu->name);
@@ -4385,6 +4406,7 @@ int __init intel_iommu_init(void)
 	}
 	up_read(&dmar_global_lock);
 
+	iommu_set_dma_strict(intel_iommu_strict);
 	bus_set_iommu(&pci_bus_type, &intel_iommu_ops);
 	if (si_domain && !hw_pass_through)
 		register_memory_notifier(&intel_iommu_memory_nb);
@@ -5146,6 +5168,7 @@ static void intel_iommu_release_device(struct device *dev)
 
 static void intel_iommu_probe_finalize(struct device *dev)
 {
+<<<<<<< HEAD
 	dma_addr_t base = IOVA_START_PFN << VTD_PAGE_SHIFT;
 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
@@ -5153,6 +5176,12 @@ static void intel_iommu_probe_finalize(struct device *dev)
 	if (domain && domain->type == IOMMU_DOMAIN_DMA)
 		iommu_setup_dma_ops(dev, base,
 				    __DOMAIN_MAX_ADDR(dmar_domain->gaw) - base);
+=======
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+
+	if (domain && domain->type == IOMMU_DOMAIN_DMA)
+		iommu_setup_dma_ops(dev, 0, U64_MAX);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else
 		set_dma_ops(dev, NULL);
 }

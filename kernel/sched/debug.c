@@ -173,12 +173,36 @@ __read_mostly bool sched_debug_enabled;
 
 static __init int sched_init_debug(void)
 {
+<<<<<<< HEAD
 	debugfs_create_file("sched_features", 0644, NULL, NULL,
 			&sched_feat_fops);
 
 	debugfs_create_bool("sched_debug", 0644, NULL,
 			&sched_debug_enabled);
 
+=======
+	char buf[16];
+
+	if (cnt > 15)
+		cnt = 15;
+
+	if (copy_from_user(&buf, ubuf, cnt))
+		return -EFAULT;
+
+	if (kstrtouint(buf, 10, &sysctl_sched_tunable_scaling))
+		return -EINVAL;
+
+	if (sched_update_scaling())
+		return -EINVAL;
+
+	*ppos += cnt;
+	return cnt;
+}
+
+static int sched_scaling_show(struct seq_file *m, void *v)
+{
+	seq_printf(m, "%d\n", sysctl_sched_tunable_scaling);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 late_initcall(sched_init_debug);
@@ -372,6 +396,7 @@ void register_sched_domain_sysctl(void)
 		if (!cpu_idx)
 			return;
 
+<<<<<<< HEAD
 		/* deal with sparse possible map */
 		for_each_possible_cpu(i) {
 			cpu_idx[i] = e;
@@ -379,6 +404,8 @@ void register_sched_domain_sysctl(void)
 		}
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!cpumask_available(sd_sysctl_cpus)) {
 		if (!alloc_cpumask_var(&sd_sysctl_cpus, GFP_KERNEL))
 			return;

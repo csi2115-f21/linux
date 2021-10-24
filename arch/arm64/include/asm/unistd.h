@@ -38,7 +38,11 @@
 #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
 #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
 
+<<<<<<< HEAD
 #define __NR_compat_syscalls		443
+=======
+#define __NR_compat_syscalls		447
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 #define __ARCH_WANT_SYS_CLONE

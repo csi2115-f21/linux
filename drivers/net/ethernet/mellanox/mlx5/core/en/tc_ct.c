@@ -30,11 +30,19 @@
 #define MLX5_CT_STATE_NAT_BIT BIT(3)
 #define MLX5_CT_STATE_REPLY_BIT BIT(4)
 
+<<<<<<< HEAD
 #define MLX5_FTE_ID_BITS (mlx5e_tc_attr_to_reg_mappings[FTEID_TO_REG].mlen * 8)
 #define MLX5_FTE_ID_MAX GENMASK(MLX5_FTE_ID_BITS - 1, 0)
 #define MLX5_FTE_ID_MASK MLX5_FTE_ID_MAX
 
 #define MLX5_CT_LABELS_BITS (mlx5e_tc_attr_to_reg_mappings[LABELS_TO_REG].mlen * 8)
+=======
+#define MLX5_FTE_ID_BITS (mlx5e_tc_attr_to_reg_mappings[FTEID_TO_REG].mlen)
+#define MLX5_FTE_ID_MAX GENMASK(MLX5_FTE_ID_BITS - 1, 0)
+#define MLX5_FTE_ID_MASK MLX5_FTE_ID_MAX
+
+#define MLX5_CT_LABELS_BITS (mlx5e_tc_attr_to_reg_mappings[LABELS_TO_REG].mlen)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define MLX5_CT_LABELS_MASK GENMASK(MLX5_CT_LABELS_BITS - 1, 0)
 
 #define ct_dbg(fmt, args...)\
@@ -1674,10 +1682,17 @@ __mlx5_tc_ct_flow_offload(struct mlx5_tc_ct_priv *ct_priv,
 	struct mlx5_ct_ft *ft;
 	u32 fte_id = 1;
 
+<<<<<<< HEAD
 	post_ct_spec = kzalloc(sizeof(*post_ct_spec), GFP_KERNEL);
 	ct_flow = kzalloc(sizeof(*ct_flow), GFP_KERNEL);
 	if (!post_ct_spec || !ct_flow) {
 		kfree(post_ct_spec);
+=======
+	post_ct_spec = kvzalloc(sizeof(*post_ct_spec), GFP_KERNEL);
+	ct_flow = kzalloc(sizeof(*ct_flow), GFP_KERNEL);
+	if (!post_ct_spec || !ct_flow) {
+		kvfree(post_ct_spec);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(ct_flow);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -1787,6 +1802,13 @@ __mlx5_tc_ct_flow_offload(struct mlx5_tc_ct_priv *ct_priv,
 	ct_flow->post_ct_attr->prio = 0;
 	ct_flow->post_ct_attr->ft = ct_priv->post_ct;
 
+<<<<<<< HEAD
+=======
+	/* Splits were handled before CT */
+	if (ct_priv->ns_type == MLX5_FLOW_NAMESPACE_FDB)
+		ct_flow->post_ct_attr->esw_attr->split_count = 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ct_flow->post_ct_attr->inner_match_level = MLX5_MATCH_NONE;
 	ct_flow->post_ct_attr->outer_match_level = MLX5_MATCH_NONE;
 	ct_flow->post_ct_attr->action &= ~(MLX5_FLOW_CONTEXT_ACTION_DECAP);
@@ -1812,7 +1834,11 @@ __mlx5_tc_ct_flow_offload(struct mlx5_tc_ct_priv *ct_priv,
 
 	attr->ct_attr.ct_flow = ct_flow;
 	dealloc_mod_hdr_actions(&pre_mod_acts);
+<<<<<<< HEAD
 	kfree(post_ct_spec);
+=======
+	kvfree(post_ct_spec);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return rule;
 
@@ -1833,7 +1859,11 @@ err_alloc_pre:
 err_idr:
 	mlx5_tc_ct_del_ft_cb(ct_priv, ft);
 err_ft:
+<<<<<<< HEAD
 	kfree(post_ct_spec);
+=======
+	kvfree(post_ct_spec);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(ct_flow);
 	netdev_warn(priv->netdev, "Failed to offload ct flow, err %d\n", err);
 	return ERR_PTR(err);

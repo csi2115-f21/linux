@@ -45,6 +45,14 @@ int gfxhub_v1_1_get_xgmi_info(struct amdgpu_device *adev)
 		max_num_physical_nodes   = 8;
 		max_physical_node_id     = 7;
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_ALDEBARAN:
+		/* just using duplicates for Aldebaran support, revisit later */
+		max_num_physical_nodes   = 8;
+		max_physical_node_id     = 7;
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -EINVAL;
 	}

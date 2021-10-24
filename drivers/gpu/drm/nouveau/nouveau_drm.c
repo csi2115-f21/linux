@@ -736,7 +736,11 @@ static int nouveau_drm_probe(struct pci_dev *pdev,
 	nvkm_device_del(&device);
 
 	/* Remove conflicting drivers (vesafb, efifb etc). */
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "nouveaufb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "nouveaufb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

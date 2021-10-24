@@ -384,7 +384,11 @@ int get_symlink_reparse_path(char *full_path, struct cifs_sb_info *cifs_sb,
 
 static int
 initiate_cifs_search(const unsigned int xid, struct file *file,
+<<<<<<< HEAD
 		     char *full_path)
+=======
+		     const char *full_path)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	__u16 search_flags;
 	int rc = 0;

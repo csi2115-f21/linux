@@ -649,6 +649,19 @@ struct hnae3_ae_ops {
 	int (*del_cls_flower)(struct hnae3_handle *handle,
 			      struct flow_cls_offload *cls_flower);
 	bool (*cls_flower_active)(struct hnae3_handle *handle);
+<<<<<<< HEAD
+=======
+	int (*get_phy_link_ksettings)(struct hnae3_handle *handle,
+				      struct ethtool_link_ksettings *cmd);
+	int (*set_phy_link_ksettings)(struct hnae3_handle *handle,
+				      const struct ethtool_link_ksettings *cmd);
+	bool (*set_tx_hwts_info)(struct hnae3_handle *handle,
+				 struct sk_buff *skb);
+	void (*get_rx_hwts)(struct hnae3_handle *handle, struct sk_buff *skb,
+			    u32 nsec, u32 sec);
+	int (*get_ts_info)(struct hnae3_handle *handle,
+			   struct ethtool_ts_info *info);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct hnae3_dcb_ops {

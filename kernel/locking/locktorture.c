@@ -668,7 +668,11 @@ static int lock_torture_reader(void *arg)
 		if ((torture_random(&rand) & 0xfffff) == 0)
 			schedule_timeout_uninterruptible(1);
 
+<<<<<<< HEAD
 		cxt.cur_ops->readlock();
+=======
+		cxt.cur_ops->readlock(tid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		lock_is_read_held = true;
 		if (WARN_ON_ONCE(lock_is_write_held))
 			lrsp->n_lock_fail++; /* rare, but... */
@@ -676,7 +680,11 @@ static int lock_torture_reader(void *arg)
 		lrsp->n_lock_acquired++;
 		cxt.cur_ops->read_delay(&rand);
 		lock_is_read_held = false;
+<<<<<<< HEAD
 		cxt.cur_ops->readunlock();
+=======
+		cxt.cur_ops->readunlock(tid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		stutter_wait("lock_torture_reader");
 	} while (!torture_must_stop());

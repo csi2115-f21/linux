@@ -1220,7 +1220,15 @@ live_engine_reset_workarounds(void *arg)
 			goto err;
 		}
 
+<<<<<<< HEAD
 		intel_engine_reset(engine, "live_workarounds:idle");
+=======
+		ret = intel_engine_reset(engine, "live_workarounds:idle");
+		if (ret) {
+			pr_err("%s: Reset failed while idle\n", engine->name);
+			goto err;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		ok = verify_wa_lists(gt, &lists, "after idle reset");
 		if (!ok) {
@@ -1246,7 +1254,17 @@ live_engine_reset_workarounds(void *arg)
 			goto err;
 		}
 
+<<<<<<< HEAD
 		intel_engine_reset(engine, "live_workarounds:active");
+=======
+		ret = intel_engine_reset(engine, "live_workarounds:active");
+		if (ret) {
+			pr_err("%s: Reset failed on an active spinner\n",
+			       engine->name);
+			igt_spinner_fini(&spin);
+			goto err;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		igt_spinner_end(&spin);
 		igt_spinner_fini(&spin);

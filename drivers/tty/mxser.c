@@ -1212,16 +1212,31 @@ static int mxser_get_serial_info(struct tty_struct *tty,
 	if (tty->index == MXSER_PORTS)
 		return -ENOTTY;
 
+<<<<<<< HEAD
 	mutex_lock(&port->mutex);
+=======
+	close_delay = jiffies_to_msecs(info->port.close_delay) / 10;
+	closing_wait = info->port.closing_wait;
+	if (closing_wait != ASYNC_CLOSING_WAIT_NONE)
+		closing_wait = jiffies_to_msecs(closing_wait) / 10;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ss->type = info->type,
 	ss->line = tty->index,
 	ss->port = info->ioaddr,
 	ss->irq = info->board->irq,
 	ss->flags = info->port.flags,
+<<<<<<< HEAD
 	ss->baud_base = info->baud_base,
 	ss->close_delay = info->port.close_delay,
 	ss->closing_wait = info->port.closing_wait,
 	ss->custom_divisor = info->custom_divisor,
+=======
+	ss->baud_base = MXSER_BAUD_BASE,
+	ss->close_delay = close_delay;
+	ss->closing_wait = closing_wait;
+	ss->custom_divisor = MXSER_CUSTOM_DIVISOR,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_unlock(&port->mutex);
 	return 0;
 }
@@ -2700,12 +2715,18 @@ static int __init mxser_module_init(void)
 	unsigned int b, i, m;
 	int retval;
 
+<<<<<<< HEAD
 	mxvar_sdriver = alloc_tty_driver(MXSER_PORTS + 1);
 	if (!mxvar_sdriver)
 		return -ENOMEM;
 
 	printk(KERN_INFO "MOXA Smartio/Industio family driver version %s\n",
 		MXSER_VERSION);
+=======
+	mxvar_sdriver = alloc_tty_driver(MXSER_PORTS);
+	if (!mxvar_sdriver)
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Initialize the tty_driver structure */
 	mxvar_sdriver->name = "ttyMI";
@@ -2797,10 +2818,13 @@ static void __exit mxser_module_exit(void)
 			mxser_board_remove(&mxser_boards[i]);
 	tty_unregister_driver(mxvar_sdriver);
 	put_tty_driver(mxvar_sdriver);
+<<<<<<< HEAD
 
 	for (i = 0; i < MXSER_BOARDS; i++)
 		if (mxser_boards[i].info != NULL)
 			mxser_release_ISA_res(&mxser_boards[i]);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 module_init(mxser_module_init);

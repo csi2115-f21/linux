@@ -642,9 +642,14 @@ static void svc_check_conn_limits(struct svc_serv *serv)
 static int svc_alloc_arg(struct svc_rqst *rqstp)
 {
 	struct svc_serv *serv = rqstp->rq_server;
+<<<<<<< HEAD
 	struct xdr_buf *arg;
 	int pages;
 	int i;
+=======
+	struct xdr_buf *arg = &rqstp->rq_arg;
+	unsigned long pages, filled;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* now allocate needed pages.  If we get a failure, sleep briefly */
 	pages = (serv->sv_max_mesg + 2 * PAGE_SIZE) >> PAGE_SHIFT;
@@ -654,6 +659,7 @@ static int svc_alloc_arg(struct svc_rqst *rqstp)
 		/* use as many pages as possible */
 		pages = RPCSVC_MAXPAGES;
 	}
+<<<<<<< HEAD
 	for (i = 0; i < pages ; i++)
 		while (rqstp->rq_pages[i] == NULL) {
 			struct page *p = alloc_page(GFP_KERNEL);
@@ -666,6 +672,19 @@ static int svc_alloc_arg(struct svc_rqst *rqstp)
 				schedule_timeout(msecs_to_jiffies(500));
 			}
 			rqstp->rq_pages[i] = p;
+=======
+
+	for (;;) {
+		filled = alloc_pages_bulk_array(GFP_KERNEL, pages,
+						rqstp->rq_pages);
+		if (filled == pages)
+			break;
+
+		set_current_state(TASK_INTERRUPTIBLE);
+		if (signalled() || kthread_should_stop()) {
+			set_current_state(TASK_RUNNING);
+			return -EINTR;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	rqstp->rq_page_end = &rqstp->rq_pages[i];
 	rqstp->rq_pages[i++] = NULL; /* this might be seen in nfs_read_actor */
@@ -817,8 +836,11 @@ static int svc_handle_xprt(struct svc_rqst *rqstp, struct svc_xprt *xprt)
 		rqstp->rq_reserved = serv->sv_max_mesg;
 		atomic_add(rqstp->rq_reserved, &xprt->xpt_reserved);
 	}
+<<<<<<< HEAD
 	/* clear XPT_BUSY: */
 	svc_xprt_received(xprt);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	trace_svc_handle_xprt(xprt, len);
 	return len;

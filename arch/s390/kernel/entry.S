@@ -129,6 +129,55 @@ _LPP_OFFSET	= __LC_LPP
 		    "jnz .+8; .long 0xb2e8d000", 82
 	.endm
 
+<<<<<<< HEAD
+=======
+	/*
+	 * The CHKSTG macro jumps to the provided label in case the
+	 * machine check interruption code reports one of unrecoverable
+	 * storage errors:
+	 * - Storage error uncorrected
+	 * - Storage key error uncorrected
+	 * - Storage degradation with Failing-storage-address validity
+	 */
+	.macro CHKSTG errlabel
+	TSTMSK	__LC_MCCK_CODE,(MCCK_CODE_STG_ERROR|MCCK_CODE_STG_KEY_ERROR)
+	jnz	\errlabel
+	TSTMSK	__LC_MCCK_CODE,MCCK_CODE_STG_DEGRAD
+	jz	oklabel\@
+	TSTMSK	__LC_MCCK_CODE,MCCK_CODE_STG_FAIL_ADDR
+	jnz	\errlabel
+oklabel\@:
+	.endm
+
+#if IS_ENABLED(CONFIG_KVM)
+	/*
+	 * The OUTSIDE macro jumps to the provided label in case the value
+	 * in the provided register is outside of the provided range. The
+	 * macro is useful for checking whether a PSW stored in a register
+	 * pair points inside or outside of a block of instructions.
+	 * @reg: register to check
+	 * @start: start of the range
+	 * @end: end of the range
+	 * @outside_label: jump here if @reg is outside of [@start..@end)
+	 */
+	.macro OUTSIDE reg,start,end,outside_label
+	lgr	%r14,\reg
+	larl	%r13,\start
+	slgr	%r14,%r13
+	lghi	%r13,\end - \start
+	clgr	%r14,%r13
+	jhe	\outside_label
+	.endm
+
+	.macro SIEEXIT
+	lg	%r9,__SF_SIE_CONTROL(%r15)	# get control block pointer
+	ni	__SIE_PROG0C+3(%r9),0xfe	# no longer in SIE
+	lctlg	%c1,%c1,__LC_KERNEL_ASCE	# load primary asce
+	larl	%r9,sie_exit			# skip forward to sie_exit
+	.endm
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	GEN_BR_THUNK %r14
 	GEN_BR_THUNK %r14,%r13
 

@@ -676,11 +676,15 @@ static int mt7621_pci_probe(struct platform_device *pdev)
 		return err;
 	}
 
+<<<<<<< HEAD
 	err = mt7621_pci_parse_request_of_pci_ranges(bridge);
 	if (err) {
 		dev_err(dev, "Error requesting pci resources from ranges");
 		return err;
 	}
+=======
+	mt7621_pcie_init_ports(pcie);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* set resources limits */
 	ioport_resource.start = pcie->io.start;

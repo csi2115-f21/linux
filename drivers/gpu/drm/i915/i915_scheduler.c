@@ -80,9 +80,12 @@ i915_sched_lookup_priolist(struct intel_engine_cs *engine, int prio)
 	lockdep_assert_held(&engine->active.lock);
 	assert_priolists(execlists);
 
+<<<<<<< HEAD
 	/* buckets sorted from highest [in slot 0] to lowest priority */
 	idx = I915_PRIORITY_COUNT - (prio & I915_PRIORITY_MASK) - 1;
 	prio >>= I915_USER_PRIORITY_SHIFT;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(execlists->no_priolist))
 		prio = I915_PRIORITY_NORMAL;
 
@@ -129,7 +132,10 @@ find_priolist:
 		INIT_LIST_HEAD(&p->requests[i]);
 	rb_link_node(&p->node, rb, parent);
 	rb_insert_color_cached(&p->node, &execlists->queue, first);
+<<<<<<< HEAD
 	p->used = 0;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 out:
 	p->used |= BIT(idx);
@@ -553,8 +559,12 @@ int __init i915_global_scheduler_init(void)
 	if (!global.slab_dependencies)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	global.slab_priorities = KMEM_CACHE(i915_priolist,
 					    SLAB_HWCACHE_ALIGN);
+=======
+	global.slab_priorities = KMEM_CACHE(i915_priolist, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!global.slab_priorities)
 		goto err_priorities;
 

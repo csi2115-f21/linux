@@ -2934,7 +2934,12 @@ static int snd_intel8x0_create(struct snd_card *card,
 
 	*r_intel8x0 = NULL;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
@@ -2966,7 +2971,12 @@ static int snd_intel8x0_create(struct snd_card *card,
 	    pci->device == PCI_DEVICE_ID_INTEL_440MX)
 		chip->fix_nocache = 1; /* enable workaround */
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, card->shortname)) < 0) {
+=======
+	err = pci_request_regions(pci, card->shortname);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -3080,7 +3090,12 @@ static int snd_intel8x0_create(struct snd_card *card,
 	for (i = 0; i < chip->max_codecs; i++)
 		chip->codec_isr_bits |= chip->codec_bit[i];
 
+<<<<<<< HEAD
 	if ((err = snd_intel8x0_chip_init(chip, 1)) < 0) {
+=======
+	err = snd_intel8x0_chip_init(chip, 1);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_intel8x0_free(chip);
 		return err;
 	}
@@ -3095,7 +3110,12 @@ static int snd_intel8x0_create(struct snd_card *card,
 	chip->irq = pci->irq;
 	card->sync_irq = chip->irq;
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_intel8x0_free(chip);
 		return err;
 	}
@@ -3202,18 +3222,33 @@ static int snd_intel8x0_probe(struct pci_dev *pci,
 			buggy_irq = 0;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_intel8x0_create(card, pci, pci_id->driver_data,
 				       &chip)) < 0) {
+=======
+	err = snd_intel8x0_create(card, pci, pci_id->driver_data, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	card->private_data = chip;
 
+<<<<<<< HEAD
 	if ((err = snd_intel8x0_mixer(chip, ac97_clock, ac97_quirk)) < 0) {
 		snd_card_free(card);
 		return err;
 	}
 	if ((err = snd_intel8x0_pcm(chip)) < 0) {
+=======
+	err = snd_intel8x0_mixer(chip, ac97_clock, ac97_quirk);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_intel8x0_pcm(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -3233,7 +3268,12 @@ static int snd_intel8x0_probe(struct pci_dev *pci,
 		}
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

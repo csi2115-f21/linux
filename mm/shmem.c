@@ -1695,8 +1695,14 @@ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
 {
 	struct address_space *mapping = inode->i_mapping;
 	struct shmem_inode_info *info = SHMEM_I(inode);
+<<<<<<< HEAD
 	struct mm_struct *charge_mm = vma ? vma->vm_mm : current->mm;
 	struct page *page;
+=======
+	struct mm_struct *charge_mm = vma ? vma->vm_mm : NULL;
+	struct swap_info_struct *si;
+	struct page *page = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	swp_entry_t swap;
 	int error;
 
@@ -1704,6 +1710,12 @@ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
 	swap = radix_to_swp_entry(*pagep);
 	*pagep = NULL;
 
+	/* Prevent swapoff from happening to us. */
+	si = get_swap_device(swap);
+	if (!si) {
+		error = EINVAL;
+		goto failed;
+	}
 	/* Look it up and read it in.. */
 	page = lookup_swap_cache(swap, NULL, 0);
 	if (!page) {
@@ -1765,6 +1777,8 @@ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
 	swap_free(swap);
 
 	*pagep = page;
+	if (si)
+		put_swap_device(si);
 	return 0;
 failed:
 	if (!shmem_confirm_swap(mapping, index, swap))
@@ -1774,6 +1788,9 @@ unlock:
 		unlock_page(page);
 		put_page(page);
 	}
+
+	if (si)
+		put_swap_device(si);
 
 	return error;
 }
@@ -1859,6 +1876,7 @@ repeat:
 
 	/* shmem_symlink() */
 	if (!shmem_mapping(mapping))
+<<<<<<< HEAD
 		goto alloc_nohuge;
 	if (shmem_huge == SHMEM_HUGE_DENY || sgp_huge == SGP_NOHUGE)
 		goto alloc_nohuge;
@@ -1886,6 +1904,35 @@ repeat:
 		goto alloc_nohuge;
 	}
 
+=======
+		goto alloc_nohuge;
+	if (shmem_huge == SHMEM_HUGE_DENY || sgp_huge == SGP_NOHUGE)
+		goto alloc_nohuge;
+	if (shmem_huge == SHMEM_HUGE_FORCE)
+		goto alloc_huge;
+	switch (sbinfo->huge) {
+	case SHMEM_HUGE_NEVER:
+		goto alloc_nohuge;
+	case SHMEM_HUGE_WITHIN_SIZE: {
+		loff_t i_size;
+		pgoff_t off;
+
+		off = round_up(index, HPAGE_PMD_NR);
+		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+		if (i_size >= HPAGE_PMD_SIZE &&
+		    i_size >> PAGE_SHIFT >= off)
+			goto alloc_huge;
+
+		fallthrough;
+	}
+	case SHMEM_HUGE_ADVISE:
+		if (sgp_huge == SGP_HUGE)
+			goto alloc_huge;
+		/* TODO: implement fadvise() hints */
+		goto alloc_nohuge;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 alloc_huge:
 	huge_gfp = vma_thp_gfp_mask(vma);
 	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
@@ -4029,8 +4076,12 @@ bool shmem_huge_enabled(struct vm_area_struct *vma)
 	loff_t i_size;
 	pgoff_t off;
 
+<<<<<<< HEAD
 	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+=======
+	if (!transhuge_vma_enabled(vma, vma->vm_flags))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	if (shmem_huge == SHMEM_HUGE_FORCE)
 		return true;

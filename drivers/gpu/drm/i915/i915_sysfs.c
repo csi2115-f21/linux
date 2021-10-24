@@ -273,8 +273,12 @@ static ssize_t gt_cur_freq_mhz_show(struct device *kdev,
 	struct drm_i915_private *i915 = kdev_minor_to_i915(kdev);
 	struct intel_rps *rps = &i915->gt.rps;
 
+<<<<<<< HEAD
 	return snprintf(buf, PAGE_SIZE, "%d\n",
 			intel_gpu_freq(rps, rps->cur_freq));
+=======
+	return sysfs_emit(buf, "%d\n", intel_gpu_freq(rps, rps->cur_freq));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t gt_boost_freq_mhz_show(struct device *kdev, struct device_attribute *attr, char *buf)
@@ -332,8 +336,12 @@ static ssize_t gt_max_freq_mhz_show(struct device *kdev, struct device_attribute
 	struct drm_i915_private *dev_priv = kdev_minor_to_i915(kdev);
 	struct intel_rps *rps = &dev_priv->gt.rps;
 
+<<<<<<< HEAD
 	return snprintf(buf, PAGE_SIZE, "%d\n",
 			intel_gpu_freq(rps, rps->max_freq_softlimit));
+=======
+	return sysfs_emit(buf, "%d\n", intel_gpu_freq(rps, rps->max_freq_softlimit));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t gt_max_freq_mhz_store(struct device *kdev,
@@ -387,8 +395,12 @@ static ssize_t gt_min_freq_mhz_show(struct device *kdev, struct device_attribute
 	struct drm_i915_private *dev_priv = kdev_minor_to_i915(kdev);
 	struct intel_rps *rps = &dev_priv->gt.rps;
 
+<<<<<<< HEAD
 	return snprintf(buf, PAGE_SIZE, "%d\n",
 			intel_gpu_freq(rps, rps->min_freq_softlimit));
+=======
+	return sysfs_emit(buf, "%d\n", intel_gpu_freq(rps, rps->min_freq_softlimit));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static ssize_t gt_min_freq_mhz_store(struct device *kdev,

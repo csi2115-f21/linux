@@ -71,6 +71,10 @@
 #include "jpeg_v2_5.h"
 #include "smuio_v9_0.h"
 #include "smuio_v11_0.h"
+<<<<<<< HEAD
+=======
+#include "smuio_v13_0.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "dce_virtual.h"
 #include "mxgpu_ai.h"
 #include "amdgpu_smu.h"
@@ -1244,6 +1248,24 @@ static int soc15_common_early_init(void *handle)
 				 AMD_PG_SUPPORT_JPEG |
 				 AMD_PG_SUPPORT_VCN_DPG;
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_ALDEBARAN:
+		adev->asic_funcs = &vega20_asic_funcs;
+		adev->cg_flags = AMD_CG_SUPPORT_GFX_MGCG |
+			AMD_CG_SUPPORT_GFX_MGLS |
+			AMD_CG_SUPPORT_GFX_CGCG |
+			AMD_CG_SUPPORT_GFX_CGLS |
+			AMD_CG_SUPPORT_GFX_CP_LS |
+			AMD_CG_SUPPORT_HDP_LS |
+			AMD_CG_SUPPORT_SDMA_MGCG |
+			AMD_CG_SUPPORT_SDMA_LS |
+			AMD_CG_SUPPORT_IH_CG |
+			AMD_CG_SUPPORT_VCN_MGCG | AMD_CG_SUPPORT_JPEG_MGCG;
+		adev->pg_flags = AMD_PG_SUPPORT_VCN_DPG;
+		adev->external_rev_id = adev->rev_id + 0x3c;
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		/* FIXME: not supported yet */
 		return -EINVAL;

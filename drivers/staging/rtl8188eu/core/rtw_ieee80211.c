@@ -223,6 +223,7 @@ int rtw_generate_ie(struct registry_priv *pregistrypriv)
 	/* capability info */
 	*(u16 *)ie = 0;
 
+<<<<<<< HEAD
 	*(__le16 *)ie |= cpu_to_le16(cap_IBSS);
 
 	if (pregistrypriv->preamble == PREAMBLE_SHORT)
@@ -230,6 +231,15 @@ int rtw_generate_ie(struct registry_priv *pregistrypriv)
 
 	if (pdev_network->Privacy)
 		*(__le16 *)ie |= cpu_to_le16(cap_Privacy);
+=======
+	*(__le16 *)ie |= cpu_to_le16(WLAN_CAPABILITY_IBSS);
+
+	if (pregistrypriv->preamble == PREAMBLE_SHORT)
+		*(__le16 *)ie |= cpu_to_le16(WLAN_CAPABILITY_SHORT_PREAMBLE);
+
+	if (pdev_network->Privacy)
+		*(__le16 *)ie |= cpu_to_le16(WLAN_CAPABILITY_PRIVACY);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	sz += 2;
 	ie += 2;
@@ -370,7 +380,10 @@ int rtw_parse_wpa_ie(u8 *wpa_ie, int wpa_ie_len, int *group_cipher, int *pairwis
 		pos += WPA_SELECTOR_LEN;
 		left -= WPA_SELECTOR_LEN;
 	} else if (left > 0) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie length mismatch, %u too much", __func__, left));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	}
 
@@ -380,11 +393,16 @@ int rtw_parse_wpa_ie(u8 *wpa_ie, int wpa_ie_len, int *group_cipher, int *pairwis
 		pos += 2;
 		left -= 2;
 
+<<<<<<< HEAD
 		if (count == 0 || left < count * WPA_SELECTOR_LEN) {
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie count botch (pairwise), count %u left %u",
 						__func__, count, left));
 			return _FAIL;
 		}
+=======
+		if (count == 0 || left < count * WPA_SELECTOR_LEN)
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		for (i = 0; i < count; i++) {
 			*pairwise_cipher |= rtw_get_wpa_cipher_suite(pos);
@@ -393,17 +411,25 @@ int rtw_parse_wpa_ie(u8 *wpa_ie, int wpa_ie_len, int *group_cipher, int *pairwis
 			left -= WPA_SELECTOR_LEN;
 		}
 	} else if (left == 1) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie too short (for key mgmt)",   __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	}
 
 	if (is_8021x) {
 		if (left >= 6) {
 			pos += 2;
+<<<<<<< HEAD
 			if (!memcmp(pos, SUITE_1X, 4)) {
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s : there has 802.1x auth\n", __func__));
 				*is_8021x = 1;
 			}
+=======
+			if (!memcmp(pos, SUITE_1X, 4))
+				*is_8021x = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -437,7 +463,10 @@ int rtw_parse_wpa2_ie(u8 *rsn_ie, int rsn_ie_len, int *group_cipher, int *pairwi
 		left -= RSN_SELECTOR_LEN;
 
 	} else if (left > 0) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie length mismatch, %u too much", __func__, left));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	}
 
@@ -447,11 +476,16 @@ int rtw_parse_wpa2_ie(u8 *rsn_ie, int rsn_ie_len, int *group_cipher, int *pairwi
 		pos += 2;
 		left -= 2;
 
+<<<<<<< HEAD
 		if (count == 0 || left < count * RSN_SELECTOR_LEN) {
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie count botch (pairwise), count %u left %u",
 						__func__, count, left));
 			return _FAIL;
 		}
+=======
+		if (count == 0 || left < count * RSN_SELECTOR_LEN)
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		for (i = 0; i < count; i++) {
 			*pairwise_cipher |= rtw_get_wpa2_cipher_suite(pos);
@@ -461,18 +495,26 @@ int rtw_parse_wpa2_ie(u8 *rsn_ie, int rsn_ie_len, int *group_cipher, int *pairwi
 		}
 
 	} else if (left == 1) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("%s: ie too short (for key mgmt)",  __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	}
 
 	if (is_8021x) {
 		if (left >= 6) {
 			pos += 2;
+<<<<<<< HEAD
 			if (!memcmp(pos, SUITE_1X, 4)) {
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s (): there has 802.1x auth\n", __func__));
 				*is_8021x = 1;
 			}
+=======
+			if (!memcmp(pos, SUITE_1X, 4))
+				*is_8021x = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 	return ret;
@@ -480,7 +522,11 @@ int rtw_parse_wpa2_ie(u8 *rsn_ie, int rsn_ie_len, int *group_cipher, int *pairwi
 
 void rtw_get_sec_ie(u8 *in_ie, uint in_len, u8 *rsn_ie, u16 *rsn_len, u8 *wpa_ie, u16 *wpa_len)
 {
+<<<<<<< HEAD
 	u8 authmode, sec_idx, i;
+=======
+	u8 authmode, sec_idx;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 wpa_oui[4] = {0x0, 0x50, 0xf2, 0x01};
 	uint cnt;
 
@@ -494,6 +540,7 @@ void rtw_get_sec_ie(u8 *in_ie, uint in_len, u8 *rsn_ie, u16 *rsn_len, u8 *wpa_ie
 		authmode = in_ie[cnt];
 
 		if ((authmode == WLAN_EID_VENDOR_SPECIFIC) && (!memcmp(&in_ie[cnt + 2], &wpa_oui[0], 4))) {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_,
 				 ("\n rtw_get_wpa_ie: sec_idx =%d in_ie[cnt+1]+2 =%d\n",
 				 sec_idx, in_ie[cnt + 1] + 2));
@@ -509,10 +556,16 @@ void rtw_get_sec_ie(u8 *in_ie, uint in_len, u8 *rsn_ie, u16 *rsn_len, u8 *wpa_ie
 				}
 			}
 
+=======
+			if (wpa_ie)
+				memcpy(wpa_ie, &in_ie[cnt], in_ie[cnt + 1] + 2);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			*wpa_len = in_ie[cnt + 1] + 2;
 			cnt += in_ie[cnt + 1] + 2;  /* get next */
 		} else {
 			if (authmode == WLAN_EID_RSN) {
+<<<<<<< HEAD
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_,
 					 ("\n get_rsn_ie: sec_idx =%d in_ie[cnt+1]+2 =%d\n",
 					 sec_idx, in_ie[cnt + 1] + 2));
@@ -528,6 +581,11 @@ void rtw_get_sec_ie(u8 *in_ie, uint in_len, u8 *rsn_ie, u16 *rsn_len, u8 *wpa_ie
 						}
 				}
 
+=======
+				if (rsn_ie)
+					memcpy(rsn_ie, &in_ie[cnt], in_ie[cnt + 1] + 2);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				*rsn_len = in_ie[cnt + 1] + 2;
 				cnt += in_ie[cnt + 1] + 2;  /* get next */
 			} else {
@@ -686,6 +744,7 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 	 * OUI of the vendor. The following byte is used a vendor specific
 	 * sub-type.
 	 */
+<<<<<<< HEAD
 	if (elen < 4) {
 		if (show_errors) {
 			DBG_88E("short vendor specific information element ignored (len=%lu)\n",
@@ -693,6 +752,10 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 		}
 		return -1;
 	}
+=======
+	if (elen < 4)
+		return -1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	oui = RTW_GET_BE24(pos);
 	switch (oui) {
@@ -711,11 +774,17 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 			elems->wpa_ie_len = elen;
 			break;
 		case WME_OUI_TYPE: /* this is a Wi-Fi WME info. element */
+<<<<<<< HEAD
 			if (elen < 5) {
 				DBG_88E("short WME information element ignored (len=%lu)\n",
 					(unsigned long)elen);
 				return -1;
 			}
+=======
+			if (elen < 5)
+				return -1;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			switch (pos[4]) {
 			case WME_OUI_SUBTYPE_INFORMATION_ELEMENT:
 			case WME_OUI_SUBTYPE_PARAMETER_ELEMENT:
@@ -727,8 +796,11 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 				elems->wme_tspec_len = elen;
 				break;
 			default:
+<<<<<<< HEAD
 				DBG_88E("unknown WME information element ignored (subtype=%d len=%lu)\n",
 					pos[4], (unsigned long)elen);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				return -1;
 			}
 			break;
@@ -738,8 +810,11 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 			elems->wps_ie_len = elen;
 			break;
 		default:
+<<<<<<< HEAD
 			DBG_88E("Unknown Microsoft information element ignored (type=%d len=%lu)\n",
 				pos[3], (unsigned long)elen);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -1;
 		}
 		break;
@@ -751,21 +826,31 @@ static int rtw_ieee802_11_parse_vendor_specific(u8 *pos, uint elen,
 			elems->vendor_ht_cap_len = elen;
 			break;
 		default:
+<<<<<<< HEAD
 			DBG_88E("Unknown Broadcom information element ignored (type=%d len=%lu)\n",
 				pos[3], (unsigned long)elen);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -1;
 		}
 		break;
 	default:
+<<<<<<< HEAD
 		DBG_88E("unknown vendor specific information element ignored (vendor OUI %3phC len=%lu)\n",
 			pos, (unsigned long)elen);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -1;
 	}
 	return 0;
 }
 
 /**
+<<<<<<< HEAD
  * ieee802_11_parse_elems - Parse information elements in management frames
+=======
+ * rtw_ieee802_11_parse_elems - Parse information elements in management frames
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @start: Pointer to the start of ies
  * @len: Length of IE buffer in octets
  * @elems: Data structure for parsed elements
@@ -789,6 +874,7 @@ enum parse_res rtw_ieee802_11_parse_elems(u8 *start, uint len,
 		elen = *pos++;
 		left -= 2;
 
+<<<<<<< HEAD
 		if (elen > left) {
 			if (show_errors) {
 				DBG_88E("IEEE 802.11 element parse failed (id=%d elen=%d left=%lu)\n",
@@ -796,6 +882,10 @@ enum parse_res rtw_ieee802_11_parse_elems(u8 *start, uint len,
 			}
 			return ParseFailed;
 		}
+=======
+		if (elen > left)
+			return ParseFailed;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		switch (id) {
 		case WLAN_EID_SSID:
@@ -876,10 +966,13 @@ enum parse_res rtw_ieee802_11_parse_elems(u8 *start, uint len,
 			break;
 		default:
 			unknown++;
+<<<<<<< HEAD
 			if (!show_errors)
 				break;
 			DBG_88E("IEEE 802.11 element parse ignored unknown element (id=%d elen=%d)\n",
 				id, elen);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		}
 		left -= elen;
@@ -905,12 +998,17 @@ void rtw_macaddr_cfg(u8 *mac_addr)
 		ether_addr_copy(mac, mac_addr);
 	}
 
+<<<<<<< HEAD
 	if (is_broadcast_ether_addr(mac) || is_zero_ether_addr(mac)) {
 		eth_random_addr(mac_addr);
 		DBG_88E("MAC Address from efuse error, assign random one !!!\n");
 	}
 
 	DBG_88E("%s MAC Address  = %pM\n", __func__, mac_addr);
+=======
+	if (is_broadcast_ether_addr(mac) || is_zero_ether_addr(mac))
+		eth_random_addr(mac_addr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int rtw_get_cipher_info(struct wlan_network *pnetwork)
@@ -923,21 +1021,28 @@ static int rtw_get_cipher_info(struct wlan_network *pnetwork)
 	pbuf = rtw_get_wpa_ie(&pnetwork->network.ies[12], &wpa_ielen, pnetwork->network.ie_length - 12);
 
 	if (pbuf && (wpa_ielen > 0)) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: wpa_ielen: %d", __func__, wpa_ielen));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (rtw_parse_wpa_ie(pbuf, wpa_ielen + 2, &group_cipher, &pairwise_cipher, &is8021x) == _SUCCESS) {
 			pnetwork->BcnInfo.pairwise_cipher = pairwise_cipher;
 			pnetwork->BcnInfo.group_cipher = group_cipher;
 			pnetwork->BcnInfo.is_8021x = is8021x;
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_,
 				 ("%s: pnetwork->pairwise_cipher: %d, is_8021x is %d",
 				  __func__, pnetwork->BcnInfo.pairwise_cipher,
 				  pnetwork->BcnInfo.is_8021x));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			ret = _SUCCESS;
 		}
 	} else {
 		pbuf = rtw_get_wpa2_ie(&pnetwork->network.ies[12], &wpa_ielen, pnetwork->network.ie_length - 12);
 
 		if (pbuf && (wpa_ielen > 0)) {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("get RSN IE\n"));
 			if (rtw_parse_wpa2_ie(pbuf, wpa_ielen + 2, &group_cipher, &pairwise_cipher, &is8021x) == _SUCCESS) {
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("get RSN IE  OK!!!\n"));
@@ -947,6 +1052,12 @@ static int rtw_get_cipher_info(struct wlan_network *pnetwork)
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: pnetwork->pairwise_cipher: %d, pnetwork->group_cipher is %d, is_8021x is %d",
 							__func__, pnetwork->BcnInfo.pairwise_cipher,
 							pnetwork->BcnInfo.group_cipher, pnetwork->BcnInfo.is_8021x));
+=======
+			if (rtw_parse_wpa2_ie(pbuf, wpa_ielen + 2, &group_cipher, &pairwise_cipher, &is8021x) == _SUCCESS) {
+				pnetwork->BcnInfo.pairwise_cipher = pairwise_cipher;
+				pnetwork->BcnInfo.group_cipher = group_cipher;
+				pnetwork->BcnInfo.is_8021x = is8021x;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				ret = _SUCCESS;
 			}
 		}
@@ -974,10 +1085,13 @@ void rtw_get_bcn_info(struct wlan_network *pnetwork)
 		pnetwork->BcnInfo.encryp_protocol = ENCRYP_PROTOCOL_OPENSYS;
 	}
 	rtw_get_sec_ie(pnetwork->network.ies, pnetwork->network.ie_length, NULL, &rsn_len, NULL, &wpa_len);
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: ssid =%s\n", __func__, pnetwork->network.ssid.ssid));
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: wpa_len =%d rsn_len =%d\n", __func__, wpa_len, rsn_len));
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: ssid =%s\n", __func__, pnetwork->network.ssid.ssid));
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: wpa_len =%d rsn_len =%d\n", __func__, wpa_len, rsn_len));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (rsn_len > 0) {
 		pnetwork->BcnInfo.encryp_protocol = ENCRYP_PROTOCOL_WPA2;
@@ -987,10 +1101,13 @@ void rtw_get_bcn_info(struct wlan_network *pnetwork)
 		if (bencrypt)
 			pnetwork->BcnInfo.encryp_protocol = ENCRYP_PROTOCOL_WEP;
 	}
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: pnetwork->encryp_protocol is %x\n",
 							__func__, pnetwork->BcnInfo.encryp_protocol));
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_info_, ("%s: pnetwork->encryp_protocol is %x\n",
 							__func__, pnetwork->BcnInfo.encryp_protocol));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_get_cipher_info(pnetwork);
 
 	/* get bwmode and ch_offset */

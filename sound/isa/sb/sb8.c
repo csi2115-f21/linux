@@ -94,6 +94,7 @@ static int snd_sb8_probe(struct device *pdev, unsigned int dev)
 	acard = card->private_data;
 	card->private_free = snd_sb8_free;
 
+<<<<<<< HEAD
 	/* block the 0x388 port to avoid PnP conflicts */
 	acard->fm_res = request_region(0x388, 4, "SoundBlaster FM");
 	if (!acard->fm_res) {
@@ -108,6 +109,20 @@ static int snd_sb8_probe(struct device *pdev, unsigned int dev)
 					    -1,
 					    SB_HW_AUTO,
 					    &chip)) < 0)
+=======
+	/*
+	 * Block the 0x388 port to avoid PnP conflicts.
+	 * No need to check this value after request_region,
+	 * as we never do anything with it.
+	 */
+	acard->fm_res = request_region(0x388, 4, "SoundBlaster FM");
+
+	if (port[dev] != SNDRV_AUTO_PORT) {
+		err = snd_sbdsp_create(card, port[dev], irq[dev],
+				       snd_sb8_interrupt, dma8[dev],
+				       -1, SB_HW_AUTO, &chip);
+		if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto _err;
 	} else {
 		/* auto-probe legacy ports */
@@ -146,10 +161,19 @@ static int snd_sb8_probe(struct device *pdev, unsigned int dev)
 		goto _err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_sb8dsp_pcm(chip, 0)) < 0)
 		goto _err;
 
 	if ((err = snd_sbmixer_new(chip)) < 0)
+=======
+	err = snd_sb8dsp_pcm(chip, 0);
+	if (err < 0)
+		goto _err;
+
+	err = snd_sbmixer_new(chip);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _err;
 
 	if (chip->hardware == SB_HW_10 || chip->hardware == SB_HW_20) {
@@ -167,11 +191,21 @@ static int snd_sb8_probe(struct device *pdev, unsigned int dev)
 		}
 	}
 	if (err >= 0) {
+<<<<<<< HEAD
 		if ((err = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0)
 			goto _err;
 	}
 
 	if ((err = snd_sb8dsp_midi(chip, 0)) < 0)
+=======
+		err = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+		if (err < 0)
+			goto _err;
+	}
+
+	err = snd_sb8dsp_midi(chip, 0);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _err;
 
 	strcpy(card->driver, chip->hardware == SB_HW_PRO ? "SB Pro" : "SB8");
@@ -181,7 +215,12 @@ static int snd_sb8_probe(struct device *pdev, unsigned int dev)
 		chip->port,
 		irq[dev], dma8[dev]);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0)
+=======
+	err = snd_card_register(card);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _err;
 
 	dev_set_drvdata(pdev, card);

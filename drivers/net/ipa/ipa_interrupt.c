@@ -77,13 +77,22 @@ static void ipa_interrupt_process_all(struct ipa_interrupt *interrupt)
 {
 	struct ipa *ipa = interrupt->ipa;
 	u32 enabled = interrupt->enabled;
+<<<<<<< HEAD
+=======
+	u32 offset;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 mask;
 
 	/* The status register indicates which conditions are present,
 	 * including conditions whose interrupt is not enabled.  Handle
 	 * only the enabled ones.
 	 */
+<<<<<<< HEAD
 	mask = ioread32(ipa->reg_virt + IPA_REG_IRQ_STTS_OFFSET);
+=======
+	offset = ipa_reg_irq_stts_offset(ipa->version);
+	mask = ioread32(ipa->reg_virt + offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	while ((mask &= enabled)) {
 		do {
 			u32 irq_id = __ffs(mask);
@@ -92,7 +101,11 @@ static void ipa_interrupt_process_all(struct ipa_interrupt *interrupt)
 
 			ipa_interrupt_process(interrupt, irq_id);
 		} while (mask);
+<<<<<<< HEAD
 		mask = ioread32(ipa->reg_virt + IPA_REG_IRQ_STTS_OFFSET);
+=======
+		mask = ioread32(ipa->reg_virt + offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -115,14 +128,27 @@ static irqreturn_t ipa_isr(int irq, void *dev_id)
 {
 	struct ipa_interrupt *interrupt = dev_id;
 	struct ipa *ipa = interrupt->ipa;
+<<<<<<< HEAD
 	u32 mask;
 
 	mask = ioread32(ipa->reg_virt + IPA_REG_IRQ_STTS_OFFSET);
+=======
+	u32 offset;
+	u32 mask;
+
+	offset = ipa_reg_irq_stts_offset(ipa->version);
+	mask = ioread32(ipa->reg_virt + offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (mask & interrupt->enabled)
 		return IRQ_WAKE_THREAD;
 
 	/* Nothing in the mask was supposed to cause an interrupt */
+<<<<<<< HEAD
 	iowrite32(mask, ipa->reg_virt + IPA_REG_IRQ_CLR_OFFSET);
+=======
+	offset = ipa_reg_irq_clr_offset(ipa->version);
+	iowrite32(mask, ipa->reg_virt + offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	dev_err(&ipa->pdev->dev, "%s: unexpected interrupt, mask 0x%08x\n",
 		__func__, mask);
@@ -139,7 +165,17 @@ static void ipa_interrupt_suspend_control(struct ipa_interrupt *interrupt,
 	u32 val;
 
 	/* assert(mask & ipa->available); */
+<<<<<<< HEAD
 	val = ioread32(ipa->reg_virt + IPA_REG_IRQ_SUSPEND_EN_OFFSET);
+=======
+
+	/* IPA version 3.0 does not support TX_SUSPEND interrupt control */
+	if (ipa->version == IPA_VERSION_3_0)
+		return;
+
+	offset = ipa_reg_irq_suspend_en_offset(ipa->version);
+	val = ioread32(ipa->reg_virt + offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (enable)
 		val |= mask;
 	else
@@ -182,6 +218,10 @@ void ipa_interrupt_add(struct ipa_interrupt *interrupt,
 		       enum ipa_irq_id ipa_irq, ipa_irq_handler_t handler)
 {
 	struct ipa *ipa = interrupt->ipa;
+<<<<<<< HEAD
+=======
+	u32 offset;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* assert(ipa_irq < IPA_IRQ_COUNT); */
 	interrupt->handler[ipa_irq] = handler;
@@ -196,6 +236,10 @@ void
 ipa_interrupt_remove(struct ipa_interrupt *interrupt, enum ipa_irq_id ipa_irq)
 {
 	struct ipa *ipa = interrupt->ipa;
+<<<<<<< HEAD
+=======
+	u32 offset;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* assert(ipa_irq < IPA_IRQ_COUNT); */
 	/* Update the IPA interrupt mask to disable it */

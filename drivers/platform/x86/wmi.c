@@ -1000,7 +1000,11 @@ static int wmi_dev_remove(struct device *dev)
 	if (ACPI_FAILURE(wmi_method_enable(wblock, 0)))
 		dev_warn(dev, "failed to disable device\n");
 
+<<<<<<< HEAD
 	return ret;
+=======
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct class wmi_bus_class = {

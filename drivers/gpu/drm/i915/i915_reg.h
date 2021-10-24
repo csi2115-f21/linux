@@ -4549,8 +4549,12 @@ enum {
 #define   EDP_SU_TRACK_ENABLE			(1 << 30)
 #define   TGL_EDP_PSR2_BLOCK_COUNT_NUM_2	(0 << 28)
 #define   TGL_EDP_PSR2_BLOCK_COUNT_NUM_3	(1 << 28)
+<<<<<<< HEAD
 #define   EDP_Y_COORDINATE_VALID		(1 << 26) /* GLK and CNL+ */
 #define   EDP_Y_COORDINATE_ENABLE		(1 << 25) /* GLK and CNL+ */
+=======
+#define   EDP_Y_COORDINATE_ENABLE		REG_BIT(25) /* display 10, 11 and 12 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define   EDP_MAX_SU_DISABLE_TIME(t)		((t) << 20)
 #define   EDP_MAX_SU_DISABLE_TIME_MASK		(0x1f << 20)
 #define   EDP_PSR2_IO_BUFFER_WAKE_MAX_LINES	8
@@ -7663,6 +7667,7 @@ enum {
 #define  GAMMA_MODE_MODE_SPLIT	(3 << 0) /* ivb-bdw */
 #define  GAMMA_MODE_MODE_12BIT_MULTI_SEGMENTED	(3 << 0) /* icl + */
 
+<<<<<<< HEAD
 /* DMC/CSR */
 #define CSR_PROGRAM(i)		_MMIO(0x80000 + (i) * 4)
 #define CSR_SSP_BASE_ADDR_GEN9	0x00002FC0
@@ -7677,6 +7682,22 @@ enum {
 #define SKL_CSR_DC3_DC5_COUNT	_MMIO(0x80030)
 #define SKL_CSR_DC5_DC6_COUNT	_MMIO(0x8002C)
 #define BXT_CSR_DC3_DC5_COUNT	_MMIO(0x80038)
+=======
+/* DMC */
+#define DMC_PROGRAM(i)		_MMIO(0x80000 + (i) * 4)
+#define DMC_SSP_BASE_ADDR_GEN9	0x00002FC0
+#define DMC_HTP_ADDR_SKL	0x00500034
+#define DMC_SSP_BASE		_MMIO(0x8F074)
+#define DMC_HTP_SKL		_MMIO(0x8F004)
+#define DMC_LAST_WRITE		_MMIO(0x8F034)
+#define DMC_LAST_WRITE_VALUE	0xc003b400
+/* MMIO address range for DMC program (0x80000 - 0x82FFF) */
+#define DMC_MMIO_START_RANGE	0x80000
+#define DMC_MMIO_END_RANGE	0x8FFFF
+#define SKL_DMC_DC3_DC5_COUNT	_MMIO(0x80030)
+#define SKL_DMC_DC5_DC6_COUNT	_MMIO(0x8002C)
+#define BXT_DMC_DC3_DC5_COUNT	_MMIO(0x80038)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define TGL_DMC_DEBUG_DC5_COUNT	_MMIO(0x101084)
 #define TGL_DMC_DEBUG_DC6_COUNT	_MMIO(0x101088)
 #define DG1_DMC_DEBUG_DC5_COUNT	_MMIO(0x134154)
@@ -8263,6 +8284,10 @@ enum {
 #define _PIPEC_CHICKEN				0x72038
 #define PIPE_CHICKEN(pipe)			_MMIO_PIPE(pipe, _PIPEA_CHICKEN,\
 							   _PIPEB_CHICKEN)
+<<<<<<< HEAD
+=======
+#define   UNDERRUN_RECOVERY_DISABLE		REG_BIT(30)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define   PIXEL_ROUNDING_TRUNC_FB_PASSTHRU 	(1 << 15)
 #define   PER_PIXEL_ALPHA_BYPASS_EN		(1 << 7)
 
@@ -10392,6 +10417,30 @@ enum skl_power_gate {
 #define   DG1_DPCLKA_CFGCR0_DDI_CLK_SEL_DPLL_MAP(clk_sel, phy) \
 	(((clk_sel) >> DG1_DPCLKA_CFGCR0_DDI_CLK_SEL_SHIFT(phy)) + _DG1_PHY_DPLL_MAP(phy))
 
+<<<<<<< HEAD
+=======
+/* ADLS Clocks */
+#define _ADLS_DPCLKA_CFGCR0			0x164280
+#define _ADLS_DPCLKA_CFGCR1			0x1642BC
+#define ADLS_DPCLKA_CFGCR(phy)			_MMIO_PHY((phy) / 3, \
+							  _ADLS_DPCLKA_CFGCR0, \
+							  _ADLS_DPCLKA_CFGCR1)
+#define  ADLS_DPCLKA_CFGCR_DDI_SHIFT(phy)		(((phy) % 3) * 2)
+/* ADLS DPCLKA_CFGCR0 DDI mask */
+#define  ADLS_DPCLKA_DDII_SEL_MASK			REG_GENMASK(5, 4)
+#define  ADLS_DPCLKA_DDIB_SEL_MASK			REG_GENMASK(3, 2)
+#define  ADLS_DPCLKA_DDIA_SEL_MASK			REG_GENMASK(1, 0)
+/* ADLS DPCLKA_CFGCR1 DDI mask */
+#define  ADLS_DPCLKA_DDIK_SEL_MASK			REG_GENMASK(3, 2)
+#define  ADLS_DPCLKA_DDIJ_SEL_MASK			REG_GENMASK(1, 0)
+#define  ADLS_DPCLKA_CFGCR_DDI_CLK_SEL_MASK(phy)	_PICK((phy), \
+							ADLS_DPCLKA_DDIA_SEL_MASK, \
+							ADLS_DPCLKA_DDIB_SEL_MASK, \
+							ADLS_DPCLKA_DDII_SEL_MASK, \
+							ADLS_DPCLKA_DDIJ_SEL_MASK, \
+							ADLS_DPCLKA_DDIK_SEL_MASK)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* CNL PLL */
 #define DPLL0_ENABLE		0x46010
 #define DPLL1_ENABLE		0x46014
@@ -10399,7 +10448,12 @@ enum skl_power_gate {
 #define  PLL_LOCK		(1 << 30)
 #define  PLL_POWER_ENABLE	(1 << 27)
 #define  PLL_POWER_STATE	(1 << 26)
+<<<<<<< HEAD
 #define CNL_DPLL_ENABLE(pll)	_MMIO_PLL(pll, DPLL0_ENABLE, DPLL1_ENABLE)
+=======
+#define CNL_DPLL_ENABLE(pll)	_MMIO_PLL3(pll, DPLL0_ENABLE, DPLL1_ENABLE, \
+					   _ADLS_DPLL2_ENABLE, _ADLS_DPLL3_ENABLE)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define TBT_PLL_ENABLE		_MMIO(0x46020)
 
@@ -10813,6 +10867,11 @@ enum skl_power_gate {
 #define BXT_DE_PLL_ENABLE		_MMIO(0x46070)
 #define   BXT_DE_PLL_PLL_ENABLE		(1 << 31)
 #define   BXT_DE_PLL_LOCK		(1 << 30)
+<<<<<<< HEAD
+=======
+#define   BXT_DE_PLL_FREQ_REQ		(1 << 23)
+#define   BXT_DE_PLL_FREQ_REQ_ACK	(1 << 22)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define   CNL_CDCLK_PLL_RATIO(x)	(x)
 #define   CNL_CDCLK_PLL_RATIO_MASK	0xff
 

@@ -632,8 +632,12 @@ static int b53_srab_remove(struct platform_device *pdev)
 	struct b53_srab_priv *priv = dev->priv;
 
 	b53_srab_intr_set(priv, false);
+<<<<<<< HEAD
 	if (dev)
 		b53_switch_remove(dev);
+=======
+	b53_switch_remove(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

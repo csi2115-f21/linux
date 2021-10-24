@@ -178,7 +178,12 @@ static bool hclge_is_special_opcode(u16 opcode)
 			     HCLGE_QUERY_CLEAR_MPF_RAS_INT,
 			     HCLGE_QUERY_CLEAR_PF_RAS_INT,
 			     HCLGE_QUERY_CLEAR_ALL_MPF_MSIX_INT,
+<<<<<<< HEAD
 			     HCLGE_QUERY_CLEAR_ALL_PF_MSIX_INT};
+=======
+			     HCLGE_QUERY_CLEAR_ALL_PF_MSIX_INT,
+			     HCLGE_QUERY_ALL_ERR_INFO};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(spec_opcode); i++) {
@@ -363,7 +368,10 @@ static void hclge_parse_capability(struct hclge_dev *hdev,
 	u32 caps;
 
 	caps = __le32_to_cpu(cmd->caps[0]);
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (hnae3_get_bit(caps, HCLGE_CAP_UDP_GSO_B))
 		set_bit(HNAE3_DEV_SUPPORT_UDP_GSO_B, ae_dev->caps);
 	if (hnae3_get_bit(caps, HCLGE_CAP_PTP_B))
@@ -378,6 +386,23 @@ static void hclge_parse_capability(struct hclge_dev *hdev,
 		set_bit(HNAE3_DEV_SUPPORT_UDP_TUNNEL_CSUM_B, ae_dev->caps);
 	if (hnae3_get_bit(caps, HCLGE_CAP_FD_FORWARD_TC_B))
 		set_bit(HNAE3_DEV_SUPPORT_FD_FORWARD_TC_B, ae_dev->caps);
+<<<<<<< HEAD
+=======
+	if (hnae3_get_bit(caps, HCLGE_CAP_FEC_B))
+		set_bit(HNAE3_DEV_SUPPORT_FEC_B, ae_dev->caps);
+	if (hnae3_get_bit(caps, HCLGE_CAP_PAUSE_B))
+		set_bit(HNAE3_DEV_SUPPORT_PAUSE_B, ae_dev->caps);
+	if (hnae3_get_bit(caps, HCLGE_CAP_PHY_IMP_B))
+		set_bit(HNAE3_DEV_SUPPORT_PHY_IMP_B, ae_dev->caps);
+	if (hnae3_get_bit(caps, HCLGE_CAP_RAS_IMP_B))
+		set_bit(HNAE3_DEV_SUPPORT_RAS_IMP_B, ae_dev->caps);
+	if (hnae3_get_bit(caps, HCLGE_CAP_RXD_ADV_LAYOUT_B))
+		set_bit(HNAE3_DEV_SUPPORT_RXD_ADV_LAYOUT_B, ae_dev->caps);
+	if (hnae3_get_bit(caps, HCLGE_CAP_PORT_VLAN_BYPASS_B)) {
+		set_bit(HNAE3_DEV_SUPPORT_PORT_VLAN_BYPASS_B, ae_dev->caps);
+		set_bit(HNAE3_DEV_SUPPORT_VLAN_FLTR_MDF_B, ae_dev->caps);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static __le32 hclge_build_api_caps(void)
@@ -467,6 +492,11 @@ static int hclge_firmware_compat_config(struct hclge_dev *hdev)
 
 	hnae3_set_bit(compat, HCLGE_LINK_EVENT_REPORT_EN_B, 1);
 	hnae3_set_bit(compat, HCLGE_NCSI_ERROR_REPORT_EN_B, 1);
+<<<<<<< HEAD
+=======
+	if (hnae3_dev_phy_imp_supported(hdev))
+		hnae3_set_bit(compat, HCLGE_PHY_IMP_EN_B, 1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	req->compat = cpu_to_le32(compat);
 
 	return hclge_cmd_send(&hdev->hw, &desc, 1);

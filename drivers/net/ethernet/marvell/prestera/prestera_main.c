@@ -513,9 +513,46 @@ static int prestera_netdev_port_event(struct net_device *dev,
 	switch (event) {
 	case NETDEV_PRECHANGEUPPER:
 	case NETDEV_CHANGEUPPER:
+<<<<<<< HEAD
 		return prestera_bridge_port_event(dev, event, ptr);
 	default:
 		return 0;
+=======
+		if (netif_is_bridge_master(upper)) {
+			if (info->linking)
+				return prestera_bridge_port_join(upper, port);
+			else
+				prestera_bridge_port_leave(upper, port);
+		} else if (netif_is_lag_master(upper)) {
+			if (info->linking)
+				return prestera_lag_port_add(port, upper);
+			else
+				prestera_lag_port_del(port);
+		}
+		break;
+
+	case NETDEV_CHANGELOWERSTATE:
+		return prestera_netdev_port_lower_event(dev, event, ptr);
+	}
+
+	return 0;
+}
+
+static int prestera_netdevice_lag_event(struct net_device *lag_dev,
+					unsigned long event, void *ptr)
+{
+	struct net_device *dev;
+	struct list_head *iter;
+	int err;
+
+	netdev_for_each_lower_dev(lag_dev, dev, iter) {
+		if (prestera_netdev_check(dev)) {
+			err = prestera_netdev_port_event(lag_dev, dev, event,
+							 ptr);
+			if (err)
+				return err;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 

@@ -663,6 +663,10 @@ out:
 static int mv88e6xxx_setup_devlink_regions_global(struct dsa_switch *ds,
 						  struct mv88e6xxx_chip *chip)
 {
+<<<<<<< HEAD
+=======
+	bool (*cond)(struct mv88e6xxx_chip *chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct devlink_region_ops *ops;
 	struct devlink_region *region;
 	u64 size;

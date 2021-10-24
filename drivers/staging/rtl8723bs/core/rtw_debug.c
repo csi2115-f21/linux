@@ -93,6 +93,7 @@ void mac_reg_dump(void *sel, struct adapter *adapter)
 
 void bb_reg_dump(void *sel, struct adapter *adapter)
 {
+<<<<<<< HEAD
 	int i, j = 1;
 
 	DBG_871X_SEL_NL(sel, "======= BB REG =======\n");
@@ -130,5 +131,23 @@ void rf_reg_dump(void *sel, struct adapter *adapter)
 			if ((j++)%4 == 0)
 				DBG_871X_SEL(sel, "\n");
 		}
+=======
+	int i, path;
+	u8 rf_type = 0;
+	u8 path_nums = 0;
+
+	rtw_hal_get_hwreg(adapter, HW_VAR_RF_TYPE, (u8 *)(&rf_type));
+	if ((RF_1T2R == rf_type) || (RF_1T1R == rf_type))
+		path_nums = 1;
+	else
+		path_nums = 2;
+
+	netdev_dbg(adapter->pnetdev, "======= RF REG =======\n");
+
+	for (path = 0; path < path_nums; path++) {
+		netdev_dbg(adapter->pnetdev, "RF_Path(%x)\n", path);
+		for (i = 0; i < 0x100; i++)
+			dump_4_rf_regs(adapter, path, i);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }

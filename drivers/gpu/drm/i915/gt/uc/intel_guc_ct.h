@@ -29,10 +29,18 @@ struct intel_guc;
  *
  * @desc: pointer to the buffer descriptor
  * @cmds: pointer to the commands buffer
+<<<<<<< HEAD
+=======
+ * @size: size of the commands buffer
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct intel_guc_ct_buffer {
 	struct guc_ct_buffer_desc *desc;
 	u32 *cmds;
+<<<<<<< HEAD
+=======
+	u32 size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 
@@ -45,8 +53,18 @@ struct intel_guc_ct {
 	struct i915_vma *vma;
 	bool enabled;
 
+<<<<<<< HEAD
 	/* buffers for sending(0) and receiving(1) commands */
 	struct intel_guc_ct_buffer ctbs[2];
+=======
+	/* buffers for sending and receiving commands */
+	struct {
+		struct intel_guc_ct_buffer send;
+		struct intel_guc_ct_buffer recv;
+	} ctbs;
+
+	struct tasklet_struct receive_tasklet;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	struct {
 		u32 last_fence; /* last fence used to send request */

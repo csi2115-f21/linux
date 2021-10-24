@@ -68,7 +68,11 @@ static void set_offsets(u32 *regs,
 	if (close) {
 		/* Close the batch; used mainly by live_lrc_layout() */
 		*regs = MI_BATCH_BUFFER_END;
+<<<<<<< HEAD
 		if (INTEL_GEN(engine->i915) >= 10)
+=======
+		if (GRAPHICS_VER(engine->i915) >= 10)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			*regs |= BIT(0);
 	}
 }
@@ -500,7 +504,11 @@ static const u8 *reg_offsets(const struct intel_engine_cs *engine)
 		   !intel_engine_has_relative_mmio(engine));
 
 	if (engine->class == RENDER_CLASS) {
+<<<<<<< HEAD
 		if (INTEL_GEN(engine->i915) >= 12)
+=======
+		if (GRAPHICS_VER(engine->i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return gen12_rcs_offsets;
 		else if (INTEL_GEN(engine->i915) >= 11)
 			return gen11_rcs_offsets;
@@ -520,7 +528,11 @@ static const u8 *reg_offsets(const struct intel_engine_cs *engine)
 
 static int lrc_ring_mi_mode(const struct intel_engine_cs *engine)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(engine->i915) >= 12)
+=======
+	if (GRAPHICS_VER(engine->i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0x60;
 	else if (INTEL_GEN(engine->i915) >= 9)
 		return 0x54;
@@ -532,7 +544,11 @@ static int lrc_ring_mi_mode(const struct intel_engine_cs *engine)
 
 static int lrc_ring_gpr0(const struct intel_engine_cs *engine)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(engine->i915) >= 12)
+=======
+	if (GRAPHICS_VER(engine->i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0x74;
 	else if (INTEL_GEN(engine->i915) >= 9)
 		return 0x68;
@@ -579,7 +595,11 @@ static int lrc_ring_cmd_buf_cctl(const struct intel_engine_cs *engine)
 	if (engine->class != RENDER_CLASS)
 		return -1;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(engine->i915) >= 12)
+=======
+	if (GRAPHICS_VER(engine->i915) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0xb6;
 	else if (INTEL_GEN(engine->i915) >= 11)
 		return 0xaa;

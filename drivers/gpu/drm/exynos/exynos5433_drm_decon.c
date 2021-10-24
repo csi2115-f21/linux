@@ -816,8 +816,12 @@ static int exynos5433_decon_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ctx->addr = devm_ioremap_resource(dev, res);
+<<<<<<< HEAD
 	if (IS_ERR(ctx->addr)) {
 		dev_err(dev, "ioremap failed\n");
+=======
+	if (IS_ERR(ctx->addr))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return PTR_ERR(ctx->addr);
 	}
 

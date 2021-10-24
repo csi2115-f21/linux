@@ -130,7 +130,18 @@ struct evsel {
 	 */
 	__u64			synth_sample_type;
 	struct list_head	bpf_counter_list;
+<<<<<<< HEAD
 	struct bpf_counter_ops	*bpf_counter_ops;
+=======
+
+	/* for perf-stat --use-bpf */
+	int			bperf_leader_prog_fd;
+	int			bperf_leader_link_fd;
+	union {
+		struct bperf_leader_bpf *leader_skel;
+		struct bperf_follower_bpf *follower_skel;
+	};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct perf_missing_features {

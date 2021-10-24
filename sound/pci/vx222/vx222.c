@@ -134,7 +134,12 @@ static int snd_vx222_create(struct snd_card *card, struct pci_dev *pci,
 	const struct snd_vx_ops *vx_ops;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	pci_set_master(pci);
 
@@ -148,7 +153,12 @@ static int snd_vx222_create(struct snd_card *card, struct pci_dev *pci,
 	vx = to_vx222(chip);
 	vx->pci = pci;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, CARD_NAME)) < 0) {
+=======
+	err = pci_request_regions(pci, CARD_NAME);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_vx222_free(chip);
 		return err;
 	}
@@ -165,7 +175,12 @@ static int snd_vx222_create(struct snd_card *card, struct pci_dev *pci,
 	chip->irq = pci->irq;
 	card->sync_irq = chip->irq;
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_vx222_free(chip);
 		return err;
 	}
@@ -208,7 +223,12 @@ static int snd_vx222_probe(struct pci_dev *pci,
 			hw = &vx222_v2_hw;
 		break;
 	}
+<<<<<<< HEAD
 	if ((err = snd_vx222_create(card, pci, hw, &vx)) < 0) {
+=======
+	err = snd_vx222_create(card, pci, hw, &vx);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -224,12 +244,22 @@ static int snd_vx222_probe(struct pci_dev *pci,
 	vx->core.dev = &pci->dev;
 #endif
 
+<<<<<<< HEAD
 	if ((err = snd_vx_setup_firmware(&vx->core)) < 0) {
+=======
+	err = snd_vx_setup_firmware(&vx->core);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

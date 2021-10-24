@@ -130,7 +130,11 @@ quiet_cmd_genimage = GENIMAGE $3
 cmd_genimage = sh $(srctree)/$(src)/genimage.sh $2 $3 $(obj)/bzImage \
 			$(obj)/mtools.conf '$(image_cmdline)' $(FDINITRD)
 
+<<<<<<< HEAD
 PHONY += bzdisk fdimage fdimage144 fdimage288 isoimage bzlilo install
+=======
+PHONY += bzdisk fdimage fdimage144 fdimage288 hdimage isoimage install
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 # This requires write access to /dev/fd0
 bzdisk: $(obj)/bzImage $(obj)/mtools.conf
@@ -149,6 +153,7 @@ isoimage: $(obj)/bzImage
 	$(call cmd,genimage,isoimage,$(obj)/image.iso)
 	@$(kecho) 'Kernel: $(obj)/image.iso is ready'
 
+<<<<<<< HEAD
 bzlilo:
 	if [ -f $(INSTALL_PATH)/vmlinuz ]; then mv $(INSTALL_PATH)/vmlinuz $(INSTALL_PATH)/vmlinuz.old; fi
 	if [ -f $(INSTALL_PATH)/System.map ]; then mv $(INSTALL_PATH)/System.map $(INSTALL_PATH)/System.old; fi
@@ -158,4 +163,9 @@ bzlilo:
 
 install:
 	sh $(srctree)/$(src)/install.sh $(KERNELRELEASE) $(obj)/bzImage \
+=======
+install:
+	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh \
+		$(KERNELRELEASE) $(obj)/bzImage \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		System.map "$(INSTALL_PATH)"

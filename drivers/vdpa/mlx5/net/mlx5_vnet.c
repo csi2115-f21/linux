@@ -1540,6 +1540,7 @@ static void teardown_virtqueues(struct mlx5_vdpa_net *ndev)
 	}
 }
 
+<<<<<<< HEAD
 static void clear_virtqueues(struct mlx5_vdpa_net *ndev)
 {
 	int i;
@@ -1548,6 +1549,18 @@ static void clear_virtqueues(struct mlx5_vdpa_net *ndev)
 		ndev->vqs[i].avail_idx = 0;
 		ndev->vqs[i].used_idx = 0;
 	}
+=======
+/* TODO: cross-endian support */
+static inline bool mlx5_vdpa_is_little_endian(struct mlx5_vdpa_dev *mvdev)
+{
+	return virtio_legacy_is_little_endian() ||
+		(mvdev->actual_features & BIT_ULL(VIRTIO_F_VERSION_1));
+}
+
+static __virtio16 cpu_to_mlx5vdpa16(struct mlx5_vdpa_dev *mvdev, u16 val)
+{
+	return __cpu_to_virtio16(mlx5_vdpa_is_little_endian(mvdev), val);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* TODO: cross-endian support */
@@ -1775,6 +1788,17 @@ out:
 	mutex_unlock(&ndev->reslock);
 }
 
+<<<<<<< HEAD
+=======
+static void clear_vqs_ready(struct mlx5_vdpa_net *ndev)
+{
+	int i;
+
+	for (i = 0; i < ndev->mvdev.max_vqs; i++)
+		ndev->vqs[i].ready = false;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void mlx5_vdpa_set_status(struct vdpa_device *vdev, u8 status)
 {
 	struct mlx5_vdpa_dev *mvdev = to_mvdev(vdev);
@@ -1785,11 +1809,22 @@ static void mlx5_vdpa_set_status(struct vdpa_device *vdev, u8 status)
 	if (!status) {
 		mlx5_vdpa_info(mvdev, "performing device reset\n");
 		teardown_driver(ndev);
+<<<<<<< HEAD
 		clear_virtqueues(ndev);
+=======
+		clear_vqs_ready(ndev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mlx5_vdpa_destroy_mr(&ndev->mvdev);
 		ndev->mvdev.status = 0;
 		ndev->mvdev.mlx_features = 0;
 		++mvdev->generation;
+<<<<<<< HEAD
+=======
+		if (MLX5_CAP_GEN(mvdev->mdev, umem_uid_0)) {
+			if (mlx5_vdpa_create_mr(mvdev, NULL))
+				mlx5_vdpa_warn(mvdev, "create MR failed\n");
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
@@ -1814,6 +1849,14 @@ err_setup:
 	ndev->mvdev.status |= VIRTIO_CONFIG_S_FAILED;
 }
 
+<<<<<<< HEAD
+=======
+static size_t mlx5_vdpa_get_config_size(struct vdpa_device *vdev)
+{
+	return sizeof(struct virtio_net_config);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void mlx5_vdpa_get_config(struct vdpa_device *vdev, unsigned int offset, void *buf,
 				 unsigned int len)
 {
@@ -1871,6 +1914,18 @@ static void mlx5_vdpa_free(struct vdpa_device *vdev)
 static struct vdpa_notification_area mlx5_get_vq_notification(struct vdpa_device *vdev, u16 idx)
 {
 	struct vdpa_notification_area ret = {};
+<<<<<<< HEAD
+=======
+	struct mlx5_vdpa_net *ndev;
+	phys_addr_t addr;
+
+	/* If SF BAR size is smaller than PAGE_SIZE, do not use direct
+	 * notification to avoid the risk of mapping pages that contain BAR of more
+	 * than one SF
+	 */
+	if (MLX5_CAP_GEN(mvdev->mdev, log_min_sf_size) + 12 < PAGE_SHIFT)
+		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -1900,6 +1955,10 @@ static const struct vdpa_config_ops mlx5_vdpa_ops = {
 	.get_vendor_id = mlx5_vdpa_get_vendor_id,
 	.get_status = mlx5_vdpa_get_status,
 	.set_status = mlx5_vdpa_set_status,
+<<<<<<< HEAD
+=======
+	.get_config_size = mlx5_vdpa_get_config_size,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.get_config = mlx5_vdpa_get_config,
 	.set_config = mlx5_vdpa_set_config,
 	.get_generation = mlx5_vdpa_get_generation,
@@ -1977,12 +2036,23 @@ static int mlx5v_probe(struct auxiliary_device *adev,
 	u32 max_vqs;
 	int err;
 
+<<<<<<< HEAD
+=======
+	if (mgtdev->ndev)
+		return -ENOSPC;
+
+	mdev = mgtdev->madev->mdev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* we save one virtqueue for control virtqueue should we require it */
 	max_vqs = MLX5_CAP_DEV_VDPA_EMULATION(mdev, max_num_virtio_queues);
 	max_vqs = min_t(u32, max_vqs, MLX5_MAX_SUPPORTED_VQS);
 
 	ndev = vdpa_alloc_device(struct mlx5_vdpa_net, mvdev.vdev, mdev->device, &mlx5_vdpa_ops,
+<<<<<<< HEAD
 				 2 * mlx5_vdpa_max_qps(max_vqs), NULL);
+=======
+				 name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (IS_ERR(ndev))
 		return PTR_ERR(ndev);
 
@@ -2000,7 +2070,18 @@ static int mlx5v_probe(struct auxiliary_device *adev,
 	if (err)
 		goto err_mtu;
 
+<<<<<<< HEAD
 	mvdev->vdev.dma_dev = mdev->device;
+=======
+	if (!is_zero_ether_addr(config->mac)) {
+		pfmdev = pci_get_drvdata(pci_physfn(mdev->pdev));
+		err = mlx5_mpfs_add_mac(pfmdev, config->mac);
+		if (err)
+			goto err_mtu;
+	}
+
+	mvdev->vdev.dma_dev = &mdev->pdev->dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = mlx5_vdpa_alloc_resources(&ndev->mvdev);
 	if (err)
 		goto err_mtu;
@@ -2009,7 +2090,12 @@ static int mlx5v_probe(struct auxiliary_device *adev,
 	if (err)
 		goto err_res;
 
+<<<<<<< HEAD
 	err = vdpa_register_device(&mvdev->vdev);
+=======
+	mvdev->vdev.mdev = &mgtdev->mgtdev;
+	err = _vdpa_register_device(&mvdev->vdev, 2 * mlx5_vdpa_max_qps(max_vqs));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err)
 		goto err_reg;
 
@@ -2026,6 +2112,58 @@ err_mtu:
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static void mlx5_vdpa_dev_del(struct vdpa_mgmt_dev *v_mdev, struct vdpa_device *dev)
+{
+	struct mlx5_vdpa_mgmtdev *mgtdev = container_of(v_mdev, struct mlx5_vdpa_mgmtdev, mgtdev);
+
+	_vdpa_unregister_device(dev);
+	mgtdev->ndev = NULL;
+}
+
+static const struct vdpa_mgmtdev_ops mdev_ops = {
+	.dev_add = mlx5_vdpa_dev_add,
+	.dev_del = mlx5_vdpa_dev_del,
+};
+
+static struct virtio_device_id id_table[] = {
+	{ VIRTIO_ID_NET, VIRTIO_DEV_ANY_ID },
+	{ 0 },
+};
+
+static int mlx5v_probe(struct auxiliary_device *adev,
+		       const struct auxiliary_device_id *id)
+
+{
+	struct mlx5_adev *madev = container_of(adev, struct mlx5_adev, adev);
+	struct mlx5_core_dev *mdev = madev->mdev;
+	struct mlx5_vdpa_mgmtdev *mgtdev;
+	int err;
+
+	mgtdev = kzalloc(sizeof(*mgtdev), GFP_KERNEL);
+	if (!mgtdev)
+		return -ENOMEM;
+
+	mgtdev->mgtdev.ops = &mdev_ops;
+	mgtdev->mgtdev.device = mdev->device;
+	mgtdev->mgtdev.id_table = id_table;
+	mgtdev->madev = madev;
+
+	err = vdpa_mgmtdev_register(&mgtdev->mgtdev);
+	if (err)
+		goto reg_err;
+
+	dev_set_drvdata(&adev->dev, mgtdev);
+
+	return 0;
+
+reg_err:
+	kfree(mgtdev);
+	return err;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void mlx5v_remove(struct auxiliary_device *adev)
 {
 	struct mlx5_vdpa_dev *mvdev = dev_get_drvdata(&adev->dev);

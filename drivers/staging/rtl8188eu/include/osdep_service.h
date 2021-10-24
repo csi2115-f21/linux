@@ -66,6 +66,7 @@ u8 *_rtw_malloc(u32 sz);
 
 void _rtw_init_queue(struct __queue *pqueue);
 
+<<<<<<< HEAD
 struct rtw_netdev_priv_indicator {
 	void *priv;
 };
@@ -79,6 +80,8 @@ static inline struct adapter *rtw_netdev_priv(struct net_device *netdev)
 
 void rtw_free_netdev(struct net_device *netdev);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define FUNC_NDEV_FMT "%s(%s)"
 #define FUNC_NDEV_ARG(ndev) __func__, ndev->name
 #define FUNC_ADPT_FMT "%s(%s)"

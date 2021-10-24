@@ -35,23 +35,36 @@ loff_t
 iomap_seek_hole(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
 {
 	loff_t size = i_size_read(inode);
+<<<<<<< HEAD
 	loff_t length = size - offset;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	loff_t ret;
 
 	/* Nothing to be found before or beyond the end of the file. */
 	if (offset < 0 || offset >= size)
 		return -ENXIO;
 
+<<<<<<< HEAD
 	while (length > 0) {
 		ret = iomap_apply(inode, offset, length, IOMAP_REPORT, ops,
 				  &offset, iomap_seek_hole_actor);
+=======
+	while (offset < size) {
+		ret = iomap_apply(inode, offset, size - offset, IOMAP_REPORT,
+				  ops, &offset, iomap_seek_hole_actor);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret < 0)
 			return ret;
 		if (ret == 0)
 			break;
+<<<<<<< HEAD
 
 		offset += ret;
 		length -= ret;
+=======
+		offset += ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return offset;
@@ -83,13 +96,17 @@ loff_t
 iomap_seek_data(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
 {
 	loff_t size = i_size_read(inode);
+<<<<<<< HEAD
 	loff_t length = size - offset;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	loff_t ret;
 
 	/* Nothing to be found before or beyond the end of the file. */
 	if (offset < 0 || offset >= size)
 		return -ENXIO;
 
+<<<<<<< HEAD
 	while (length > 0) {
 		ret = iomap_apply(inode, offset, length, IOMAP_REPORT, ops,
 				  &offset, iomap_seek_data_actor);
@@ -105,5 +122,19 @@ iomap_seek_data(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
 	if (length <= 0)
 		return -ENXIO;
 	return offset;
+=======
+	while (offset < size) {
+		ret = iomap_apply(inode, offset, size - offset, IOMAP_REPORT,
+				  ops, &offset, iomap_seek_data_actor);
+		if (ret < 0)
+			return ret;
+		if (ret == 0)
+			return offset;
+		offset += ret;
+	}
+
+	/* We've reached the end of the file without finding data */
+	return -ENXIO;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(iomap_seek_data);

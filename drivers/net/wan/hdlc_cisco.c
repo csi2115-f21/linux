@@ -59,6 +59,10 @@ struct cisco_state {
 	u32 rxseq; /* RX sequence number */
 };
 
+<<<<<<< HEAD
+=======
+static int cisco_ioctl(struct net_device *dev, struct ifreq *ifr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static int cisco_ioctl(struct net_device *dev, struct ifreq *ifr);
 

@@ -25,26 +25,75 @@
 #include "blk-mq-debugfs.h"
 #include "blk-mq-tag.h"
 #include "blk-mq-sched.h"
+#include "mq-deadline-cgroup.h"
 
 /*
  * See Documentation/block/deadline-iosched.rst
  */
 static const int read_expire = HZ / 2;  /* max time before a read is submitted. */
 static const int write_expire = 5 * HZ; /* ditto for writes, these limits are SOFT! */
+/*
+ * Time after which to dispatch lower priority requests even if higher
+ * priority requests are pending.
+ */
+static const int aging_expire = 10 * HZ;
 static const int writes_starved = 2;    /* max times reads can starve a write */
 static const int fifo_batch = 16;       /* # of sequential requests treated as one
 				     by the above parameters. For throughput. */
 
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+enum dd_data_dir {
+	DD_READ		= READ,
+	DD_WRITE	= WRITE,
+};
+
+enum { DD_DIR_COUNT = 2 };
+
+enum dd_prio {
+	DD_RT_PRIO	= 0,
+	DD_BE_PRIO	= 1,
+	DD_IDLE_PRIO	= 2,
+	DD_PRIO_MAX	= 2,
+};
+
+enum { DD_PRIO_COUNT = 3 };
+
+/* I/O statistics for all I/O priorities (enum dd_prio). */
+struct io_stats {
+	struct io_stats_per_prio stats[DD_PRIO_COUNT];
+};
+
+/*
+ * Deadline scheduler data per I/O priority (enum dd_prio). Requests are
+ * present on both sort_list[] and fifo_list[].
+ */
+struct dd_per_prio {
+	struct list_head dispatch;
+	struct rb_root sort_list[DD_DIR_COUNT];
+	struct list_head fifo_list[DD_DIR_COUNT];
+	/* Next request in FIFO order. Read, write or both are NULL. */
+	struct request *next_rq[DD_DIR_COUNT];
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 struct deadline_data {
 	/*
 	 * run time data
 	 */
 
+<<<<<<< HEAD:block/mq-deadline.c
 	/*
 	 * requests (deadline_rq s) are present on both sort_list and fifo_list
 	 */
 	struct rb_root sort_list[2];
 	struct list_head fifo_list[2];
+=======
+	/* Request queue that owns this data structure. */
+	struct request_queue *queue;
+
+	struct dd_per_prio per_prio[DD_PRIO_COUNT];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 	/*
 	 * next in sort order. read, write or both are NULL
@@ -60,6 +109,11 @@ struct deadline_data {
 	int fifo_batch;
 	int writes_starved;
 	int front_merges;
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+	u32 async_depth;
+	int aging_expire;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 	spinlock_t lock;
 	spinlock_t zone_lock;
@@ -142,6 +196,17 @@ static void dd_request_merged(struct request_queue *q, struct request *req,
 static void dd_merged_requests(struct request_queue *q, struct request *req,
 			       struct request *next)
 {
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+	struct deadline_data *dd = q->elevator->elevator_data;
+	const u8 ioprio_class = dd_rq_ioclass(next);
+	const enum dd_prio prio = ioprio_class_to_prio[ioprio_class];
+	struct dd_blkcg *blkcg = next->elv.priv[0];
+
+	dd_count(dd, merged, prio);
+	ddcg_count(blkcg, merged, ioprio_class);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 	/*
 	 * if next expires before rq, assign its expire time to rq
 	 * and move into next position (next will be deleted) in fifo
@@ -176,6 +241,12 @@ deadline_move_request(struct deadline_data *dd, struct request *rq)
 	 * take it off the sort and fifo list
 	 */
 	deadline_remove_request(rq->q, rq);
+}
+
+/* Number of requests queued for a given priority level. */
+static u32 dd_queued(struct deadline_data *dd, enum dd_prio prio)
+{
+	return dd_sum(dd, inserted, prio) - dd_sum(dd, completed, prio);
 }
 
 /*
@@ -268,8 +339,9 @@ deadline_next_request(struct deadline_data *dd, int data_dir)
 
 /*
  * deadline_dispatch_requests selects the best request according to
- * read/write expire, fifo_batch, etc
+ * read/write expire, fifo_batch, etc and with a start time <= @latest.
  */
+<<<<<<< HEAD:block/mq-deadline.c
 static struct request *__dd_dispatch_request(struct deadline_data *dd)
 {
 	struct request *rq, *next_rq;
@@ -278,6 +350,25 @@ static struct request *__dd_dispatch_request(struct deadline_data *dd)
 
 	if (!list_empty(&dd->dispatch)) {
 		rq = list_first_entry(&dd->dispatch, struct request, queuelist);
+=======
+static struct request *__dd_dispatch_request(struct deadline_data *dd,
+					     struct dd_per_prio *per_prio,
+					     u64 latest_start_ns)
+{
+	struct request *rq, *next_rq;
+	enum dd_data_dir data_dir;
+	struct dd_blkcg *blkcg;
+	enum dd_prio prio;
+	u8 ioprio_class;
+
+	lockdep_assert_held(&dd->lock);
+
+	if (!list_empty(&per_prio->dispatch)) {
+		rq = list_first_entry(&per_prio->dispatch, struct request,
+				      queuelist);
+		if (rq->start_time_ns > latest_start_ns)
+			return NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 		list_del_init(&rq->queuelist);
 		goto done;
 	}
@@ -360,12 +451,22 @@ dispatch_find_request:
 	dd->batching = 0;
 
 dispatch_request:
+	if (rq->start_time_ns > latest_start_ns)
+		return NULL;
 	/*
 	 * rq is the selected appropriate request.
 	 */
 	dd->batching++;
 	deadline_move_request(dd, rq);
 done:
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+	ioprio_class = dd_rq_ioclass(rq);
+	prio = ioprio_class_to_prio[ioprio_class];
+	dd_count(dd, dispatched, prio);
+	blkcg = rq->elv.priv[0];
+	ddcg_count(blkcg, dispatched, ioprio_class);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 	/*
 	 * If the request needs its target zone locked, do it.
 	 */
@@ -383,10 +484,39 @@ done:
 static struct request *dd_dispatch_request(struct blk_mq_hw_ctx *hctx)
 {
 	struct deadline_data *dd = hctx->queue->elevator->elevator_data;
+<<<<<<< HEAD:block/mq-deadline.c
 	struct request *rq;
 
 	spin_lock(&dd->lock);
 	rq = __dd_dispatch_request(dd);
+=======
+	const u64 now_ns = ktime_get_ns();
+	struct request *rq = NULL;
+	enum dd_prio prio;
+
+	spin_lock(&dd->lock);
+	/*
+	 * Start with dispatching requests whose deadline expired more than
+	 * aging_expire jiffies ago.
+	 */
+	for (prio = DD_BE_PRIO; prio <= DD_PRIO_MAX; prio++) {
+		rq = __dd_dispatch_request(dd, &dd->per_prio[prio], now_ns -
+					   jiffies_to_nsecs(dd->aging_expire));
+		if (rq)
+			goto unlock;
+	}
+	/*
+	 * Next, dispatch requests in priority order. Ignore lower priority
+	 * requests if any higher priority requests are pending.
+	 */
+	for (prio = 0; prio <= DD_PRIO_MAX; prio++) {
+		rq = __dd_dispatch_request(dd, &dd->per_prio[prio], now_ns);
+		if (rq || dd_queued(dd, prio))
+			break;
+	}
+
+unlock:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 	spin_unlock(&dd->lock);
 
 	return rq;
@@ -395,6 +525,19 @@ static struct request *dd_dispatch_request(struct blk_mq_hw_ctx *hctx)
 static void dd_exit_queue(struct elevator_queue *e)
 {
 	struct deadline_data *dd = e->elevator_data;
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+	enum dd_prio prio;
+
+	dd_deactivate_policy(dd->queue);
+
+	for (prio = 0; prio <= DD_PRIO_MAX; prio++) {
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];
+
+		WARN_ON_ONCE(!list_empty(&per_prio->fifo_list[DD_READ]));
+		WARN_ON_ONCE(!list_empty(&per_prio->fifo_list[DD_WRITE]));
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 	BUG_ON(!list_empty(&dd->fifo_list[READ]));
 	BUG_ON(!list_empty(&dd->fifo_list[WRITE]));
@@ -403,12 +546,18 @@ static void dd_exit_queue(struct elevator_queue *e)
 }
 
 /*
- * initialize elevator private data (deadline_data).
+ * Initialize elevator private data (deadline_data) and associate with blkcg.
  */
 static int dd_init_queue(struct request_queue *q, struct elevator_type *e)
 {
 	struct deadline_data *dd;
 	struct elevator_queue *eq;
+
+	/*
+	 * Initialization would be very tricky if the queue is not frozen,
+	 * hence the warning statement below.
+	 */
+	WARN_ON_ONCE(!percpu_ref_is_zero(&q->q_usage_counter));
 
 	eq = elevator_alloc(q, e);
 	if (!eq)
@@ -421,21 +570,61 @@ static int dd_init_queue(struct request_queue *q, struct elevator_type *e)
 	}
 	eq->elevator_data = dd;
 
+<<<<<<< HEAD:block/mq-deadline.c
 	INIT_LIST_HEAD(&dd->fifo_list[READ]);
 	INIT_LIST_HEAD(&dd->fifo_list[WRITE]);
 	dd->sort_list[READ] = RB_ROOT;
 	dd->sort_list[WRITE] = RB_ROOT;
 	dd->fifo_expire[READ] = read_expire;
 	dd->fifo_expire[WRITE] = write_expire;
+=======
+	dd->stats = alloc_percpu_gfp(typeof(*dd->stats),
+				     GFP_KERNEL | __GFP_ZERO);
+	if (!dd->stats)
+		goto free_dd;
+
+	dd->queue = q;
+
+	for (prio = 0; prio <= DD_PRIO_MAX; prio++) {
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];
+
+		INIT_LIST_HEAD(&per_prio->dispatch);
+		INIT_LIST_HEAD(&per_prio->fifo_list[DD_READ]);
+		INIT_LIST_HEAD(&per_prio->fifo_list[DD_WRITE]);
+		per_prio->sort_list[DD_READ] = RB_ROOT;
+		per_prio->sort_list[DD_WRITE] = RB_ROOT;
+	}
+	dd->fifo_expire[DD_READ] = read_expire;
+	dd->fifo_expire[DD_WRITE] = write_expire;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 	dd->writes_starved = writes_starved;
 	dd->front_merges = 1;
 	dd->fifo_batch = fifo_batch;
+	dd->aging_expire = aging_expire;
 	spin_lock_init(&dd->lock);
 	spin_lock_init(&dd->zone_lock);
 	INIT_LIST_HEAD(&dd->dispatch);
 
+	ret = dd_activate_policy(q);
+	if (ret)
+		goto free_stats;
+
+	ret = 0;
 	q->elevator = eq;
 	return 0;
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+
+free_stats:
+	free_percpu(dd->stats);
+
+free_dd:
+	kfree(dd);
+
+put_eq:
+	kobject_put(&eq->kobj);
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 }
 
 static int dd_request_merge(struct request_queue *q, struct request **rq,
@@ -487,7 +676,19 @@ static void dd_insert_request(struct blk_mq_hw_ctx *hctx, struct request *rq,
 {
 	struct request_queue *q = hctx->queue;
 	struct deadline_data *dd = q->elevator->elevator_data;
+<<<<<<< HEAD:block/mq-deadline.c
 	const int data_dir = rq_data_dir(rq);
+=======
+	const enum dd_data_dir data_dir = rq_data_dir(rq);
+	u16 ioprio = req_get_ioprio(rq);
+	u8 ioprio_class = IOPRIO_PRIO_CLASS(ioprio);
+	struct dd_per_prio *per_prio;
+	enum dd_prio prio;
+	struct dd_blkcg *blkcg;
+	LIST_HEAD(free);
+
+	lockdep_assert_held(&dd->lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 	/*
 	 * This may be a requeue of a write request that has locked its
@@ -495,7 +696,25 @@ static void dd_insert_request(struct blk_mq_hw_ctx *hctx, struct request *rq,
 	 */
 	blk_req_zone_write_unlock(rq);
 
+<<<<<<< HEAD:block/mq-deadline.c
 	if (blk_mq_sched_try_insert_merge(q, rq))
+=======
+	/*
+	 * If a block cgroup has been associated with the submitter and if an
+	 * I/O priority has been set in the associated block cgroup, use the
+	 * lowest of the cgroup priority and the request priority for the
+	 * request. If no priority has been set in the request, use the cgroup
+	 * priority.
+	 */
+	prio = ioprio_class_to_prio[ioprio_class];
+	dd_count(dd, inserted, prio);
+	blkcg = dd_blkcg_from_bio(rq->bio);
+	ddcg_count(blkcg, inserted, ioprio_class);
+	rq->elv.priv[0] = blkcg;
+
+	if (blk_mq_sched_try_insert_merge(q, rq, &free)) {
+		blk_mq_free_requests(&free);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 		return;
 
 	trace_block_rq_insert(rq);
@@ -564,6 +783,17 @@ static void dd_prepare_request(struct request *rq)
 static void dd_finish_request(struct request *rq)
 {
 	struct request_queue *q = rq->q;
+<<<<<<< HEAD:block/mq-deadline.c
+=======
+	struct deadline_data *dd = q->elevator->elevator_data;
+	struct dd_blkcg *blkcg = rq->elv.priv[0];
+	const u8 ioprio_class = dd_rq_ioclass(rq);
+	const enum dd_prio prio = ioprio_class_to_prio[ioprio_class];
+	struct dd_per_prio *per_prio = &dd->per_prio[prio];
+
+	dd_count(dd, completed, prio);
+	ddcg_count(blkcg, completed, ioprio_class);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 	if (blk_queue_is_zoned(q)) {
 		struct deadline_data *dd = q->elevator->elevator_data;
@@ -607,6 +837,7 @@ deadline_var_store(int *var, const char *page)
 static ssize_t __FUNC(struct elevator_queue *e, char *page)		\
 {									\
 	struct deadline_data *dd = e->elevator_data;			\
+<<<<<<< HEAD:block/mq-deadline.c
 	int __data = __VAR;						\
 	if (__CONV)							\
 		__data = jiffies_to_msecs(__data);			\
@@ -618,6 +849,21 @@ SHOW_FUNCTION(deadline_writes_starved_show, dd->writes_starved, 0);
 SHOW_FUNCTION(deadline_front_merges_show, dd->front_merges, 0);
 SHOW_FUNCTION(deadline_fifo_batch_show, dd->fifo_batch, 0);
 #undef SHOW_FUNCTION
+=======
+									\
+	return sysfs_emit(page, "%d\n", __VAR);				\
+}
+#define SHOW_JIFFIES(__FUNC, __VAR) SHOW_INT(__FUNC, jiffies_to_msecs(__VAR))
+SHOW_JIFFIES(deadline_read_expire_show, dd->fifo_expire[DD_READ]);
+SHOW_JIFFIES(deadline_write_expire_show, dd->fifo_expire[DD_WRITE]);
+SHOW_JIFFIES(deadline_aging_expire_show, dd->aging_expire);
+SHOW_INT(deadline_writes_starved_show, dd->writes_starved);
+SHOW_INT(deadline_front_merges_show, dd->front_merges);
+SHOW_INT(deadline_async_depth_show, dd->front_merges);
+SHOW_INT(deadline_fifo_batch_show, dd->fifo_batch);
+#undef SHOW_INT
+#undef SHOW_JIFFIES
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 
 #define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV)			\
 static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count)	\
@@ -635,11 +881,25 @@ static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count)	
 		*(__PTR) = __data;					\
 	return count;							\
 }
+<<<<<<< HEAD:block/mq-deadline.c
 STORE_FUNCTION(deadline_read_expire_store, &dd->fifo_expire[READ], 0, INT_MAX, 1);
 STORE_FUNCTION(deadline_write_expire_store, &dd->fifo_expire[WRITE], 0, INT_MAX, 1);
 STORE_FUNCTION(deadline_writes_starved_store, &dd->writes_starved, INT_MIN, INT_MAX, 0);
 STORE_FUNCTION(deadline_front_merges_store, &dd->front_merges, 0, 1, 0);
 STORE_FUNCTION(deadline_fifo_batch_store, &dd->fifo_batch, 0, INT_MAX, 0);
+=======
+#define STORE_INT(__FUNC, __PTR, MIN, MAX)				\
+	STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, )
+#define STORE_JIFFIES(__FUNC, __PTR, MIN, MAX)				\
+	STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, msecs_to_jiffies)
+STORE_JIFFIES(deadline_read_expire_store, &dd->fifo_expire[DD_READ], 0, INT_MAX);
+STORE_JIFFIES(deadline_write_expire_store, &dd->fifo_expire[DD_WRITE], 0, INT_MAX);
+STORE_JIFFIES(deadline_aging_expire_store, &dd->aging_expire, 0, INT_MAX);
+STORE_INT(deadline_writes_starved_store, &dd->writes_starved, INT_MIN, INT_MAX);
+STORE_INT(deadline_front_merges_store, &dd->front_merges, 0, 1);
+STORE_INT(deadline_async_depth_store, &dd->front_merges, 1, INT_MAX);
+STORE_INT(deadline_fifo_batch_store, &dd->fifo_batch, 0, INT_MAX);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 #undef STORE_FUNCTION
 
 #define DD_ATTR(name) \
@@ -651,6 +911,7 @@ static struct elv_fs_entry deadline_attrs[] = {
 	DD_ATTR(writes_starved),
 	DD_ATTR(front_merges),
 	DD_ATTR(fifo_batch),
+	DD_ATTR(aging_expire),
 	__ATTR_NULL
 };
 
@@ -731,11 +992,19 @@ static void *deadline_dispatch_start(struct seq_file *m, loff_t *pos)
 	struct request_queue *q = m->private;
 	struct deadline_data *dd = q->elevator->elevator_data;
 
+<<<<<<< HEAD:block/mq-deadline.c
 	spin_lock(&dd->lock);
 	return seq_list_start(&dd->dispatch, *pos);
 }
 
 static void *deadline_dispatch_next(struct seq_file *m, void *v, loff_t *pos)
+=======
+	seq_printf(m, "%u\n", dd->async_depth);
+	return 0;
+}
+
+static int dd_queued_show(void *data, struct seq_file *m)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping:block/mq-deadline-main.c
 {
 	struct request_queue *q = m->private;
 	struct deadline_data *dd = q->elevator->elevator_data;
@@ -803,11 +1072,26 @@ MODULE_ALIAS("mq-deadline-iosched");
 
 static int __init deadline_init(void)
 {
-	return elv_register(&mq_deadline);
+	int ret;
+
+	ret = elv_register(&mq_deadline);
+	if (ret)
+		goto out;
+	ret = dd_blkcg_init();
+	if (ret)
+		goto unreg;
+
+out:
+	return ret;
+
+unreg:
+	elv_unregister(&mq_deadline);
+	goto out;
 }
 
 static void __exit deadline_exit(void)
 {
+	dd_blkcg_exit();
 	elv_unregister(&mq_deadline);
 }
 

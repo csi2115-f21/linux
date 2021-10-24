@@ -1672,6 +1672,7 @@ static int hns_roce_alloc_vf_resource(struct hns_roce_dev *hr_dev)
 				      false);
 	desc[0].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
 
+<<<<<<< HEAD
 	hns_roce_cmq_setup_basic_desc(&desc[1], HNS_ROCE_OPC_ALLOC_VF_RES,
 				      false);
 
@@ -1731,6 +1732,162 @@ static int hns_roce_alloc_vf_resource(struct hns_roce_dev *hr_dev)
 		       HNS_ROCE_VF_SCCC_BT_NUM);
 
 	return hns_roce_cmq_send(hr_dev, desc, 2);
+=======
+	return ret;
+}
+
+static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
+{
+	struct device *dev = hr_dev->dev;
+	int ret;
+
+	ret = query_func_resource_caps(hr_dev, false);
+	if (ret)
+		return ret;
+
+	ret = load_pf_timer_res_caps(hr_dev);
+	if (ret)
+		dev_err(dev, "failed to load pf timer resource, ret = %d.\n",
+			ret);
+
+	return ret;
+}
+
+static int hns_roce_query_vf_resource(struct hns_roce_dev *hr_dev)
+{
+	return query_func_resource_caps(hr_dev, true);
+}
+
+static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
+					  u32 vf_id)
+{
+	struct hns_roce_vf_switch *swt;
+	struct hns_roce_cmq_desc desc;
+	int ret;
+
+	swt = (struct hns_roce_vf_switch *)desc.data;
+	hns_roce_cmq_setup_basic_desc(&desc, HNS_SWITCH_PARAMETER_CFG, true);
+	swt->rocee_sel |= cpu_to_le32(HNS_ICL_SWITCH_CMD_ROCEE_SEL);
+	roce_set_field(swt->fun_id, VF_SWITCH_DATA_FUN_ID_VF_ID_M,
+		       VF_SWITCH_DATA_FUN_ID_VF_ID_S, vf_id);
+	ret = hns_roce_cmq_send(hr_dev, &desc, 1);
+	if (ret)
+		return ret;
+
+	desc.flag =
+		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
+	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
+	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
+	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
+	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_DST_OVRD_S, 1);
+
+	return hns_roce_cmq_send(hr_dev, &desc, 1);
+}
+
+static int hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev)
+{
+	u32 vf_id;
+	int ret;
+
+	for (vf_id = 0; vf_id < hr_dev->func_num; vf_id++) {
+		ret = __hns_roce_set_vf_switch_param(hr_dev, vf_id);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
+static int config_vf_hem_resource(struct hns_roce_dev *hr_dev, int vf_id)
+{
+	struct hns_roce_cmq_desc desc[2];
+	struct hns_roce_cmq_req *r_a = (struct hns_roce_cmq_req *)desc[0].data;
+	struct hns_roce_cmq_req *r_b = (struct hns_roce_cmq_req *)desc[1].data;
+	enum hns_roce_opcode_type opcode = HNS_ROCE_OPC_ALLOC_VF_RES;
+	struct hns_roce_caps *caps = &hr_dev->caps;
+
+	hns_roce_cmq_setup_basic_desc(&desc[0], opcode, false);
+	desc[0].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
+	hns_roce_cmq_setup_basic_desc(&desc[1], opcode, false);
+
+	hr_reg_write(r_a, FUNC_RES_A_VF_ID, vf_id);
+
+	hr_reg_write(r_a, FUNC_RES_A_QPC_BT_NUM, caps->qpc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_QPC_BT_IDX, vf_id * caps->qpc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_SRQC_BT_NUM, caps->srqc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_SRQC_BT_IDX, vf_id * caps->srqc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_CQC_BT_NUM, caps->cqc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_CQC_BT_IDX, vf_id * caps->cqc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_MPT_BT_NUM, caps->mpt_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_MPT_BT_IDX, vf_id * caps->mpt_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_EQC_BT_NUM, caps->eqc_bt_num);
+	hr_reg_write(r_a, FUNC_RES_A_EQC_BT_IDX, vf_id * caps->eqc_bt_num);
+	hr_reg_write(r_b, FUNC_RES_V_QID_NUM, caps->sl_num);
+	hr_reg_write(r_b, FUNC_RES_B_QID_IDX, vf_id * caps->sl_num);
+	hr_reg_write(r_b, FUNC_RES_B_SCCC_BT_NUM, caps->sccc_bt_num);
+	hr_reg_write(r_b, FUNC_RES_B_SCCC_BT_IDX, vf_id * caps->sccc_bt_num);
+
+	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
+		hr_reg_write(r_b, FUNC_RES_V_GMV_BT_NUM, caps->gmv_bt_num);
+		hr_reg_write(r_b, FUNC_RES_B_GMV_BT_IDX,
+			     vf_id * caps->gmv_bt_num);
+	} else {
+		hr_reg_write(r_b, FUNC_RES_B_SGID_NUM, caps->sgid_bt_num);
+		hr_reg_write(r_b, FUNC_RES_B_SGID_IDX,
+			     vf_id * caps->sgid_bt_num);
+		hr_reg_write(r_b, FUNC_RES_B_SMAC_NUM, caps->smac_bt_num);
+		hr_reg_write(r_b, FUNC_RES_B_SMAC_IDX,
+			     vf_id * caps->smac_bt_num);
+	}
+
+	return hns_roce_cmq_send(hr_dev, desc, 2);
+}
+
+static int config_vf_ext_resource(struct hns_roce_dev *hr_dev, u32 vf_id)
+{
+	struct hns_roce_cmq_desc desc;
+	struct hns_roce_cmq_req *req = (struct hns_roce_cmq_req *)desc.data;
+	struct hns_roce_caps *caps = &hr_dev->caps;
+
+	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_EXT_CFG, false);
+
+	hr_reg_write(req, EXT_CFG_VF_ID, vf_id);
+
+	hr_reg_write(req, EXT_CFG_QP_PI_NUM, caps->num_pi_qps);
+	hr_reg_write(req, EXT_CFG_QP_PI_IDX, vf_id * caps->num_pi_qps);
+	hr_reg_write(req, EXT_CFG_QP_NUM, caps->num_qps);
+	hr_reg_write(req, EXT_CFG_QP_IDX, vf_id * caps->num_qps);
+
+	return hns_roce_cmq_send(hr_dev, &desc, 1);
+}
+
+static int hns_roce_alloc_vf_resource(struct hns_roce_dev *hr_dev)
+{
+	u32 func_num = max_t(u32, 1, hr_dev->func_num);
+	u32 vf_id;
+	int ret;
+
+	for (vf_id = 0; vf_id < func_num; vf_id++) {
+		ret = config_vf_hem_resource(hr_dev, vf_id);
+		if (ret) {
+			dev_err(hr_dev->dev,
+				"failed to config vf-%u hem res, ret = %d.\n",
+				vf_id, ret);
+			return ret;
+		}
+
+		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
+			ret = config_vf_ext_resource(hr_dev, vf_id);
+			if (ret) {
+				dev_err(hr_dev->dev,
+					"failed to config vf-%u ext res, ret = %d.\n",
+					vf_id, ret);
+				return ret;
+			}
+		}
+	}
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int hns_roce_v2_set_bt(struct hns_roce_dev *hr_dev)
@@ -1913,10 +2070,17 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
 	caps->cqc_timer_buf_pg_sz = 0;
 	caps->cqc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
 
+<<<<<<< HEAD
 	caps->sccc_sz = HNS_ROCE_V2_SCCC_SZ;
 	caps->sccc_ba_pg_sz	  = 0;
 	caps->sccc_buf_pg_sz	  = 0;
 	caps->sccc_hop_num	  = HNS_ROCE_SCCC_HOP_NUM;
+=======
+	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
+		caps->max_sq_inline = HNS_ROCE_V3_MAX_SQ_INLINE;
+	} else {
+		caps->max_sq_inline = HNS_ROCE_V2_MAX_SQ_INLINE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
@@ -3117,11 +3281,17 @@ static void __hns_roce_v2_cq_clean(struct hns_roce_cq *hr_cq, u32 qpn,
 		} else if (nfreed) {
 			dest = get_cqe_v2(hr_cq, (prod_index + nfreed) &
 					  hr_cq->ib_cq.cqe);
+<<<<<<< HEAD
 			owner_bit = roce_get_bit(dest->byte_4,
 						 V2_CQE_BYTE_4_OWNER_S);
 			memcpy(dest, cqe, sizeof(*cqe));
 			roce_set_bit(dest->byte_4, V2_CQE_BYTE_4_OWNER_S,
 				     owner_bit);
+=======
+			owner_bit = hr_reg_read(dest, CQE_OWNER);
+			memcpy(dest, cqe, sizeof(*cqe));
+			hr_reg_write(dest, CQE_OWNER, owner_bit);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -3943,6 +4113,7 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
 		       V2_QPC_BYTE_24_VLAN_ID_S, 0xfff);
 
 	if (hr_qp->en_flags & HNS_ROCE_QP_CAP_RQ_RECORD_DB)
+<<<<<<< HEAD
 		roce_set_bit(context->byte_68_rq_db,
 			     V2_QPC_BYTE_68_RQ_RECORD_EN_S, 1);
 
@@ -3951,6 +4122,14 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
 		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_S,
 		       ((u32)hr_qp->rdb.dma) >> 1);
 	context->rq_db_record_addr = cpu_to_le32(hr_qp->rdb.dma >> 32);
+=======
+		hr_reg_enable(context, QPC_RQ_RECORD_EN);
+
+	hr_reg_write(context, QPC_RQ_DB_RECORD_ADDR_L,
+		     lower_32_bits(hr_qp->rdb.dma) >> 1);
+	hr_reg_write(context, QPC_RQ_DB_RECORD_ADDR_H,
+		     upper_32_bits(hr_qp->rdb.dma));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S,
 		    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) ? 1 : 0);
@@ -4032,6 +4211,11 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
 			       V2_QPC_BYTE_56_DQPN_S, hr_qp->qpn);
 		roce_set_field(qpc_mask->byte_56_dqpn_err,
 			       V2_QPC_BYTE_56_DQPN_M, V2_QPC_BYTE_56_DQPN_S, 0);
+	}
+
+	if (attr_mask & IB_QP_DEST_QPN) {
+		hr_reg_write(context, QPC_DQPN, hr_qp->qpn);
+		hr_reg_clear(qpc_mask, QPC_DQPN);
 	}
 }
 
@@ -4322,8 +4506,17 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
 	roce_set_field(qpc_mask->byte_52_udpspn_dmac, V2_QPC_BYTE_52_DMAC_M,
 		       V2_QPC_BYTE_52_DMAC_S, 0);
 
+<<<<<<< HEAD
 	mtu = get_mtu(ibqp, attr);
 	hr_qp->path_mtu = mtu;
+=======
+	ib_mtu = get_mtu(ibqp, attr);
+	hr_qp->path_mtu = ib_mtu;
+
+	mtu = ib_mtu_enum_to_int(ib_mtu);
+	if (WARN_ON(mtu < 0))
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (attr_mask & IB_QP_PATH_MTU) {
 		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
@@ -4334,7 +4527,14 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
 
 #define MAX_LP_MSG_LEN 65536
 	/* MTU * (2 ^ LP_PKTN_INI) shouldn't be bigger than 64KB */
+<<<<<<< HEAD
 	lp_pktn_ini = ilog2(MAX_LP_MSG_LEN / ib_mtu_enum_to_int(mtu));
+=======
+	lp_pktn_ini = ilog2(MAX_LP_MSG_LEN / mtu);
+
+	hr_reg_write(context, QPC_LP_PKTN_INI, lp_pktn_ini);
+	hr_reg_clear(qpc_mask, QPC_LP_PKTN_INI);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_LP_PKTN_INI_M,
 		       V2_QPC_BYTE_56_LP_PKTN_INI_S, lp_pktn_ini);
@@ -4438,8 +4638,15 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
 	roce_set_field(qpc_mask->byte_212_lsn, V2_QPC_BYTE_212_LSN_M,
 		       V2_QPC_BYTE_212_LSN_S, 0);
 
+<<<<<<< HEAD
 	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_IRRL_HEAD_M,
 		       V2_QPC_BYTE_196_IRRL_HEAD_S, 0);
+=======
+	hr_reg_write(context, QPC_LSN, 0x100);
+	hr_reg_clear(qpc_mask, QPC_LSN);
+
+	hr_reg_clear(qpc_mask, QPC_V2_IRRL_HEAD);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -4452,6 +4659,158 @@ static inline u16 get_udp_sport(u32 fl, u32 lqpn, u32 rqpn)
 	return rdma_flow_label_to_udp_sport(fl);
 }
 
+<<<<<<< HEAD
+=======
+static int get_dip_ctx_idx(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+			   u32 *dip_idx)
+{
+	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+	struct hns_roce_dip *hr_dip;
+	unsigned long flags;
+	int ret = 0;
+
+	spin_lock_irqsave(&hr_dev->dip_list_lock, flags);
+
+	list_for_each_entry(hr_dip, &hr_dev->dip_list, node) {
+		if (!memcmp(grh->dgid.raw, hr_dip->dgid, 16))
+			goto out;
+	}
+
+	/* If no dgid is found, a new dip and a mapping between dgid and
+	 * dip_idx will be created.
+	 */
+	hr_dip = kzalloc(sizeof(*hr_dip), GFP_ATOMIC);
+	if (!hr_dip) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	memcpy(hr_dip->dgid, grh->dgid.raw, sizeof(grh->dgid.raw));
+	hr_dip->dip_idx = *dip_idx = ibqp->qp_num;
+	list_add_tail(&hr_dip->node, &hr_dev->dip_list);
+
+out:
+	spin_unlock_irqrestore(&hr_dev->dip_list_lock, flags);
+	return ret;
+}
+
+enum {
+	CONG_DCQCN,
+	CONG_WINDOW,
+};
+
+enum {
+	UNSUPPORT_CONG_LEVEL,
+	SUPPORT_CONG_LEVEL,
+};
+
+enum {
+	CONG_LDCP,
+	CONG_HC3,
+};
+
+enum {
+	DIP_INVALID,
+	DIP_VALID,
+};
+
+enum {
+	WND_LIMIT,
+	WND_UNLIMIT,
+};
+
+static int check_cong_type(struct ib_qp *ibqp,
+			   struct hns_roce_congestion_algorithm *cong_alg)
+{
+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+
+	/* different congestion types match different configurations */
+	switch (hr_dev->caps.cong_type) {
+	case CONG_TYPE_DCQCN:
+		cong_alg->alg_sel = CONG_DCQCN;
+		cong_alg->alg_sub_sel = UNSUPPORT_CONG_LEVEL;
+		cong_alg->dip_vld = DIP_INVALID;
+		cong_alg->wnd_mode_sel = WND_LIMIT;
+		break;
+	case CONG_TYPE_LDCP:
+		cong_alg->alg_sel = CONG_WINDOW;
+		cong_alg->alg_sub_sel = CONG_LDCP;
+		cong_alg->dip_vld = DIP_INVALID;
+		cong_alg->wnd_mode_sel = WND_UNLIMIT;
+		break;
+	case CONG_TYPE_HC3:
+		cong_alg->alg_sel = CONG_WINDOW;
+		cong_alg->alg_sub_sel = CONG_HC3;
+		cong_alg->dip_vld = DIP_INVALID;
+		cong_alg->wnd_mode_sel = WND_LIMIT;
+		break;
+	case CONG_TYPE_DIP:
+		cong_alg->alg_sel = CONG_DCQCN;
+		cong_alg->alg_sub_sel = UNSUPPORT_CONG_LEVEL;
+		cong_alg->dip_vld = DIP_VALID;
+		cong_alg->wnd_mode_sel = WND_LIMIT;
+		break;
+	default:
+		ibdev_err(&hr_dev->ib_dev,
+			  "error type(%u) for congestion selection.\n",
+			  hr_dev->caps.cong_type);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int fill_cong_field(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+			   struct hns_roce_v2_qp_context *context,
+			   struct hns_roce_v2_qp_context *qpc_mask)
+{
+	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+	struct hns_roce_congestion_algorithm cong_field;
+	struct ib_device *ibdev = ibqp->device;
+	struct hns_roce_dev *hr_dev = to_hr_dev(ibdev);
+	u32 dip_idx = 0;
+	int ret;
+
+	if (hr_dev->pci_dev->revision == PCI_REVISION_ID_HIP08 ||
+	    grh->sgid_attr->gid_type == IB_GID_TYPE_ROCE)
+		return 0;
+
+	ret = check_cong_type(ibqp, &cong_field);
+	if (ret)
+		return ret;
+
+	hr_reg_write(context, QPC_CONG_ALGO_TMPL_ID, hr_dev->cong_algo_tmpl_id +
+		     hr_dev->caps.cong_type * HNS_ROCE_CONG_SIZE);
+	hr_reg_clear(qpc_mask, QPC_CONG_ALGO_TMPL_ID);
+	hr_reg_write(&context->ext, QPCEX_CONG_ALG_SEL, cong_field.alg_sel);
+	hr_reg_clear(&qpc_mask->ext, QPCEX_CONG_ALG_SEL);
+	hr_reg_write(&context->ext, QPCEX_CONG_ALG_SUB_SEL,
+		     cong_field.alg_sub_sel);
+	hr_reg_clear(&qpc_mask->ext, QPCEX_CONG_ALG_SUB_SEL);
+	hr_reg_write(&context->ext, QPCEX_DIP_CTX_IDX_VLD, cong_field.dip_vld);
+	hr_reg_clear(&qpc_mask->ext, QPCEX_DIP_CTX_IDX_VLD);
+	hr_reg_write(&context->ext, QPCEX_SQ_RQ_NOT_FORBID_EN,
+		     cong_field.wnd_mode_sel);
+	hr_reg_clear(&qpc_mask->ext, QPCEX_SQ_RQ_NOT_FORBID_EN);
+
+	/* if dip is disabled, there is no need to set dip idx */
+	if (cong_field.dip_vld == 0)
+		return 0;
+
+	ret = get_dip_ctx_idx(ibqp, attr, &dip_idx);
+	if (ret) {
+		ibdev_err(ibdev, "failed to fill cong field, ret = %d.\n", ret);
+		return ret;
+	}
+
+	hr_reg_write(&context->ext, QPCEX_DIP_CTX_IDX, dip_idx);
+	hr_reg_write(&qpc_mask->ext, QPCEX_DIP_CTX_IDX, 0);
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int hns_roce_v2_set_path(struct ib_qp *ibqp,
 				const struct ib_qp_attr *attr,
 				int attr_mask,
@@ -5000,6 +5359,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
 	if (hr_qp->ibqp.qp_type == IB_QPT_UD)
 		qp_attr->qkey = le32_to_cpu(context.qkey_xrcd);
 
+<<<<<<< HEAD
 	qp_attr->rq_psn = roce_get_field(context.byte_108_rx_reqepsn,
 					 V2_QPC_BYTE_108_RX_REQ_EPSN_M,
 					 V2_QPC_BYTE_108_RX_REQ_EPSN_S);
@@ -5015,6 +5375,15 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
 				    V2_QPC_BYTE_76_RWE_S)) << V2_QP_RWE_S) |
 				    ((roce_get_bit(context.byte_76_srqn_op_en,
 				    V2_QPC_BYTE_76_ATE_S)) << V2_QP_ATE_S);
+=======
+	qp_attr->rq_psn = hr_reg_read(&context, QPC_RX_REQ_EPSN);
+	qp_attr->sq_psn = (u32)hr_reg_read(&context, QPC_SQ_CUR_PSN);
+	qp_attr->dest_qp_num = (u8)hr_reg_read(&context, QPC_DQPN);
+	qp_attr->qp_access_flags =
+		((hr_reg_read(&context, QPC_RRE)) << V2_QP_RRE_S) |
+		((hr_reg_read(&context, QPC_RWE)) << V2_QP_RWE_S) |
+		((hr_reg_read(&context, QPC_ATE)) << V2_QP_ATE_S);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (hr_qp->ibqp.qp_type == IB_QPT_RC ||
 	    hr_qp->ibqp.qp_type == IB_QPT_UC) {

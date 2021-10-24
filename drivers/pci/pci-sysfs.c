@@ -1332,7 +1332,12 @@ static int pci_create_capabilities_sysfs(struct pci_dev *dev)
 {
 	int retval;
 
+<<<<<<< HEAD
 	pcie_vpd_create_sysfs_dev_files(dev);
+=======
+	if (!pdev->reset_fn)
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (dev->reset_fn) {
 		retval = device_create_file(&dev->dev, &dev_attr_reset);
@@ -1540,6 +1545,19 @@ static const struct attribute_group pci_dev_group = {
 
 const struct attribute_group *pci_dev_groups[] = {
 	&pci_dev_group,
+<<<<<<< HEAD
+=======
+	&pci_dev_config_attr_group,
+	&pci_dev_rom_attr_group,
+	&pci_dev_reset_attr_group,
+	&pci_dev_vpd_attr_group,
+#ifdef CONFIG_DMI
+	&pci_dev_smbios_attr_group,
+#endif
+#ifdef CONFIG_ACPI
+	&pci_dev_acpi_attr_group,
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	NULL,
 };
 

@@ -164,6 +164,17 @@ config DELL_WMI
 	  To compile this driver as a module, choose M here: the module will
 	  be called dell-wmi.
 
+<<<<<<< HEAD
+=======
+config DELL_WMI_PRIVACY
+	bool "Dell WMI Hardware Privacy Support"
+	depends on DELL_WMI
+	depends on LEDS_TRIGGER_AUDIO
+	help
+	  This option adds integration with the "Dell Hardware Privacy"
+	  feature of Dell laptops to the dell-wmi driver.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 config DELL_WMI_AIO
 	tristate "WMI Hotkeys for Dell All-In-One series"
 	default m

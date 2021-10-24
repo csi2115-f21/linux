@@ -492,7 +492,12 @@ static int snd_sb16_isa_probe1(int dev, struct device *pdev)
 	awe_port[dev] = port[dev] + 0x400;
 #endif
 
+<<<<<<< HEAD
 	if ((err = snd_sb16_probe(card, dev)) < 0) {
+=======
+	err = snd_sb16_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -599,8 +604,18 @@ static int snd_sb16_pnp_detect(struct pnp_card_link *pcard,
 		res = snd_sb16_card_new(&pcard->card->dev, dev, &card);
 		if (res < 0)
 			return res;
+<<<<<<< HEAD
 		if ((res = snd_card_sb16_pnp(dev, card->private_data, pcard, pid)) < 0 ||
 		    (res = snd_sb16_probe(card, dev)) < 0) {
+=======
+		res = snd_card_sb16_pnp(dev, card->private_data, pcard, pid);
+		if (res < 0) {
+			snd_card_free(card);
+			return res;
+		}
+		res = snd_sb16_probe(card, dev);
+		if (res < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			snd_card_free(card);
 			return res;
 		}

@@ -12,6 +12,10 @@ Required properties:
 	"mediatek,mt8135-pinctrl", compatible with mt8135 pinctrl.
 	"mediatek,mt8167-pinctrl", compatible with mt8167 pinctrl.
 	"mediatek,mt8173-pinctrl", compatible with mt8173 pinctrl.
+<<<<<<< HEAD
+=======
+	"mediatek,mt8365-pinctrl", compatible with mt8365 pinctrl.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	"mediatek,mt8516-pinctrl", compatible with mt8516 pinctrl.
 - pins-are-numbered: Specify the subnodes are using numbered pinmux to
   specify pins.

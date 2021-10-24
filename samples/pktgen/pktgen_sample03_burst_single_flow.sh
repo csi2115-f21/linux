@@ -97,5 +97,14 @@ function control_c() {
 # trap keyboard interrupt (Ctrl-C)
 trap control_c SIGINT
 
+<<<<<<< HEAD
 echo "Running... ctrl^C to stop" >&2
 pg_ctrl "start"
+=======
+if [ -z "$APPEND" ]; then
+    echo "Running... ctrl^C to stop" >&2
+    pg_ctrl "start"
+else
+    echo "Append mode: config done. Do more or use 'pg_ctrl start' to run"
+fi
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

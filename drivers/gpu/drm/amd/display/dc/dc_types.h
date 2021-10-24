@@ -113,6 +113,10 @@ struct dc_context {
 	struct gpio_service *gpio_service;
 	uint32_t dc_sink_id_count;
 	uint32_t dc_stream_id_count;
+<<<<<<< HEAD
+=======
+	uint32_t dc_edp_id_count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	uint64_t fbc_gpu_addr;
 	struct dc_dmub_srv *dmub_srv;
 

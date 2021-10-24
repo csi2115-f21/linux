@@ -109,6 +109,14 @@ static inline int receive_fd_replace(int fd, struct file *file, unsigned int o_f
 {
 	return __receive_fd(fd, file, NULL, o_flags);
 }
+<<<<<<< HEAD
+=======
+static inline int receive_fd(struct file *file, unsigned int o_flags)
+{
+	return __receive_fd(file, NULL, o_flags);
+}
+int receive_fd_replace(int new_fd, struct file *file, unsigned int o_flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 extern void flush_delayed_fput(void);
 extern void __fput_sync(struct file *);

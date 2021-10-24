@@ -225,7 +225,10 @@ int erofs_try_to_free_all_cached_pages(struct erofs_sb_info *sbi,
 	struct z_erofs_pcluster *const pcl =
 		container_of(grp, struct z_erofs_pcluster, obj);
 	struct address_space *const mapping = MNGD_MAPPING(sbi);
+<<<<<<< HEAD
 	const unsigned int clusterpages = BIT(pcl->clusterbits);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int i;
 
 	/*

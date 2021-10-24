@@ -40,7 +40,11 @@ static int __init early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
 
 	*res_base = base;
 	if (nomap)
+<<<<<<< HEAD
 		return memblock_remove(base, size);
+=======
+		return memblock_mark_nomap(base, size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return memblock_reserve(base, size);
 }

@@ -620,6 +620,10 @@ bool dce_aux_transfer_with_retries(struct ddc_service *ddc,
 
 	for (i = 0; i < AUX_MAX_RETRIES; i++) {
 		ret = dce_aux_transfer_raw(ddc, payload, &operation_result);
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		switch (operation_result) {
 		case AUX_CHANNEL_OPERATION_SUCCEEDED:
 			aux_timeout_retries = 0;
@@ -637,16 +641,32 @@ bool dce_aux_transfer_with_retries(struct ddc_service *ddc,
 			break;
 
 			case AUX_TRANSACTION_REPLY_AUX_DEFER:
+<<<<<<< HEAD
+=======
+				/* polling_timeout_period is in us */
+				defer_time_in_ms += aux110->polling_timeout_period / 1000;
+				++aux_defer_retries;
+				fallthrough;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			case AUX_TRANSACTION_REPLY_I2C_OVER_AUX_DEFER:
 				retry_on_defer = true;
 				fallthrough;
 			case AUX_TRANSACTION_REPLY_I2C_OVER_AUX_NACK:
+<<<<<<< HEAD
 				if (++aux_defer_retries >= AUX_MAX_DEFER_RETRIES) {
+=======
+				if (aux_defer_retries >= AUX_MIN_DEFER_RETRIES
+						&& defer_time_in_ms >= AUX_MAX_DEFER_TIMEOUT_MS) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					goto fail;
 				} else {
 					if ((*payload->reply == AUX_TRANSACTION_REPLY_AUX_DEFER) ||
 						(*payload->reply == AUX_TRANSACTION_REPLY_I2C_OVER_AUX_DEFER)) {
+<<<<<<< HEAD
 						if (payload->defer_delay > 1)
+=======
+						if (payload->defer_delay > 1) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 							msleep(payload->defer_delay);
 						else if (payload->defer_delay <= 1)
 							udelay(payload->defer_delay * 1000);
@@ -667,18 +687,30 @@ bool dce_aux_transfer_with_retries(struct ddc_service *ddc,
 			}
 			break;
 
+<<<<<<< HEAD
 		case AUX_CHANNEL_OPERATION_FAILED_INVALID_REPLY:
+=======
+		case AUX_RET_ERROR_INVALID_REPLY:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (++aux_invalid_reply_retries >= AUX_MAX_INVALID_REPLY_RETRIES)
 				goto fail;
 			else
 				udelay(400);
 			break;
 
+<<<<<<< HEAD
 		case AUX_CHANNEL_OPERATION_FAILED_TIMEOUT:
 			// Check whether a DEFER had occurred before the timeout.
 			// If so, treat timeout as a DEFER.
 			if (retry_on_defer) {
 				if (++aux_defer_retries >= AUX_MAX_DEFER_RETRIES)
+=======
+		case AUX_RET_ERROR_TIMEOUT:
+			// Check whether a DEFER had occurred before the timeout.
+			// If so, treat timeout as a DEFER.
+			if (retry_on_defer) {
+				if (++aux_defer_retries >= AUX_MIN_DEFER_RETRIES)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					goto fail;
 				else if (payload->defer_delay > 0)
 					msleep(payload->defer_delay);

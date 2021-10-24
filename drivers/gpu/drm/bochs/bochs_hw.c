@@ -7,6 +7,10 @@
 #include <drm/drm_drv.h>
 #include <drm/drm_fourcc.h>
 
+<<<<<<< HEAD
+=======
+#include <video/vga.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "bochs.h"
 
 /* ---------------------------------------------------------------------- */
@@ -24,6 +28,22 @@ static void bochs_vga_writeb(struct bochs_device *bochs, u16 ioport, u8 val)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static u8 bochs_vga_readb(struct bochs_device *bochs, u16 ioport)
+{
+	if (WARN_ON(ioport < 0x3c0 || ioport > 0x3df))
+		return 0xff;
+
+	if (bochs->mmio) {
+		int offset = ioport - 0x3c0 + 0x400;
+		return readb(bochs->mmio + offset);
+	} else {
+		return inb(ioport);
+	}
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static u16 bochs_dispi_read(struct bochs_device *bochs, u16 reg)
 {
 	u16 ret = 0;
@@ -205,6 +225,18 @@ void bochs_hw_fini(struct drm_device *dev)
 	kfree(bochs->edid);
 }
 
+<<<<<<< HEAD
+=======
+void bochs_hw_blank(struct bochs_device *bochs, bool blank)
+{
+	DRM_DEBUG_DRIVER("hw_blank %d\n", blank);
+	/* discard ar_flip_flop */
+	(void)bochs_vga_readb(bochs, VGA_IS1_RC);
+	/* blank or unblank; we need only update index and set 0x20 */
+	bochs_vga_writeb(bochs, VGA_ATT_W, blank ? 0 : 0x20);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void bochs_hw_setmode(struct bochs_device *bochs,
 		      struct drm_display_mode *mode)
 {
@@ -223,7 +255,11 @@ void bochs_hw_setmode(struct bochs_device *bochs,
 			 bochs->xres, bochs->yres, bochs->bpp,
 			 bochs->yres_virtual);
 
+<<<<<<< HEAD
 	bochs_vga_writeb(bochs, 0x3c0, 0x20); /* unblank */
+=======
+	bochs_hw_blank(bochs, false);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	bochs_dispi_write(bochs, VBE_DISPI_INDEX_ENABLE,      0);
 	bochs_dispi_write(bochs, VBE_DISPI_INDEX_BPP,         bochs->bpp);

@@ -165,7 +165,10 @@ static void ConstructBeacon(struct adapter *padapter, u8 *pframe, u32 *pLength)
 	pktlen += 2;
 
 	if ((pmlmeinfo->state&0x03) == WIFI_FW_AP_STATE) {
+<<<<<<< HEAD
 		/* DBG_871X("ie len =%d\n", cur_network->IELength); */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pktlen += cur_network->IELength - sizeof(struct ndis_802_11_fix_ie);
 		memcpy(pframe, cur_network->IEs+sizeof(struct ndis_802_11_fix_ie), pktlen);
 

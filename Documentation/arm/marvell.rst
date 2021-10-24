@@ -55,6 +55,7 @@ Kirkwood family
         - 88F6182
         - 88F6180
 
+<<<<<<< HEAD
                 - Product Brief  : http://www.marvell.com/embedded-processors/kirkwood/assets/88F6180-003_ver1.pdf
                 - Hardware Spec  : http://www.marvell.com/embedded-processors/kirkwood/assets/HW_88F6180_OpenSource.pdf
                 - Functional Spec: http://www.marvell.com/embedded-processors/kirkwood/assets/FS_88F6180_9x_6281_OpenSource.pdf
@@ -63,6 +64,16 @@ Kirkwood family
                 - Product Brief  : http://www.marvell.com/embedded-processors/kirkwood/assets/88F6281-004_ver1.pdf
                 - Hardware Spec  : http://www.marvell.com/embedded-processors/kirkwood/assets/HW_88F6281_OpenSource.pdf
                 - Functional Spec: http://www.marvell.com/embedded-processors/kirkwood/assets/FS_88F6180_9x_6281_OpenSource.pdf
+=======
+                - Product Brief  : https://web.archive.org/web/20120616201621/http://www.marvell.com/embedded-processors/kirkwood/assets/88F6180-003_ver1.pdf
+                - Hardware Spec  : https://web.archive.org/web/20130730091654/http://www.marvell.com/embedded-processors/kirkwood/assets/HW_88F6180_OpenSource.pdf
+                - Functional Spec: https://web.archive.org/web/20130730091033/http://www.marvell.com/embedded-processors/kirkwood/assets/FS_88F6180_9x_6281_OpenSource.pdf
+        - 88F6281
+
+                - Product Brief  : https://web.archive.org/web/20120131133709/http://www.marvell.com/embedded-processors/kirkwood/assets/88F6281-004_ver1.pdf
+                - Hardware Spec  : https://web.archive.org/web/20120620073511/http://www.marvell.com/embedded-processors/kirkwood/assets/HW_88F6281_OpenSource.pdf
+                - Functional Spec: https://web.archive.org/web/20130730091033/http://www.marvell.com/embedded-processors/kirkwood/assets/FS_88F6180_9x_6281_OpenSource.pdf
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
   Homepage:
 	http://www.marvell.com/embedded-processors/kirkwood/
   Core:
@@ -126,8 +137,13 @@ EBU Armada family
 	- 88F6820 Armada 385
 	- 88F6828 Armada 388
 
+<<<<<<< HEAD
     - Product infos:   http://www.marvell.com/embedded-processors/armada-38x/
     - Functional Spec: http://www.marvell.com/content/dam/marvell/en/public-collateral/embedded-processors/marvell-embedded-processors-armada-38x-functional-specifications-2015-11.pdf
+=======
+    - Product infos:   https://web.archive.org/web/20181006144616/http://www.marvell.com/embedded-processors/armada-38x/
+    - Functional Spec: https://web.archive.org/web/20200420191927/https://www.marvell.com/content/dam/marvell/en/public-collateral/embedded-processors/marvell-embedded-processors-armada-38x-functional-specifications-2015-11.pdf
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
   Core:
 	ARM Cortex-A9

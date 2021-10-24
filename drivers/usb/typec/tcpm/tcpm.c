@@ -268,6 +268,21 @@ struct pd_mode_data {
 	struct typec_altmode_desc altmode_desc[ALTMODE_DISCOVERY_MAX];
 };
 
+<<<<<<< HEAD
+=======
+/*
+ * @min_volt: Actual min voltage at the local port
+ * @req_min_volt: Requested min voltage to the port partner
+ * @max_volt: Actual max voltage at the local port
+ * @req_max_volt: Requested max voltage to the port partner
+ * @max_curr: Actual max current at the local port
+ * @req_max_curr: Requested max current of the port partner
+ * @req_out_volt: Requested output voltage to the port partner
+ * @req_op_curr: Requested operating current to the port partner
+ * @supported: Parter has atleast one APDO hence supports PPS
+ * @active: PPS mode is active
+ */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct pd_pps_data {
 	u32 min_volt;
 	u32 max_volt;
@@ -2372,7 +2387,10 @@ static void tcpm_pd_data_request(struct tcpm_port *port,
 					   NONE_AMS);
 		break;
 	case PD_DATA_VENDOR_DEF:
-		tcpm_handle_vdm_request(port, msg->payload, cnt);
+		if (tcpm_vdm_ams(port) || port->nr_snk_vdo)
+			tcpm_handle_vdm_request(port, msg->payload, cnt);
+		else if (port->negotiated_rev > PD_REV20)
+			tcpm_pd_handle_msg(port, PD_MSG_CTRL_NOT_SUPP, NONE_AMS);
 		break;
 	case PD_DATA_BIST:
 		port->bist_request = le32_to_cpu(msg->payload[0]);
@@ -2487,6 +2505,14 @@ static void tcpm_pd_ctrl_request(struct tcpm_port *port,
 			} else {
 				next_state = SNK_WAIT_CAPABILITIES;
 			}
+<<<<<<< HEAD
+=======
+
+			/* Threshold was relaxed before sending Request. Restore it back. */
+			tcpm_set_auto_vbus_discharge_threshold(port, TYPEC_PWR_MODE_PD,
+							       port->pps_data.active,
+							       port->supply_voltage);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			tcpm_set_state(port, next_state, 0);
 			break;
 		case SNK_NEGOTIATE_PPS_CAPABILITIES:
@@ -2499,6 +2525,14 @@ static void tcpm_pd_ctrl_request(struct tcpm_port *port,
 			if (port->data_role == TYPEC_HOST &&
 			    port->send_discover)
 				port->vdm_sm_running = true;
+<<<<<<< HEAD
+=======
+
+			/* Threshold was relaxed before sending Request. Restore it back. */
+			tcpm_set_auto_vbus_discharge_threshold(port, TYPEC_PWR_MODE_PD,
+							       port->pps_data.active,
+							       port->supply_voltage);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			tcpm_set_state(port, SNK_READY, 0);
 			break;
@@ -5184,6 +5218,32 @@ unlock:
 	mutex_unlock(&port->lock);
 }
 
+<<<<<<< HEAD
+=======
+static void tcpm_send_discover_work(struct kthread_work *work)
+{
+	struct tcpm_port *port = container_of(work, struct tcpm_port, send_discover_work);
+
+	mutex_lock(&port->lock);
+	/* No need to send DISCOVER_IDENTITY anymore */
+	if (!port->send_discover)
+		goto unlock;
+
+	/* Retry if the port is not idle */
+	if ((port->state != SRC_READY && port->state != SNK_READY) || port->vdm_sm_running) {
+		mod_send_discover_delayed_work(port, SEND_DISCOVER_RETRY_MS);
+		goto unlock;
+	}
+
+	/* Only send the Message if the port is host for PD rev2.0 */
+	if (port->data_role == TYPEC_HOST || port->negotiated_rev > PD_REV20)
+		tcpm_send_vdm(port, USB_SID_PD, CMD_DISCOVER_IDENT, NULL, 0);
+
+unlock:
+	mutex_unlock(&port->lock);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int tcpm_dr_set(struct typec_port *p, enum typec_data_role data)
 {
 	struct tcpm_port *port = typec_get_drvdata(p);

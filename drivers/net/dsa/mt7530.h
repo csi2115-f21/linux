@@ -77,6 +77,10 @@ enum mt753x_bpdu_port_fw {
 #define  STATIC_EMP			0
 #define  STATIC_ENT			3
 #define MT7530_ATA2			0x78
+<<<<<<< HEAD
+=======
+#define  ATA2_IVL			BIT(15)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Register for address table write data */
 #define MT7530_ATWD			0x7c

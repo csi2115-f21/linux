@@ -11,7 +11,11 @@ void odm_ConfigRFReg_8723B(
 	PDM_ODM_T pDM_Odm,
 	u32 Addr,
 	u32 Data,
+<<<<<<< HEAD
 	ODM_RF_RADIO_PATH_E RF_PATH,
+=======
+	enum odm_rf_radio_path_e RF_PATH,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 RegAddr
 )
 {
@@ -182,7 +186,11 @@ void odm_ConfigBB_PHY_REG_PG_8723B(
 	if (Addr == 0xfe || Addr == 0xffe)
 		msleep(50);
 	else {
+<<<<<<< HEAD
 		PHY_StoreTxPowerByRate(pDM_Odm->Adapter, Band, RfPath, TxNum, Addr, Bitmask, Data);
+=======
+		PHY_StoreTxPowerByRate(pDM_Odm->Adapter, RfPath, TxNum, Addr, Bitmask, Data);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	ODM_RT_TRACE(
 		pDM_Odm,

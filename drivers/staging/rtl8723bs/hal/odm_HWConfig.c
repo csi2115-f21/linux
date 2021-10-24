@@ -23,7 +23,11 @@ static u8 odm_QueryRxPwrPercentage(s8 AntPower)
 
 }
 
+<<<<<<< HEAD
 s32 odm_SignalScaleMapping(PDM_ODM_T pDM_Odm, s32 CurrSig)
+=======
+s32 odm_SignalScaleMapping(struct dm_odm_t *pDM_Odm, s32 CurrSig)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	s32 RetSig = 0;
 
@@ -77,7 +81,11 @@ static u8 odm_EVMdbToPercentage(s8 Value)
 }
 
 static void odm_RxPhyStatus92CSeries_Parsing(
+<<<<<<< HEAD
 	PDM_ODM_T pDM_Odm,
+=======
+	struct dm_odm_t *pDM_Odm,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct odm_phy_info *pPhyInfo,
 	u8 *pPhyStatus,
 	struct odm_packet_info *pPktinfo
@@ -90,7 +98,11 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 	bool isCCKrate = false;
 	u8 rf_rx_num = 0;
 	u8 LNA_idx, VGA_idx;
+<<<<<<< HEAD
 	PPHY_STATUS_RPT_8192CD_T pPhyStaRpt = (PPHY_STATUS_RPT_8192CD_T)pPhyStatus;
+=======
+	struct phy_status_rpt_8192cd_t *pPhyStaRpt = (struct phy_status_rpt_8192cd_t *)pPhyStatus;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	isCCKrate = pPktinfo->data_rate <= DESC_RATE11M;
 	pPhyInfo->rx_mimo_signal_quality[ODM_RF_PATH_A] = -1;
@@ -141,7 +153,10 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 
 			}
 
+<<<<<<< HEAD
 			/* DbgPrint("cck SQ = %d\n", SQ); */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pPhyInfo->signal_quality = SQ;
 			pPhyInfo->rx_mimo_signal_quality[ODM_RF_PATH_A] = SQ;
 			pPhyInfo->rx_mimo_signal_quality[ODM_RF_PATH_B] = -1;
@@ -168,12 +183,16 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 			/* Translate DBM to percentage. */
 			RSSI = odm_QueryRxPwrPercentage(rx_pwr[i]);
 			total_rssi += RSSI;
+<<<<<<< HEAD
 			/* RT_DISP(FRX, RX_PHY_SS, ("RF-%d RXPWR =%x RSSI =%d\n", i, rx_pwr[i], RSSI)); */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			pPhyInfo->rx_mimo_signal_strength[i] = (u8) RSSI;
 
 			/* Get Rx snr value in DB */
 			pPhyInfo->rx_snr[i] = pDM_Odm->PhyDbgInfo.RxSNRdB[i] = (s32)(pPhyStaRpt->path_rxsnr[i]/2);
+<<<<<<< HEAD
 		}
 
 
@@ -219,6 +238,48 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 			}
 		}
 
+=======
+		}
+
+
+		/*  */
+		/*  (2)PWDB, Average PWDB calculated by hardware (for rate adaptive) */
+		/*  */
+		rx_pwr_all = (((pPhyStaRpt->cck_sig_qual_ofdm_pwdb_all) >> 1)&0x7f)-110;
+
+		PWDB_ALL_BT = PWDB_ALL = odm_QueryRxPwrPercentage(rx_pwr_all);
+
+		pPhyInfo->rx_pwd_ba11 = PWDB_ALL;
+		pPhyInfo->bt_rx_rssi_percentage = PWDB_ALL_BT;
+		pPhyInfo->rx_power = rx_pwr_all;
+		pPhyInfo->recv_signal_power = rx_pwr_all;
+
+		{/* pMgntInfo->CustomerID != RT_CID_819x_Lenovo */
+			/*  */
+			/*  (3)EVM of HT rate */
+			/*  */
+			if (pPktinfo->data_rate >= DESC_RATEMCS8 && pPktinfo->data_rate <= DESC_RATEMCS15)
+				Max_spatial_stream = 2; /* both spatial stream make sense */
+			else
+				Max_spatial_stream = 1; /* only spatial stream 1 makes sense */
+
+			for (i = 0; i < Max_spatial_stream; i++) {
+				/*  Do not use shift operation like "rx_evmX >>= 1" because the compilor of free build environment */
+				/*  fill most significant bit to "zero" when doing shifting operation which may change a negative */
+				/*  value to positive one, then the dbm value (which is supposed to be negative)  is not correct anymore. */
+				EVM = odm_EVMdbToPercentage((pPhyStaRpt->stream_rxevm[i]));	/* dbm */
+
+				/* if (pPktinfo->bPacketMatchBSSID) */
+				{
+					if (i == ODM_RF_PATH_A) /*  Fill value in RFD, Get the first spatial stream only */
+						pPhyInfo->signal_quality = (u8)(EVM & 0xff);
+
+					pPhyInfo->rx_mimo_signal_quality[i] = (u8)(EVM & 0xff);
+				}
+			}
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ODM_ParsingCFO(pDM_Odm, pPktinfo, pPhyStaRpt->path_cfotail);
 
 	}
@@ -226,6 +287,7 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 	/* UI BSS List signal strength(in percentage), make it good looking, from 0~100. */
 	/* It is assigned to the BSS List in GetValueFromBeaconOrProbeRsp(). */
 	if (isCCKrate) {
+<<<<<<< HEAD
 #ifdef CONFIG_SKIP_SIGNAL_SCALE_MAPPING
 		pPhyInfo->SignalStrength = (u8)PWDB_ALL;
 #else
@@ -239,6 +301,12 @@ static void odm_RxPhyStatus92CSeries_Parsing(
 #else
 			pPhyInfo->signal_strength = (u8)(odm_SignalScaleMapping(pDM_Odm, total_rssi /= rf_rx_num));
 #endif
+=======
+		pPhyInfo->signal_strength = (u8)(odm_SignalScaleMapping(pDM_Odm, PWDB_ALL));/* PWDB_ALL; */
+	} else {
+		if (rf_rx_num != 0) {
+			pPhyInfo->signal_strength = (u8)(odm_SignalScaleMapping(pDM_Odm, total_rssi /= rf_rx_num));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -295,8 +363,11 @@ static void odm_Process_RSSIForDM(
 				pDM_Odm->RSSI_A = pPhyInfo->rx_mimo_signal_strength[ODM_RF_PATH_A];
 				pDM_Odm->RSSI_B = 0;
 			} else {
+<<<<<<< HEAD
 				/* DbgPrint("pRfd->Status.rx_mimo_signal_strength[0] = %d, pRfd->Status.rx_mimo_signal_strength[1] = %d\n", */
 					/* pRfd->Status.rx_mimo_signal_strength[0], pRfd->Status.rx_mimo_signal_strength[1]); */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				pDM_Odm->RSSI_A =  pPhyInfo->rx_mimo_signal_strength[ODM_RF_PATH_A];
 				pDM_Odm->RSSI_B = pPhyInfo->rx_mimo_signal_strength[ODM_RF_PATH_B];
 
@@ -401,7 +472,11 @@ static void odm_Process_RSSIForDM(
 /*  Endianness before calling this API */
 /*  */
 static void ODM_PhyStatusQuery_92CSeries(
+<<<<<<< HEAD
 	PDM_ODM_T pDM_Odm,
+=======
+	struct dm_odm_t *pDM_Odm,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct odm_phy_info *pPhyInfo,
 	u8 *pPhyStatus,
 	struct odm_packet_info *pPktinfo
@@ -409,6 +484,7 @@ static void ODM_PhyStatusQuery_92CSeries(
 {
 
 	odm_RxPhyStatus92CSeries_Parsing(pDM_Odm, pPhyInfo, pPhyStatus, pPktinfo);
+<<<<<<< HEAD
 
 	if (!pDM_Odm->RSSI_test)
 		odm_Process_RSSIForDM(pDM_Odm, pPhyInfo, pPktinfo);
@@ -422,6 +498,21 @@ void ODM_PhyStatusQuery(
 )
 {
 
+=======
+
+	if (!pDM_Odm->RSSI_test)
+		odm_Process_RSSIForDM(pDM_Odm, pPhyInfo, pPktinfo);
+}
+
+void ODM_PhyStatusQuery(
+	struct dm_odm_t *pDM_Odm,
+	struct odm_phy_info *pPhyInfo,
+	u8 *pPhyStatus,
+	struct odm_packet_info *pPktinfo
+)
+{
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ODM_PhyStatusQuery_92CSeries(pDM_Odm, pPhyInfo, pPhyStatus, pPktinfo);
 }
 
@@ -430,10 +521,17 @@ void ODM_PhyStatusQuery(
 /*  */
 /*  */
 
+<<<<<<< HEAD
 HAL_STATUS ODM_ConfigRFWithHeaderFile(
 	PDM_ODM_T pDM_Odm,
 	ODM_RF_Config_Type ConfigType,
 	ODM_RF_RADIO_PATH_E eRFPath
+=======
+enum hal_status ODM_ConfigRFWithHeaderFile(
+	struct dm_odm_t *pDM_Odm,
+	enum ODM_RF_Config_Type ConfigType,
+	enum odm_rf_radio_path_e eRFPath
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 )
 {
 	ODM_RT_TRACE(pDM_Odm, ODM_COMP_INIT, ODM_DBG_LOUD,

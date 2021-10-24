@@ -1110,6 +1110,7 @@ static int tegra_slink_probe(struct platform_device *pdev)
 		ret = tegra_slink_runtime_resume(&pdev->dev);
 		if (ret)
 			goto exit_pm_disable;
+<<<<<<< HEAD
 	}
 
 	ret = pm_runtime_get_sync(&pdev->dev);
@@ -1118,6 +1119,21 @@ static int tegra_slink_probe(struct platform_device *pdev)
 		pm_runtime_put_noidle(&pdev->dev);
 		goto exit_pm_disable;
 	}
+=======
+	}
+
+	ret = pm_runtime_get_sync(&pdev->dev);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "pm runtime get failed, e = %d\n", ret);
+		pm_runtime_put_noidle(&pdev->dev);
+		goto exit_pm_disable;
+	}
+
+	reset_control_assert(tspi->rst);
+	udelay(2);
+	reset_control_deassert(tspi->rst);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	tspi->def_command_reg  = SLINK_M_S;
 	tspi->def_command2_reg = SLINK_CS_ACTIVE_BETWEEN;
 	tegra_slink_writel(tspi, tspi->def_command_reg, SLINK_COMMAND);

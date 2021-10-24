@@ -829,6 +829,37 @@ static const struct attribute_group uncore_pmu_attr_group = {
 	.attrs = uncore_pmu_attrs,
 };
 
+<<<<<<< HEAD
+=======
+static void uncore_get_pmu_name(struct intel_uncore_pmu *pmu)
+{
+	struct intel_uncore_type *type = pmu->type;
+
+	/*
+	 * No uncore block name in discovery table.
+	 * Use uncore_type_&typeid_&boxid as name.
+	 */
+	if (!type->name) {
+		if (type->num_boxes == 1)
+			sprintf(pmu->name, "uncore_type_%u", type->type_id);
+		else {
+			sprintf(pmu->name, "uncore_type_%u_%d",
+				type->type_id, type->box_ids[pmu->pmu_idx]);
+		}
+		return;
+	}
+
+	if (type->num_boxes == 1) {
+		if (strlen(type->name) > 0)
+			sprintf(pmu->name, "uncore_%s", type->name);
+		else
+			sprintf(pmu->name, "uncore");
+	} else
+		sprintf(pmu->name, "uncore_%s_%d", type->name, pmu->pmu_idx);
+
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int uncore_pmu_register(struct intel_uncore_pmu *pmu)
 {
 	int ret;
@@ -1637,6 +1668,15 @@ static const struct intel_uncore_init_fun snr_uncore_init __initconst = {
 	.mmio_init = snr_uncore_mmio_init,
 };
 
+<<<<<<< HEAD
+=======
+static const struct intel_uncore_init_fun generic_uncore_init __initconst = {
+	.cpu_init = intel_uncore_generic_uncore_cpu_init,
+	.pci_init = intel_uncore_generic_uncore_pci_init,
+	.mmio_init = intel_uncore_generic_uncore_mmio_init,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct x86_cpu_id intel_uncore_match[] __initconst = {
 	X86_MATCH_INTEL_FAM6_MODEL(NEHALEM_EP,		&nhm_uncore_init),
 	X86_MATCH_INTEL_FAM6_MODEL(NEHALEM,		&nhm_uncore_init),
@@ -1673,6 +1713,11 @@ static const struct x86_cpu_id intel_uncore_match[] __initconst = {
 	X86_MATCH_INTEL_FAM6_MODEL(TIGERLAKE_L,		&tgl_l_uncore_init),
 	X86_MATCH_INTEL_FAM6_MODEL(TIGERLAKE,		&tgl_uncore_init),
 	X86_MATCH_INTEL_FAM6_MODEL(ROCKETLAKE,		&rkl_uncore_init),
+<<<<<<< HEAD
+=======
+	X86_MATCH_INTEL_FAM6_MODEL(ALDERLAKE,		&adl_uncore_init),
+	X86_MATCH_INTEL_FAM6_MODEL(ALDERLAKE_L,		&adl_uncore_init),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	X86_MATCH_INTEL_FAM6_MODEL(ATOM_TREMONT_D,	&snr_uncore_init),
 	{},
 };
@@ -1694,7 +1739,19 @@ static int __init intel_uncore_init(void)
 	__uncore_max_dies =
 		topology_max_packages() * topology_max_die_per_package();
 
+<<<<<<< HEAD
 	uncore_init = (struct intel_uncore_init_fun *)id->driver_data;
+=======
+	id = x86_match_cpu(intel_uncore_match);
+	if (!id) {
+		if (!uncore_no_discover && intel_uncore_has_discovery_tables())
+			uncore_init = (struct intel_uncore_init_fun *)&generic_uncore_init;
+		else
+			return -ENODEV;
+	} else
+		uncore_init = (struct intel_uncore_init_fun *)id->driver_data;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (uncore_init->pci_init) {
 		pret = uncore_init->pci_init();
 		if (!pret)

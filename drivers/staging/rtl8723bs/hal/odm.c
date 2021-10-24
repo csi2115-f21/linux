@@ -279,7 +279,37 @@ u32 TxScalingTable_Jaguar[TXSCALE_TABLE_SIZE] = {
 	0x3FE  /*  36, +6.0dB */
 };
 
+<<<<<<< HEAD
 /*  Local Function predefine. */
+=======
+/* Remove Edca by Yu Chen */
+
+
+#define RxDefaultAnt1		0x65a9
+#define RxDefaultAnt2		0x569a
+
+static void odm_CommonInfoSelfInit(struct dm_odm_t *pDM_Odm)
+{
+	pDM_Odm->bCckHighPower = (bool) PHY_QueryBBReg(pDM_Odm->Adapter, ODM_REG(CCK_RPT_FORMAT, pDM_Odm), ODM_BIT(CCK_RPT_FORMAT, pDM_Odm));
+	pDM_Odm->RFPathRxEnable = (u8) PHY_QueryBBReg(pDM_Odm->Adapter, ODM_REG(BB_RX_PATH, pDM_Odm), ODM_BIT(BB_RX_PATH, pDM_Odm));
+
+	pDM_Odm->TxRate = 0xFF;
+}
+
+static void odm_CommonInfoSelfUpdate(struct dm_odm_t *pDM_Odm)
+{
+	u8 EntryCnt = 0;
+	u8 i;
+	PSTA_INFO_T	pEntry;
+
+	if (*(pDM_Odm->pBandWidth) == ODM_BW40M) {
+		if (*(pDM_Odm->pSecChOffset) == 1)
+			pDM_Odm->ControlChannel = *(pDM_Odm->pChannel)-2;
+		else if (*(pDM_Odm->pSecChOffset) == 2)
+			pDM_Odm->ControlChannel = *(pDM_Odm->pChannel)+2;
+	} else
+		pDM_Odm->ControlChannel = *(pDM_Odm->pChannel);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* START------------COMMON INFO RELATED--------------- */
 void odm_CommonInfoSelfInit(PDM_ODM_T pDM_Odm);
@@ -312,9 +342,47 @@ void odm_RSSIMonitorCheckCE(PDM_ODM_T pDM_Odm);
 
 void odm_RSSIMonitorCheck(PDM_ODM_T pDM_Odm);
 
+<<<<<<< HEAD
 void odm_SwAntDetectInit(PDM_ODM_T pDM_Odm);
 
 void odm_SwAntDivChkAntSwitchCallback(void *FunctionContext);
+=======
+	case (ODM_WM_B|ODM_WM_G|ODM_WM_N24G):
+	case (ODM_WM_B|ODM_WM_N24G):
+	case (ODM_WM_G|ODM_WM_N24G):
+		if (pDM_Odm->RFType == ODM_1T2R || pDM_Odm->RFType == ODM_1T1R) {
+			if (rssi_level == DM_RATR_STA_HIGH)
+				rate_bitmap = 0x000f0000;
+			else if (rssi_level == DM_RATR_STA_MIDDLE)
+				rate_bitmap = 0x000ff000;
+			else {
+				if (*(pDM_Odm->pBandWidth) == ODM_BW40M)
+					rate_bitmap = 0x000ff015;
+				else
+					rate_bitmap = 0x000ff005;
+			}
+		} else {
+			if (rssi_level == DM_RATR_STA_HIGH)
+				rate_bitmap = 0x0f8f0000;
+			else if (rssi_level == DM_RATR_STA_MIDDLE)
+				rate_bitmap = 0x0f8ff000;
+			else {
+				if (*(pDM_Odm->pBandWidth) == ODM_BW40M)
+					rate_bitmap = 0x0f8ff015;
+				else
+					rate_bitmap = 0x0f8ff005;
+			}
+		}
+		break;
+
+	default:
+		if (pDM_Odm->RFType == RF_1T2R)
+			rate_bitmap = 0x000fffff;
+		else
+			rate_bitmap = 0x0fffffff;
+		break;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 
@@ -416,8 +484,247 @@ void ODM_DMWatchdog(PDM_ODM_T pDM_Odm)
 	} else
 		odm_DIG(pDM_Odm);
 
+<<<<<<< HEAD
 	{
 		pDIG_T pDM_DigTable = &pDM_Odm->DM_DigTable;
+=======
+static void odm_RSSIMonitorCheckCE(struct dm_odm_t *pDM_Odm)
+{
+	struct adapter *Adapter = pDM_Odm->Adapter;
+	struct hal_com_data	*pHalData = GET_HAL_DATA(Adapter);
+	struct dm_priv *pdmpriv = &pHalData->dmpriv;
+	int i;
+	int tmpEntryMaxPWDB = 0, tmpEntryMinPWDB = 0xff;
+	u8 sta_cnt = 0;
+	u32 PWDB_rssi[NUM_STA] = {0};/* 0~15]:MACID, [16~31]:PWDB_rssi */
+	struct ra_t *pRA_Table = &pDM_Odm->DM_RA_Table;
+
+	if (pDM_Odm->bLinked != true)
+		return;
+
+	pRA_Table->firstconnect = pDM_Odm->bLinked;
+
+	/* if (check_fwstate(&Adapter->mlmepriv, WIFI_AP_STATE|WIFI_ADHOC_STATE|WIFI_ADHOC_MASTER_STATE) == true) */
+	{
+		struct sta_info *psta;
+
+		for (i = 0; i < ODM_ASSOCIATE_ENTRY_NUM; i++) {
+			psta = pDM_Odm->pODM_StaInfo[i];
+			if (IS_STA_VALID(psta)) {
+				if (IS_MCAST(psta->hwaddr))  /* if (psta->mac_id == 1) */
+					continue;
+
+				if (psta->rssi_stat.UndecoratedSmoothedPWDB == (-1))
+					continue;
+
+				if (psta->rssi_stat.UndecoratedSmoothedPWDB < tmpEntryMinPWDB)
+					tmpEntryMinPWDB = psta->rssi_stat.UndecoratedSmoothedPWDB;
+
+				if (psta->rssi_stat.UndecoratedSmoothedPWDB > tmpEntryMaxPWDB)
+					tmpEntryMaxPWDB = psta->rssi_stat.UndecoratedSmoothedPWDB;
+
+				if (psta->rssi_stat.UndecoratedSmoothedPWDB != (-1))
+					PWDB_rssi[sta_cnt++] = (psta->mac_id | (psta->rssi_stat.UndecoratedSmoothedPWDB<<16));
+			}
+		}
+
+		/* printk("%s ==> sta_cnt(%d)\n", __func__, sta_cnt); */
+
+		for (i = 0; i < sta_cnt; i++) {
+			if (PWDB_rssi[i] != (0)) {
+				if (pHalData->fw_ractrl == true)/*  Report every sta's RSSI to FW */
+					rtl8723b_set_rssi_cmd(Adapter, (u8 *)(&PWDB_rssi[i]));
+			}
+		}
+	}
+
+
+
+	if (tmpEntryMaxPWDB != 0)	/*  If associated entry is found */
+		pdmpriv->EntryMaxUndecoratedSmoothedPWDB = tmpEntryMaxPWDB;
+	else
+		pdmpriv->EntryMaxUndecoratedSmoothedPWDB = 0;
+
+	if (tmpEntryMinPWDB != 0xff) /*  If associated entry is found */
+		pdmpriv->EntryMinUndecoratedSmoothedPWDB = tmpEntryMinPWDB;
+	else
+		pdmpriv->EntryMinUndecoratedSmoothedPWDB = 0;
+
+	FindMinimumRSSI(Adapter);/* get pdmpriv->MinUndecoratedPWDBForDM */
+
+	pDM_Odm->RSSI_Min = pdmpriv->MinUndecoratedPWDBForDM;
+	/* ODM_CmnInfoUpdate(&pHalData->odmpriv , ODM_CMNINFO_RSSI_MIN, pdmpriv->MinUndecoratedPWDBForDM); */
+}
+
+static void odm_RSSIMonitorCheck(struct dm_odm_t *pDM_Odm)
+{
+	if (!(pDM_Odm->SupportAbility & ODM_BB_RSSI_MONITOR))
+		return;
+
+	odm_RSSIMonitorCheckCE(pDM_Odm);
+
+}	/*  odm_RSSIMonitorCheck */
+
+/* 3 ============================================================ */
+/* 3 SW Antenna Diversity */
+/* 3 ============================================================ */
+static void odm_SwAntDetectInit(struct dm_odm_t *pDM_Odm)
+{
+	struct swat_t *pDM_SWAT_Table = &pDM_Odm->DM_SWAT_Table;
+
+	pDM_SWAT_Table->SWAS_NoLink_BK_Reg92c = rtw_read32(pDM_Odm->Adapter, rDPDT_control);
+	pDM_SWAT_Table->PreAntenna = MAIN_ANT;
+	pDM_SWAT_Table->CurAntenna = MAIN_ANT;
+	pDM_SWAT_Table->SWAS_NoLink_State = 0;
+}
+
+/* 3 ============================================================ */
+/* 3 Tx Power Tracking */
+/* 3 ============================================================ */
+
+static u8 getSwingIndex(struct dm_odm_t *pDM_Odm)
+{
+	struct adapter *Adapter = pDM_Odm->Adapter;
+	u8 i = 0;
+	u32 bbSwing;
+	u32 swingTableSize;
+	u32 *pSwingTable;
+
+	bbSwing = PHY_QueryBBReg(Adapter, rOFDM0_XATxIQImbalance, 0xFFC00000);
+
+	pSwingTable = OFDMSwingTable_New;
+	swingTableSize = OFDM_TABLE_SIZE;
+
+	for (i = 0; i < swingTableSize; ++i) {
+		u32 tableValue = pSwingTable[i];
+
+		if (tableValue >= 0x100000)
+			tableValue >>= 22;
+		if (bbSwing == tableValue)
+			break;
+	}
+	return i;
+}
+
+void odm_TXPowerTrackingInit(struct dm_odm_t *pDM_Odm)
+{
+	u8 defaultSwingIndex = getSwingIndex(pDM_Odm);
+	u8 p = 0;
+	struct adapter *Adapter = pDM_Odm->Adapter;
+	struct hal_com_data *pHalData = GET_HAL_DATA(Adapter);
+
+
+	struct dm_priv *pdmpriv = &pHalData->dmpriv;
+
+	pdmpriv->bTXPowerTracking = true;
+	pdmpriv->TXPowercount = 0;
+	pdmpriv->bTXPowerTrackingInit = false;
+
+	if (*(pDM_Odm->mp_mode) != 1)
+		pdmpriv->TxPowerTrackControl = true;
+	else
+		pdmpriv->TxPowerTrackControl = false;
+
+	/* pDM_Odm->RFCalibrateInfo.TxPowerTrackControl = true; */
+	pDM_Odm->RFCalibrateInfo.ThermalValue = pHalData->EEPROMThermalMeter;
+	pDM_Odm->RFCalibrateInfo.ThermalValue_IQK = pHalData->EEPROMThermalMeter;
+	pDM_Odm->RFCalibrateInfo.ThermalValue_LCK = pHalData->EEPROMThermalMeter;
+
+	/*  The index of "0 dB" in SwingTable. */
+	pDM_Odm->DefaultOfdmIndex = (defaultSwingIndex >= OFDM_TABLE_SIZE) ? 30 : defaultSwingIndex;
+	pDM_Odm->DefaultCckIndex = 20;
+
+	pDM_Odm->BbSwingIdxCckBase = pDM_Odm->DefaultCckIndex;
+	pDM_Odm->RFCalibrateInfo.CCK_index = pDM_Odm->DefaultCckIndex;
+
+	for (p = ODM_RF_PATH_A; p < MAX_RF_PATH; ++p) {
+		pDM_Odm->BbSwingIdxOfdmBase[p] = pDM_Odm->DefaultOfdmIndex;
+		pDM_Odm->RFCalibrateInfo.OFDM_index[p] = pDM_Odm->DefaultOfdmIndex;
+		pDM_Odm->RFCalibrateInfo.DeltaPowerIndex[p] = 0;
+		pDM_Odm->RFCalibrateInfo.DeltaPowerIndexLast[p] = 0;
+		pDM_Odm->RFCalibrateInfo.PowerIndexOffset[p] = 0;
+	}
+
+}
+
+void ODM_TXPowerTrackingCheck(struct dm_odm_t *pDM_Odm)
+{
+	struct adapter *Adapter = pDM_Odm->Adapter;
+
+	if (!(pDM_Odm->SupportAbility & ODM_RF_TX_PWR_TRACK))
+		return;
+
+	if (!pDM_Odm->RFCalibrateInfo.TM_Trigger) { /* at least delay 1 sec */
+		PHY_SetRFReg(pDM_Odm->Adapter, ODM_RF_PATH_A, RF_T_METER_NEW, (BIT17 | BIT16), 0x03);
+
+		pDM_Odm->RFCalibrateInfo.TM_Trigger = 1;
+		return;
+	} else {
+		ODM_TXPowerTrackingCallback_ThermalMeter(Adapter);
+		pDM_Odm->RFCalibrateInfo.TM_Trigger = 0;
+	}
+}
+
+/*  */
+/* 3 Export Interface */
+/*  */
+
+/*  */
+/*  2011/09/21 MH Add to describe different team necessary resource allocate?? */
+/*  */
+void ODM_DMInit(struct dm_odm_t *pDM_Odm)
+{
+
+	odm_CommonInfoSelfInit(pDM_Odm);
+	odm_CmnInfoInit_Debug(pDM_Odm);
+	odm_DIGInit(pDM_Odm);
+	odm_NHMCounterStatisticsInit(pDM_Odm);
+	odm_AdaptivityInit(pDM_Odm);
+	odm_RateAdaptiveMaskInit(pDM_Odm);
+	ODM_CfoTrackingInit(pDM_Odm);
+	ODM_EdcaTurboInit(pDM_Odm);
+	odm_RSSIMonitorInit(pDM_Odm);
+	odm_TXPowerTrackingInit(pDM_Odm);
+
+	ODM_ClearTxPowerTrackingState(pDM_Odm);
+
+	odm_DynamicBBPowerSavingInit(pDM_Odm);
+	odm_DynamicTxPowerInit(pDM_Odm);
+
+	odm_SwAntDetectInit(pDM_Odm);
+}
+
+/*  */
+/*  2011/09/20 MH This is the entry pointer for all team to execute HW out source DM. */
+/*  You can not add any dummy function here, be care, you can only use DM structure */
+/*  to perform any new ODM_DM. */
+/*  */
+void ODM_DMWatchdog(struct dm_odm_t *pDM_Odm)
+{
+	odm_CommonInfoSelfUpdate(pDM_Odm);
+	odm_BasicDbgMessage(pDM_Odm);
+	odm_FalseAlarmCounterStatistics(pDM_Odm);
+	odm_NHMCounterStatistics(pDM_Odm);
+
+	odm_RSSIMonitorCheck(pDM_Odm);
+
+	/* For CE Platform(SPRD or Tablet) */
+	/* 8723A or 8189ES platform */
+	/* NeilChen--2012--08--24-- */
+	/* Fix Leave LPS issue */
+	if ((adapter_to_pwrctl(pDM_Odm->Adapter)->pwr_mode != PS_MODE_ACTIVE) /*  in LPS mode */
+		/*  */
+		/* (pDM_Odm->SupportICType & (ODM_RTL8723A))|| */
+		/* (pDM_Odm->SupportICType & (ODM_RTL8188E) &&(&&(((pDM_Odm->SupportInterface  == ODM_ITRF_SDIO))) */
+		/*  */
+	) {
+			odm_DIGbyRSSI_LPS(pDM_Odm);
+	} else
+		odm_DIG(pDM_Odm);
+
+	{
+		struct dig_t *pDM_DigTable = &pDM_Odm->DM_DigTable;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		odm_Adaptivity(pDM_Odm, pDM_DigTable->CurIGValue);
 	}

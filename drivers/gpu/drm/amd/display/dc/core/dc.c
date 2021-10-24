@@ -1353,6 +1353,16 @@ static uint8_t get_stream_mask(struct dc *dc, struct dc_state *context)
 	return stream_mask;
 }
 
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+void dc_z10_restore(struct dc *dc)
+{
+	if (dc->hwss.z10_restore)
+		dc->hwss.z10_restore(dc);
+}
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Applies given context to HW and copy it into current context.
  * It's up to the user to release the src context afterwards.
@@ -2685,7 +2695,12 @@ static void commit_planes_for_stream(struct dc *dc,
 
 		if (pipe_ctx->bottom_pipe || pipe_ctx->next_odm_pipe ||
 				!pipe_ctx->stream || pipe_ctx->stream != stream ||
+<<<<<<< HEAD
 				!pipe_ctx->plane_state->update_flags.bits.addr_update)
+=======
+				!pipe_ctx->plane_state->update_flags.bits.addr_update ||
+				pipe_ctx->plane_state->skip_manual_trigger)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			continue;
 
 		if (pipe_ctx->stream_res.tg->funcs->program_manual_trigger)

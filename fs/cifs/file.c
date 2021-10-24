@@ -847,6 +847,40 @@ int cifs_close(struct inode *inode, struct file *file)
 	if (file->private_data != NULL) {
 		_cifsFileInfo_put(file->private_data, true, false);
 		file->private_data = NULL;
+<<<<<<< HEAD
+=======
+		dclose = kmalloc(sizeof(struct cifs_deferred_close), GFP_KERNEL);
+		if ((cinode->oplock == CIFS_CACHE_RHW_FLG) &&
+		    cinode->lease_granted &&
+		    dclose) {
+			if (test_bit(CIFS_INO_MODIFIED_ATTR, &cinode->flags))
+				inode->i_ctime = inode->i_mtime = current_time(inode);
+			spin_lock(&cinode->deferred_lock);
+			cifs_add_deferred_close(cfile, dclose);
+			if (cfile->deferred_close_scheduled &&
+			    delayed_work_pending(&cfile->deferred)) {
+				/*
+				 * If there is no pending work, mod_delayed_work queues new work.
+				 * So, Increase the ref count to avoid use-after-free.
+				 */
+				if (!mod_delayed_work(deferredclose_wq,
+						&cfile->deferred, cifs_sb->ctx->acregmax))
+					cifsFileInfo_get(cfile);
+			} else {
+				/* Deferred close for files */
+				queue_delayed_work(deferredclose_wq,
+						&cfile->deferred, cifs_sb->ctx->acregmax);
+				cfile->deferred_close_scheduled = true;
+				spin_unlock(&cinode->deferred_lock);
+				return 0;
+			}
+			spin_unlock(&cinode->deferred_lock);
+			_cifsFileInfo_put(cfile, true, false);
+		} else {
+			_cifsFileInfo_put(cfile, true, false);
+			kfree(dclose);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* return code from the ->release op is always ignored */
@@ -4792,6 +4826,27 @@ oplock_break_ack:
 							     cinode);
 		cifs_dbg(FYI, "Oplock release rc = %d\n", rc);
 	}
+<<<<<<< HEAD
+=======
+	/*
+	 * When oplock break is received and there are no active
+	 * file handles but cached, then schedule deferred close immediately.
+	 * So, new open will not use cached handle.
+	 */
+	spin_lock(&CIFS_I(inode)->deferred_lock);
+	is_deferred = cifs_is_deferred_close(cfile, &dclose);
+	if (is_deferred &&
+	    cfile->deferred_close_scheduled &&
+	    delayed_work_pending(&cfile->deferred)) {
+		/*
+		 * If there is no pending work, mod_delayed_work queues new work.
+		 * So, Increase the ref count to avoid use-after-free.
+		 */
+		if (!mod_delayed_work(deferredclose_wq, &cfile->deferred, 0))
+			cifsFileInfo_get(cfile);
+	}
+	spin_unlock(&CIFS_I(inode)->deferred_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	_cifsFileInfo_put(cfile, false /* do not wait for ourself */, false);
 	cifs_done_oplock_break(cinode);
 }

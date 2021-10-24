@@ -1887,8 +1887,12 @@ static int amsdu_to_msdu(struct adapter *padapter, union recv_frame *prframe)
 		/* Offset 12 denote 2 mac address */
 		nSubframe_Length = get_unaligned_be16(pdata + 12);
 
+<<<<<<< HEAD
 		if (a_len < (ETHERNET_HEADER_SIZE + nSubframe_Length)) {
 			DBG_871X("nRemain_Length is %d and nSubframe_Length is : %d\n", a_len, nSubframe_Length);
+=======
+		if (a_len < (ETHERNET_HEADER_SIZE + nSubframe_Length))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		}
 

@@ -15,6 +15,20 @@
 #include <linux/poll.h>
 #include <uapi/linux/vfio.h>
 
+<<<<<<< HEAD
+=======
+struct vfio_device {
+	struct device *dev;
+	const struct vfio_device_ops *ops;
+	struct vfio_group *group;
+
+	/* Members below here are private, not for driver use */
+	refcount_t refcount;
+	struct completion comp;
+	struct list_head group_next;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * struct vfio_device_ops - VFIO bus driver device callbacks
  *
@@ -32,9 +46,15 @@
  */
 struct vfio_device_ops {
 	char	*name;
+<<<<<<< HEAD
 	int	(*open)(void *device_data);
 	void	(*release)(void *device_data);
 	ssize_t	(*read)(void *device_data, char __user *buf,
+=======
+	int	(*open)(struct vfio_device *vdev);
+	void	(*release)(struct vfio_device *vdev);
+	ssize_t	(*read)(struct vfio_device *vdev, char __user *buf,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			size_t count, loff_t *ppos);
 	ssize_t	(*write)(void *device_data, const char __user *buf,
 			 size_t count, loff_t *size);
@@ -48,6 +68,7 @@ struct vfio_device_ops {
 extern struct iommu_group *vfio_iommu_group_get(struct device *dev);
 extern void vfio_iommu_group_put(struct iommu_group *group, struct device *dev);
 
+<<<<<<< HEAD
 extern int vfio_add_group_dev(struct device *dev,
 			      const struct vfio_device_ops *ops,
 			      void *device_data);
@@ -56,6 +77,14 @@ extern void *vfio_del_group_dev(struct device *dev);
 extern struct vfio_device *vfio_device_get_from_dev(struct device *dev);
 extern void vfio_device_put(struct vfio_device *device);
 extern void *vfio_device_data(struct vfio_device *device);
+=======
+void vfio_init_group_dev(struct vfio_device *device, struct device *dev,
+			 const struct vfio_device_ops *ops);
+int vfio_register_group_dev(struct vfio_device *device);
+void vfio_unregister_group_dev(struct vfio_device *device);
+extern struct vfio_device *vfio_device_get_from_dev(struct device *dev);
+extern void vfio_device_put(struct vfio_device *device);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* events for the backend driver notify callback */
 enum vfio_iommu_notify_type {

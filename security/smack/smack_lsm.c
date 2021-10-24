@@ -2033,7 +2033,11 @@ static int smk_curacc_on_task(struct task_struct *p, int access,
 				const char *caller)
 {
 	struct smk_audit_info ad;
+<<<<<<< HEAD
 	struct smack_known *skp = smk_of_task_struct(p);
+=======
+	struct smack_known *skp = smk_of_task_struct_subj(p);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int rc;
 
 	smk_ad_init(&ad, caller, LSM_AUDIT_DATA_TASK);
@@ -3483,7 +3487,11 @@ static void smack_d_instantiate(struct dentry *opt_dentry, struct inode *inode)
  */
 static int smack_getprocattr(struct task_struct *p, char *name, char **value)
 {
+<<<<<<< HEAD
 	struct smack_known *skp = smk_of_task_struct(p);
+=======
+	struct smack_known *skp = smk_of_task_struct_subj(p);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	char *cp;
 	int slen;
 

@@ -1020,7 +1020,18 @@ int device_add_software_node(struct device *dev, const struct software_node *swn
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	set_secondary_fwnode(dev, software_node_fwnode(swnode));
+=======
+	/*
+	 * If the device has been fully registered by the time this function is
+	 * called, software_node_notify() must be called separately so that the
+	 * symlinks get created and the reference count of the node is kept in
+	 * balance.
+	 */
+	if (device_is_registered(dev))
+		software_node_notify(dev, KOBJ_ADD);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -1040,7 +1051,12 @@ void device_remove_software_node(struct device *dev)
 	if (!swnode)
 		return;
 
+<<<<<<< HEAD
 	software_node_notify(dev, KOBJ_REMOVE);
+=======
+	if (device_is_registered(dev))
+		software_node_notify(dev, KOBJ_REMOVE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	set_secondary_fwnode(dev, NULL);
 	kobject_put(&swnode->kobj);
 }
@@ -1094,8 +1110,12 @@ int software_node_notify(struct device *dev, unsigned long action)
 
 	switch (action) {
 	case KOBJ_ADD:
+<<<<<<< HEAD
 		ret = sysfs_create_link(&dev->kobj, &swnode->kobj,
 					"software_node");
+=======
+		ret = sysfs_create_link(&dev->kobj, &swnode->kobj, "software_node");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret)
 			break;
 

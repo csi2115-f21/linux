@@ -129,17 +129,35 @@ static void compose_cursor(struct vkms_composer *cursor_composer,
 			   struct vkms_composer *primary_composer,
 			   void *vaddr_out)
 {
+<<<<<<< HEAD
 	struct drm_gem_object *cursor_obj;
 	struct drm_gem_shmem_object *cursor_shmem_obj;
 
 	cursor_obj = drm_gem_fb_get_obj(&cursor_composer->fb, 0);
 	cursor_shmem_obj = to_drm_gem_shmem_obj(cursor_obj);
+=======
+	struct drm_gem_object *plane_obj;
+	struct drm_gem_shmem_object *plane_shmem_obj;
+	struct drm_framebuffer *fb = &plane_composer->fb;
+	void (*pixel_blend)(const u8 *p_src, u8 *p_dst);
+
+	plane_obj = drm_gem_fb_get_obj(&plane_composer->fb, 0);
+	plane_shmem_obj = to_drm_gem_shmem_obj(plane_obj);
+
+	if (WARN_ON(!plane_shmem_obj->vaddr))
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (WARN_ON(!cursor_shmem_obj->vaddr))
 		return;
 
+<<<<<<< HEAD
 	blend(vaddr_out, cursor_shmem_obj->vaddr,
 	      primary_composer, cursor_composer);
+=======
+	blend(vaddr_out, plane_shmem_obj->vaddr, primary_composer,
+	      plane_composer, pixel_blend);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int compose_planes(void **vaddr_out,
@@ -149,6 +167,10 @@ static int compose_planes(void **vaddr_out,
 	struct drm_framebuffer *fb = &primary_composer->fb;
 	struct drm_gem_object *gem_obj = drm_gem_fb_get_obj(fb, 0);
 	struct drm_gem_shmem_object *shmem_obj = to_drm_gem_shmem_obj(gem_obj);
+<<<<<<< HEAD
+=======
+	int i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!*vaddr_out) {
 		*vaddr_out = kzalloc(shmem_obj->base.size, GFP_KERNEL);
@@ -163,8 +185,19 @@ static int compose_planes(void **vaddr_out,
 
 	memcpy(*vaddr_out, shmem_obj->vaddr, shmem_obj->base.size);
 
+<<<<<<< HEAD
 	if (cursor_composer)
 		compose_cursor(cursor_composer, primary_composer, *vaddr_out);
+=======
+	/* If there are other planes besides primary, we consider the active
+	 * planes should be in z-order and compose them associatively:
+	 * ((primary <- overlay) <- cursor)
+	 */
+	for (i = 1; i < crtc_state->num_active_planes; i++)
+		compose_plane(primary_composer,
+			      crtc_state->active_planes[i]->composer,
+			      *vaddr_out);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -210,11 +243,19 @@ void vkms_composer_worker(struct work_struct *work)
 	if (!crc_pending)
 		return;
 
+<<<<<<< HEAD
 	if (crtc_state->num_active_planes >= 1)
 		primary_composer = crtc_state->active_planes[0]->composer;
 
 	if (crtc_state->num_active_planes == 2)
 		cursor_composer = crtc_state->active_planes[1]->composer;
+=======
+	if (crtc_state->num_active_planes >= 1) {
+		act_plane = crtc_state->active_planes[0];
+		if (act_plane->base.plane->type == DRM_PLANE_TYPE_PRIMARY)
+			primary_composer = act_plane->composer;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!primary_composer)
 		return;

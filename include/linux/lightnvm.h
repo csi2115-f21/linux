@@ -112,10 +112,15 @@ struct nvm_dev_ops {
 
 #ifdef CONFIG_NVM
 
+<<<<<<< HEAD
 #include <linux/blkdev.h>
 #include <linux/file.h>
 #include <linux/dmapool.h>
 #include <uapi/linux/lightnvm.h>
+=======
+#include <linux/file.h>
+#include <linux/dmapool.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 enum {
 	/* HW Responsibilities */

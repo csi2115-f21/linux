@@ -179,12 +179,22 @@ static int snd_card_azt2320_probe(int dev,
 		return error;
 	acard = card->private_data;
 
+<<<<<<< HEAD
 	if ((error = snd_card_azt2320_pnp(dev, acard, pcard, pid))) {
+=======
+	error = snd_card_azt2320_pnp(dev, acard, pcard, pid);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_card_azt2320_enable_wss(port[dev]))) {
+=======
+	error = snd_card_azt2320_enable_wss(port[dev]);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -233,18 +243,33 @@ static int snd_card_azt2320_probe(int dev,
 			snd_printk(KERN_ERR PFX "no OPL device at 0x%lx-0x%lx\n",
 				   fm_port[dev], fm_port[dev] + 2);
 		} else {
+<<<<<<< HEAD
 			if ((error = snd_opl3_timer_new(opl3, 1, 2)) < 0) {
 				snd_card_free(card);
 				return error;
 			}
 			if ((error = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+			error = snd_opl3_timer_new(opl3, 1, 2);
+			if (error < 0) {
+				snd_card_free(card);
+				return error;
+			}
+			error = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+			if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				snd_card_free(card);
 				return error;
 			}
 		}
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_card_register(card)) < 0) {
+=======
+	error = snd_card_register(card);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}

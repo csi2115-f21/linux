@@ -2287,8 +2287,12 @@ static int validate_linkmsg(struct net_device *dev, struct nlattr *tb[])
 
 			if (af_ops->validate_link_af) {
 				err = af_ops->validate_link_af(dev, af);
+<<<<<<< HEAD
 				if (err < 0) {
 					rcu_read_unlock();
+=======
+				if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					return err;
 				}
 			}
@@ -2603,14 +2607,31 @@ static int do_setlink(const struct sk_buff *skb,
 		return err;
 
 	if (tb[IFLA_NET_NS_PID] || tb[IFLA_NET_NS_FD] || tb[IFLA_TARGET_NETNSID]) {
+<<<<<<< HEAD
 		struct net *net = rtnl_link_get_net_capable(skb, dev_net(dev),
 							    tb, CAP_NET_ADMIN);
+=======
+		struct net *net;
+		int new_ifindex;
+
+		net = rtnl_link_get_net_capable(skb, dev_net(dev),
+						tb, CAP_NET_ADMIN);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (IS_ERR(net)) {
 			err = PTR_ERR(net);
 			goto errout;
 		}
 
+<<<<<<< HEAD
 		err = dev_change_net_namespace(dev, net, ifname);
+=======
+		if (tb[IFLA_NEW_IFINDEX])
+			new_ifindex = nla_get_s32(tb[IFLA_NEW_IFINDEX]);
+		else
+			new_ifindex = 0;
+
+		err = __dev_change_net_namespace(dev, net, ifname, new_ifindex);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		put_net(net);
 		if (err)
 			goto errout;

@@ -150,7 +150,11 @@ static int subflow_check_req(struct request_sock *req,
 	}
 
 	if (mp_opt.mp_capable && listener->request_mptcp) {
+<<<<<<< HEAD
 		int err, retries = 4;
+=======
+		int err, retries = MPTCP_TOKEN_MAX_RETRIES;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		subflow_req->ssn_offset = TCP_SKB_CB(skb)->seq;
 again:
@@ -362,10 +366,13 @@ static void subflow_finish_connect(struct sock *sk, const struct sk_buff *skb)
 
 	subflow->icsk_af_ops->sk_rx_dst_set(sk, skb);
 
+<<<<<<< HEAD
 	if (inet_sk_state_load(parent) == TCP_SYN_SENT) {
 		inet_sk_state_store(parent, TCP_ESTABLISHED);
 		parent->sk_state_change(parent);
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* be sure no special action on any packet other than syn-ack */
 	if (subflow->conn_finished)
@@ -387,6 +394,13 @@ static void subflow_finish_connect(struct sock *sk, const struct sk_buff *skb)
 			goto fallback;
 		}
 
+<<<<<<< HEAD
+=======
+		if (mp_opt.csum_reqd)
+			WRITE_ONCE(mptcp_sk(parent)->csum_enabled, true);
+		if (mp_opt.deny_join_id0)
+			WRITE_ONCE(mptcp_sk(parent)->pm.remote_deny_join_id0, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		subflow->mp_capable = 1;
 		subflow->can_ack = 1;
 		subflow->remote_key = mp_opt.sndr_key;
@@ -396,7 +410,12 @@ static void subflow_finish_connect(struct sock *sk, const struct sk_buff *skb)
 	} else if (subflow->request_join) {
 		u8 hmac[SHA256_DIGEST_SIZE];
 
+<<<<<<< HEAD
 		if (!mp_opt.mp_join)
+=======
+		if (!mp_opt.mp_join) {
+			subflow->reset_reason = MPTCP_RST_EMPTCP;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto do_reset;
 
 		subflow->thmac = mp_opt.thmac;
@@ -604,6 +623,7 @@ static struct sock *subflow_syn_recv_sock(const struct sock *sk,
 
 	/* if the sk is MP_CAPABLE, we try to fetch the client key */
 	if (subflow_req->mp_capable) {
+<<<<<<< HEAD
 		if (TCP_SKB_CB(skb)->seq != subflow_req->ssn_offset + 1) {
 			/* here we can receive and accept an in-window,
 			 * out-of-order pkt, which will not carry the MP_CAPABLE
@@ -613,6 +633,17 @@ static struct sock *subflow_syn_recv_sock(const struct sock *sk,
 		}
 
 		mptcp_get_options(skb, &mp_opt);
+=======
+		/* we can receive and accept an in-window, out-of-order pkt,
+		 * which may not carry the MP_CAPABLE opt even on mptcp enabled
+		 * paths: always try to extract the peer key, and fallback
+		 * for packets missing it.
+		 * Even OoO DSS packets coming legitly after dropped or
+		 * reordered MPC will cause fallback, but we don't have other
+		 * options.
+		 */
+		mptcp_get_options(sk, skb, &mp_opt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!mp_opt.mp_capable) {
 			fallback = true;
 			goto create_child;
@@ -623,7 +654,11 @@ create_msk:
 		if (!new_msk)
 			fallback = true;
 	} else if (subflow_req->mp_join) {
+<<<<<<< HEAD
 		mptcp_get_options(skb, &mp_opt);
+=======
+		mptcp_get_options(sk, skb, &mp_opt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!mp_opt.mp_join || !subflow_hmac_valid(req, &mp_opt) ||
 		    !mptcp_can_accept_new_subflow(subflow_req->msk)) {
 			SUBFLOW_REQ_INC_STATS(req, MPTCP_MIB_JOINACKMAC);
@@ -790,6 +825,90 @@ static bool validate_mapping(struct sock *ssk, struct sk_buff *skb)
 	return true;
 }
 
+<<<<<<< HEAD
+=======
+static enum mapping_status validate_data_csum(struct sock *ssk, struct sk_buff *skb,
+					      bool csum_reqd)
+{
+	struct mptcp_subflow_context *subflow = mptcp_subflow_ctx(ssk);
+	struct csum_pseudo_header header;
+	u32 offset, seq, delta;
+	__wsum csum;
+	int len;
+
+	if (!csum_reqd)
+		return MAPPING_OK;
+
+	/* mapping already validated on previous traversal */
+	if (subflow->map_csum_len == subflow->map_data_len)
+		return MAPPING_OK;
+
+	/* traverse the receive queue, ensuring it contains a full
+	 * DSS mapping and accumulating the related csum.
+	 * Preserve the accoumlate csum across multiple calls, to compute
+	 * the csum only once
+	 */
+	delta = subflow->map_data_len - subflow->map_csum_len;
+	for (;;) {
+		seq = tcp_sk(ssk)->copied_seq + subflow->map_csum_len;
+		offset = seq - TCP_SKB_CB(skb)->seq;
+
+		/* if the current skb has not been accounted yet, csum its contents
+		 * up to the amount covered by the current DSS
+		 */
+		if (offset < skb->len) {
+			__wsum csum;
+
+			len = min(skb->len - offset, delta);
+			csum = skb_checksum(skb, offset, len, 0);
+			subflow->map_data_csum = csum_block_add(subflow->map_data_csum, csum,
+								subflow->map_csum_len);
+
+			delta -= len;
+			subflow->map_csum_len += len;
+		}
+		if (delta == 0)
+			break;
+
+		if (skb_queue_is_last(&ssk->sk_receive_queue, skb)) {
+			/* if this subflow is closed, the partial mapping
+			 * will be never completed; flush the pending skbs, so
+			 * that subflow_sched_work_if_closed() can kick in
+			 */
+			if (unlikely(ssk->sk_state == TCP_CLOSE))
+				while ((skb = skb_peek(&ssk->sk_receive_queue)))
+					sk_eat_skb(ssk, skb);
+
+			/* not enough data to validate the csum */
+			return MAPPING_EMPTY;
+		}
+
+		/* the DSS mapping for next skbs will be validated later,
+		 * when a get_mapping_status call will process such skb
+		 */
+		skb = skb->next;
+	}
+
+	/* note that 'map_data_len' accounts only for the carried data, does
+	 * not include the eventual seq increment due to the data fin,
+	 * while the pseudo header requires the original DSS data len,
+	 * including that
+	 */
+	header.data_seq = cpu_to_be64(subflow->map_seq);
+	header.subflow_seq = htonl(subflow->map_subflow_seq);
+	header.data_len = htons(subflow->map_data_len + subflow->map_data_fin);
+	header.csum = 0;
+
+	csum = csum_partial(&header, sizeof(header), subflow->map_data_csum);
+	if (unlikely(csum_fold(csum))) {
+		MPTCP_INC_STATS(sock_net(ssk), MPTCP_MIB_DATACSUMERR);
+		return subflow->mp_join ? MAPPING_INVALID : MAPPING_DUMMY;
+	}
+
+	return MAPPING_OK;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static enum mapping_status get_mapping_status(struct sock *ssk,
 					      struct mptcp_sock *msk)
 {
@@ -1040,6 +1159,7 @@ static bool subflow_check_data_avail(struct sock *ssk)
 no_data:
 	subflow_sched_work_if_closed(msk, ssk);
 	return false;
+<<<<<<< HEAD
 fatal:
 	/* fatal protocol error, close the socket */
 	/* This barrier is coupled with smp_rmb() in tcp_poll() */
@@ -1049,6 +1169,32 @@ fatal:
 	tcp_send_active_reset(ssk, GFP_ATOMIC);
 	subflow->data_avail = 0;
 	return false;
+=======
+
+fallback:
+	/* RFC 8684 section 3.7. */
+	if (subflow->mp_join || subflow->fully_established) {
+		/* fatal protocol error, close the socket.
+		 * subflow_error_report() will introduce the appropriate barriers
+		 */
+		ssk->sk_err = EBADMSG;
+		tcp_set_state(ssk, TCP_CLOSE);
+		subflow->reset_transient = 0;
+		subflow->reset_reason = MPTCP_RST_EMPTCP;
+		tcp_send_active_reset(ssk, GFP_ATOMIC);
+		WRITE_ONCE(subflow->data_avail, 0);
+		return false;
+	}
+
+	__mptcp_do_fallback(msk);
+	skb = skb_peek(&ssk->sk_receive_queue);
+	subflow->map_valid = 1;
+	subflow->map_seq = READ_ONCE(msk->ack_seq);
+	subflow->map_data_len = skb->len;
+	subflow->map_subflow_seq = tcp_sk(ssk)->copied_seq - subflow->ssn_offset;
+	WRITE_ONCE(subflow->data_avail, MPTCP_SUBFLOW_DATA_AVAIL);
+	return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 bool mptcp_subflow_data_available(struct sock *sk)
@@ -1224,7 +1370,8 @@ void mptcp_info2sockaddr(const struct mptcp_addr_info *info,
 }
 
 int __mptcp_subflow_connect(struct sock *sk, const struct mptcp_addr_info *loc,
-			    const struct mptcp_addr_info *remote)
+			    const struct mptcp_addr_info *remote,
+			    u8 flags, int ifindex)
 {
 	struct mptcp_sock *msk = mptcp_sk(sk);
 	struct mptcp_subflow_context *subflow;

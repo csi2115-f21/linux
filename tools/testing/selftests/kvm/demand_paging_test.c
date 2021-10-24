@@ -267,7 +267,11 @@ static void run_test(enum vm_guest_mode mode, void *arg)
 	int r;
 
 	vm = perf_test_create_vm(mode, nr_vcpus, guest_percpu_mem_size,
+<<<<<<< HEAD
 				 VM_MEM_SRC_ANONYMOUS);
+=======
+				 p->src_type);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	perf_test_args.wr_fract = 1;
 
@@ -387,8 +391,13 @@ static void run_test(enum vm_guest_mode mode, void *arg)
 static void help(char *name)
 {
 	puts("");
+<<<<<<< HEAD
 	printf("usage: %s [-h] [-m mode] [-u] [-d uffd_delay_usec]\n"
 	       "          [-b memory] [-v vcpus] [-o]\n", name);
+=======
+	printf("usage: %s [-h] [-m vm_mode] [-u uffd_mode] [-d uffd_delay_usec]\n"
+	       "          [-b memory] [-t type] [-v vcpus] [-o]\n", name);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	guest_modes_help();
 	printf(" -u: use User Fault FD to handle vCPU page\n"
 	       "     faults.\n");
@@ -398,6 +407,11 @@ static void help(char *name)
 	printf(" -b: specify the size of the memory region which should be\n"
 	       "     demand paged by each vCPU. e.g. 10M or 3G.\n"
 	       "     Default: 1G\n");
+<<<<<<< HEAD
+=======
+	printf(" -t: The type of backing memory to use. Default: anonymous\n");
+	backing_src_help();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	printf(" -v: specify the number of vCPUs to run.\n");
 	printf(" -o: Overlap guest memory accesses instead of partitioning\n"
 	       "     them into a separate region of memory for each vCPU.\n");
@@ -409,13 +423,21 @@ int main(int argc, char *argv[])
 {
 	int max_vcpus = kvm_check_cap(KVM_CAP_MAX_VCPUS);
 	struct test_params p = {
+<<<<<<< HEAD
+=======
+		.src_type = VM_MEM_SRC_ANONYMOUS,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		.partition_vcpu_memory_access = true,
 	};
 	int opt;
 
 	guest_modes_append_default();
 
+<<<<<<< HEAD
 	while ((opt = getopt(argc, argv, "hm:ud:b:v:o")) != -1) {
+=======
+	while ((opt = getopt(argc, argv, "hm:u:d:b:t:v:o")) != -1) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		switch (opt) {
 		case 'm':
 			guest_modes_cmdline(optarg);
@@ -430,6 +452,12 @@ int main(int argc, char *argv[])
 		case 'b':
 			guest_percpu_mem_size = parse_size(optarg);
 			break;
+<<<<<<< HEAD
+=======
+		case 't':
+			p.src_type = parse_backing_src_type(optarg);
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		case 'v':
 			nr_vcpus = atoi(optarg);
 			TEST_ASSERT(nr_vcpus > 0 && nr_vcpus <= max_vcpus,
@@ -445,6 +473,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if (p.uffd_mode == UFFDIO_REGISTER_MODE_MINOR &&
+	    !backing_src_is_shared(p.src_type)) {
+		TEST_FAIL("userfaultfd MINOR mode requires shared memory; pick a different -t");
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for_each_guest_mode(run_test, &p);
 
 	return 0;

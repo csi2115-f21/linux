@@ -16,12 +16,18 @@
 struct pci_vpd_ops {
 	ssize_t (*read)(struct pci_dev *dev, loff_t pos, size_t count, void *buf);
 	ssize_t (*write)(struct pci_dev *dev, loff_t pos, size_t count, const void *buf);
+<<<<<<< HEAD
 	int (*set_size)(struct pci_dev *dev, size_t len);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct pci_vpd {
 	const struct pci_vpd_ops *ops;
+<<<<<<< HEAD
 	struct bin_attribute *attr;	/* Descriptor for sysfs VPD entry */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mutex	lock;
 	unsigned int	len;
 	u16		flag;
@@ -30,7 +36,56 @@ struct pci_vpd {
 	unsigned int	valid:1;
 };
 
+<<<<<<< HEAD
 /**
+ * pci_read_vpd - Read one entry from Vital Product Data
+ * @dev:	pci device struct
+ * @pos:	offset in vpd space
+ * @count:	number of bytes to read
+ * @buf:	pointer to where to store result
+ */
+ssize_t pci_read_vpd(struct pci_dev *dev, loff_t pos, size_t count, void *buf)
+{
+	if (!dev->vpd || !dev->vpd->ops)
+		return -ENODEV;
+	return dev->vpd->ops->read(dev, pos, count, buf);
+=======
+static struct pci_dev *pci_get_func0_dev(struct pci_dev *dev)
+{
+	return pci_get_slot(dev->bus, PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+}
+EXPORT_SYMBOL(pci_read_vpd);
+
+/**
+<<<<<<< HEAD
+ * pci_write_vpd - Write entry to Vital Product Data
+ * @dev:	pci device struct
+ * @pos:	offset in vpd space
+ * @count:	number of bytes to write
+ * @buf:	buffer containing write data
+ */
+ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void *buf)
+{
+	if (!dev->vpd || !dev->vpd->ops)
+		return -ENODEV;
+	return dev->vpd->ops->write(dev, pos, count, buf);
+}
+EXPORT_SYMBOL(pci_write_vpd);
+
+/**
+ * pci_set_vpd_size - Set size of Vital Product Data space
+ * @dev:	pci device struct
+ * @len:	size of vpd space
+ */
+int pci_set_vpd_size(struct pci_dev *dev, size_t len)
+{
+	if (!dev->vpd || !dev->vpd->ops)
+		return -ENODEV;
+	return dev->vpd->ops->set_size(dev, len);
+}
+EXPORT_SYMBOL(pci_set_vpd_size);
+=======
  * pci_read_vpd - Read one entry from Vital Product Data
  * @dev:	pci device struct
  * @pos:	offset in vpd space
@@ -59,19 +114,7 @@ ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void 
 	return dev->vpd->ops->write(dev, pos, count, buf);
 }
 EXPORT_SYMBOL(pci_write_vpd);
-
-/**
- * pci_set_vpd_size - Set size of Vital Product Data space
- * @dev:	pci device struct
- * @len:	size of vpd space
- */
-int pci_set_vpd_size(struct pci_dev *dev, size_t len)
-{
-	if (!dev->vpd || !dev->vpd->ops)
-		return -ENODEV;
-	return dev->vpd->ops->set_size(dev, len);
-}
-EXPORT_SYMBOL(pci_set_vpd_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define PCI_VPD_MAX_SIZE (PCI_VPD_ADDR_MASK + 1)
 
@@ -85,9 +128,19 @@ static size_t pci_vpd_size(struct pci_dev *dev, size_t old_size)
 	size_t off = 0;
 	unsigned char header[1+2];	/* 1 byte tag, 2 bytes length */
 
+<<<<<<< HEAD
 	while (off < old_size &&
 	       pci_read_vpd(dev, off, 1, header) == 1) {
 		unsigned char tag;
+=======
+	while (off < old_size && pci_read_vpd(dev, off, 1, header) == 1) {
+		unsigned char tag;
+
+		if (!header[0] && !off) {
+			pci_info(dev, "Invalid VPD tag 00, assume missing optional VPD EPROM\n");
+			return 0;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (header[0] & PCI_VPD_LRDT) {
 			/* Large Resource Data Type Tag */
@@ -297,12 +350,82 @@ out:
 	return ret ? ret : count;
 }
 
+<<<<<<< HEAD
 static int pci_vpd_set_size(struct pci_dev *dev, size_t len)
 {
 	struct pci_vpd *vpd = dev->vpd;
 
 	if (len == 0 || len > PCI_VPD_MAX_SIZE)
 		return -EIO;
+=======
+static const struct pci_vpd_ops pci_vpd_ops = {
+	.read = pci_vpd_read,
+	.write = pci_vpd_write,
+};
+
+static ssize_t pci_vpd_f0_read(struct pci_dev *dev, loff_t pos, size_t count,
+			       void *arg)
+{
+	struct pci_dev *tdev = pci_get_func0_dev(dev);
+	ssize_t ret;
+
+	if (!tdev)
+		return -ENODEV;
+
+	ret = pci_read_vpd(tdev, pos, count, arg);
+	pci_dev_put(tdev);
+	return ret;
+}
+
+static ssize_t pci_vpd_f0_write(struct pci_dev *dev, loff_t pos, size_t count,
+				const void *arg)
+{
+	struct pci_dev *tdev = pci_get_func0_dev(dev);
+	ssize_t ret;
+
+	if (!tdev)
+		return -ENODEV;
+
+	ret = pci_write_vpd(tdev, pos, count, arg);
+	pci_dev_put(tdev);
+	return ret;
+}
+
+static const struct pci_vpd_ops pci_vpd_f0_ops = {
+	.read = pci_vpd_f0_read,
+	.write = pci_vpd_f0_write,
+};
+
+void pci_vpd_init(struct pci_dev *dev)
+{
+	struct pci_vpd *vpd;
+	u8 cap;
+
+	cap = pci_find_capability(dev, PCI_CAP_ID_VPD);
+	if (!cap)
+		return;
+
+	vpd = kzalloc(sizeof(*vpd), GFP_ATOMIC);
+	if (!vpd)
+		return;
+
+	vpd->len = PCI_VPD_MAX_SIZE;
+	if (dev->dev_flags & PCI_DEV_FLAGS_VPD_REF_F0)
+		vpd->ops = &pci_vpd_f0_ops;
+	else
+		vpd->ops = &pci_vpd_ops;
+	mutex_init(&vpd->lock);
+	vpd->cap = cap;
+	vpd->busy = 0;
+	vpd->valid = 0;
+	dev->vpd = vpd;
+}
+
+void pci_vpd_release(struct pci_dev *dev)
+{
+	kfree(dev->vpd);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	vpd->valid = 1;
 	vpd->len = len;
@@ -338,14 +461,20 @@ static ssize_t pci_vpd_f0_write(struct pci_dev *dev, loff_t pos, size_t count,
 					    PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
 	ssize_t ret;
 
+<<<<<<< HEAD
 	if (!tdev)
 		return -ENODEV;
+=======
+	if (!pdev->vpd)
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = pci_write_vpd(tdev, pos, count, arg);
 	pci_dev_put(tdev);
 	return ret;
 }
 
+<<<<<<< HEAD
 static int pci_vpd_f0_set_size(struct pci_dev *dev, size_t len)
 {
 	struct pci_dev *tdev = pci_get_slot(dev->bus,
@@ -374,6 +503,24 @@ int pci_vpd_init(struct pci_dev *dev)
 	cap = pci_find_capability(dev, PCI_CAP_ID_VPD);
 	if (!cap)
 		return -ENODEV;
+=======
+const struct attribute_group pci_dev_vpd_attr_group = {
+	.bin_attrs = vpd_attrs,
+	.is_bin_visible = vpd_attr_is_visible,
+};
+
+int pci_vpd_find_tag(const u8 *buf, unsigned int len, u8 rdt)
+{
+	int i = 0;
+
+	/* look for LRDT tags only, end tag is the only SRDT tag */
+	while (i + PCI_VPD_LRDT_TAG_SIZE <= len && buf[i] & PCI_VPD_LRDT) {
+		if (buf[i] == rdt)
+			return i;
+
+		i += PCI_VPD_LRDT_TAG_SIZE + pci_vpd_lrdt_size(buf + i);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	vpd = kzalloc(sizeof(*vpd), GFP_ATOMIC);
 	if (!vpd)
@@ -391,7 +538,9 @@ int pci_vpd_init(struct pci_dev *dev)
 	dev->vpd = vpd;
 	return 0;
 }
+EXPORT_SYMBOL_GPL(pci_vpd_find_tag);
 
+<<<<<<< HEAD
 void pci_vpd_release(struct pci_dev *dev)
 {
 	kfree(dev->vpd);
@@ -400,6 +549,10 @@ void pci_vpd_release(struct pci_dev *dev)
 static ssize_t read_vpd_attr(struct file *filp, struct kobject *kobj,
 			     struct bin_attribute *bin_attr, char *buf,
 			     loff_t off, size_t count)
+=======
+int pci_vpd_find_info_keyword(const u8 *buf, unsigned int off,
+			      unsigned int len, const char *kw)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct pci_dev *dev = to_pci_dev(kobj_to_dev(kobj));
 
@@ -412,6 +565,7 @@ static ssize_t read_vpd_attr(struct file *filp, struct kobject *kobj,
 
 	return pci_read_vpd(dev, off, count, buf);
 }
+<<<<<<< HEAD
 
 static ssize_t write_vpd_attr(struct file *filp, struct kobject *kobj,
 			      struct bin_attribute *bin_attr, char *buf,
@@ -515,6 +669,8 @@ int pci_vpd_find_info_keyword(const u8 *buf, unsigned int off,
 
 	return -ENOENT;
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 EXPORT_SYMBOL_GPL(pci_vpd_find_info_keyword);
 
 #ifdef CONFIG_PCI_QUIRKS
@@ -570,7 +726,10 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_LSI_LOGIC, 0x005d, quirk_blacklist_vpd);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_LSI_LOGIC, 0x005f, quirk_blacklist_vpd);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATTANSIC, PCI_ANY_ID,
 		quirk_blacklist_vpd);
+<<<<<<< HEAD
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_QLOGIC, 0x2261, quirk_blacklist_vpd);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * The Amazon Annapurna Labs 0x0031 device id is reused for other non Root Port
  * device types, so the quirk is registered for the PCI_CLASS_BRIDGE_PCI class.
@@ -578,6 +737,7 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_QLOGIC, 0x2261, quirk_blacklist_vpd);
 DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_AMAZON_ANNAPURNA_LABS, 0x0031,
 			      PCI_CLASS_BRIDGE_PCI, 8, quirk_blacklist_vpd);
 
+<<<<<<< HEAD
 /*
  * For Broadcom 5706, 5708, 5709 rev. A nics, any read beyond the
  * VPD end tag will hang the device.  This problem was initially
@@ -623,6 +783,18 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
 			PCI_DEVICE_ID_NX2_5709S,
 			quirk_brcm_570x_limit_vpd);
+=======
+static void pci_vpd_set_size(struct pci_dev *dev, size_t len)
+{
+	struct pci_vpd *vpd = dev->vpd;
+
+	if (!vpd || len == 0 || len > PCI_VPD_MAX_SIZE)
+		return;
+
+	vpd->valid = 1;
+	vpd->len = len;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static void quirk_chelsio_extend_vpd(struct pci_dev *dev)
 {
@@ -642,9 +814,15 @@ static void quirk_chelsio_extend_vpd(struct pci_dev *dev)
 	 * limits.
 	 */
 	if (chip == 0x0 && prod >= 0x20)
+<<<<<<< HEAD
 		pci_set_vpd_size(dev, 8192);
 	else if (chip >= 0x4 && func < 0x8)
 		pci_set_vpd_size(dev, 2048);
+=======
+		pci_vpd_set_size(dev, 8192);
+	else if (chip >= 0x4 && func < 0x8)
+		pci_vpd_set_size(dev, 2048);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_CHELSIO, PCI_ANY_ID,

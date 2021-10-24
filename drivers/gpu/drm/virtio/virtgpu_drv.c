@@ -54,9 +54,17 @@ static int virtio_gpu_pci_quirk(struct drm_device *dev, struct virtio_device *vd
 	DRM_INFO("pci: %s detected at %s\n",
 		 vga ? "virtio-vga" : "virtio-gpu-pci",
 		 pname);
+<<<<<<< HEAD
 	if (vga)
 		drm_fb_helper_remove_conflicting_pci_framebuffers(pdev,
 								  "virtiodrmfb");
+=======
+	if (vga) {
+		ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "virtiodrmfb");
+		if (ret)
+			return ret;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Normally the drm_dev_set_unique() call is done by core DRM.

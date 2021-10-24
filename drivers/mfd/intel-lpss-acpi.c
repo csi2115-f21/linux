@@ -70,7 +70,11 @@ static struct property_entry apl_i2c_properties[] = {
 
 static const struct intel_lpss_platform_info apl_i2c_info = {
 	.clk_rate = 133000000,
+<<<<<<< HEAD
 	.properties = apl_i2c_properties,
+=======
+	.swnode = &apl_i2c_node,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct acpi_device_id intel_lpss_acpi_ids[] = {

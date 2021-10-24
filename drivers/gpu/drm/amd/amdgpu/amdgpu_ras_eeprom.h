@@ -80,9 +80,13 @@ int amdgpu_ras_eeprom_init(struct amdgpu_ras_eeprom_control *control,
 			bool *exceed_err_limit);
 int amdgpu_ras_eeprom_reset_table(struct amdgpu_ras_eeprom_control *control);
 
+<<<<<<< HEAD
 int amdgpu_ras_eeprom_check_err_threshold(
 				struct amdgpu_ras_eeprom_control *control,
 				bool *exceed_err_limit);
+=======
+bool amdgpu_ras_eeprom_check_err_threshold(struct amdgpu_device *adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int amdgpu_ras_eeprom_process_recods(struct amdgpu_ras_eeprom_control *control,
 					    struct eeprom_table_record *records,

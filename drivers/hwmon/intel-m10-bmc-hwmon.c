@@ -110,6 +110,83 @@ static const struct m10bmc_hwmon_board_data n3000bmc_hwmon_bdata = {
 	.hinfo = n3000bmc_hinfo,
 };
 
+<<<<<<< HEAD
+=======
+static const struct hwmon_channel_info *d5005bmc_hinfo[] = {
+	HWMON_CHANNEL_INFO(temp,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_HYST |
+			   HWMON_T_CRIT | HWMON_T_CRIT_HYST | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT |
+			   HWMON_T_LABEL),
+	HWMON_CHANNEL_INFO(in,
+			   HWMON_I_INPUT | HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MAX | HWMON_I_CRIT |
+			   HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MAX | HWMON_I_CRIT |
+			   HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MAX | HWMON_I_CRIT |
+			   HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MAX | HWMON_I_CRIT |
+			   HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MAX | HWMON_I_CRIT |
+			   HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MIN | HWMON_I_LABEL,
+			   HWMON_I_INPUT | HWMON_I_MIN | HWMON_I_LABEL),
+	HWMON_CHANNEL_INFO(curr,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_MAX | HWMON_C_LABEL,
+			   HWMON_C_INPUT | HWMON_C_MAX | HWMON_C_LABEL),
+	NULL
+};
+
+static const struct m10bmc_hwmon_board_data d5005bmc_hwmon_bdata = {
+	.tables = {
+		[hwmon_temp] = d5005bmc_temp_tbl,
+		[hwmon_in] = d5005bmc_in_tbl,
+		[hwmon_curr] = d5005bmc_curr_tbl,
+	},
+
+	.hinfo = d5005bmc_hinfo,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static umode_t
 m10bmc_hwmon_is_visible(const void *data, enum hwmon_sensor_types type,
 			u32 attr, int channel)
@@ -316,6 +393,13 @@ static const struct platform_device_id intel_m10bmc_hwmon_ids[] = {
 		.name = "n3000bmc-hwmon",
 		.driver_data = (unsigned long)&n3000bmc_hwmon_bdata,
 	},
+<<<<<<< HEAD
+=======
+	{
+		.name = "d5005bmc-hwmon",
+		.driver_data = (unsigned long)&d5005bmc_hwmon_bdata,
+	},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{ }
 };
 

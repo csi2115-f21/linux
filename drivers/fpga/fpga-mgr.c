@@ -571,7 +571,11 @@ struct fpga_manager *fpga_mgr_create(struct device *dev, const char *name,
 	if (!mops || !mops->write_complete || !mops->state ||
 	    !mops->write_init || (!mops->write && !mops->write_sg) ||
 	    (mops->write && mops->write_sg)) {
+<<<<<<< HEAD
 		dev_err(dev, "Attempt to register without fpga_manager_ops\n");
+=======
+		dev_err(parent, "Attempt to register without fpga_manager_ops\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return NULL;
 	}
 

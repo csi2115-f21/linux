@@ -108,6 +108,12 @@ unsigned long __bootdata_preserved(__edma);
 unsigned long __bootdata_preserved(__kaslr_offset);
 unsigned int __bootdata_preserved(zlib_dfltcc_support);
 EXPORT_SYMBOL(zlib_dfltcc_support);
+<<<<<<< HEAD
+=======
+u64 __bootdata_preserved(stfle_fac_list[16]);
+EXPORT_SYMBOL(stfle_fac_list);
+u64 __bootdata_preserved(alt_stfle_fac_list[16]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 unsigned long VMALLOC_START;
 EXPORT_SYMBOL(VMALLOC_START);
@@ -937,9 +943,15 @@ static int __init setup_hwcaps(void)
 	if (MACHINE_HAS_VX) {
 		elf_hwcap |= HWCAP_S390_VXRS;
 		if (test_facility(134))
+<<<<<<< HEAD
 			elf_hwcap |= HWCAP_S390_VXRS_EXT;
 		if (test_facility(135))
 			elf_hwcap |= HWCAP_S390_VXRS_BCD;
+=======
+			elf_hwcap |= HWCAP_S390_VXRS_BCD;
+		if (test_facility(135))
+			elf_hwcap |= HWCAP_S390_VXRS_EXT;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (test_facility(148))
 			elf_hwcap |= HWCAP_S390_VXRS_EXT2;
 		if (test_facility(152))
@@ -1152,7 +1164,10 @@ void __init setup_arch(char **cmdline_p)
 	memblock_add_mem_detect_info();
 
 	free_mem_detect_info();
+<<<<<<< HEAD
 	remove_oldmem();
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	setup_uv();
 	setup_ident_map_size();

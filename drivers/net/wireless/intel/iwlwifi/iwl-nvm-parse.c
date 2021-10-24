@@ -549,8 +549,12 @@ static const struct ieee80211_sband_iftype_data iwl_he_capa[] = {
 				.mac_cap_info[2] =
 					IEEE80211_HE_MAC_CAP2_32BIT_BA_BITMAP,
 				.mac_cap_info[3] =
+<<<<<<< HEAD
 					IEEE80211_HE_MAC_CAP3_OMI_CONTROL |
 					IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_VHT_2,
+=======
+					IEEE80211_HE_MAC_CAP3_OMI_CONTROL,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				.mac_cap_info[4] =
 					IEEE80211_HE_MAC_CAP4_AMDSU_IN_AMPDU |
 					IEEE80211_HE_MAC_CAP4_MULTI_TID_AGG_TX_QOS_B39,
@@ -745,6 +749,67 @@ static void iwl_init_he_6ghz_capa(struct iwl_trans *trans,
 		iftype_data[i].he_6ghz_capa.capa = cpu_to_le16(he_6ghz_capa);
 }
 
+<<<<<<< HEAD
+=======
+static void
+iwl_nvm_fixup_sband_iftd(struct iwl_trans *trans,
+			 struct ieee80211_supported_band *sband,
+			 struct ieee80211_sband_iftype_data *iftype_data,
+			 u8 tx_chains, u8 rx_chains,
+			 const struct iwl_fw *fw)
+{
+	bool is_ap = iftype_data->types_mask & BIT(NL80211_IFTYPE_AP);
+
+	/* Advertise an A-MPDU exponent extension based on
+	 * operating band
+	 */
+	if (sband->band != NL80211_BAND_2GHZ)
+		iftype_data->he_cap.he_cap_elem.mac_cap_info[3] |=
+			IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_EXT_1;
+	else
+		iftype_data->he_cap.he_cap_elem.mac_cap_info[3] |=
+			IEEE80211_HE_MAC_CAP3_MAX_AMPDU_LEN_EXP_EXT_3;
+
+	if (is_ap && iwlwifi_mod_params.nvm_file)
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[0] |=
+			IEEE80211_HE_PHY_CAP0_CHANNEL_WIDTH_SET_160MHZ_IN_5G;
+
+	if ((tx_chains & rx_chains) == ANT_AB) {
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[5] |=
+			IEEE80211_HE_PHY_CAP5_BEAMFORMEE_NUM_SND_DIM_UNDER_80MHZ_2 |
+			IEEE80211_HE_PHY_CAP5_BEAMFORMEE_NUM_SND_DIM_ABOVE_80MHZ_2;
+		if (!is_ap)
+			iftype_data->he_cap.he_cap_elem.phy_cap_info[7] |=
+				IEEE80211_HE_PHY_CAP7_MAX_NC_2;
+	} else if (!is_ap) {
+		/* If not 2x2, we need to indicate 1x1 in the
+		 * Midamble RX Max NSTS - but not for AP mode
+		 */
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[1] &=
+			~IEEE80211_HE_PHY_CAP1_MIDAMBLE_RX_TX_MAX_NSTS;
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[2] &=
+			~IEEE80211_HE_PHY_CAP2_MIDAMBLE_RX_TX_MAX_NSTS;
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[7] |=
+			IEEE80211_HE_PHY_CAP7_MAX_NC_1;
+	}
+
+	switch (CSR_HW_RFID_TYPE(trans->hw_rf_id)) {
+	case IWL_CFG_RF_TYPE_GF:
+	case IWL_CFG_RF_TYPE_MR:
+		iftype_data->he_cap.he_cap_elem.phy_cap_info[9] |=
+			IEEE80211_HE_PHY_CAP9_TX_1024_QAM_LESS_THAN_242_TONE_RU;
+		if (!is_ap)
+			iftype_data->he_cap.he_cap_elem.phy_cap_info[9] |=
+				IEEE80211_HE_PHY_CAP9_RX_1024_QAM_LESS_THAN_242_TONE_RU;
+		break;
+	}
+
+	if (fw_has_capa(&fw->ucode_capa, IWL_UCODE_TLV_CAPA_BROADCAST_TWT))
+		iftype_data->he_cap.he_cap_elem.mac_cap_info[2] |=
+			IEEE80211_HE_MAC_CAP2_BCAST_TWT;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void iwl_init_he_hw_capab(struct iwl_trans *trans,
 				 struct iwl_nvm_data *data,
 				 struct ieee80211_supported_band *sband,

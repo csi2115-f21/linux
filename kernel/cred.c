@@ -283,6 +283,13 @@ struct cred *prepare_creds(void)
 #endif
 
 	if (security_prepare_creds(new, old, GFP_KERNEL_ACCOUNT) < 0)
+<<<<<<< HEAD
+=======
+		goto error;
+
+	new->ucounts = get_ucounts(new->ucounts);
+	if (!new->ucounts)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto error;
 	validate_creds(new);
 	return new;
@@ -717,6 +724,13 @@ struct cred *prepare_kernel_cred(struct task_struct *daemon)
 	new->security = NULL;
 #endif
 	if (security_prepare_creds(new, old, GFP_KERNEL_ACCOUNT) < 0)
+<<<<<<< HEAD
+=======
+		goto error;
+
+	new->ucounts = get_ucounts(new->ucounts);
+	if (!new->ucounts)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto error;
 
 	put_cred(old);

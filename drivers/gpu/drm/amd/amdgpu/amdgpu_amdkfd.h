@@ -250,7 +250,11 @@ int amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(
 int amdgpu_amdkfd_gpuvm_free_memory_of_gpu(
 		struct kgd_dev *kgd, struct kgd_mem *mem, uint64_t *size);
 int amdgpu_amdkfd_gpuvm_map_memory_to_gpu(
+<<<<<<< HEAD
 		struct kgd_dev *kgd, struct kgd_mem *mem, void *vm);
+=======
+		struct kgd_dev *kgd, struct kgd_mem *mem, void *drm_priv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int amdgpu_amdkfd_gpuvm_unmap_memory_from_gpu(
 		struct kgd_dev *kgd, struct kgd_mem *mem, void *vm);
 int amdgpu_amdkfd_gpuvm_sync_memory(

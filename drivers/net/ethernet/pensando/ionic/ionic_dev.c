@@ -14,6 +14,10 @@
 static void ionic_watchdog_cb(struct timer_list *t)
 {
 	struct ionic *ionic = from_timer(ionic, t, watchdog_timer);
+<<<<<<< HEAD
+=======
+	struct ionic_lif *lif = ionic->lif;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int hb;
 
 	mod_timer(&ionic->watchdog_timer,
@@ -23,9 +27,19 @@ static void ionic_watchdog_cb(struct timer_list *t)
 		return;
 
 	hb = ionic_heartbeat_check(ionic);
+<<<<<<< HEAD
 
 	if (hb >= 0)
 		ionic_link_status_check_request(ionic->lif, CAN_NOT_SLEEP);
+=======
+	dev_dbg(ionic->dev, "%s: hb %d running %d UP %d\n",
+		__func__, hb, netif_running(lif->netdev),
+		test_bit(IONIC_LIF_F_UP, lif->state));
+
+	if (hb >= 0 &&
+	    !test_bit(IONIC_LIF_F_FW_RESET, lif->state))
+		ionic_link_status_check_request(lif, CAN_NOT_SLEEP);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void ionic_init_devinfo(struct ionic *ionic)
@@ -92,6 +106,18 @@ int ionic_dev_setup(struct ionic *ionic)
 	idev->last_fw_status = 0xff;
 	timer_setup(&ionic->watchdog_timer, ionic_watchdog_cb, 0);
 	ionic->watchdog_period = IONIC_WATCHDOG_SECS * HZ;
+<<<<<<< HEAD
+=======
+
+	/* set times to ensure the first check will proceed */
+	atomic_long_set(&idev->last_check_time, jiffies - 2 * HZ);
+	idev->last_hb_time = jiffies - 2 * ionic->watchdog_period;
+	/* init as ready, so no transition if the first check succeeds */
+	idev->last_fw_hb = 0;
+	idev->fw_hb_ready = true;
+	idev->fw_status_ready = true;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mod_timer(&ionic->watchdog_timer,
 		  round_jiffies(jiffies + ionic->watchdog_period));
 
@@ -105,7 +131,12 @@ int ionic_dev_setup(struct ionic *ionic)
 int ionic_heartbeat_check(struct ionic *ionic)
 {
 	struct ionic_dev *idev = &ionic->idev;
+<<<<<<< HEAD
 	unsigned long hb_time;
+=======
+	unsigned long check_time, last_check_time;
+	bool fw_status_ready, fw_hb_ready;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 fw_status;
 	u32 hb;
 
@@ -118,8 +149,12 @@ int ionic_heartbeat_check(struct ionic *ionic)
 	 * fw_status != 0xff (bad PCI read)
 	 */
 	fw_status = ioread8(&idev->dev_info_regs->fw_status);
+<<<<<<< HEAD
 	if (fw_status != 0xff)
 		fw_status &= IONIC_FW_STS_F_RUNNING;  /* use only the run bit */
+=======
+	fw_status_ready = (fw_status != 0xff) && (fw_status & IONIC_FW_STS_F_RUNNING);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* is this a transition? */
 	if (fw_status != idev->last_fw_status &&

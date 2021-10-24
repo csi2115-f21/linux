@@ -3022,9 +3022,12 @@ static void ext4_orphan_cleanup(struct super_block *sb,
 		sb->s_flags &= ~SB_RDONLY;
 	}
 #ifdef CONFIG_QUOTA
+<<<<<<< HEAD
 	/* Needed for iput() to work correctly and not trash data */
 	sb->s_flags |= SB_ACTIVE;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * Turn on quotas which were not enabled for read-only mounts if
 	 * filesystem has quota feature, so that they are updated correctly.
@@ -3085,8 +3088,20 @@ static void ext4_orphan_cleanup(struct super_block *sb,
 			inode_lock(inode);
 			truncate_inode_pages(inode->i_mapping, inode->i_size);
 			ret = ext4_truncate(inode);
+<<<<<<< HEAD
 			if (ret)
 				ext4_std_error(inode->i_sb, ret);
+=======
+			if (ret) {
+				/*
+				 * We need to clean up the in-core orphan list
+				 * manually if ext4_truncate() failed to get a
+				 * transaction handle.
+				 */
+				ext4_orphan_del(NULL, inode);
+				ext4_std_error(inode->i_sb, ret);
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			inode_unlock(inode);
 			nr_truncates++;
 		} else {
@@ -5149,6 +5164,10 @@ failed_mount_wq:
 failed_mount3a:
 	ext4_es_unregister_shrinker(sbi);
 failed_mount3:
+<<<<<<< HEAD
+=======
+	flush_work(&sbi->s_error_work);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	del_timer_sync(&sbi->s_err_report);
 	flush_work(&sbi->s_error_work);
 	if (sbi->s_mmp_tsk)

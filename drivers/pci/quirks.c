@@ -3899,6 +3899,32 @@ static int nvme_disable_and_flr(struct pci_dev *dev, int probe)
  * proven to produce reliably working results for device assignment cases.
  */
 static int delay_250ms_after_flr(struct pci_dev *dev, int probe)
+<<<<<<< HEAD
+=======
+{
+	if (!pcie_has_flr(dev))
+		return -ENOTTY;
+
+	if (probe)
+		return 0;
+
+	pcie_flr(dev);
+
+	msleep(250);
+
+	return 0;
+}
+
+#define PCI_DEVICE_ID_HINIC_VF      0x375E
+#define HINIC_VF_FLR_TYPE           0x1000
+#define HINIC_VF_FLR_CAP_BIT        (1UL << 30)
+#define HINIC_VF_OP                 0xE80
+#define HINIC_VF_FLR_PROC_BIT       (1UL << 18)
+#define HINIC_OPERATION_TIMEOUT     15000	/* 15 seconds */
+
+/* Device-specific reset method for Huawei Intelligent NIC virtual functions */
+static int reset_hinic_vf_dev(struct pci_dev *pdev, int probe)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (!pcie_has_flr(dev))
 		return -ENOTTY;

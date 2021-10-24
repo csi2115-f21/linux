@@ -1238,6 +1238,11 @@ static void dwc3_get_properties(struct dwc3 *dwc)
 	u8			rx_max_burst_prd;
 	u8			tx_thr_num_pkt_prd;
 	u8			tx_max_burst_prd;
+<<<<<<< HEAD
+=======
+	const char		*usb_psy_name;
+	int			ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* default to highest possible threshold */
 	lpm_nyet_threshold = 0xf;

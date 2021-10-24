@@ -992,7 +992,10 @@ static int mtk_pcie_subsys_powerup(struct mtk_pcie *pcie)
 		if (IS_ERR(pcie->base)) {
 			dev_err(dev, "failed to map shared register\n");
 			return PTR_ERR(pcie->base);
+<<<<<<< HEAD
 		}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	pcie->free_ck = devm_clk_get(dev, "free_ck");

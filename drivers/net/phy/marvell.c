@@ -2674,6 +2674,7 @@ static int marvell_probe(struct phy_device *phydev)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int m88e1121_probe(struct phy_device *phydev)
 {
 	int err;
@@ -2707,6 +2708,8 @@ static int m88e6390_probe(struct phy_device *phydev)
 	return m88e6390_hwmon_probe(phydev);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct phy_driver marvell_drivers[] = {
 	{
 		.phy_id = MARVELL_PHY_ID_88E1101,
@@ -2929,7 +2932,7 @@ static struct phy_driver marvell_drivers[] = {
 		.name = "Marvell 88E1510",
 		.features = PHY_GBIT_FIBRE_FEATURES,
 		.flags = PHY_POLL_CABLE_TEST,
-		.probe = m88e1510_probe,
+		.probe = marvell_probe,
 		.config_init = m88e1510_config_init,
 		.config_aneg = m88e1510_config_aneg,
 		.read_status = marvell_read_status,

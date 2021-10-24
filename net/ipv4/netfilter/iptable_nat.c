@@ -13,7 +13,17 @@
 
 #include <net/netfilter/nf_nat.h>
 
+<<<<<<< HEAD
 static int __net_init iptable_nat_table_init(struct net *net);
+=======
+struct iptable_nat_pernet {
+	struct nf_hook_ops *nf_nat_ops;
+};
+
+static int __net_init iptable_nat_table_init(struct net *net);
+
+static unsigned int iptable_nat_net_id __read_mostly;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static const struct xt_table nf_nat_ipv4_table = {
 	.name		= "nat",
@@ -135,10 +145,17 @@ static struct pernet_operations iptable_nat_net_ops = {
 static int __init iptable_nat_init(void)
 {
 	int ret = register_pernet_subsys(&iptable_nat_net_ops);
+<<<<<<< HEAD
 
 	if (ret)
 		return ret;
 
+=======
+
+	if (ret)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = iptable_nat_table_init(&init_net);
 	if (ret)
 		unregister_pernet_subsys(&iptable_nat_net_ops);

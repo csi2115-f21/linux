@@ -34,6 +34,7 @@
 #define CXLDEV_MBOX_BG_CMD_STATUS_OFFSET 0x18
 #define CXLDEV_MBOX_PAYLOAD_OFFSET 0x20
 
+<<<<<<< HEAD
 /* CXL 2.0 8.2.8.5.1.1 Memory Device Status Register */
 #define CXLMDEV_STATUS_OFFSET 0x0
 #define   CXLMDEV_DEV_FATAL BIT(0)
@@ -58,6 +59,114 @@
 	 CXLMDEV_RESET_NEEDED_NOT)
 
 struct cxl_memdev;
+=======
+#define CXL_COMPONENT_REGS() \
+	void __iomem *hdm_decoder
+
+#define CXL_DEVICE_REGS() \
+	void __iomem *status; \
+	void __iomem *mbox; \
+	void __iomem *memdev
+
+/* See note for 'struct cxl_regs' for the rationale of this organization */
+/*
+ * CXL_COMPONENT_REGS - Common set of CXL Component register block base pointers
+ * @hdm_decoder: CXL 2.0 8.2.5.12 CXL HDM Decoder Capability Structure
+ */
+struct cxl_component_regs {
+	CXL_COMPONENT_REGS();
+};
+
+/* See note for 'struct cxl_regs' for the rationale of this organization */
+/*
+ * CXL_DEVICE_REGS - Common set of CXL Device register block base pointers
+ * @status: CXL 2.0 8.2.8.3 Device Status Registers
+ * @mbox: CXL 2.0 8.2.8.4 Mailbox Registers
+ * @memdev: CXL 2.0 8.2.8.5 Memory Device Registers
+ */
+struct cxl_device_regs {
+	CXL_DEVICE_REGS();
+};
+
+/*
+ * Note, the anonymous union organization allows for per
+ * register-block-type helper routines, without requiring block-type
+ * agnostic code to include the prefix.
+ */
+struct cxl_regs {
+	union {
+		struct {
+			CXL_COMPONENT_REGS();
+		};
+		struct cxl_component_regs component;
+	};
+	union {
+		struct {
+			CXL_DEVICE_REGS();
+		};
+		struct cxl_device_regs device_regs;
+	};
+};
+
+struct cxl_reg_map {
+	bool valid;
+	unsigned long offset;
+	unsigned long size;
+};
+
+struct cxl_component_reg_map {
+	struct cxl_reg_map hdm_decoder;
+};
+
+struct cxl_device_reg_map {
+	struct cxl_reg_map status;
+	struct cxl_reg_map mbox;
+	struct cxl_reg_map memdev;
+};
+
+struct cxl_register_map {
+	struct list_head list;
+	u64 block_offset;
+	u8 reg_type;
+	u8 barno;
+	union {
+		struct cxl_component_reg_map component_map;
+		struct cxl_device_reg_map device_map;
+	};
+};
+
+void cxl_probe_component_regs(struct device *dev, void __iomem *base,
+			      struct cxl_component_reg_map *map);
+void cxl_probe_device_regs(struct device *dev, void __iomem *base,
+			   struct cxl_device_reg_map *map);
+int cxl_map_component_regs(struct pci_dev *pdev,
+			   struct cxl_component_regs *regs,
+			   struct cxl_register_map *map);
+int cxl_map_device_regs(struct pci_dev *pdev,
+			struct cxl_device_regs *regs,
+			struct cxl_register_map *map);
+
+#define CXL_RESOURCE_NONE ((resource_size_t) -1)
+#define CXL_TARGET_STRLEN 20
+
+/*
+ * cxl_decoder flags that define the type of memory / devices this
+ * decoder supports as well as configuration lock status See "CXL 2.0
+ * 8.2.5.12.7 CXL HDM Decoder 0 Control Register" for details.
+ */
+#define CXL_DECODER_F_RAM   BIT(0)
+#define CXL_DECODER_F_PMEM  BIT(1)
+#define CXL_DECODER_F_TYPE2 BIT(2)
+#define CXL_DECODER_F_TYPE3 BIT(3)
+#define CXL_DECODER_F_LOCK  BIT(4)
+#define CXL_DECODER_F_MASK  GENMASK(4, 0)
+
+enum cxl_decoder_type {
+       CXL_DECODER_ACCELERATOR = 2,
+       CXL_DECODER_EXPANDER = 3,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * struct cxl_mem - A CXL memory device
  * @pdev: The PCI device associated with this CXL device.

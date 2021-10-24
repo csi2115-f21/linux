@@ -72,6 +72,46 @@ static struct reset_controller_dev imx_reset_controller = {
 	.ops = &imx_src_ops,
 	.nr_resets = ARRAY_SIZE(sw_reset_bits),
 };
+<<<<<<< HEAD
+=======
+
+static void imx_gpcv2_set_m_core_pgc(bool enable, u32 offset)
+{
+	writel_relaxed(enable, gpc_base + offset);
+}
+
+/*
+ * The motivation for bringing up the second i.MX7D core inside the kernel
+ * is that legacy vendor bootloaders usually do not implement PSCI support.
+ * This is a significant blocker for systems in the field that are running old
+ * bootloader versions to upgrade to a modern mainline kernel version, as only
+ * one CPU of the i.MX7D would be brought up.
+ * Bring up the second i.MX7D core inside the kernel to make the migration
+ * path to mainline kernel easier for the existing iMX7D users.
+ */
+void imx_gpcv2_set_core1_pdn_pup_by_software(bool pdn)
+{
+	u32 reg = pdn ? GPC_CPU_PGC_SW_PDN_REQ : GPC_CPU_PGC_SW_PUP_REQ;
+	u32 val, pup;
+	int ret;
+
+	imx_gpcv2_set_m_core_pgc(true, GPC_PGC_C1);
+	val = readl_relaxed(gpc_base + reg);
+	val |= BM_CPU_PGC_SW_PDN_PUP_REQ_CORE1_A7;
+	writel_relaxed(val, gpc_base + reg);
+
+	ret = readl_relaxed_poll_timeout_atomic(gpc_base + reg, pup,
+				!(pup & BM_CPU_PGC_SW_PDN_PUP_REQ_CORE1_A7),
+				5, 1000000);
+	if (ret < 0) {
+		pr_err("i.MX7D: CORE1_A7 power up timeout\n");
+		val &= ~BM_CPU_PGC_SW_PDN_PUP_REQ_CORE1_A7;
+		writel_relaxed(val, gpc_base + reg);
+	}
+
+	imx_gpcv2_set_m_core_pgc(false, GPC_PGC_C1);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void imx_enable_cpu(int cpu, bool enable)
 {
@@ -131,3 +171,29 @@ void __init imx_src_init(void)
 	writel_relaxed(val, src_base + SRC_SCR);
 	spin_unlock(&scr_lock);
 }
+<<<<<<< HEAD
+=======
+
+void __init imx7_src_init(void)
+{
+	struct device_node *np;
+
+	gpr_v2 = true;
+
+	np = of_find_compatible_node(NULL, NULL, "fsl,imx7d-src");
+	if (!np)
+		return;
+
+	src_base = of_iomap(np, 0);
+	if (!src_base)
+		return;
+
+	np = of_find_compatible_node(NULL, NULL, "fsl,imx7d-gpc");
+	if (!np)
+		return;
+
+	gpc_base = of_iomap(np, 0);
+	if (!gpc_base)
+		return;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

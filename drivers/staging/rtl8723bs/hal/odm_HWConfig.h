@@ -107,6 +107,7 @@ typedef struct _Phy_Status_Rpt_8812 {
 	u8 PCTS_MSK_RPT[2];
 	u8 pdsnr[2]; /*  DW 4 byte 3 DW 5 Byte 0 */
 
+<<<<<<< HEAD
 	/* DWORD 5 */
 	u8 csi_current[2];
 	u8 rx_gain_c;
@@ -123,6 +124,10 @@ typedef struct _Phy_Status_Rpt_8812 {
 
 void ODM_PhyStatusQuery(
 	PDM_ODM_T pDM_Odm,
+=======
+void ODM_PhyStatusQuery(
+	struct dm_odm_t *pDM_Odm,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct odm_phy_info *pPhyInfo,
 	u8 *pPhyStatus,
 	struct odm_packet_info *pPktinfo
@@ -130,10 +135,17 @@ void ODM_PhyStatusQuery(
 
 HAL_STATUS ODM_ConfigRFWithTxPwrTrackHeaderFile(PDM_ODM_T pDM_Odm);
 
+<<<<<<< HEAD
 HAL_STATUS ODM_ConfigRFWithHeaderFile(
 	PDM_ODM_T pDM_Odm,
 	ODM_RF_Config_Type ConfigType,
 	ODM_RF_RADIO_PATH_E eRFPath
+=======
+enum hal_status ODM_ConfigRFWithHeaderFile(
+	struct dm_odm_t *pDM_Odm,
+	enum ODM_RF_Config_Type ConfigType,
+	enum odm_rf_radio_path_e eRFPath
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 );
 
 HAL_STATUS ODM_ConfigBBWithHeaderFile(
@@ -147,6 +159,10 @@ HAL_STATUS ODM_ConfigFWWithHeaderFile(
 	u32 *pSize
 );
 
+<<<<<<< HEAD
 s32 odm_SignalScaleMapping(PDM_ODM_T pDM_Odm, s32 CurrSig);
+=======
+s32 odm_SignalScaleMapping(struct dm_odm_t *pDM_Odm, s32 CurrSig);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif

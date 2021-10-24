@@ -11,7 +11,10 @@ cat <<EOF |
 gen-atomic-instrumented.sh      asm-generic/atomic-instrumented.h
 gen-atomic-long.sh              asm-generic/atomic-long.h
 gen-atomic-fallback.sh          linux/atomic-arch-fallback.h		arch_
+<<<<<<< HEAD
 gen-atomic-fallback.sh          linux/atomic-fallback.h
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 EOF
 while read script header args; do
 	/bin/sh ${ATOMICDIR}/${script} ${ATOMICTBL} ${args} > ${LINUXDIR}/include/${header}
