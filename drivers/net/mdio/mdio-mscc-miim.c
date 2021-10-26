@@ -134,7 +134,10 @@ static int mscc_miim_reset(struct mii_bus *bus)
 
 static int mscc_miim_probe(struct platform_device *pdev)
 {
+<<<<<<< HEAD
 	struct resource *res;
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	struct mii_bus *bus;
 	struct mscc_miim_dev *dev;
 	int ret;
@@ -161,6 +164,7 @@ static int mscc_miim_probe(struct platform_device *pdev)
 		return PTR_ERR(dev->regs);
 	}
 
+<<<<<<< HEAD
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	if (res) {
 		dev->phy_regs = devm_ioremap_resource(&pdev->dev, res);
@@ -168,6 +172,12 @@ static int mscc_miim_probe(struct platform_device *pdev)
 			dev_err(&pdev->dev, "Unable to map internal phy registers\n");
 			return PTR_ERR(dev->phy_regs);
 		}
+=======
+	dev->phy_regs = devm_platform_ioremap_resource(pdev, 1);
+	if (IS_ERR(dev->phy_regs)) {
+		dev_err(&pdev->dev, "Unable to map internal phy registers\n");
+		return PTR_ERR(dev->phy_regs);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	}
 
 	ret = of_mdiobus_register(bus, pdev->dev.of_node);

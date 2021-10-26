@@ -120,6 +120,20 @@ enum mod_hdcp_display_state {
 	MOD_HDCP_DISPLAY_ENCRYPTION_ENABLED
 };
 
+<<<<<<< HEAD
+=======
+struct mod_hdcp_psp_caps {
+	uint8_t dtm_v3_supported;
+	uint8_t opm_state_query_supported;
+};
+
+enum mod_hdcp_display_disable_option {
+	MOD_HDCP_DISPLAY_NOT_DISABLE = 0,
+	MOD_HDCP_DISPLAY_DISABLE_AUTHENTICATION,
+	MOD_HDCP_DISPLAY_DISABLE_ENCRYPTION,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct mod_hdcp_ddc {
 	void *handle;
 	struct {

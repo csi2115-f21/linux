@@ -18,7 +18,11 @@ void sw_led_on(struct adapter *padapter, struct LED_871x *pLed)
 		return;
 	led_cfg = usb_read8(padapter, REG_LEDCFG2);
 	usb_write8(padapter, REG_LEDCFG2, (led_cfg & 0xf0) | BIT(5) | BIT(6));
+<<<<<<< HEAD
 	pLed->bLedOn = true;
+=======
+	pLed->led_on = true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void sw_led_off(struct adapter *padapter, struct LED_871x *pLed)
@@ -37,7 +41,11 @@ void sw_led_off(struct adapter *padapter, struct LED_871x *pLed)
 	led_cfg &= 0xFE;
 	usb_write8(padapter, REG_MAC_PINMUX_CFG, led_cfg);
 exit:
+<<<<<<< HEAD
 	pLed->bLedOn = false;
+=======
+	pLed->led_on = false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_hal_sw_led_init(struct adapter *padapter)

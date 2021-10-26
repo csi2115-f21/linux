@@ -62,8 +62,11 @@ static void update_BCNTIM(struct adapter *padapter)
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	struct wlan_bssid_ex *pnetwork_mlmeext = &pmlmeinfo->network;
 	unsigned char *pie = pnetwork_mlmeext->IEs;
+<<<<<<< HEAD
 
 	/* DBG_871X("%s\n", __func__); */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* update TIM IE */
 	/* if (pstapriv->tim_bitmap) */
@@ -74,6 +77,7 @@ static void update_BCNTIM(struct adapter *padapter)
 
 		tim_bitmap_le = cpu_to_le16(pstapriv->tim_bitmap);
 
+<<<<<<< HEAD
 		p = rtw_get_ie(
 			pie + _FIXED_IE_LENGTH_,
 			WLAN_EID_TIM,
@@ -82,12 +86,25 @@ static void update_BCNTIM(struct adapter *padapter)
 		);
 		if (p && tim_ielen > 0) {
 			tim_ielen += 2;
+=======
+	p = rtw_get_ie(pie + _FIXED_IE_LENGTH_,
+		       WLAN_EID_TIM,
+		       &tim_ielen,
+		       pnetwork_mlmeext->IELength - _FIXED_IE_LENGTH_
+	);
+	if (p && tim_ielen > 0) {
+		tim_ielen += 2;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			premainder_ie = p + tim_ielen;
 
 			tim_ie_offset = (sint)(p - pie);
 
+<<<<<<< HEAD
 			remainder_ielen = pnetwork_mlmeext->IELength - tim_ie_offset - tim_ielen;
+=======
+		remainder_ielen = pnetwork_mlmeext->IELength - tim_ie_offset - tim_ielen;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			/* append TIM IE from dst_ie offset */
 			dst_ie = p;
@@ -97,6 +114,7 @@ static void update_BCNTIM(struct adapter *padapter)
 			/* calculate head_len */
 			offset = _FIXED_IE_LENGTH_;
 
+<<<<<<< HEAD
 			/* get ssid_ie len */
 			p = rtw_get_ie(
 				pie + _BEACON_IE_OFFSET_,
@@ -115,13 +133,35 @@ static void update_BCNTIM(struct adapter *padapter)
 			);
 			if (p)
 				offset += tmp_len + 2;
+=======
+		/* get ssid_ie len */
+		p = rtw_get_ie(pie + _BEACON_IE_OFFSET_,
+			       WLAN_EID_SSID,
+			       &tmp_len,
+			       (pnetwork_mlmeext->IELength - _BEACON_IE_OFFSET_)
+		);
+		if (p)
+			offset += tmp_len + 2;
+
+		/*  get supported rates len */
+		p = rtw_get_ie(pie + _BEACON_IE_OFFSET_,
+			       WLAN_EID_SUPP_RATES, &tmp_len,
+			       (pnetwork_mlmeext->IELength - _BEACON_IE_OFFSET_)
+		);
+		if (p)
+			offset += tmp_len + 2;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			/* DS Parameter Set IE, len =3 */
 			offset += 3;
 
 			premainder_ie = pie + offset;
 
+<<<<<<< HEAD
 			remainder_ielen = pnetwork_mlmeext->IELength - offset - tim_ielen;
+=======
+		remainder_ielen = pnetwork_mlmeext->IELength - offset - tim_ielen;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			/* append TIM IE from offset */
 			dst_ie = pie + offset;
@@ -172,9 +212,14 @@ static void update_BCNTIM(struct adapter *padapter)
 			kfree(pbackup_remainder_ie);
 		}
 
+<<<<<<< HEAD
 		offset =  (uint)(dst_ie - pie);
 		pnetwork_mlmeext->IELength = offset + remainder_ielen;
 	}
+=======
+	offset =  (uint)(dst_ie - pie);
+	pnetwork_mlmeext->IELength = offset + remainder_ielen;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 u8 chk_sta_is_alive(struct sta_info *psta);
@@ -425,11 +470,15 @@ void add_RATid(struct adapter *padapter, struct sta_info *psta, u8 rssi_level)
 	shortGIrate = query_ra_short_GI(psta);
 
 	if (pcur_network->Configuration.DSConfig > 14) {
+<<<<<<< HEAD
 		if (tx_ra_bitmap & 0xffff000)
 			sta_band |= WIRELESS_11_5N;
 
 		if (tx_ra_bitmap & 0xff0)
 			sta_band |= WIRELESS_11A;
+=======
+		sta_band |= WIRELESS_INVALID;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		if (tx_ra_bitmap & 0xffff000)
 			sta_band |= WIRELESS_11_24N;
@@ -491,17 +540,27 @@ void update_bmc_sta(struct adapter *padapter)
 
 		/* prepare for add_RATid */
 		supportRateNum = rtw_get_rateset_len((u8 *)&pcur_network->SupportedRates);
+<<<<<<< HEAD
 		network_type = rtw_check_network_type(
 			(u8 *)&pcur_network->SupportedRates,
 			supportRateNum,
 			pcur_network->Configuration.DSConfig
+=======
+		network_type = rtw_check_network_type((u8 *)&pcur_network->SupportedRates,
+						      supportRateNum,
+						      pcur_network->Configuration.DSConfig
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		);
 		if (IsSupportedTxCCK(network_type)) {
 			network_type = WIRELESS_11B;
 		} else if (network_type == WIRELESS_INVALID) { /*  error handling */
 
 			if (pcur_network->Configuration.DSConfig > 14)
+<<<<<<< HEAD
 				network_type = WIRELESS_11A;
+=======
+				network_type = WIRELESS_INVALID;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			else
 				network_type = WIRELESS_11B;
 		}
@@ -771,8 +830,11 @@ void start_bss_network(struct adapter *padapter, u8 *pbuf)
 	struct HT_info_element *pht_info = NULL;
 	u8 cbw40_enable = 0;
 
+<<<<<<< HEAD
 	/* DBG_871X("%s\n", __func__); */
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bcn_interval = (u16)pnetwork->Configuration.BeaconPeriod;
 	cur_channel = pnetwork->Configuration.DSConfig;
 	cur_bwmode = CHANNEL_WIDTH_20;
@@ -853,11 +915,18 @@ void start_bss_network(struct adapter *padapter, u8 *pbuf)
 	}
 
 	/* set channel, bwmode */
+<<<<<<< HEAD
 	p = rtw_get_ie(
 		(pnetwork->IEs + sizeof(struct ndis_802_11_fix_ie)),
 		WLAN_EID_HT_OPERATION,
 		&ie_len,
 		(pnetwork->IELength - sizeof(struct ndis_802_11_fix_ie))
+=======
+	p = rtw_get_ie((pnetwork->IEs + sizeof(struct ndis_802_11_fix_ie)),
+		       WLAN_EID_HT_OPERATION,
+		       &ie_len,
+		       (pnetwork->IELength - sizeof(struct ndis_802_11_fix_ie))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	);
 	if (p && ie_len) {
 		pht_info = (struct HT_info_element *)(p + 2);
@@ -958,6 +1027,7 @@ int rtw_check_beacon_data(struct adapter *padapter, u8 *pbuf,  int len)
 	struct wlan_bssid_ex
 		*pbss_network = (struct wlan_bssid_ex *)&pmlmepriv->cur_network.network;
 	u8 *ie = pbss_network->IEs;
+<<<<<<< HEAD
 
 	/* SSID */
 	/* Supported rates */
@@ -971,6 +1041,8 @@ int rtw_check_beacon_data(struct adapter *padapter, u8 *pbuf,  int len)
 	/* WPS IE */
 
 	DBG_871X("%s, len =%d\n", __func__, len);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!check_fwstate(pmlmepriv, WIFI_AP_STATE))
 		return _FAIL;
@@ -1251,9 +1323,12 @@ int rtw_check_beacon_data(struct adapter *padapter, u8 *pbuf,  int len)
 	case WIRELESS_11G_24N:
 	case WIRELESS_11BG_24N:
 		pbss_network->NetworkTypeInUse = Ndis802_11OFDM24;
+<<<<<<< HEAD
 		break;
 	case WIRELESS_11A:
 		pbss_network->NetworkTypeInUse = Ndis802_11OFDM5;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		pbss_network->NetworkTypeInUse = Ndis802_11OFDM24;
@@ -1647,8 +1722,11 @@ static void update_bcn_wps_ie(struct adapter *padapter)
 	struct wlan_bssid_ex *pnetwork = &(pmlmeinfo->network);
 	unsigned char *ie = pnetwork->IEs;
 	u32 ielen = pnetwork->IELength;
+<<<<<<< HEAD
 
 	DBG_871X("%s\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pwps_ie = rtw_get_wps_ie(
 		ie + _FIXED_IE_LENGTH_,

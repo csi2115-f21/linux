@@ -244,6 +244,12 @@ void ceph_metric_destroy(struct ceph_client_metric *m)
 	percpu_counter_destroy(&m->d_lease_hit);
 
 	cancel_delayed_work_sync(&m->delayed_work);
+<<<<<<< HEAD
+=======
+
+	ceph_put_mds_session(m->session);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (m->session)
 		ceph_put_mds_session(m->session);

@@ -401,7 +401,19 @@ void ice_free_vfs(struct ice_pf *pf)
 			wr32(hw, GLGEN_VFLRSTAT(reg_idx), BIT(bit_idx));
 		}
 	}
+<<<<<<< HEAD
 	clear_bit(__ICE_VF_DIS, pf->state);
+=======
+
+	/* clear malicious info if the VFs are getting released */
+	for (i = 0; i < tmp; i++)
+		if (ice_mbx_clear_malvf(&hw->mbx_snapshot, pf->malvfs,
+					ICE_MAX_VF_COUNT, i))
+			dev_dbg(dev, "failed to clear malicious VF state for VF %u\n",
+				i);
+
+	clear_bit(ICE_VF_DIS, pf->state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	clear_bit(ICE_FLAG_SRIOV_ENA, pf->flags);
 }
 

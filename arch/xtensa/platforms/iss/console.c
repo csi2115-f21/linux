@@ -169,10 +169,15 @@ static const struct tty_operations serial_ops = {
 int __init rs_init(void)
 {
 	tty_port_init(&serial_port);
+<<<<<<< HEAD
 
 	serial_driver = alloc_tty_driver(SERIAL_MAX_NUM_LINES);
 
 	pr_info("%s %s\n", serial_name, serial_version);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	serial_driver = alloc_tty_driver(SERIAL_MAX_NUM_LINES);
 
 	/* Initialize the tty_driver structure */
 
@@ -198,11 +203,15 @@ int __init rs_init(void)
 
 static __exit void rs_exit(void)
 {
+<<<<<<< HEAD
 	int error;
 
 	if ((error = tty_unregister_driver(serial_driver)))
 		pr_err("ISS_SERIAL: failed to unregister serial driver (%d)\n",
 		       error);
+=======
+	tty_unregister_driver(serial_driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_tty_driver(serial_driver);
 	tty_port_destroy(&serial_port);
 }

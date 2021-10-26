@@ -200,6 +200,14 @@ int idxd_register_dma_channel(struct idxd_wq *wq)
 	rc = dma_async_device_channel_register(dma, chan);
 	if (rc < 0)
 		return rc;
+<<<<<<< HEAD
+=======
+	}
+
+	wq->idxd_chan = idxd_chan;
+	idxd_chan->wq = wq;
+	get_device(&wq->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -210,4 +218,10 @@ void idxd_unregister_dma_channel(struct idxd_wq *wq)
 
 	dma_async_device_channel_unregister(&wq->idxd->dma_dev, chan);
 	list_del(&chan->device_node);
+<<<<<<< HEAD
+=======
+	kfree(wq->idxd_chan);
+	wq->idxd_chan = NULL;
+	put_device(&wq->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

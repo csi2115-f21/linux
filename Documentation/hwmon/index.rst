@@ -39,7 +39,10 @@ Hardware Monitoring Kernel Drivers
    adt7475
    aht10
    amc6821
+<<<<<<< HEAD
    amd_energy
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
    asb100
    asc7621
    aspeed-pwm-tacho

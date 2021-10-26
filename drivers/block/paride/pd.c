@@ -914,8 +914,13 @@ static void pd_probe_drive(struct pd_unit *disk)
 	if (blk_mq_alloc_tag_set(&disk->tag_set))
 		return;
 
+<<<<<<< HEAD
 	p->queue = blk_mq_init_queue(&disk->tag_set);
 	if (IS_ERR(p->queue)) {
+=======
+	p = blk_mq_alloc_disk(&disk->tag_set, disk);
+	if (!p) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		blk_mq_free_tag_set(&disk->tag_set);
 		p->queue = NULL;
 		return;

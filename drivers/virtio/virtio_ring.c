@@ -2210,6 +2210,11 @@ void vring_del_virtqueue(struct virtqueue *_vq)
 	}
 	if (!vq->packed_ring)
 		kfree(vq->split.desc_state);
+<<<<<<< HEAD
+=======
+		kfree(vq->split.desc_extra);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	list_del(&_vq->list);
 	kfree(vq);
 }

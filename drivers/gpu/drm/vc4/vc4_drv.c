@@ -266,7 +266,13 @@ static int vc4_drm_bind(struct device *dev)
 	if (ret)
 		goto unbind_all;
 
+<<<<<<< HEAD
 	drm_fb_helper_remove_conflicting_framebuffers(NULL, "vc4drmfb", false);
+=======
+	ret = drm_aperture_remove_framebuffers(false, "vc4drmfb");
+	if (ret)
+		goto unbind_all;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = vc4_kms_load(drm);
 	if (ret < 0)

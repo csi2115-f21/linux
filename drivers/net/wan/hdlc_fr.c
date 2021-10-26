@@ -149,9 +149,13 @@ struct frad_state {
 	u8 rxseq; /* RX sequence number */
 };
 
+<<<<<<< HEAD
 
 static int fr_ioctl(struct net_device *dev, struct ifreq *ifr);
 
+=======
+static int fr_ioctl(struct net_device *dev, struct ifreq *ifr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline u16 q922_to_dlci(u8 *hdr)
 {
@@ -373,8 +377,11 @@ static int pvc_close(struct net_device *dev)
 	return 0;
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int pvc_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 {
 	struct pvc_device *pvc = dev->ml_priv;
@@ -1209,7 +1216,10 @@ static struct hdlc_proto proto = {
 	.module		= THIS_MODULE,
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int fr_ioctl(struct net_device *dev, struct ifreq *ifr)
 {
 	fr_proto __user *fr_s = ifr->ifr_settings.ifs_ifsu.fr;

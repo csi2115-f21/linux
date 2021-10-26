@@ -129,6 +129,9 @@ config HAVE_FAST_GUP
 	depends on MMU
 	bool
 
+config HOLES_IN_ZONE
+	bool
+
 # Don't discard allocated memory used to track "memory" and "reserved" memblocks
 # after early boot, so it can still be used to test for validity of memory.
 # Also, memblocks are updated with memory hot(un)plug.
@@ -872,4 +875,14 @@ config MAPPING_DIRTY_HELPERS
 config KMAP_LOCAL
 	bool
 
+<<<<<<< HEAD
+=======
+# struct io_mapping based helper.  Selected by drivers that need them
+config IO_MAPPING
+	bool
+
+config SECRETMEM
+	def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 endmenu

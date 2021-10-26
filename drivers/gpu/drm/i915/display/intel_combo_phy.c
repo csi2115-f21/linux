@@ -460,7 +460,11 @@ skip_phy_misc:
 
 void intel_combo_phy_init(struct drm_i915_private *i915)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 11)
+=======
+	if (DISPLAY_VER(i915) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		icl_combo_phys_init(i915);
 	else if (IS_CANNONLAKE(i915))
 		cnl_combo_phys_init(i915);
@@ -468,7 +472,11 @@ void intel_combo_phy_init(struct drm_i915_private *i915)
 
 void intel_combo_phy_uninit(struct drm_i915_private *i915)
 {
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 11)
+=======
+	if (DISPLAY_VER(i915) >= 11)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		icl_combo_phys_uninit(i915);
 	else if (IS_CANNONLAKE(i915))
 		cnl_combo_phys_uninit(i915);

@@ -1588,8 +1588,13 @@ static int arm_smmu_atc_inv_master(struct arm_smmu_master *master)
 
 	arm_smmu_atc_inv_to_cmd(0, 0, 0, &cmd);
 
+<<<<<<< HEAD
 	for (i = 0; i < master->num_sids; i++) {
 		cmd.atc.sid = master->sids[i];
+=======
+	for (i = 0; i < master->num_streams; i++) {
+		cmd.atc.sid = master->streams[i].id;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		arm_smmu_cmdq_issue_cmd(master->smmu, &cmd);
 	}
 
@@ -2017,7 +2022,11 @@ static int arm_smmu_domain_finalise(struct iommu_domain *domain,
 		.iommu_dev	= smmu->dev,
 	};
 
+<<<<<<< HEAD
 	if (smmu_domain->non_strict)
+=======
+	if (!iommu_get_dma_strict(domain))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pgtbl_cfg.quirks |= IO_PGTABLE_QUIRK_NON_STRICT;
 
 	pgtbl_ops = alloc_io_pgtable_ops(fmt, &pgtbl_cfg, smmu_domain);

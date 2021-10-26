@@ -348,7 +348,11 @@ void intel_psr_init_dpcd(struct intel_dp *intel_dp)
 		if (dev_priv->psr.sink_psr2_support) {
 			dev_priv->psr.colorimetry_support =
 				intel_dp_get_colorimetry_status(intel_dp);
+<<<<<<< HEAD
 			dev_priv->psr.su_x_granularity =
+=======
+			intel_dp->psr.su_x_granularity =
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				intel_dp_get_su_x_granulartiy(intel_dp);
 		}
 	}
@@ -527,13 +531,21 @@ static void hsw_activate_psr2(struct intel_dp *intel_dp)
 	val = psr_compute_idle_frames(intel_dp) << EDP_PSR2_IDLE_FRAME_SHIFT;
 
 	val |= EDP_PSR2_ENABLE | EDP_SU_TRACK_ENABLE;
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 10 || IS_GEMINILAKE(dev_priv))
+=======
+	if (DISPLAY_VER(dev_priv) >= 10 && DISPLAY_VER(dev_priv) <= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		val |= EDP_Y_COORDINATE_ENABLE;
 
 	val |= EDP_PSR2_FRAME_BEFORE_SU(dev_priv->psr.sink_sync_latency + 1);
 	val |= intel_psr2_get_tp_time(intel_dp);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 12) {
+=======
+	if (DISPLAY_VER(dev_priv) >= 12) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/*
 		 * TODO: 7 lines of IO_BUFFER_WAKE and FAST_WAKE are default
 		 * values from BSpec. In order to setting an optimal power
@@ -549,9 +561,15 @@ static void hsw_activate_psr2(struct intel_dp *intel_dp)
 		val |= EDP_PSR2_FAST_WAKE(7);
 	}
 
+<<<<<<< HEAD
 	if (dev_priv->psr.psr2_sel_fetch_enabled) {
 		/* WA 1408330847 */
 		if (IS_TGL_DISP_REVID(dev_priv, TGL_REVID_A0, TGL_REVID_A0) ||
+=======
+	if (intel_dp->psr.psr2_sel_fetch_enabled) {
+		/* WA 1408330847 */
+		if (IS_TGL_DISPLAY_STEP(dev_priv, STEP_A0, STEP_A0) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		    IS_RKL_REVID(dev_priv, RKL_REVID_A0, RKL_REVID_A0))
 			intel_de_rmw(dev_priv, CHICKEN_PAR1_1,
 				     DIS_RAM_BYPASS_PSR2_MAN_TRACK,
@@ -657,11 +675,14 @@ tgl_dc3co_exitline_compute_config(struct intel_dp *intel_dp,
 	if (!(dev_priv->csr.allowed_dc_mask & DC_STATE_EN_DC3CO))
 		return;
 
+<<<<<<< HEAD
 	/* B.Specs:49196 DC3CO only works with pipeA and DDIA.*/
 	if (to_intel_crtc(crtc_state->uapi.crtc)->pipe != PIPE_A ||
 	    dig_port->base.port != PORT_A)
 		return;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * DC3CO Exit time 200us B.Spec 49196
 	 * PSR2 transcoder Early Exit scanlines = ROUNDUP(200 / line time) + 1
@@ -704,6 +725,16 @@ static bool intel_psr2_sel_fetch_config_valid(struct intel_dp *intel_dp,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	/* Wa_14010254185 Wa_14010103792 */
+	if (IS_TGL_DISPLAY_STEP(dev_priv, STEP_A0, STEP_B1)) {
+		drm_dbg_kms(&dev_priv->drm,
+			    "PSR2 sel fetch not enabled, missing the implementation of WAs\n");
+		return false;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return crtc_state->enable_psr2_sel_fetch = true;
 }
 
@@ -718,6 +749,30 @@ static bool intel_psr2_config_valid(struct intel_dp *intel_dp,
 	if (!dev_priv->psr.sink_psr2_support)
 		return false;
 
+<<<<<<< HEAD
+=======
+	/* JSL and EHL only supports eDP 1.3 */
+	if (IS_JSL_EHL(dev_priv)) {
+		drm_dbg_kms(&dev_priv->drm, "PSR2 not supported by phy\n");
+		return false;
+	}
+
+	/* Wa_16011181250 */
+	if (IS_ROCKETLAKE(dev_priv) || IS_ALDERLAKE_S(dev_priv)) {
+		drm_dbg_kms(&dev_priv->drm, "PSR2 is defeatured for this platform\n");
+		return false;
+	}
+
+	/*
+	 * We are missing the implementation of some workarounds to enabled PSR2
+	 * in Alderlake_P, until ready PSR2 should be kept disabled.
+	 */
+	if (IS_ALDERLAKE_P(dev_priv)) {
+		drm_dbg_kms(&dev_priv->drm, "PSR2 is missing the implementation of workarounds\n");
+		return false;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!transcoder_has_psr2(dev_priv, crtc_state->cpu_transcoder)) {
 		drm_dbg_kms(&dev_priv->drm,
 			    "PSR2 not supported in transcoder %s\n",
@@ -774,10 +829,17 @@ static bool intel_psr2_config_valid(struct intel_dp *intel_dp,
 	 * only need to validate the SU block width is a multiple of
 	 * x granularity.
 	 */
+<<<<<<< HEAD
 	if (crtc_hdisplay % dev_priv->psr.su_x_granularity) {
 		drm_dbg_kms(&dev_priv->drm,
 			    "PSR2 not enabled, hdisplay(%d) not multiple of %d\n",
 			    crtc_hdisplay, dev_priv->psr.su_x_granularity);
+=======
+	if (crtc_hdisplay % intel_dp->psr.su_x_granularity) {
+		drm_dbg_kms(&dev_priv->drm,
+			    "PSR2 not enabled, hdisplay(%d) not multiple of %d\n",
+			    crtc_hdisplay, intel_dp->psr.su_x_granularity);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	}
 
@@ -790,6 +852,16 @@ static bool intel_psr2_config_valid(struct intel_dp *intel_dp,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	/* Wa_2209313811 */
+	if (!crtc_state->enable_psr2_sel_fetch &&
+	    IS_TGL_DISPLAY_STEP(dev_priv, STEP_A0, STEP_B1)) {
+		drm_dbg_kms(&dev_priv->drm, "PSR2 HW tracking is not supported this Display stepping\n");
+		return false;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!crtc_state->enable_psr2_sel_fetch &&
 	    (crtc_hdisplay > psr_max_h || crtc_vdisplay > psr_max_v)) {
 		drm_dbg_kms(&dev_priv->drm,
@@ -1000,14 +1072,50 @@ static void intel_psr_enable_locked(struct drm_i915_private *dev_priv,
 		dev_priv->psr.sink_not_reliable = true;
 		drm_dbg_kms(&dev_priv->drm,
 			    "PSR interruption error set, not enabling PSR\n");
+<<<<<<< HEAD
+=======
+		return false;
+	}
+
+	return true;
+}
+
+static void intel_psr_enable_locked(struct intel_dp *intel_dp,
+				    const struct intel_crtc_state *crtc_state,
+				    const struct drm_connector_state *conn_state)
+{
+	struct intel_digital_port *dig_port = dp_to_dig_port(intel_dp);
+	struct drm_i915_private *dev_priv = dp_to_i915(intel_dp);
+	struct intel_encoder *encoder = &dig_port->base;
+	u32 val;
+
+	drm_WARN_ON(&dev_priv->drm, intel_dp->psr.enabled);
+
+	intel_dp->psr.psr2_enabled = crtc_state->has_psr2;
+	intel_dp->psr.busy_frontbuffer_bits = 0;
+	intel_dp->psr.pipe = to_intel_crtc(crtc_state->uapi.crtc)->pipe;
+	intel_dp->psr.transcoder = crtc_state->cpu_transcoder;
+	/* DC5/DC6 requires at least 6 idle frames */
+	val = usecs_to_jiffies(intel_get_frame_time_us(crtc_state) * 6);
+	intel_dp->psr.dc3co_exit_delay = val;
+	intel_dp->psr.dc3co_exitline = crtc_state->dc3co_exitline;
+	intel_dp->psr.psr2_sel_fetch_enabled = crtc_state->enable_psr2_sel_fetch;
+
+	if (!psr_interrupt_error_check(intel_dp))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
 	drm_dbg_kms(&dev_priv->drm, "Enabling PSR%s\n",
 		    dev_priv->psr.psr2_enabled ? "2" : "1");
 	intel_dp_compute_psr_vsc_sdp(intel_dp, crtc_state, conn_state,
+<<<<<<< HEAD
 				     &dev_priv->psr.vsc);
 	intel_write_dp_vsc_sdp(encoder, crtc_state, &dev_priv->psr.vsc);
+=======
+				     &intel_dp->psr.vsc);
+	intel_write_dp_vsc_sdp(encoder, crtc_state, &intel_dp->psr.vsc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	intel_psr_enable_sink(intel_dp);
 	intel_psr_enable_source(intel_dp, crtc_state);
 	dev_priv->psr.enabled = true;
@@ -1108,9 +1216,30 @@ static void intel_psr_disable_locked(struct intel_dp *intel_dp)
 				    psr_status_mask, 2000))
 		drm_err(&dev_priv->drm, "Timed out waiting PSR idle state\n");
 
+<<<<<<< HEAD
 	/* WA 1408330847 */
 	if (dev_priv->psr.psr2_sel_fetch_enabled &&
 	    (IS_TGL_DISP_REVID(dev_priv, TGL_REVID_A0, TGL_REVID_A0) ||
+=======
+static void intel_psr_disable_locked(struct intel_dp *intel_dp)
+{
+	struct drm_i915_private *dev_priv = dp_to_i915(intel_dp);
+
+	lockdep_assert_held(&intel_dp->psr.lock);
+
+	if (!intel_dp->psr.enabled)
+		return;
+
+	drm_dbg_kms(&dev_priv->drm, "Disabling PSR%s\n",
+		    intel_dp->psr.psr2_enabled ? "2" : "1");
+
+	intel_psr_exit(intel_dp);
+	intel_psr_wait_exit_locked(intel_dp);
+
+	/* WA 1408330847 */
+	if (intel_dp->psr.psr2_sel_fetch_enabled &&
+	    (IS_TGL_DISPLAY_STEP(dev_priv, STEP_A0, STEP_A0) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	     IS_RKL_REVID(dev_priv, RKL_REVID_A0, RKL_REVID_A0)))
 		intel_de_rmw(dev_priv, CHICKEN_PAR1_1,
 			     DIS_RAM_BYPASS_PSR2_MAN_TRACK, 0);

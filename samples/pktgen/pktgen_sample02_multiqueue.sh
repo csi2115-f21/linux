@@ -82,6 +82,7 @@ for ((thread = $F_THREAD; thread <= $L_THREAD; thread++)); do
     pg_set $dev "udp_src_max $UDP_SRC_MAX"
 done
 
+<<<<<<< HEAD
 # start_run
 echo "Running... ctrl^C to stop" >&2
 pg_ctrl "start"
@@ -93,3 +94,20 @@ for ((thread = $F_THREAD; thread <= $L_THREAD; thread++)); do
     echo "Device: $dev"
     cat /proc/net/pktgen/$dev | grep -A2 "Result:"
 done
+=======
+if [ -z "$APPEND" ]; then
+    # start_run
+    echo "Running... ctrl^C to stop" >&2
+    pg_ctrl "start"
+    echo "Done" >&2
+
+    # Print results
+    for ((thread = $F_THREAD; thread <= $L_THREAD; thread++)); do
+        dev=${DEV}@${thread}
+        echo "Device: $dev"
+        cat /proc/net/pktgen/$dev | grep -A2 "Result:"
+    done
+else
+    echo "Append mode: config done. Do more or use 'pg_ctrl start' to run"
+fi
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

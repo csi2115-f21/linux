@@ -142,9 +142,13 @@ static int fuel_gauge_reg_readb(struct axp288_fg_info *info, int reg)
 
 	for (i = 0; i < NR_RETRY_CNT; i++) {
 		ret = regmap_read(info->regmap, reg, &val);
+<<<<<<< HEAD
 		if (ret == -EBUSY)
 			continue;
 		else
+=======
+		if (ret != -EBUSY)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 	}
 
@@ -309,11 +313,19 @@ static void fuel_gauge_create_debugfs(struct axp288_fg_info *info)
 static void fuel_gauge_remove_debugfs(struct axp288_fg_info *info)
 {
 	debugfs_remove(info->debug_file);
+<<<<<<< HEAD
 }
 #else
 static inline void fuel_gauge_create_debugfs(struct axp288_fg_info *info)
 {
 }
+=======
+}
+#else
+static inline void fuel_gauge_create_debugfs(struct axp288_fg_info *info)
+{
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline void fuel_gauge_remove_debugfs(struct axp288_fg_info *info)
 {
 }
@@ -765,6 +777,16 @@ static int axp288_fuel_gauge_probe(struct platform_device *pdev)
 	unsigned int val;
 
 	if (dmi_check_system(axp288_fuel_gauge_blacklist))
+		return -ENODEV;
+
+	/*
+	 * On some devices the fuelgauge and charger parts of the axp288 are
+	 * not used, check that the fuelgauge is enabled (CC_CTRL != 0).
+	 */
+	ret = regmap_read(axp20x->regmap, AXP20X_CC_CTRL, &val);
+	if (ret < 0)
+		return ret;
+	if (val == 0)
 		return -ENODEV;
 
 	/*

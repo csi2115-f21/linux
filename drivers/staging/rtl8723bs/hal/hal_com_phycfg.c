@@ -11,15 +11,47 @@
 #include <hal_data.h>
 #include <linux/kernel.h>
 
+<<<<<<< HEAD
 u8 PHY_GetTxPowerByRateBase(struct adapter *Adapter, u8 Band, u8 RfPath,
 			    u8 TxNum, enum RATE_SECTION RateSection)
+=======
+u8 PHY_GetTxPowerByRateBase(struct adapter *Adapter, u8 RfPath,
+			    u8 TxNum, enum rate_section RateSection)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct hal_com_data	*pHalData = GET_HAL_DATA(Adapter);
 	u8	value = 0;
 
+<<<<<<< HEAD
 	if (RfPath > ODM_RF_PATH_D) {
 		DBG_871X("Invalid Rf Path %d in PHY_GetTxPowerByRateBase()\n", RfPath);
 		return 0;
+=======
+	if (RfPath > ODM_RF_PATH_D)
+		return 0;
+
+	switch (RateSection) {
+	case CCK:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][0];
+		break;
+	case OFDM:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][1];
+		break;
+	case HT_MCS0_MCS7:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][2];
+		break;
+	case HT_MCS8_MCS15:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][3];
+		break;
+	case HT_MCS16_MCS23:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][4];
+		break;
+	case HT_MCS24_MCS31:
+		value = pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][5];
+		break;
+	default:
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (Band == BAND_ON_2_4G) {
@@ -102,18 +134,50 @@ u8 PHY_GetTxPowerByRateBase(struct adapter *Adapter, u8 Band, u8 RfPath,
 static void
 phy_SetTxPowerByRateBase(
 	struct adapter *Adapter,
+<<<<<<< HEAD
 	u8 Band,
 	u8 RfPath,
 	enum RATE_SECTION	RateSection,
+=======
+	u8 RfPath,
+	enum rate_section	RateSection,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 TxNum,
 	u8 Value
 )
 {
 	struct hal_com_data	*pHalData = GET_HAL_DATA(Adapter);
 
+<<<<<<< HEAD
 	if (RfPath > ODM_RF_PATH_D) {
 		DBG_871X("Invalid Rf Path %d in phy_SetTxPowerByRatBase()\n", RfPath);
 		return;
+=======
+	if (RfPath > ODM_RF_PATH_D)
+		return;
+
+	switch (RateSection) {
+	case CCK:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][0] = Value;
+		break;
+	case OFDM:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][1] = Value;
+		break;
+	case HT_MCS0_MCS7:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][2] = Value;
+		break;
+	case HT_MCS8_MCS15:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][3] = Value;
+		break;
+	case HT_MCS16_MCS23:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][4] = Value;
+		break;
+	case HT_MCS24_MCS31:
+		pHalData->TxPwrByRateBase2_4G[RfPath][TxNum][5] = Value;
+		break;
+	default:
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (Band == BAND_ON_2_4G) {
@@ -198,6 +262,7 @@ struct adapter *padapter
 {
 	u8 path, base;
 
+<<<<<<< HEAD
 	/* DBG_871X("===>%s\n", __func__); */
 
 	for (path = ODM_RF_PATH_A; path <= ODM_RF_PATH_B; ++path) {
@@ -260,6 +325,24 @@ struct adapter *padapter
 		base = PHY_GetTxPowerByRate(padapter, BAND_ON_5G, path, RF_3TX, MGN_VHT2SS_MCS7);
 		phy_SetTxPowerByRateBase(padapter, BAND_ON_5G, path, VHT_3SSMCS0_3SSMCS9, RF_3TX, base);
 		/* DBG_871X("Power index base of 5G path %d 3Tx VHT3SS = > 0x%x\n", path, base); */
+=======
+	for (path = ODM_RF_PATH_A; path <= ODM_RF_PATH_B; ++path) {
+		base = PHY_GetTxPowerByRate(padapter, path, RF_1TX, MGN_11M);
+		phy_SetTxPowerByRateBase(padapter, path, CCK, RF_1TX, base);
+
+		base = PHY_GetTxPowerByRate(padapter, path, RF_1TX, MGN_54M);
+		phy_SetTxPowerByRateBase(padapter, path, OFDM, RF_1TX, base);
+
+		base = PHY_GetTxPowerByRate(padapter, path, RF_1TX, MGN_MCS7);
+		phy_SetTxPowerByRateBase(padapter, path, HT_MCS0_MCS7, RF_1TX, base);
+
+		base = PHY_GetTxPowerByRate(padapter, path, RF_2TX, MGN_MCS15);
+		phy_SetTxPowerByRateBase(padapter, path, HT_MCS8_MCS15, RF_2TX, base);
+
+		base = PHY_GetTxPowerByRate(padapter, path, RF_3TX, MGN_MCS23);
+		phy_SetTxPowerByRateBase(padapter, path, HT_MCS16_MCS23, RF_3TX, base);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* DBG_871X("<===%s\n", __func__); */
@@ -566,6 +649,7 @@ PHY_GetRateValuesOfTxPowerByRate(
 		*RateNum = 4;
 		break;
 
+<<<<<<< HEAD
 	case 0xC3C:
 	case 0xE3C:
 	case 0x183C:
@@ -641,6 +725,8 @@ PHY_GetRateValuesOfTxPowerByRate(
 		*RateNum = 4;
 		break;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case 0xCD8:
 	case 0xED8:
 	case 0x18D8:
@@ -671,6 +757,7 @@ PHY_GetRateValuesOfTxPowerByRate(
 		*RateNum = 4;
 		break;
 
+<<<<<<< HEAD
 	case 0xCE0:
 	case 0xEE0:
 	case 0x18E0:
@@ -714,6 +801,8 @@ PHY_GetRateValuesOfTxPowerByRate(
 		*RateNum = 4;
 		break;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		DBG_871X("Invalid RegAddr 0x%x in %s()\n", RegAddr, __func__);
 		break;
@@ -722,7 +811,10 @@ PHY_GetRateValuesOfTxPowerByRate(
 
 static void PHY_StoreTxPowerByRateNew(
 	struct adapter *padapter,
+<<<<<<< HEAD
 	u32	Band,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32	RfPath,
 	u32	TxNum,
 	u32	RegAddr,
@@ -736,8 +828,15 @@ static void PHY_StoreTxPowerByRateNew(
 
 	PHY_GetRateValuesOfTxPowerByRate(padapter, RegAddr, BitMask, Data, rateIndex, PwrByRateVal, &rateNum);
 
+<<<<<<< HEAD
 	if (Band != BAND_ON_2_4G && Band != BAND_ON_5G) {
 		DBG_871X("Invalid Band %d\n", Band);
+=======
+	if (RfPath > ODM_RF_PATH_D)
+		return;
+
+	if (TxNum > ODM_RF_PATH_D)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
@@ -752,11 +851,15 @@ static void PHY_StoreTxPowerByRateNew(
 	}
 
 	for (i = 0; i < rateNum; ++i) {
+<<<<<<< HEAD
 		if (rateIndex[i] == PHY_GetRateIndexOfTxPowerByRate(MGN_VHT2SS_MCS0) ||
 			 rateIndex[i] == PHY_GetRateIndexOfTxPowerByRate(MGN_VHT2SS_MCS1))
 			TxNum = RF_2TX;
 
 		pHalData->TxPwrByRateOffset[Band][RfPath][TxNum][rateIndex[i]] = PwrByRateVal[i];
+=======
+		pHalData->TxPwrByRateOffset[RfPath][TxNum][rateIndex[i]] = PwrByRateVal[i];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -775,6 +878,7 @@ static void PHY_StoreTxPowerByRateOld(
 void PHY_InitTxPowerByRate(struct adapter *padapter)
 {
 	struct hal_com_data	*pHalData = GET_HAL_DATA(padapter);
+<<<<<<< HEAD
 	u8 band, rfPath, TxNum, rate;
 
 	for (band = BAND_ON_2_4G; band <= BAND_ON_5G; ++band)
@@ -782,6 +886,14 @@ void PHY_InitTxPowerByRate(struct adapter *padapter)
 				for (TxNum = 0; TxNum < TX_PWR_BY_RATE_NUM_RF; ++TxNum)
 					for (rate = 0; rate < TX_PWR_BY_RATE_NUM_RATE; ++rate)
 						pHalData->TxPwrByRateOffset[band][rfPath][TxNum][rate] = 0;
+=======
+	u8 rfPath, TxNum, rate;
+
+	for (rfPath = 0; rfPath < TX_PWR_BY_RATE_NUM_RF; ++rfPath)
+		for (TxNum = 0; TxNum < TX_PWR_BY_RATE_NUM_RF; ++TxNum)
+			for (rate = 0; rate < TX_PWR_BY_RATE_NUM_RATE; ++rate)
+				pHalData->TxPwrByRateOffset[rfPath][TxNum][rate] = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void PHY_StoreTxPowerByRate(
@@ -798,7 +910,11 @@ void PHY_StoreTxPowerByRate(
 	PDM_ODM_T		pDM_Odm = &pHalData->odmpriv;
 
 	if (pDM_Odm->PhyRegPgVersion > 0)
+<<<<<<< HEAD
 		PHY_StoreTxPowerByRateNew(padapter, Band, RfPath, TxNum, RegAddr, BitMask, Data);
+=======
+		PHY_StoreTxPowerByRateNew(padapter, RfPath, TxNum, RegAddr, BitMask, Data);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else if (pDM_Odm->PhyRegPgVersion == 0) {
 		PHY_StoreTxPowerByRateOld(padapter, RegAddr, BitMask, Data);
 
@@ -806,9 +922,13 @@ void PHY_StoreTxPowerByRate(
 			pHalData->pwrGroupCnt++;
 		else if (RegAddr == rTxAGC_B_Mcs15_Mcs12 && pHalData->rf_type != RF_1T1R)
 			pHalData->pwrGroupCnt++;
+<<<<<<< HEAD
 	} else
 		DBG_871X("Invalid PHY_REG_PG.txt version %d\n",  pDM_Odm->PhyRegPgVersion);
 
+=======
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void
@@ -816,7 +936,11 @@ phy_ConvertTxPowerByRateInDbmToRelativeValues(
 struct adapter *padapter
 	)
 {
+<<<<<<< HEAD
 	u8	base = 0, i = 0, value = 0, band = 0, path = 0, txNum = 0;
+=======
+	u8	base = 0, i = 0, value = 0, path = 0, txNum = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8	cckRates[4] = {
 		MGN_1M, MGN_2M, MGN_5_5M, MGN_11M
 	};
@@ -832,6 +956,7 @@ struct adapter *padapter
 	u8 mcs16_23Rates[8] = {
 		MGN_MCS16, MGN_MCS17, MGN_MCS18, MGN_MCS19, MGN_MCS20, MGN_MCS21, MGN_MCS22, MGN_MCS23
 	};
+<<<<<<< HEAD
 	u8 vht1ssRates[10] = {
 		MGN_VHT1SS_MCS0, MGN_VHT1SS_MCS1, MGN_VHT1SS_MCS2, MGN_VHT1SS_MCS3, MGN_VHT1SS_MCS4,
 		MGN_VHT1SS_MCS5, MGN_VHT1SS_MCS6, MGN_VHT1SS_MCS7, MGN_VHT1SS_MCS8, MGN_VHT1SS_MCS9
@@ -905,6 +1030,44 @@ struct adapter *padapter
 					value = PHY_GetTxPowerByRate(padapter, band, path, txNum, vht3ssRates[i]);
 					PHY_SetTxPowerByRate(padapter, band, path, txNum, vht3ssRates[i], value - base);
 				}
+=======
+
+	for (path = ODM_RF_PATH_A; path <= ODM_RF_PATH_D; ++path) {
+		for (txNum = RF_1TX; txNum < RF_MAX_TX_NUM; ++txNum) {
+			/*  CCK */
+			base = PHY_GetTxPowerByRate(padapter, path, txNum, MGN_11M);
+			for (i = 0; i < ARRAY_SIZE(cckRates); ++i) {
+				value = PHY_GetTxPowerByRate(padapter, path, txNum, cckRates[i]);
+				PHY_SetTxPowerByRate(padapter, path, txNum, cckRates[i], value - base);
+			}
+
+			/*  OFDM */
+			base = PHY_GetTxPowerByRate(padapter, path, txNum, MGN_54M);
+			for (i = 0; i < sizeof(ofdmRates); ++i) {
+				value = PHY_GetTxPowerByRate(padapter, path, txNum, ofdmRates[i]);
+				PHY_SetTxPowerByRate(padapter, path, txNum, ofdmRates[i], value - base);
+			}
+
+			/*  HT MCS0~7 */
+			base = PHY_GetTxPowerByRate(padapter, path, txNum, MGN_MCS7);
+			for (i = 0; i < sizeof(mcs0_7Rates); ++i) {
+				value = PHY_GetTxPowerByRate(padapter, path, txNum, mcs0_7Rates[i]);
+				PHY_SetTxPowerByRate(padapter, path, txNum, mcs0_7Rates[i], value - base);
+			}
+
+			/*  HT MCS8~15 */
+			base = PHY_GetTxPowerByRate(padapter, path, txNum, MGN_MCS15);
+			for (i = 0; i < sizeof(mcs8_15Rates); ++i) {
+				value = PHY_GetTxPowerByRate(padapter, path, txNum, mcs8_15Rates[i]);
+				PHY_SetTxPowerByRate(padapter, path, txNum, mcs8_15Rates[i], value - base);
+			}
+
+			/*  HT MCS16~23 */
+			base = PHY_GetTxPowerByRate(padapter, path, txNum, MGN_MCS23);
+			for (i = 0; i < sizeof(mcs16_23Rates); ++i) {
+				value = PHY_GetTxPowerByRate(padapter, path, txNum, mcs16_23Rates[i]);
+				PHY_SetTxPowerByRate(padapter, path, txNum, mcs16_23Rates[i], value - base);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			}
 		}
 	}
@@ -971,6 +1134,7 @@ void PHY_SetTxPowerIndexByRateSection(
 					       Channel, htRates4T,
 					       ARRAY_SIZE(htRates4T));
 
+<<<<<<< HEAD
 	} else if (RateSection == VHT_1SSMCS0_1SSMCS9) {
 		u8 vhtRates1T[] = {MGN_VHT1SS_MCS0, MGN_VHT1SS_MCS1, MGN_VHT1SS_MCS2, MGN_VHT1SS_MCS3, MGN_VHT1SS_MCS4,
 				MGN_VHT1SS_MCS5, MGN_VHT1SS_MCS6, MGN_VHT1SS_MCS7, MGN_VHT1SS_MCS8, MGN_VHT1SS_MCS9};
@@ -1030,6 +1194,8 @@ static bool phy_GetChnlIndex(u8 Channel, u8 *ChannelIdx)
 				return bIn24G;
 			}
 		}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return bIn24G;
@@ -1058,6 +1224,7 @@ u8 PHY_GetTxPowerIndexBase(
 
 	/* DBG_871X("[%s] Channel Index: %d\n", (*bIn24G?"2.4G":"5G"), chnlIdx); */
 
+<<<<<<< HEAD
 	if (*bIn24G) { /* 3 ============================== 2.4 G ============================== */
 		if (IS_CCK_RATE(Rate))
 			txPower = pHalData->Index24G_CCK_Base[RFPath][chnlIdx];
@@ -1180,6 +1347,28 @@ u8 PHY_GetTxPowerIndexBase(
 			/*	pHalData->BW80_5G_Diff[RFPath][TX_1S], pHalData->BW80_5G_Diff[RFPath][TX_2S], */
 			/*	pHalData->BW80_5G_Diff[RFPath][TX_3S], pHalData->BW80_5G_Diff[RFPath][TX_4S]); */
 		}
+=======
+	if (BandWidth == CHANNEL_WIDTH_20) { /*  BW20-1S, BW20-2S */
+		if (MGN_MCS0 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW20_24G_Diff[RFPath][TX_1S];
+		if (MGN_MCS8 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW20_24G_Diff[RFPath][TX_2S];
+		if (MGN_MCS16 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW20_24G_Diff[RFPath][TX_3S];
+		if (MGN_MCS24 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW20_24G_Diff[RFPath][TX_4S];
+
+	} else if (BandWidth == CHANNEL_WIDTH_40) { /*  BW40-1S, BW40-2S */
+		if (MGN_MCS0 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW40_24G_Diff[RFPath][TX_1S];
+		if (MGN_MCS8 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW40_24G_Diff[RFPath][TX_2S];
+		if (MGN_MCS16 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW40_24G_Diff[RFPath][TX_3S];
+		if (MGN_MCS24 <= Rate && Rate <= MGN_MCS31)
+			txPower += pHalData->BW40_24G_Diff[RFPath][TX_4S];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return txPower;
@@ -1342,6 +1531,7 @@ u8 PHY_GetRateIndexOfTxPowerByRate(u8 Rate)
 	case MGN_MCS31:
 		index = 43;
 		break;
+<<<<<<< HEAD
 	case MGN_VHT1SS_MCS0:
 		index = 44;
 		break;
@@ -1462,6 +1652,8 @@ u8 PHY_GetRateIndexOfTxPowerByRate(u8 Rate)
 	case MGN_VHT4SS_MCS9:
 		index = 83;
 		break;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		DBG_871X("Invalid rate 0x%x in %s\n", Rate, __func__);
 		break;
@@ -1470,7 +1662,11 @@ u8 PHY_GetRateIndexOfTxPowerByRate(u8 Rate)
 }
 
 s8 PHY_GetTxPowerByRate(
+<<<<<<< HEAD
 	struct adapter *padapter, u8 Band, u8 RFPath, u8 TxNum, u8 Rate
+=======
+	struct adapter *padapter, u8 RFPath, u8 TxNum, u8 Rate
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 )
 {
 	struct hal_com_data	*pHalData = GET_HAL_DATA(padapter);
@@ -1481,8 +1677,15 @@ s8 PHY_GetTxPowerByRate(
 		   padapter->registrypriv.RegEnableTxPowerByRate == 0)
 		return 0;
 
+<<<<<<< HEAD
 	if (Band != BAND_ON_2_4G && Band != BAND_ON_5G) {
 		DBG_871X("Invalid band %d in %s\n", Band, __func__);
+=======
+	if (RFPath > ODM_RF_PATH_D)
+		return value;
+
+	if (TxNum >= RF_MAX_TX_NUM)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return value;
 	}
 	if (RFPath > ODM_RF_PATH_D) {
@@ -1498,7 +1701,11 @@ s8 PHY_GetTxPowerByRate(
 		return value;
 	}
 
+<<<<<<< HEAD
 	return pHalData->TxPwrByRateOffset[Band][RFPath][TxNum][rateIndex];
+=======
+	return pHalData->TxPwrByRateOffset[RFPath][TxNum][rateIndex];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 }
 
@@ -1514,8 +1721,15 @@ void PHY_SetTxPowerByRate(
 	struct hal_com_data	*pHalData = GET_HAL_DATA(padapter);
 	u8 rateIndex = PHY_GetRateIndexOfTxPowerByRate(Rate);
 
+<<<<<<< HEAD
 	if (Band != BAND_ON_2_4G && Band != BAND_ON_5G) {
 		DBG_871X("Invalid band %d in %s\n", Band, __func__);
+=======
+	if (RFPath > ODM_RF_PATH_D)
+		return;
+
+	if (TxNum >= RF_MAX_TX_NUM)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 	if (RFPath > ODM_RF_PATH_D) {
@@ -1531,12 +1745,17 @@ void PHY_SetTxPowerByRate(
 		return;
 	}
 
+<<<<<<< HEAD
 	pHalData->TxPwrByRateOffset[Band][RFPath][TxNum][rateIndex] = Value;
+=======
+	pHalData->TxPwrByRateOffset[RFPath][TxNum][rateIndex] = Value;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void PHY_SetTxPowerLevelByPath(struct adapter *Adapter, u8 channel, u8 path)
 {
 	struct hal_com_data *pHalData = GET_HAL_DATA(Adapter);
+<<<<<<< HEAD
 	bool bIsIn24G = (pHalData->CurrentBandType == BAND_ON_2_4G);
 
 	/* if (pMgntInfo->RegNByteAccess == 0) */
@@ -1544,6 +1763,13 @@ void PHY_SetTxPowerLevelByPath(struct adapter *Adapter, u8 channel, u8 path)
 		if (bIsIn24G)
 			PHY_SetTxPowerIndexByRateSection(Adapter, path, channel, CCK);
 
+=======
+
+	/* if (pMgntInfo->RegNByteAccess == 0) */
+	{
+		PHY_SetTxPowerIndexByRateSection(Adapter, path, channel, CCK);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		PHY_SetTxPowerIndexByRateSection(Adapter, path, channel, OFDM);
 		PHY_SetTxPowerIndexByRateSection(Adapter, path, channel, HT_MCS0_MCS7);
 
@@ -1646,6 +1872,7 @@ static s16 get_rate_sctn_idx(const u8 rate)
 	case MGN_MCS24: case MGN_MCS25: case MGN_MCS26: case MGN_MCS27:
 	case MGN_MCS28: case MGN_MCS29: case MGN_MCS30: case MGN_MCS31:
 		return 5;
+<<<<<<< HEAD
 	case MGN_VHT1SS_MCS0: case MGN_VHT1SS_MCS1: case MGN_VHT1SS_MCS2:
 	case MGN_VHT1SS_MCS3: case MGN_VHT1SS_MCS4: case MGN_VHT1SS_MCS5:
 	case MGN_VHT1SS_MCS6: case MGN_VHT1SS_MCS7: case MGN_VHT1SS_MCS8:
@@ -1666,6 +1893,8 @@ static s16 get_rate_sctn_idx(const u8 rate)
 	case MGN_VHT4SS_MCS6: case MGN_VHT4SS_MCS7: case MGN_VHT4SS_MCS8:
 	case MGN_VHT4SS_MCS9:
 		return 9;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		DBG_871X("Wrong rate 0x%x\n", rate);
 		return -1;
@@ -1885,6 +2114,7 @@ void PHY_ConvertTxPowerLimitToPowerIndex(struct adapter *Adapter)
 					for (rfPath = ODM_RF_PATH_A; rfPath < MAX_RF_PATH_NUM; ++rfPath) {
 						if (pHalData->odmpriv.PhyRegPgValueType == PHY_REG_PG_EXACT_VALUE) {
 							if (rateSection == 5) /*  HT 4T */
+<<<<<<< HEAD
 								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, BAND_ON_2_4G, rfPath, RF_4TX, HT_MCS24_MCS31);
 							else if (rateSection == 4) /*  HT 3T */
 								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, BAND_ON_2_4G, rfPath, RF_3TX, HT_MCS16_MCS23);
@@ -1896,6 +2126,19 @@ void PHY_ConvertTxPowerLimitToPowerIndex(struct adapter *Adapter)
 								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, BAND_ON_2_4G, rfPath, RF_1TX, OFDM);
 							else if (rateSection == 0) /*  CCK */
 								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, BAND_ON_2_4G, rfPath, RF_1TX, CCK);
+=======
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_4TX, HT_MCS24_MCS31);
+							else if (rateSection == 4) /*  HT 3T */
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_3TX, HT_MCS16_MCS23);
+							else if (rateSection == 3) /*  HT 2T */
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_2TX, HT_MCS8_MCS15);
+							else if (rateSection == 2) /*  HT 1T */
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_1TX, HT_MCS0_MCS7);
+							else if (rateSection == 1) /*  OFDM */
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_1TX, OFDM);
+							else if (rateSection == 0) /*  CCK */
+								BW40PwrBasedBm2_4G = PHY_GetTxPowerByRateBase(Adapter, rfPath, RF_1TX, CCK);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						} else
 							BW40PwrBasedBm2_4G = Adapter->registrypriv.RegPowerBase * 2;
 
@@ -1983,6 +2226,7 @@ void PHY_SetTxPowerLimit(
 		rateSection = 4;
 	else if (eqNByte(RateSection, (u8 *)("HT"), 2) && eqNByte(RfPath, (u8 *)("4T"), 2))
 		rateSection = 5;
+<<<<<<< HEAD
 	else if (eqNByte(RateSection, (u8 *)("VHT"), 3) && eqNByte(RfPath, (u8 *)("1T"), 2))
 		rateSection = 6;
 	else if (eqNByte(RateSection, (u8 *)("VHT"), 3) && eqNByte(RfPath, (u8 *)("2T"), 2))
@@ -1993,6 +2237,9 @@ void PHY_SetTxPowerLimit(
 		rateSection = 9;
 	else {
 		DBG_871X("Wrong rate section!\n");
+=======
+	else
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 
@@ -2014,6 +2261,7 @@ void PHY_SetTxPowerLimit(
 
 		prevPowerLimit = pHalData->TxPwrLimit_2_4G[regulation][bandwidth][rateSection][channelIndex][ODM_RF_PATH_A];
 
+<<<<<<< HEAD
 		if (powerLimit < prevPowerLimit)
 			pHalData->TxPwrLimit_2_4G[regulation][bandwidth][rateSection][channelIndex][ODM_RF_PATH_A] = powerLimit;
 
@@ -2036,6 +2284,12 @@ void PHY_SetTxPowerLimit(
 		DBG_871X("Cannot recognize the band info in %s\n", Band);
 		return;
 	}
+=======
+	prevPowerLimit = pHalData->TxPwrLimit_2_4G[regulation][bandwidth][rateSection][channelIndex][ODM_RF_PATH_A];
+
+	if (powerLimit < prevPowerLimit)
+		pHalData->TxPwrLimit_2_4G[regulation][bandwidth][rateSection][channelIndex][ODM_RF_PATH_A] = powerLimit;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void Hal_ChannelPlanToRegulation(struct adapter *Adapter, u16 ChannelPlan)

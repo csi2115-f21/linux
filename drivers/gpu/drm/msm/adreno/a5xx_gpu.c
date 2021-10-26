@@ -1407,7 +1407,11 @@ static int a5xx_crashdumper_init(struct msm_gpu *gpu,
 		struct a5xx_crashdumper *dumper)
 {
 	dumper->ptr = msm_gem_kernel_new_locked(gpu->dev,
+<<<<<<< HEAD
 		SZ_1M, MSM_BO_UNCACHED, gpu->aspace,
+=======
+		SZ_1M, MSM_BO_WC, gpu->aspace,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		&dumper->bo, &dumper->iova);
 
 	if (!IS_ERR(dumper->ptr))

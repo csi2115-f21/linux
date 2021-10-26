@@ -8,6 +8,10 @@
 #include "intel_dpll.h"
 #include "intel_lvds.h"
 #include "intel_panel.h"
+<<<<<<< HEAD
+=======
+#include "intel_sideband.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct intel_limit {
 	struct {
@@ -924,7 +928,11 @@ static int hsw_crtc_compute_clock(struct intel_crtc *crtc,
 		to_intel_atomic_state(crtc_state->uapi.state);
 
 	if (!intel_crtc_has_type(crtc_state, INTEL_OUTPUT_DSI) ||
+<<<<<<< HEAD
 	    INTEL_GEN(dev_priv) >= 11) {
+=======
+	    DISPLAY_VER(dev_priv) >= 11) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		struct intel_encoder *encoder =
 			intel_get_crtc_new_encoder(state, crtc_state);
 

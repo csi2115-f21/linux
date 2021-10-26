@@ -597,7 +597,11 @@ void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger)
 	if (old == new)
 		return;
 
+<<<<<<< HEAD
 	printk(PREFIX "setting ELCR to %04x (from %04x)\n", new, old);
+=======
+	pr_warn("setting ELCR to %04x (from %04x)\n", new, old);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	outb(new, 0x4d0);
 	outb(new >> 8, 0x4d1);
 }

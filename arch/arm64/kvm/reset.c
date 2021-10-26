@@ -311,8 +311,12 @@ int kvm_set_ipa_limit(void)
 	}
 
 	switch (cpuid_feature_extract_unsigned_field(mmfr0, tgran_2)) {
+<<<<<<< HEAD
 	default:
 	case 1:
+=======
+	case ID_AA64MMFR0_TGRAN_2_SUPPORTED_NONE:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kvm_err("PAGE_SIZE not supported at Stage-2, giving up\n");
 		return -EINVAL;
 	case 0:

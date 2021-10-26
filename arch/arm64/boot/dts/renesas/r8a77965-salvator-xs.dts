@@ -31,6 +31,7 @@
 		      "dclkin.0", "dclkin.1", "dclkin.3";
 };
 
+<<<<<<< HEAD
 &hdmi0 {
 	status = "okay";
 
@@ -54,6 +55,8 @@
 	remote-endpoint = <&rcar_dw_hdmi0_out>;
 };
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 &pca9654 {
 	pcie-sata-switch-hog {
 		gpio-hog;
@@ -63,6 +66,7 @@
 	};
 };
 
+<<<<<<< HEAD
 &rcar_sound {
 	ports {
 		rsnd_port1: port@1 {
@@ -80,12 +84,17 @@
 	};
 };
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* SW12-7 must be set 'Off' (MD12 set to 1) which is not the default! */
 &sata {
 	status = "okay";
 };
+<<<<<<< HEAD
 
 &sound_card {
 	dais = <&rsnd_port0	/* ak4613 */
 		&rsnd_port1>;	/* HDMI0  */
 };
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

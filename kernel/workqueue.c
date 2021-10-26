@@ -4793,7 +4793,11 @@ void show_workqueue_state(void)
 
 		for_each_pwq(pwq, wq) {
 			raw_spin_lock_irqsave(&pwq->pool->lock, flags);
+<<<<<<< HEAD
 			if (pwq->nr_active || !list_empty(&pwq->delayed_works))
+=======
+			if (pwq->nr_active || !list_empty(&pwq->inactive_works))
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 				show_pwq(pwq);
 			raw_spin_unlock_irqrestore(&pwq->pool->lock, flags);
 			/*

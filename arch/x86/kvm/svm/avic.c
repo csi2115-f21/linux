@@ -242,7 +242,11 @@ static int avic_update_access_page(struct kvm *kvm, bool activate)
 	 * APICv mode change, which update APIC_ACCESS_PAGE_PRIVATE_MEMSLOT
 	 * memory region. So, we need to ensure that kvm->mm == current->mm.
 	 */
+<<<<<<< HEAD
 	if ((kvm->arch.apic_access_page_done == activate) ||
+=======
+	if ((kvm->arch.apic_access_memslot_enabled == activate) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	    (kvm->mm != current->mm))
 		goto out;
 
@@ -255,7 +259,11 @@ static int avic_update_access_page(struct kvm *kvm, bool activate)
 		goto out;
 	}
 
+<<<<<<< HEAD
 	kvm->arch.apic_access_page_done = activate;
+=======
+	kvm->arch.apic_access_memslot_enabled = activate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	mutex_unlock(&kvm->slots_lock);
 	return r;
@@ -593,7 +601,11 @@ void avic_post_state_restore(struct kvm_vcpu *vcpu)
 
 void svm_toggle_avic_for_irq_window(struct kvm_vcpu *vcpu, bool activate)
 {
+<<<<<<< HEAD
 	if (!avic || !lapic_in_kernel(vcpu))
+=======
+	if (!enable_apicv || !lapic_in_kernel(vcpu))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 
 	srcu_read_unlock(&vcpu->kvm->srcu, vcpu->srcu_idx);

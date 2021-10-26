@@ -396,9 +396,16 @@ static void imx7_csi_error_recovery(struct imx7_csi *csi)
 
 	imx7_csi_rx_fifo_clear(csi);
 
+<<<<<<< HEAD
 	imx7_csi_dma_reflash(csi);
 
 	imx7_csi_hw_enable(csi);
+=======
+			vb->timestamp = ktime_get_ns();
+			vb2_buffer_done(vb, return_status);
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int imx7_csi_init(struct imx7_csi *csi)
@@ -420,7 +427,17 @@ static int imx7_csi_init(struct imx7_csi *csi)
 	return 0;
 }
 
+<<<<<<< HEAD
 static void imx7_csi_deinit(struct imx7_csi *csi)
+=======
+static void imx7_csi_dma_cleanup(struct imx7_csi *csi)
+{
+	imx7_csi_dma_unsetup_vb2_buf(csi, VB2_BUF_STATE_ERROR);
+	imx_media_free_dma_buf(csi->dev, &csi->underrun_buf);
+}
+
+static void imx7_csi_dma_stop(struct imx7_csi *csi)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (!csi->is_init)
 		return;
@@ -437,10 +454,20 @@ static int imx7_csi_link_setup(struct media_entity *entity,
 			       const struct media_pad *local,
 			       const struct media_pad *remote, u32 flags)
 {
+<<<<<<< HEAD
 	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
 	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
 	struct v4l2_subdev *remote_sd;
 	int ret = 0;
+=======
+	struct imx_media_video_dev *vdev = csi->vdev;
+	struct v4l2_pix_format *out_pix = &vdev->fmt;
+	int width = out_pix->width;
+	u32 stride = 0;
+	u32 cr1, cr18;
+
+	cr18 = imx7_csi_reg_read(csi, CSI_CSICR18);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	dev_dbg(csi->dev, "link setup %s -> %s\n", remote->entity->name,
 		local->entity->name);
@@ -468,6 +495,7 @@ static int imx7_csi_link_setup(struct media_entity *entity,
 		goto init;
 	}
 
+<<<<<<< HEAD
 	/* source pad */
 	if (flags & MEDIA_LNK_FL_ENABLED) {
 		if (csi->sink) {
@@ -486,6 +514,69 @@ init:
 		ret = imx7_csi_init(csi);
 	else
 		imx7_csi_deinit(csi);
+=======
+		switch (csi->format_mbus[IMX7_CSI_PAD_SINK].code) {
+		case MEDIA_BUS_FMT_Y8_1X8:
+		case MEDIA_BUS_FMT_SBGGR8_1X8:
+		case MEDIA_BUS_FMT_SGBRG8_1X8:
+		case MEDIA_BUS_FMT_SGRBG8_1X8:
+		case MEDIA_BUS_FMT_SRGGB8_1X8:
+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW8;
+			break;
+		case MEDIA_BUS_FMT_Y10_1X10:
+		case MEDIA_BUS_FMT_SBGGR10_1X10:
+		case MEDIA_BUS_FMT_SGBRG10_1X10:
+		case MEDIA_BUS_FMT_SGRBG10_1X10:
+		case MEDIA_BUS_FMT_SRGGB10_1X10:
+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW10;
+			break;
+		case MEDIA_BUS_FMT_Y12_1X12:
+		case MEDIA_BUS_FMT_SBGGR12_1X12:
+		case MEDIA_BUS_FMT_SGBRG12_1X12:
+		case MEDIA_BUS_FMT_SGRBG12_1X12:
+		case MEDIA_BUS_FMT_SRGGB12_1X12:
+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW12;
+			break;
+		case MEDIA_BUS_FMT_Y14_1X14:
+		case MEDIA_BUS_FMT_SBGGR14_1X14:
+		case MEDIA_BUS_FMT_SGBRG14_1X14:
+		case MEDIA_BUS_FMT_SGRBG14_1X14:
+		case MEDIA_BUS_FMT_SRGGB14_1X14:
+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW14;
+			break;
+		/*
+		 * CSI-2 sources are supposed to use the 1X16 formats, but not
+		 * all of them comply. Support both variants.
+		 */
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+		case MEDIA_BUS_FMT_UYVY8_1X16:
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+		case MEDIA_BUS_FMT_YUYV8_1X16:
+			cr18 |= BIT_MIPI_DATA_FORMAT_YUV422_8B;
+			break;
+		}
+
+		switch (out_pix->pixelformat) {
+		case V4L2_PIX_FMT_Y10:
+		case V4L2_PIX_FMT_Y12:
+		case V4L2_PIX_FMT_SBGGR8:
+		case V4L2_PIX_FMT_SGBRG8:
+		case V4L2_PIX_FMT_SGRBG8:
+		case V4L2_PIX_FMT_SRGGB8:
+		case V4L2_PIX_FMT_SBGGR16:
+		case V4L2_PIX_FMT_SGBRG16:
+		case V4L2_PIX_FMT_SGRBG16:
+		case V4L2_PIX_FMT_SRGGB16:
+			cr1 |= BIT_PIXEL_BIT;
+			break;
+		}
+	}
+
+	imx7_csi_reg_write(csi, cr1, CSI_CSICR1);
+	imx7_csi_reg_write(csi, BIT_DMA_BURST_TYPE_RFF_INCR16, CSI_CSICR2);
+	imx7_csi_reg_write(csi, BIT_FRMCNT_RST, CSI_CSICR3);
+	imx7_csi_reg_write(csi, cr18, CSI_CSICR18);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 unlock:
 	mutex_unlock(&csi->lock);
@@ -520,6 +611,7 @@ static int imx7_csi_pad_link_validate(struct v4l2_subdev *sd,
 	    src->function != MEDIA_ENT_F_VID_MUX)
 		src = &csi->sd.entity;
 
+<<<<<<< HEAD
 	/*
 	 * find the entity that is selected by the source. This is needed
 	 * to distinguish between a parallel or CSI-2 pipeline.
@@ -527,6 +619,15 @@ static int imx7_csi_pad_link_validate(struct v4l2_subdev *sd,
 	pad = imx_media_pipeline_pad(src, 0, 0, true);
 	if (!pad)
 		return -ENODEV;
+=======
+static void imx7_csi_deinit(struct imx7_csi *csi)
+{
+	imx7_csi_dma_cleanup(csi);
+	imx7_csi_init_default(csi);
+	imx7_csi_dmareq_rff_disable(csi);
+	clk_disable_unprepare(csi->mclk);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&csi->lock);
 
@@ -880,13 +981,22 @@ static int imx7_csi_s_stream(struct v4l2_subdev *sd, int enable)
 
 		ret = imx7_csi_streaming_start(csi);
 		if (ret < 0) {
+<<<<<<< HEAD
 			v4l2_subdev_call(csi->src_sd, video, s_stream, 0);
+=======
+			imx7_csi_deinit(csi);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto out_unlock;
 		}
 	} else {
 		imx7_csi_streaming_stop(csi);
 
 		v4l2_subdev_call(csi->src_sd, video, s_stream, 0);
+<<<<<<< HEAD
+=======
+
+		imx7_csi_deinit(csi);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	csi->is_streaming = !!enable;

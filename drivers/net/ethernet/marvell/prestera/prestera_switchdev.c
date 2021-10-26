@@ -422,8 +422,13 @@ err_port_flood_set:
 	return err;
 }
 
+<<<<<<< HEAD
 static int prestera_port_bridge_join(struct prestera_port *port,
 				     struct net_device *upper)
+=======
+int prestera_bridge_port_join(struct net_device *br_dev,
+			      struct prestera_port *port)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct prestera_switchdev *swdev = port->sw->swdev;
 	struct prestera_bridge_port *br_port;
@@ -1114,6 +1119,10 @@ static void prestera_fdb_event(struct prestera_switch *sw,
 			       struct prestera_event *evt, void *arg)
 {
 	struct switchdev_notifier_fdb_info info;
+<<<<<<< HEAD
+=======
+	struct net_device *dev = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct prestera_port *port;
 
 	port = prestera_find_port(sw, evt->fdb_evt.port_id);

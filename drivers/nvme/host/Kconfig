@@ -71,7 +71,12 @@ config NVME_FC
 config NVME_TCP
 	tristate "NVM Express over Fabrics TCP host driver"
 	depends on INET
+<<<<<<< HEAD
 	depends on BLK_DEV_NVME
+=======
+	depends on BLOCK
+	select NVME_CORE
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	select NVME_FABRICS
 	select CRYPTO
 	select CRYPTO_CRC32C

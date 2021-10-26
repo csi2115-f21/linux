@@ -90,6 +90,16 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_COLOR_YELLOW] = "yellow",
 	[MSG_COLOR_WHITE] = "white",
 	[MSG_COLOR_GREY] = "grey",
+<<<<<<< HEAD
+=======
+	[MSG_COLOR_BRIGHTBLUE] "bright blue",
+	[MSG_COLOR_BRIGHTGREEN] "bright green",
+	[MSG_COLOR_BRIGHTCYAN] "bright cyan",
+	[MSG_COLOR_BRIGHTRED] "bright red",
+	[MSG_COLOR_BRIGHTMAGENTA] "bright magenta",
+	[MSG_COLOR_BRIGHTYELLOW] "bright yellow",
+	[MSG_COLOR_BRIGHTWHITE] "bright white",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Names of key states. */
 	[MSG_STATE_DOUBLE] = "double",

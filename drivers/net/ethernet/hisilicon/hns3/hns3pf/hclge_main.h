@@ -187,6 +187,10 @@ enum HLCGE_PORT_TYPE {
 #define HCLGE_VECTOR0_IMP_RESET_INT_B	1
 #define HCLGE_VECTOR0_IMP_CMDQ_ERR_B	4U
 #define HCLGE_VECTOR0_IMP_RD_POISON_B	5U
+<<<<<<< HEAD
+=======
+#define HCLGE_VECTOR0_ALL_MSIX_ERR_B	6U
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define HCLGE_MAC_DEFAULT_FRAME \
 	(ETH_HLEN + ETH_FCS_LEN + 2 * VLAN_HLEN + ETH_DATA_LEN)
@@ -853,6 +857,10 @@ struct hclge_dev {
 	/* affinity mask and notify for misc interrupt */
 	cpumask_t affinity_mask;
 	struct irq_affinity_notify affinity_notify;
+<<<<<<< HEAD
+=======
+	struct hclge_ptp *ptp;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /* VPort level vlan tag configuration for TX direction */

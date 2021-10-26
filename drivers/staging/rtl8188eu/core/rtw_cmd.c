@@ -4,7 +4,10 @@
  * Copyright(c) 2007 - 2012 Realtek Corporation. All rights reserved.
  *
  ******************************************************************************/
+<<<<<<< HEAD
 #define _RTW_CMD_C_
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <osdep_service.h>
 #include <drv_types.h>
@@ -12,11 +15,51 @@
 #include <mlme_osdep.h>
 #include <rtw_mlme_ext.h>
 
+<<<<<<< HEAD
+=======
+static struct cmd_hdl wlancmds[] = {
+	{sizeof(struct wlan_bssid_ex), join_cmd_hdl},
+	{sizeof(struct disconnect_parm), disconnect_hdl},
+	{sizeof(struct wlan_bssid_ex), createbss_hdl},
+	{sizeof(struct setopmode_parm), setopmode_hdl},
+	{sizeof(struct sitesurvey_parm), sitesurvey_cmd_hdl},
+	{sizeof(struct setauth_parm), setauth_hdl},
+	{sizeof(struct setkey_parm), setkey_hdl},
+	{sizeof(struct set_stakey_parm), set_stakey_hdl},
+	{sizeof(struct set_assocsta_parm), NULL},
+	{sizeof(struct addBaReq_parm), add_ba_hdl},
+	{sizeof(struct set_ch_parm), set_ch_hdl},
+	{sizeof(struct wlan_bssid_ex), tx_beacon_hdl},
+	{0, mlme_evt_hdl},
+	{0, rtw_drvextra_cmd_hdl},
+	{sizeof(struct SetChannelPlan_param), set_chplan_hdl}
+};
+
+static struct _cmd_callback rtw_cmd_callback[] = {
+	{_JoinBss_CMD_, &rtw_joinbss_cmd_callback},
+	{_DisConnect_CMD_, &rtw_disassoc_cmd_callback},
+	{_CreateBss_CMD_, &rtw_createbss_cmd_callback},
+	{_SetOpMode_CMD_, NULL},
+	{_SiteSurvey_CMD_, &rtw_survey_cmd_callback},
+	{_SetAuth_CMD_, NULL},
+	{_SetKey_CMD_, NULL},
+	{_SetStaKey_CMD_, NULL},
+	{_SetAssocSta_CMD_, &rtw_setassocsta_cmdrsp_callback},
+	{_AddBAReq_CMD_, NULL},
+	{_SetChannel_CMD_, NULL},
+	{_TX_Beacon_CMD_, NULL},
+	{_Set_MLME_EVT_CMD_, NULL},
+	{_Set_Drv_Extra_CMD_, NULL},
+	{_SetChannelPlan_CMD_, NULL},
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Caller and the rtw_cmd_thread can protect cmd_q by spin_lock.
  * No irqsave is necessary.
  */
 
+<<<<<<< HEAD
 int rtw_init_cmd_priv(struct cmd_priv *pcmdpriv)
 {
 	init_completion(&pcmdpriv->cmd_queue_comp);
@@ -24,6 +67,13 @@ int rtw_init_cmd_priv(struct cmd_priv *pcmdpriv)
 
 	_rtw_init_queue(&pcmdpriv->cmd_queue);
 	return _SUCCESS;
+=======
+void rtw_init_cmd_priv(struct cmd_priv *pcmdpriv)
+{
+	init_completion(&pcmdpriv->cmd_queue_comp);
+
+	_rtw_init_queue(&pcmdpriv->cmd_queue);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -39,17 +89,23 @@ static int _rtw_enqueue_cmd(struct __queue *queue, struct cmd_obj *obj)
 {
 	unsigned long irqL;
 
+<<<<<<< HEAD
 	if (!obj)
 		goto exit;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock_irqsave(&queue->lock, irqL);
 
 	list_add_tail(&obj->list, &queue->queue);
 
 	spin_unlock_irqrestore(&queue->lock, irqL);
 
+<<<<<<< HEAD
 exit:
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _SUCCESS;
 }
 
@@ -69,11 +125,20 @@ struct cmd_obj *rtw_dequeue_cmd(struct __queue *queue)
 
 static int rtw_cmd_filter(struct cmd_priv *pcmdpriv, struct cmd_obj *cmd_obj)
 {
+<<<<<<< HEAD
 	u8 bAllow = false; /* set to true to allow enqueuing cmd when hw_init_completed is false */
 
 	/* To decide allow or not */
 	if ((pcmdpriv->padapter->pwrctrlpriv.bHWPwrPindetect) &&
 	    (!pcmdpriv->padapter->registrypriv.usbss_enable)) {
+=======
+	struct adapter *padapter = container_of(pcmdpriv, struct adapter, cmdpriv);
+	u8 bAllow = false; /* set to true to allow enqueuing cmd when hw_init_completed is false */
+
+	/* To decide allow or not */
+	if ((padapter->pwrctrlpriv.bHWPwrPindetect) &&
+	    (!padapter->registrypriv.usbss_enable)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (cmd_obj->cmdcode == _Set_Drv_Extra_CMD_) {
 			struct drvextra_cmd_parm	*pdrvextra_cmd_parm = (struct drvextra_cmd_parm	*)cmd_obj->parmbuf;
 
@@ -85,8 +150,13 @@ static int rtw_cmd_filter(struct cmd_priv *pcmdpriv, struct cmd_obj *cmd_obj)
 	if (cmd_obj->cmdcode == _SetChannelPlan_CMD_)
 		bAllow = true;
 
+<<<<<<< HEAD
 	if ((!pcmdpriv->padapter->hw_init_completed && !bAllow) ||
 	    !pcmdpriv->cmdthd_running)	/* com_thread not running */
+=======
+	if ((!padapter->hw_init_completed && !bAllow) ||
+	    !padapter->cmdThread) /* com_thread not running */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _FAIL;
 	return _SUCCESS;
 }
@@ -94,7 +164,11 @@ static int rtw_cmd_filter(struct cmd_priv *pcmdpriv, struct cmd_obj *cmd_obj)
 u32 rtw_enqueue_cmd(struct cmd_priv *pcmdpriv, struct cmd_obj *cmd_obj)
 {
 	int res = _FAIL;
+<<<<<<< HEAD
 	struct adapter *padapter = pcmdpriv->padapter;
+=======
+	struct adapter *padapter = container_of(pcmdpriv, struct adapter, cmdpriv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!cmd_obj)
 		goto exit;
@@ -146,6 +220,7 @@ int rtw_cmd_thread(void *context)
 
 	allow_signal(SIGTERM);
 
+<<<<<<< HEAD
 	pcmdpriv->cmdthd_running = true;
 	complete(&pcmdpriv->terminate_cmdthread_comp);
 
@@ -175,6 +250,20 @@ _next:
 		pcmd = rtw_dequeue_cmd(&pcmdpriv->cmd_queue);
 		if (!pcmd)
 			continue;
+=======
+	do {
+		if (padapter->bDriverStopped || padapter->bSurpriseRemoved)
+			break;
+
+		pcmd = rtw_dequeue_cmd(&pcmdpriv->cmd_queue);
+		if (!pcmd) {
+			/* The queue is empty. Wait until someone enqueues a command. */
+			if (wait_for_completion_interruptible(&pcmdpriv->cmd_queue_comp))
+				break;
+
+			continue;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (rtw_cmd_filter(pcmdpriv, pcmd) == _FAIL) {
 			pcmd->res = H2C_DROPPED;
@@ -189,13 +278,17 @@ _next:
 			} else {
 				pcmd->res = H2C_PARAMETERS_ERROR;
 			}
+<<<<<<< HEAD
 
 			cmd_hdl = NULL;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		/* call callback function for post-processed */
 		if (pcmd->cmdcode < ARRAY_SIZE(rtw_cmd_callback)) {
 			pcmd_callback = rtw_cmd_callback[pcmd->cmdcode].callback;
+<<<<<<< HEAD
 			if (!pcmd_callback) {
 				RT_TRACE(_module_rtl871x_cmd_c_, _drv_info_,
 					 ("mlme_cmd_hdl(): pcmd_callback = 0x%p, cmdcode = 0x%x\n",
@@ -218,14 +311,31 @@ _next:
 		goto _next;
 	}
 	pcmdpriv->cmdthd_running = false;
+=======
+			if (pcmd_callback) {
+				/* todo: !!! fill rsp_buf to pcmd->rsp if (pcmd->rsp!= NULL) */
+				pcmd_callback(pcmd->padapter, pcmd);
+			}
+		}
+		rtw_free_cmd_obj(pcmd);
+
+		if (signal_pending(current))
+			flush_signals(current);
+	} while (!kthread_should_stop());
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*  free all cmd_obj resources */
 	while ((pcmd = rtw_dequeue_cmd(&pcmdpriv->cmd_queue)))
 		rtw_free_cmd_obj(pcmd);
 
+<<<<<<< HEAD
 	complete(&pcmdpriv->terminate_cmdthread_comp);
 
 	complete_and_exit(NULL, 0);
+=======
+	padapter->cmdThread = NULL;
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -258,8 +368,11 @@ u8 rtw_sitesurvey_cmd(struct adapter  *padapter, struct ndis_802_11_ssid *ssid, 
 
 	rtw_free_network_queue(padapter, false);
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_cmd_c_, _drv_info_, ("%s: flush network queue\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	init_h2fwcmd_w_parm_no_rsp(ph2c, psurveyPara, _SiteSurvey_CMD_);
 
 	psurveyPara->scan_mode = pmlmepriv->scan_mode;
@@ -318,12 +431,16 @@ u8 rtw_createbss_cmd(struct adapter  *padapter)
 {
 	struct cmd_obj *pcmd;
 	struct cmd_priv	*pcmdpriv = &padapter->cmdpriv;
+<<<<<<< HEAD
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct wlan_bssid_ex *pdev_network = &padapter->registrypriv.dev_network;
 	u8	res = _SUCCESS;
 
 	led_control_8188eu(padapter, LED_CTL_START_TO_LINK);
 
+<<<<<<< HEAD
 	if (pmlmepriv->assoc_ssid.ssid_length == 0)
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_info_,
 			 (" createbss for Any SSid:%s\n", pmlmepriv->assoc_ssid.ssid));
@@ -331,6 +448,8 @@ u8 rtw_createbss_cmd(struct adapter  *padapter)
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_info_,
 			 (" createbss for SSid:%s\n", pmlmepriv->assoc_ssid.ssid));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pcmd = kzalloc(sizeof(*pcmd), GFP_ATOMIC);
 	if (!pcmd) {
 		res = _FAIL;
@@ -368,12 +487,15 @@ u8 rtw_joinbss_cmd(struct adapter  *padapter, struct wlan_network *pnetwork)
 
 	led_control_8188eu(padapter, LED_CTL_START_TO_LINK);
 
+<<<<<<< HEAD
 	if (pmlmepriv->assoc_ssid.ssid_length == 0)
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_info_, ("+Join cmd: Any SSid\n"));
 	else
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_notice_,
 			 ("+Join cmd: SSid =[%s]\n", pmlmepriv->assoc_ssid.ssid));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pcmd = kzalloc(sizeof(*pcmd), GFP_ATOMIC);
 	if (!pcmd) {
 		res = _FAIL;
@@ -404,9 +526,12 @@ u8 rtw_joinbss_cmd(struct adapter  *padapter, struct wlan_network *pnetwork)
 
 		res = _FAIL;
 
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("%s :psecnetwork == NULL!!!\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto exit;
 	}
 
@@ -478,8 +603,11 @@ u8 rtw_joinbss_cmd(struct adapter  *padapter, struct wlan_network *pnetwork)
 	else
 		padapter->pwrctrlpriv.smart_ps = padapter->registrypriv.smart_ps;
 
+<<<<<<< HEAD
 	DBG_88E("%s: smart_ps =%d\n", __func__, padapter->pwrctrlpriv.smart_ps);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pcmd->cmdsz = get_wlan_bssid_ex_sz(psecnetwork);/* get cmdsz before endian conversion */
 
 	INIT_LIST_HEAD(&pcmd->list);
@@ -502,8 +630,11 @@ u8 rtw_disassoc_cmd(struct adapter *padapter, u32 deauth_timeout_ms, bool enqueu
 	struct cmd_priv *cmdpriv = &padapter->cmdpriv;
 	u8 res = _SUCCESS;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_cmd_c_, _drv_notice_, ("+%s\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* prepare cmd parameter */
 	param = kzalloc(sizeof(*param), GFP_ATOMIC);
 	if (!param) {
@@ -721,8 +852,11 @@ u8 rtw_set_chplan_cmd(struct adapter *padapter, u8 chplan, u8 enqueue)
 
 	u8	res = _SUCCESS;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_cmd_c_, _drv_notice_, ("+%s\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* check input parameter */
 	if (!rtw_is_channel_plan_valid(chplan)) {
 		res = _FAIL;
@@ -888,6 +1022,7 @@ static void lps_ctrl_wk_hdl(struct adapter *padapter, u8 lps_ctrl_type)
 
 u8 rtw_lps_ctrl_wk_cmd(struct adapter *padapter, u8 lps_ctrl_type, u8 enqueue)
 {
+<<<<<<< HEAD
 	struct cmd_obj	*ph2c;
 	struct drvextra_cmd_parm	*pdrvextra_cmd_parm;
 	struct cmd_priv	*pcmdpriv = &padapter->cmdpriv;
@@ -921,6 +1056,30 @@ u8 rtw_lps_ctrl_wk_cmd(struct adapter *padapter, u8 lps_ctrl_type, u8 enqueue)
 exit:
 
 	return res;
+=======
+	struct cmd_priv *pcmdpriv = &padapter->cmdpriv;
+	struct drvextra_cmd_parm *pdrvextra_cmd_parm;
+	struct cmd_obj	*ph2c;
+
+	if (!enqueue) {
+		lps_ctrl_wk_hdl(padapter, lps_ctrl_type);
+		return _SUCCESS;
+	}
+
+	ph2c = kzalloc(sizeof(*ph2c), GFP_ATOMIC);
+	pdrvextra_cmd_parm = kzalloc(sizeof(*pdrvextra_cmd_parm), GFP_ATOMIC);
+	if (!ph2c || !pdrvextra_cmd_parm) {
+		kfree(ph2c);
+		kfree(pdrvextra_cmd_parm);
+		return _FAIL;
+	}
+
+	pdrvextra_cmd_parm->ec_id = LPS_CTRL_WK_CID;
+	pdrvextra_cmd_parm->type_size = lps_ctrl_type;
+
+	init_h2fwcmd_w_parm_no_rsp(ph2c, pdrvextra_cmd_parm, _Set_Drv_Extra_CMD_);
+	return rtw_enqueue_cmd(pcmdpriv, ph2c);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void rpt_timer_setting_wk_hdl(struct adapter *padapter, u16 min_time)
@@ -1148,12 +1307,16 @@ void rtw_survey_cmd_callback(struct adapter *padapter,  struct cmd_obj *pcmd)
 	} else if (pcmd->res != H2C_SUCCESS) {
 		mod_timer(&pmlmepriv->scan_to_timer,
 			  jiffies + msecs_to_jiffies(1));
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("\n ********Error: MgntActrtw_set_802_11_bssid_LIST_SCAN Fail ************\n\n."));
 	}
 
 	/*  free cmd */
 	rtw_free_cmd_obj(pcmd);
+=======
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_disassoc_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
@@ -1164,6 +1327,7 @@ void rtw_disassoc_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 		spin_lock_bh(&pmlmepriv->lock);
 		set_fwstate(pmlmepriv, _FW_LINKED);
 		spin_unlock_bh(&pmlmepriv->lock);
+<<<<<<< HEAD
 
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("\n ***Error: disconnect_cmd_callback Fail ***\n."));
@@ -1172,6 +1336,9 @@ void rtw_disassoc_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 
 	/*  free cmd */
 	rtw_free_cmd_obj(pcmd);
+=======
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_joinbss_cmd_callback(struct adapter *padapter,  struct cmd_obj *pcmd)
@@ -1184,6 +1351,7 @@ void rtw_joinbss_cmd_callback(struct adapter *padapter,  struct cmd_obj *pcmd)
 		mod_timer(&pmlmepriv->assoc_timer,
 			  jiffies + msecs_to_jiffies(1));
 	} else if (pcmd->res != H2C_SUCCESS) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("********Error:rtw_select_and_join_from_scanned_queue Wait Sema  Fail ************\n"));
 		mod_timer(&pmlmepriv->assoc_timer,
@@ -1191,6 +1359,11 @@ void rtw_joinbss_cmd_callback(struct adapter *padapter,  struct cmd_obj *pcmd)
 	}
 
 	rtw_free_cmd_obj(pcmd);
+=======
+		mod_timer(&pmlmepriv->assoc_timer,
+			  jiffies + msecs_to_jiffies(1));
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_createbss_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
@@ -1202,8 +1375,11 @@ void rtw_createbss_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 	struct wlan_network *tgt_network = &pmlmepriv->cur_network;
 
 	if (pcmd->res != H2C_SUCCESS) {
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("\n **** Error: %s  Fail ****\n\n.", __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mod_timer(&pmlmepriv->assoc_timer,
 			  jiffies + msecs_to_jiffies(1));
 	}
@@ -1217,8 +1393,11 @@ void rtw_createbss_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 		if (!psta) {
 			psta = rtw_alloc_stainfo(&padapter->stapriv, pnetwork->MacAddress);
 			if (!psta) {
+<<<<<<< HEAD
 				RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 					 ("\nCan't alloc sta_info when createbss_cmd_callback\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				goto createbss_cmd_fail;
 			}
 		}
@@ -1230,8 +1409,11 @@ void rtw_createbss_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 		if (!pwlan) {
 			pwlan = rtw_get_oldest_wlan_network(&pmlmepriv->scanned_queue);
 			if (!pwlan) {
+<<<<<<< HEAD
 				RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 					 ("\n Error:  can't get pwlan in rtw_joinbss_event_callback\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				spin_unlock_bh(&pmlmepriv->scanned_queue.lock);
 				goto createbss_cmd_fail;
 			}
@@ -1257,6 +1439,7 @@ void rtw_createbss_cmd_callback(struct adapter *padapter, struct cmd_obj *pcmd)
 createbss_cmd_fail:
 
 	spin_unlock_bh(&pmlmepriv->lock);
+<<<<<<< HEAD
 
 	rtw_free_cmd_obj(pcmd);
 }
@@ -1274,6 +1457,8 @@ void rtw_setstaKey_cmdrsp_callback(struct adapter *padapter,  struct cmd_obj *pc
 	}
 exit:
 	rtw_free_cmd_obj(pcmd);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_setassocsta_cmdrsp_callback(struct adapter *padapter,  struct cmd_obj *pcmd)
@@ -1284,11 +1469,16 @@ void rtw_setassocsta_cmdrsp_callback(struct adapter *padapter,  struct cmd_obj *
 	struct set_assocsta_rsp *passocsta_rsp = (struct set_assocsta_rsp *)(pcmd->rsp);
 	struct sta_info *psta = rtw_get_stainfo(pstapriv, passocsta_parm->addr);
 
+<<<<<<< HEAD
 	if (!psta) {
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_,
 			 ("\nERROR: %s => can't get sta_info\n\n", __func__));
 		goto exit;
 	}
+=======
+	if (!psta)
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	psta->aid = passocsta_rsp->cam_id;
 	psta->mac_id = passocsta_rsp->cam_id;
@@ -1297,7 +1487,10 @@ void rtw_setassocsta_cmdrsp_callback(struct adapter *padapter,  struct cmd_obj *
 
 	set_fwstate(pmlmepriv, _FW_LINKED);
 	spin_unlock_bh(&pmlmepriv->lock);
+<<<<<<< HEAD
 
 exit:
 	rtw_free_cmd_obj(pcmd);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

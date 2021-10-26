@@ -1542,8 +1542,13 @@ static vm_fault_t ceph_filemap_fault(struct vm_fault *vmf)
 		vmf->page = page;
 		ret = VM_FAULT_MAJOR | VM_FAULT_LOCKED;
 out_inline:
+<<<<<<< HEAD
 		dout("filemap_fault %p %llu~%zd read inline data ret %x\n",
 		     inode, off, (size_t)PAGE_SIZE, ret);
+=======
+		dout("filemap_fault %p %llu read inline data ret %x\n",
+		     inode, off, ret);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 out_restore:
 	ceph_restore_sigs(&oldset);

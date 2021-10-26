@@ -42,7 +42,11 @@ static int i915_gem_object_get_pages_internal(struct drm_i915_gem_object *obj)
 
 	max_order = MAX_ORDER;
 #ifdef CONFIG_SWIOTLB
+<<<<<<< HEAD
 	if (swiotlb_nr_tbl()) {
+=======
+	if (is_swiotlb_active()) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		unsigned int max_segment;
 
 		max_segment = swiotlb_max_segment();
@@ -178,7 +182,12 @@ i915_gem_object_create_internal(struct drm_i915_private *i915,
 		return ERR_PTR(-ENOMEM);
 
 	drm_gem_private_object_init(&i915->drm, &obj->base, size);
+<<<<<<< HEAD
 	i915_gem_object_init(obj, &i915_gem_object_internal_ops, &lock_class);
+=======
+	i915_gem_object_init(obj, &i915_gem_object_internal_ops, &lock_class,
+			     I915_BO_ALLOC_STRUCT_PAGE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Mark the object as volatile, such that the pages are marked as

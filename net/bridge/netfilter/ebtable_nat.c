@@ -94,6 +94,14 @@ static const struct nf_hook_ops ebt_ops_nat[] = {
 };
 
 static int __net_init frame_nat_net_init(struct net *net)
+<<<<<<< HEAD
+=======
+{
+	return ebt_register_table(net, &frame_nat, ebt_ops_nat);
+}
+
+static void __net_exit frame_nat_net_pre_exit(struct net *net)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return ebt_register_table(net, &frame_nat, ebt_ops_nat,
 				  &net->xt.frame_nat);

@@ -2178,6 +2178,12 @@ static int process_sample_event(struct perf_tool *tool,
 		return 0;
 	}
 
+<<<<<<< HEAD
+=======
+	if (filter_cpu(sample))
+		goto out_put;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (machine__resolve(machine, &al, sample) < 0) {
 		pr_err("problem processing %d event, skipping it.\n",
 		       event->header.type);

@@ -9,7 +9,8 @@
 
 #include <linux/pci.h>
 
-long hl_get_frequency(struct hl_device *hdev, u32 pll_index, bool curr)
+long hl_get_frequency(struct hl_device *hdev, u32 pll_index,
+								bool curr)
 {
 	struct cpucp_packet pkt;
 	u64 result;
@@ -38,7 +39,8 @@ long hl_get_frequency(struct hl_device *hdev, u32 pll_index, bool curr)
 	return (long) result;
 }
 
-void hl_set_frequency(struct hl_device *hdev, u32 pll_index, u64 freq)
+void hl_set_frequency(struct hl_device *hdev, u32 pll_index,
+								u64 freq)
 {
 	struct cpucp_packet pkt;
 	int rc;

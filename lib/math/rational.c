@@ -12,6 +12,10 @@
 #include <linux/compiler.h>
 #include <linux/export.h>
 #include <linux/minmax.h>
+<<<<<<< HEAD
+=======
+#include <linux/limits.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * calculate best rational approximation for a given fraction

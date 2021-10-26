@@ -194,7 +194,10 @@ void __init mem_init(void)
 {
 	memblock_free_all();
 	highmem_init();
+<<<<<<< HEAD
 	mem_init_print_info(NULL);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #ifdef CONFIG_HIGHMEM

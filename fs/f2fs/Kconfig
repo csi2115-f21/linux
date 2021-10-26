@@ -132,8 +132,11 @@ config F2FS_FS_LZORLE
 	bool "LZO-RLE compression support"
 	depends on F2FS_FS_COMPRESSION
 	depends on F2FS_FS_LZO
+<<<<<<< HEAD
 	select LZO_COMPRESS
 	select LZO_DECOMPRESS
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default y
 	help
 	  Support LZO-RLE compress algorithm, if unsure, say Y.

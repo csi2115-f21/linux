@@ -156,6 +156,7 @@ static int check_compressed_csum(struct btrfs_inode *inode, struct bio *bio,
 	for (i = 0; i < cb->nr_pages; i++) {
 		page = cb->compressed_pages[i];
 
+<<<<<<< HEAD
 		kaddr = kmap_atomic(page);
 		crypto_shash_digest(shash, kaddr, PAGE_SIZE, csum);
 		kunmap_atomic(kaddr);
@@ -168,6 +169,31 @@ static int check_compressed_csum(struct btrfs_inode *inode, struct bio *bio,
 					btrfs_io_bio(bio)->device,
 					BTRFS_DEV_STAT_CORRUPTION_ERRS);
 			return -EIO;
+=======
+		/* Determine the remaining bytes inside the page first */
+		if (i == cb->nr_pages - 1)
+			bytes_left = cb->compressed_len - i * PAGE_SIZE;
+
+		/* Hash through the page sector by sector */
+		for (pg_offset = 0; pg_offset < bytes_left;
+		     pg_offset += sectorsize) {
+			kaddr = kmap_atomic(page);
+			crypto_shash_digest(shash, kaddr + pg_offset,
+					    sectorsize, csum);
+			kunmap_atomic(kaddr);
+
+			if (memcmp(&csum, cb_sum, csum_size) != 0) {
+				btrfs_print_data_csum_error(inode, disk_start,
+						csum, cb_sum, cb->mirror_num);
+				if (btrfs_io_bio(bio)->device)
+					btrfs_dev_stat_inc_and_print(
+						btrfs_io_bio(bio)->device,
+						BTRFS_DEV_STAT_CORRUPTION_ERRS);
+				return -EIO;
+			}
+			cb_sum += csum_size;
+			disk_start += sectorsize;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		cb_sum += csum_size;
 	}
@@ -640,7 +666,11 @@ blk_status_t btrfs_submit_compressed_read(struct inode *inode, struct bio *bio,
 	read_lock(&em_tree->lock);
 	em = lookup_extent_mapping(em_tree,
 				   page_offset(bio_first_page_all(bio)),
+<<<<<<< HEAD
 				   PAGE_SIZE);
+=======
+				   fs_info->sectorsize);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	read_unlock(&em_tree->lock);
 	if (!em)
 		return BLK_STS_IOERR;
@@ -1222,9 +1252,15 @@ void __cold btrfs_exit_compress(void)
 
 /*
  * Copy uncompressed data from working buffer to pages.
+<<<<<<< HEAD
  *
  * buf_start is the byte offset we're of the start of our workspace buffer.
  *
+=======
+ *
+ * buf_start is the byte offset we're of the start of our workspace buffer.
+ *
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * total_out is the last byte of the buffer
  */
 int btrfs_decompress_buf2page(const char *buf, unsigned long buf_start,
@@ -1237,7 +1273,10 @@ int btrfs_decompress_buf2page(const char *buf, unsigned long buf_start,
 	unsigned long prev_start_byte;
 	unsigned long working_bytes = total_out - buf_start;
 	unsigned long bytes;
+<<<<<<< HEAD
 	char *kaddr;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct bio_vec bvec = bio_iter_iovec(bio, bio->bi_iter);
 
 	/*
@@ -1268,9 +1307,14 @@ int btrfs_decompress_buf2page(const char *buf, unsigned long buf_start,
 				PAGE_SIZE - (buf_offset % PAGE_SIZE));
 		bytes = min(bytes, working_bytes);
 
+<<<<<<< HEAD
 		kaddr = kmap_atomic(bvec.bv_page);
 		memcpy(kaddr + bvec.bv_offset, buf + buf_offset, bytes);
 		kunmap_atomic(kaddr);
+=======
+		memcpy_to_page(bvec.bv_page, bvec.bv_offset, buf + buf_offset,
+			       bytes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		flush_dcache_page(bvec.bv_page);
 
 		buf_offset += bytes;

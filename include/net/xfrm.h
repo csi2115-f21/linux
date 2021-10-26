@@ -1097,7 +1097,11 @@ static inline int __xfrm_policy_check2(struct sock *sk, int dir,
 		return __xfrm_policy_check(sk, ndir, skb, family);
 
 	return	(!net->xfrm.policy_count[dir] && !secpath_exists(skb)) ||
+<<<<<<< HEAD
 		(skb_dst(skb)->flags & DST_NOPOLICY) ||
+=======
+		(skb_dst(skb) && (skb_dst(skb)->flags & DST_NOPOLICY)) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__xfrm_policy_check(sk, ndir, skb, family);
 }
 

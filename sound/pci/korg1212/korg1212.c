@@ -2097,6 +2097,7 @@ snd_korg1212_free(struct snd_korg1212 *korg1212)
         }
         
 	pci_release_regions(korg1212->pci);
+<<<<<<< HEAD
 
         // ----------------------------------------------------
         // free up memory resources used for the DSP download.
@@ -2116,6 +2117,27 @@ snd_korg1212_free(struct snd_korg1212 *korg1212)
 		korg1212->dma_play.area = NULL;
         }
 
+=======
+
+        // ----------------------------------------------------
+        // free up memory resources used for the DSP download.
+        // ----------------------------------------------------
+        if (korg1212->dma_dsp.area) {
+        	snd_dma_free_pages(&korg1212->dma_dsp);
+        	korg1212->dma_dsp.area = NULL;
+        }
+
+#ifndef K1212_LARGEALLOC
+
+        // ------------------------------------------------------
+        // free up memory resources used for the Play/Rec Buffers
+        // ------------------------------------------------------
+	if (korg1212->dma_play.area) {
+		snd_dma_free_pages(&korg1212->dma_play);
+		korg1212->dma_play.area = NULL;
+        }
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (korg1212->dma_rec.area) {
 		snd_dma_free_pages(&korg1212->dma_rec);
 		korg1212->dma_rec.area = NULL;
@@ -2160,7 +2182,12 @@ static int snd_korg1212_create(struct snd_card *card, struct pci_dev *pci,
         };
 
         * rchip = NULL;
+<<<<<<< HEAD
         if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
                 return err;
 
         korg1212 = kzalloc(sizeof(*korg1212), GFP_KERNEL);
@@ -2197,7 +2224,12 @@ static int snd_korg1212_create(struct snd_card *card, struct pci_dev *pci,
         for (i=0; i<kAudioChannels; i++)
                 korg1212->volumePhase[i] = 0;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "korg1212")) < 0) {
+=======
+	err = pci_request_regions(pci, "korg1212");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(korg1212);
 		pci_disable_device(pci);
 		return err;
@@ -2221,7 +2253,12 @@ static int snd_korg1212_create(struct snd_card *card, struct pci_dev *pci,
 		   korg1212->iomem2, iomem2_size,
 		   stateName[korg1212->cardState]);
 
+<<<<<<< HEAD
         if ((korg1212->iobase = ioremap(korg1212->iomem, iomem_size)) == NULL) {
+=======
+	korg1212->iobase = ioremap(korg1212->iomem, iomem_size);
+	if (!korg1212->iobase) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_printk(KERN_ERR "korg1212: unable to remap memory region 0x%lx-0x%lx\n", korg1212->iomem,
                            korg1212->iomem + iomem_size - 1);
                 snd_korg1212_free(korg1212);
@@ -2361,7 +2398,12 @@ static int snd_korg1212_create(struct snd_card *card, struct pci_dev *pci,
 	if (rc)
 		K1212_DEBUG_PRINTK("K1212_DEBUG: Reboot Card - RC = %d [%s]\n", rc, stateName[korg1212->cardState]);
 
+<<<<<<< HEAD
         if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, korg1212, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, korg1212, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
                 snd_korg1212_free(korg1212);
                 return err;
         }
@@ -2437,7 +2479,12 @@ snd_korg1212_probe(struct pci_dev *pci,
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
         if ((err = snd_korg1212_create(card, pci, &korg1212)) < 0) {
+=======
+	err = snd_korg1212_create(card, pci, &korg1212);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2449,7 +2496,12 @@ snd_korg1212_probe(struct pci_dev *pci,
 
         K1212_DEBUG_PRINTK("K1212_DEBUG: %s\n", card->longname);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

@@ -210,3 +210,24 @@ struct ionic_rx_filter *ionic_rx_filter_by_addr(struct ionic_lif *lif,
 
 	return NULL;
 }
+<<<<<<< HEAD
+=======
+
+struct ionic_rx_filter *ionic_rx_filter_rxsteer(struct ionic_lif *lif)
+{
+	struct ionic_rx_filter *f;
+	struct hlist_head *head;
+	unsigned int key;
+
+	key = hash_32(0, IONIC_RX_FILTER_HASH_BITS);
+	head = &lif->rx_filters.by_hash[key];
+
+	hlist_for_each_entry(f, head, by_hash) {
+		if (le16_to_cpu(f->cmd.match) != IONIC_RX_FILTER_STEER_PKTCLASS)
+			continue;
+		return f;
+	}
+
+	return NULL;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

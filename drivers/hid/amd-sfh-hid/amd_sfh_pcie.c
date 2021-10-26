@@ -25,6 +25,55 @@
 #define MAGNO_EN		BIT(2)
 #define ALS_EN		BIT(19)
 
+<<<<<<< HEAD
+=======
+static int sensor_mask_override = -1;
+module_param_named(sensor_mask, sensor_mask_override, int, 0444);
+MODULE_PARM_DESC(sensor_mask, "override the detected sensors mask");
+
+static void amd_start_sensor_v2(struct amd_mp2_dev *privdata, struct amd_mp2_sensor_info info)
+{
+	union sfh_cmd_base cmd_base;
+
+	cmd_base.ul = 0;
+	cmd_base.cmd_v2.cmd_id = ENABLE_SENSOR;
+	cmd_base.cmd_v2.period = info.period;
+	cmd_base.cmd_v2.sensor_id = info.sensor_idx;
+	cmd_base.cmd_v2.length = 16;
+
+	if (info.sensor_idx == als_idx)
+		cmd_base.cmd_v2.mem_type = USE_C2P_REG;
+
+	writeq(info.dma_address, privdata->mmio + AMD_C2P_MSG1);
+	writel(cmd_base.ul, privdata->mmio + AMD_C2P_MSG0);
+}
+
+static void amd_stop_sensor_v2(struct amd_mp2_dev *privdata, u16 sensor_idx)
+{
+	union sfh_cmd_base cmd_base;
+
+	cmd_base.ul = 0;
+	cmd_base.cmd_v2.cmd_id = DISABLE_SENSOR;
+	cmd_base.cmd_v2.period = 0;
+	cmd_base.cmd_v2.sensor_id = sensor_idx;
+	cmd_base.cmd_v2.length  = 16;
+
+	writeq(0x0, privdata->mmio + AMD_C2P_MSG1);
+	writel(cmd_base.ul, privdata->mmio + AMD_C2P_MSG0);
+}
+
+static void amd_stop_all_sensor_v2(struct amd_mp2_dev *privdata)
+{
+	union sfh_cmd_base cmd_base;
+
+	cmd_base.cmd_v2.cmd_id = STOP_ALL_SENSORS;
+	cmd_base.cmd_v2.period = 0;
+	cmd_base.cmd_v2.sensor_id = 0;
+
+	writel(cmd_base.ul, privdata->mmio + AMD_C2P_MSG0);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void amd_start_sensor(struct amd_mp2_dev *privdata, struct amd_mp2_sensor_info info)
 {
 	union sfh_cmd_param cmd_param;
@@ -97,7 +146,40 @@ int amd_mp2_get_sensor_num(struct amd_mp2_dev *privdata, u8 *sensor_id)
 static void amd_mp2_pci_remove(void *privdata)
 {
 	amd_sfh_hid_client_deinit(privdata);
+<<<<<<< HEAD
 	amd_stop_all_sensors(privdata);
+=======
+	mp2->mp2_ops->stop_all(mp2);
+}
+
+static const struct amd_mp2_ops amd_sfh_ops_v2 = {
+	.start = amd_start_sensor_v2,
+	.stop = amd_stop_sensor_v2,
+	.stop_all = amd_stop_all_sensor_v2,
+};
+
+static const struct amd_mp2_ops amd_sfh_ops = {
+	.start = amd_start_sensor,
+	.stop = amd_stop_sensor,
+	.stop_all = amd_stop_all_sensors,
+};
+
+static void mp2_select_ops(struct amd_mp2_dev *privdata)
+{
+	u8 acs;
+
+	privdata->mp2_acs = readl(privdata->mmio + AMD_P2C_MSG3);
+	acs = privdata->mp2_acs & GENMASK(3, 0);
+
+	switch (acs) {
+	case V2_STATUS:
+		privdata->mp2_ops = &amd_sfh_ops_v2;
+		break;
+	default:
+		privdata->mp2_ops = &amd_sfh_ops;
+		break;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int amd_mp2_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
@@ -126,10 +208,23 @@ static int amd_mp2_pci_probe(struct pci_dev *pdev, const struct pci_device_id *i
 		rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
 		return rc;
 	}
+<<<<<<< HEAD
+=======
+
+	privdata->cl_data = devm_kzalloc(&pdev->dev, sizeof(struct amdtp_cl_data), GFP_KERNEL);
+	if (!privdata->cl_data)
+		return -ENOMEM;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rc = devm_add_action_or_reset(&pdev->dev, amd_mp2_pci_remove, privdata);
 	if (rc)
 		return rc;
 
+<<<<<<< HEAD
+=======
+	mp2_select_ops(privdata);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return amd_sfh_hid_client_init(privdata);
 }
 

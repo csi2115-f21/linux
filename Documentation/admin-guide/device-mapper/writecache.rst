@@ -77,3 +77,8 @@ Messages:
 		5. resume the device, so that it will use the linear
 		   target
 		6. the cache device is now inactive and it can be deleted
+<<<<<<< HEAD
+=======
+	cleaner
+		See above "cleaner" constructor documentation.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

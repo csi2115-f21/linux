@@ -606,8 +606,31 @@ int asoc_simple_init_priv(struct asoc_simple_priv *priv,
 
 	dai_props = devm_kcalloc(dev, li->link, sizeof(*dai_props), GFP_KERNEL);
 	dai_link  = devm_kcalloc(dev, li->link, sizeof(*dai_link),  GFP_KERNEL);
+<<<<<<< HEAD
 	dais      = devm_kcalloc(dev, li->dais, sizeof(*dais),      GFP_KERNEL);
 	if (!dai_props || !dai_link || !dais)
+=======
+	if (!dai_props || !dai_link)
+		return -ENOMEM;
+
+	/*
+	 * dais (= CPU+Codec)
+	 * dlcs (= CPU+Codec+Platform)
+	 */
+	for (i = 0; i < li->link; i++) {
+		int cc = li->num[i].cpus + li->num[i].codecs;
+
+		dai_num += cc;
+		dlc_num += cc + li->num[i].platforms;
+
+		if (!li->num[i].cpus)
+			cnf_num += li->num[i].codecs;
+	}
+
+	dais = devm_kcalloc(dev, dai_num, sizeof(*dais),      GFP_KERNEL);
+	dlcs = devm_kcalloc(dev, dlc_num, sizeof(*dai_props), GFP_KERNEL);
+	if (!dais || !dlcs)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 
 	if (li->conf) {

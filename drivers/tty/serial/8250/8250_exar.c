@@ -354,7 +354,11 @@ static void setup_gpio(struct pci_dev *pcidev, u8 __iomem *p)
 
 static void *
 __xr17v35x_register_gpio(struct pci_dev *pcidev,
+<<<<<<< HEAD
 			 const struct property_entry *properties)
+=======
+			 const struct software_node *node)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct platform_device *pdev;
 
@@ -380,6 +384,13 @@ static const struct property_entry exar_gpio_properties[] = {
 	{ }
 };
 
+<<<<<<< HEAD
+=======
+static const struct software_node exar_gpio_node = {
+	.properties = exar_gpio_properties,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int xr17v35x_register_gpio(struct pci_dev *pcidev,
 				  struct uart_8250_port *port)
 {
@@ -545,8 +556,18 @@ static void pci_xr17v35x_exit(struct pci_dev *pcidev)
 {
 	struct exar8250 *priv = pci_get_drvdata(pcidev);
 	struct uart_8250_port *port = serial8250_get_port(priv->line[0]);
+<<<<<<< HEAD
 	struct platform_device *pdev = port->port.private_data;
 
+=======
+	struct platform_device *pdev;
+
+	pdev = port->port.private_data;
+	if (!pdev)
+		return;
+
+	device_remove_software_node(&pdev->dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	platform_device_unregister(pdev);
 	port->port.private_data = NULL;
 }

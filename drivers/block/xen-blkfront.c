@@ -1146,7 +1146,11 @@ static int xlvbd_alloc_gendisk(blkif_sector_t capacity,
 
 	err = xlbd_reserve_minors(minor, nr_minors);
 	if (err)
+<<<<<<< HEAD
 		goto out;
+=======
+		return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = -ENODEV;
 
 	gd = alloc_disk(nr_minors);

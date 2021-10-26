@@ -19,6 +19,10 @@ enum {
 
 #define PERF_PMU_FORMAT_BITS 64
 #define EVENT_SOURCE_DEVICE_PATH "/bus/event_source/devices/"
+<<<<<<< HEAD
+=======
+#define CPUS_TEMPLATE_CPU	"%s/bus/event_source/devices/%s/cpus"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct perf_event_attr;
 
@@ -123,4 +127,13 @@ int perf_pmu__convert_scale(const char *scale, char **end, double *sval);
 
 int perf_pmu__caps_parse(struct perf_pmu *pmu);
 
+<<<<<<< HEAD
+=======
+void perf_pmu__warn_invalid_config(struct perf_pmu *pmu, __u64 config,
+				   char *name);
+
+bool perf_pmu__has_hybrid(void);
+int perf_pmu__match(char *pattern, char *name, char *tok);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* __PMU_H */

@@ -157,6 +157,22 @@ intel_combo_pll_enable_reg(struct drm_i915_private *i915,
 		return MG_PLL_ENABLE(0);
 
 	return CNL_DPLL_ENABLE(pll->info->id);
+<<<<<<< HEAD
+=======
+}
+
+static i915_reg_t
+intel_tc_pll_enable_reg(struct drm_i915_private *i915,
+			struct intel_shared_dpll *pll)
+{
+	const enum intel_dpll_id id = pll->info->id;
+	enum tc_port tc_port = icl_pll_id_to_tc_port(id);
+
+	if (IS_ALDERLAKE_P(i915))
+		return ADLP_PORTTC_PLL_ENABLE(tc_port);
+
+	return MG_PLL_ENABLE(tc_port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -4397,7 +4413,15 @@ void intel_shared_dpll_init(struct drm_device *dev)
 	const struct dpll_info *dpll_info;
 	int i;
 
+<<<<<<< HEAD
 	if (IS_DG1(dev_priv))
+=======
+	if (IS_ALDERLAKE_P(dev_priv))
+		dpll_mgr = &adlp_pll_mgr;
+	else if (IS_ALDERLAKE_S(dev_priv))
+		dpll_mgr = &adls_pll_mgr;
+	else if (IS_DG1(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dpll_mgr = &dg1_pll_mgr;
 	else if (IS_ROCKETLAKE(dev_priv))
 		dpll_mgr = &rkl_pll_mgr;
@@ -4409,7 +4433,13 @@ void intel_shared_dpll_init(struct drm_device *dev)
 		dpll_mgr = &icl_pll_mgr;
 	else if (IS_CANNONLAKE(dev_priv))
 		dpll_mgr = &cnl_pll_mgr;
+<<<<<<< HEAD
 	else if (IS_GEN9_BC(dev_priv))
+=======
+	else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+		dpll_mgr = &bxt_pll_mgr;
+	else if (DISPLAY_VER(dev_priv) == 9)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dpll_mgr = &skl_pll_mgr;
 	else if (IS_GEN9_LP(dev_priv))
 		dpll_mgr = &bxt_pll_mgr;

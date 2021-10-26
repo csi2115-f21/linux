@@ -2242,7 +2242,11 @@ unsigned long perf_instruction_pointer(struct pt_regs *regs)
 	bool use_siar = regs_use_siar(regs);
 	unsigned long siar = mfspr(SPRN_SIAR);
 
+<<<<<<< HEAD
 	if (ppmu->flags & PPMU_P10_DD1) {
+=======
+	if (ppmu && (ppmu->flags & PPMU_P10_DD1)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (siar)
 			return siar;
 		else

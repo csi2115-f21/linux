@@ -86,12 +86,21 @@ SYM_FUNC_START(__hyp_do_panic)
 	ldr	lr, =__hyp_panic_string
 	hyp_kimg_va lr, x6
 
+<<<<<<< HEAD
 	/* Load the format arguments into x1-7. */
 	mov	x6, x3
 	get_vcpu_ptr x7, x3
 	mrs	x3, esr_el2
 	mrs	x4, far_el2
 	mrs	x5, hpfar_el2
+=======
+	/* Load the panic arguments into x0-7 */
+	mrs	x0, esr_el2
+	get_vcpu_ptr x4, x5
+	mrs	x5, far_el2
+	mrs	x6, hpfar_el2
+	mov	x7, xzr			// Unused argument
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Enter the host, conditionally restoring the host context. */
 	cmp	x0, xzr

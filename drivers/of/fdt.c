@@ -470,7 +470,11 @@ void *initial_boot_params __ro_after_init;
 
 static u32 of_fdt_crc32;
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * __reserved_mem_reserve_reg() - reserve all memory described in 'reg' property
  */
 static int __init __reserved_mem_reserve_reg(unsigned long node,

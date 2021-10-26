@@ -157,7 +157,14 @@ config PTP_1588_CLOCK_OCP
 	tristate "OpenCompute TimeCard as PTP clock"
 	depends on PTP_1588_CLOCK
 	depends on HAS_IOMEM && PCI
+<<<<<<< HEAD
 	default n
+=======
+	depends on I2C && MTD
+	depends on SERIAL_8250
+	depends on !S390
+	select NET_DEVLINK
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	help
 	  This driver adds support for an OpenCompute time card.
 

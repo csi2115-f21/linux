@@ -696,7 +696,11 @@ static int btrfs_batch_insert_items(struct btrfs_root *root,
 {
 	struct btrfs_delayed_item *curr, *next;
 	int free_space;
+<<<<<<< HEAD
 	int total_data_size = 0, total_size = 0;
+=======
+	int total_size = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct extent_buffer *leaf;
 	char *data_ptr;
 	struct btrfs_key *keys;
@@ -715,6 +719,7 @@ static int btrfs_batch_insert_items(struct btrfs_root *root,
 
 	next = item;
 	nitems = 0;
+<<<<<<< HEAD
 
 	/*
 	 * count the number of the continuous items that we can insert in batch
@@ -726,6 +731,18 @@ static int btrfs_batch_insert_items(struct btrfs_root *root,
 		list_add_tail(&next->tree_list, &head);
 		nitems++;
 
+=======
+
+	/*
+	 * count the number of the continuous items that we can insert in batch
+	 */
+	while (total_size + next->data_len + sizeof(struct btrfs_item) <=
+	       free_space) {
+		total_size += next->data_len + sizeof(struct btrfs_item);
+		list_add_tail(&next->tree_list, &head);
+		nitems++;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		curr = next;
 		next = __btrfs_next_delayed_item(curr);
 		if (!next)
@@ -851,11 +868,19 @@ do_again:
 	}
 	btrfs_release_delayed_item(prev);
 	btrfs_mark_buffer_dirty(path->nodes[0]);
+<<<<<<< HEAD
 
 	btrfs_release_path(path);
 	mutex_unlock(&node->mutex);
 	goto do_again;
 
+=======
+
+	btrfs_release_path(path);
+	mutex_unlock(&node->mutex);
+	goto do_again;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 insert_end:
 	mutex_unlock(&node->mutex);
 	return ret;
@@ -1024,12 +1049,19 @@ static int __btrfs_update_delayed_inode(struct btrfs_trans_handle *trans,
 	nofs_flag = memalloc_nofs_save();
 	ret = btrfs_lookup_inode(trans, root, path, &key, mod);
 	memalloc_nofs_restore(nofs_flag);
+<<<<<<< HEAD
 	if (ret > 0) {
 		btrfs_release_path(path);
 		return -ENOENT;
 	} else if (ret < 0) {
 		return ret;
 	}
+=======
+	if (ret > 0)
+		ret = -ENOENT;
+	if (ret < 0)
+		goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	leaf = path->nodes[0];
 	inode_item = btrfs_item_ptr(leaf, path->slots[0],

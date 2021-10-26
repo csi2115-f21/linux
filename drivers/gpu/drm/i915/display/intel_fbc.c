@@ -473,7 +473,11 @@ again:
 
 	ret = i915_gem_stolen_insert_node_in_range(dev_priv, node, size >>= 1,
 						   4096, 0, end);
+<<<<<<< HEAD
 	if (ret && INTEL_GEN(dev_priv) <= 4) {
+=======
+	if (ret && DISPLAY_VER(dev_priv) <= 4) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0;
 	} else if (ret) {
 		compression_threshold <<= 1;
@@ -504,7 +508,11 @@ static int intel_fbc_alloc_cfb(struct drm_i915_private *dev_priv,
 
 	fbc->threshold = ret;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 5)
+=======
+	if (DISPLAY_VER(dev_priv) >= 5)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		intel_de_write(dev_priv, ILK_DPFC_CB_BASE,
 			       fbc->compressed_fb.start);
 	else if (IS_GM45(dev_priv)) {

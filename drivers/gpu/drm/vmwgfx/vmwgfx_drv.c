@@ -153,7 +153,11 @@
 	DRM_IOWR(DRM_COMMAND_BASE + DRM_VMW_MSG,			\
 		struct drm_vmw_msg_arg)
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * The core DRM version of this macro doesn't account for
  * DRM_COMMAND_BASE.
  */
@@ -161,7 +165,11 @@
 #define VMW_IOCTL_DEF(ioctl, func, flags) \
   [DRM_IOCTL_NR(DRM_IOCTL_##ioctl) - DRM_COMMAND_BASE] = {DRM_IOCTL_##ioctl, flags, func}
 
+<<<<<<< HEAD
 /**
+=======
+/*
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * Ioctl definitions.
  */
 
@@ -399,6 +407,63 @@ static int vmw_dummy_query_bo_create(struct vmw_private *dev_priv)
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+static int vmw_device_init(struct vmw_private *dev_priv)
+{
+	bool uses_fb_traces = false;
+
+	DRM_INFO("width %d\n", vmw_read(dev_priv, SVGA_REG_WIDTH));
+	DRM_INFO("height %d\n", vmw_read(dev_priv, SVGA_REG_HEIGHT));
+	DRM_INFO("bpp %d\n", vmw_read(dev_priv, SVGA_REG_BITS_PER_PIXEL));
+
+	dev_priv->enable_state = vmw_read(dev_priv, SVGA_REG_ENABLE);
+	dev_priv->config_done_state = vmw_read(dev_priv, SVGA_REG_CONFIG_DONE);
+	dev_priv->traces_state = vmw_read(dev_priv, SVGA_REG_TRACES);
+
+	vmw_write(dev_priv, SVGA_REG_ENABLE, SVGA_REG_ENABLE_ENABLE |
+		  SVGA_REG_ENABLE_HIDE);
+
+	uses_fb_traces = !vmw_cmd_supported(dev_priv) &&
+			 (dev_priv->capabilities & SVGA_CAP_TRACES) != 0;
+
+	vmw_write(dev_priv, SVGA_REG_TRACES, uses_fb_traces);
+	dev_priv->fifo = vmw_fifo_create(dev_priv);
+	if (IS_ERR(dev_priv->fifo)) {
+		int err = PTR_ERR(dev_priv->fifo);
+		dev_priv->fifo = NULL;
+		return err;
+	} else if (!dev_priv->fifo) {
+		vmw_write(dev_priv, SVGA_REG_CONFIG_DONE, 1);
+	}
+
+	dev_priv->last_read_seqno = vmw_fence_read(dev_priv);
+	atomic_set(&dev_priv->marker_seq, dev_priv->last_read_seqno);
+	return 0;
+}
+
+static void vmw_device_fini(struct vmw_private *vmw)
+{
+	/*
+	 * Legacy sync
+	 */
+	vmw_write(vmw, SVGA_REG_SYNC, SVGA_SYNC_GENERIC);
+	while (vmw_read(vmw, SVGA_REG_BUSY) != 0)
+		;
+
+	vmw->last_read_seqno = vmw_fence_read(vmw);
+
+	vmw_write(vmw, SVGA_REG_CONFIG_DONE,
+		  vmw->config_done_state);
+	vmw_write(vmw, SVGA_REG_ENABLE,
+		  vmw->enable_state);
+	vmw_write(vmw, SVGA_REG_TRACES,
+		  vmw->traces_state);
+
+	vmw_fifo_destroy(vmw);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * vmw_request_device_late - Perform late device setup
  *
@@ -655,6 +720,7 @@ static int vmw_setup_pci_resources(struct vmw_private *dev,
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	dev->io_start = pci_resource_start(pdev, 0);
 	dev->vram_start = pci_resource_start(pdev, 1);
 	dev->vram_size = pci_resource_len(pdev, 1);
@@ -670,6 +736,45 @@ static int vmw_setup_pci_resources(struct vmw_private *dev,
 
 	if (IS_ERR(dev->fifo_mem)) {
 		DRM_ERROR("Failed mapping FIFO memory.\n");
+=======
+	dev->pci_id = pci_id;
+	if (pci_id == VMWGFX_PCI_ID_SVGA3) {
+		rmmio_start = pci_resource_start(pdev, 0);
+		rmmio_size = pci_resource_len(pdev, 0);
+		dev->vram_start = pci_resource_start(pdev, 2);
+		dev->vram_size = pci_resource_len(pdev, 2);
+
+		DRM_INFO("Register MMIO at 0x%pa size is %llu kiB\n",
+			 &rmmio_start, (uint64_t)rmmio_size / 1024);
+		dev->rmmio = devm_ioremap(dev->drm.dev,
+					  rmmio_start,
+					  rmmio_size);
+		if (!dev->rmmio) {
+			DRM_ERROR("Failed mapping registers mmio memory.\n");
+			pci_release_regions(pdev);
+			return -ENOMEM;
+		}
+	} else if (pci_id == VMWGFX_PCI_ID_SVGA2) {
+		dev->io_start = pci_resource_start(pdev, 0);
+		dev->vram_start = pci_resource_start(pdev, 1);
+		dev->vram_size = pci_resource_len(pdev, 1);
+		fifo_start = pci_resource_start(pdev, 2);
+		fifo_size = pci_resource_len(pdev, 2);
+
+		DRM_INFO("FIFO at %pa size is %llu kiB\n",
+			 &fifo_start, (uint64_t)fifo_size / 1024);
+		dev->fifo_mem = devm_memremap(dev->drm.dev,
+					      fifo_start,
+					      fifo_size,
+					      MEMREMAP_WB);
+
+		if (IS_ERR(dev->fifo_mem)) {
+			DRM_ERROR("Failed mapping FIFO memory.\n");
+			pci_release_regions(pdev);
+			return PTR_ERR(dev->fifo_mem);
+		}
+	} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pci_release_regions(pdev);
 		return PTR_ERR(dev->fifo_mem);
 	}
@@ -692,11 +797,20 @@ static int vmw_detect_version(struct vmw_private *dev)
 
 	vmw_write(dev, SVGA_REG_ID, SVGA_ID_2);
 	svga_id = vmw_read(dev, SVGA_REG_ID);
+<<<<<<< HEAD
 	if (svga_id != SVGA_ID_2) {
+=======
+	if (svga_id != SVGA_ID_2 && svga_id != SVGA_ID_3) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		DRM_ERROR("Unsupported SVGA ID 0x%x on chipset 0x%x\n",
 			  svga_id, dev->vmw_chipset);
 		return -ENOSYS;
 	}
+<<<<<<< HEAD
+=======
+	BUG_ON(vmw_is_svga_v3(dev) && (svga_id != SVGA_ID_3));
+	DRM_INFO("Running on SVGA version %d.\n", (svga_id & 0xff));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -709,9 +823,22 @@ static int vmw_driver_load(struct vmw_private *dev_priv, u32 pci_id)
 	struct pci_dev *pdev = to_pci_dev(dev_priv->drm.dev);
 
 	dev_priv->vmw_chipset = pci_id;
+<<<<<<< HEAD
 	dev_priv->last_read_seqno = (uint32_t) -100;
 	dev_priv->drm.dev_private = dev_priv;
 
+=======
+	dev_priv->drm.dev_private = dev_priv;
+
+	mutex_init(&dev_priv->cmdbuf_mutex);
+	mutex_init(&dev_priv->binding_mutex);
+	spin_lock_init(&dev_priv->resource_lock);
+	spin_lock_init(&dev_priv->hw_lock);
+	spin_lock_init(&dev_priv->waiter_lock);
+	spin_lock_init(&dev_priv->cap_lock);
+	spin_lock_init(&dev_priv->cursor_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = vmw_setup_pci_resources(dev_priv, pci_id);
 	if (ret)
 		return ret;
@@ -832,6 +959,11 @@ static int vmw_driver_load(struct vmw_private *dev_priv, u32 pci_id)
 	vmw_print_capabilities(dev_priv->capabilities);
 	if (dev_priv->capabilities & SVGA_CAP_CAP2_REGISTER)
 		vmw_print_capabilities2(dev_priv->capabilities2);
+<<<<<<< HEAD
+=======
+	DRM_INFO("Supports command queues = %d\n",
+		 vmw_cmd_supported((dev_priv)));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = vmw_dma_masks(dev_priv);
 	if (unlikely(ret != 0))
@@ -967,14 +1099,18 @@ static int vmw_driver_load(struct vmw_private *dev_priv, u32 pci_id)
 	if (ret)
 		goto out_no_fifo;
 
+<<<<<<< HEAD
 	DRM_INFO("Atomic: %s\n", (dev_priv->drm.driver->driver_features & DRIVER_ATOMIC)
 		 ? "yes." : "no.");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (dev_priv->sm_type == VMW_SM_5)
 		DRM_INFO("SM5 support available.\n");
 	if (dev_priv->sm_type == VMW_SM_4_1)
 		DRM_INFO("SM4_1 support available.\n");
 	if (dev_priv->sm_type == VMW_SM_4)
 		DRM_INFO("SM4 support available.\n");
+<<<<<<< HEAD
 
 	snprintf(host_log, sizeof(host_log), "vmwgfx: %s-%s",
 		VMWGFX_REPO, VMWGFX_GIT_VERSION);
@@ -985,6 +1121,13 @@ static int vmw_driver_load(struct vmw_private *dev_priv, u32 pci_id)
 		VMWGFX_DRIVER_MAJOR, VMWGFX_DRIVER_MINOR,
 		VMWGFX_DRIVER_PATCHLEVEL);
 	vmw_host_log(host_log);
+=======
+	DRM_INFO("Running without reservation semaphore\n");
+
+	vmw_host_printf("vmwgfx: Module Version: %d.%d.%d (kernel: %s)",
+			VMWGFX_DRIVER_MAJOR, VMWGFX_DRIVER_MINOR,
+			VMWGFX_DRIVER_PATCHLEVEL, UTS_RELEASE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (dev_priv->enable_fb) {
 		vmw_fifo_resource_inc(dev_priv);
@@ -1503,7 +1646,11 @@ static int vmw_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct vmw_private *vmw;
 	int ret;
 
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "svgadrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "svgadrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

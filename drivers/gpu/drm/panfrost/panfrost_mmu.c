@@ -616,9 +616,17 @@ static irqreturn_t panfrost_mmu_irq_handler_thread(int irq, void *data)
 				access_type, access_type_name(pfdev, fault_status),
 				source_id);
 
+<<<<<<< HEAD
 		mmu_write(pfdev, MMU_INT_CLEAR, mask);
 
 		status &= ~mask;
+=======
+		status &= ~mask;
+
+		/* If we received new MMU interrupts, process them before returning. */
+		if (!status)
+			status = mmu_read(pfdev, MMU_INT_RAWSTAT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	mmu_write(pfdev, MMU_INT_MASK, ~0);

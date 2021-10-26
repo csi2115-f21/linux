@@ -889,9 +889,13 @@ static void bcache_device_free(struct bcache_device *d)
 		if (disk_added)
 			del_gendisk(disk);
 
+<<<<<<< HEAD
 		if (disk->queue)
 			blk_cleanup_queue(disk->queue);
 
+=======
+		blk_cleanup_disk(disk);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ida_simple_remove(&bcache_device_idx,
 				  first_minor_to_idx(disk->first_minor));
 		if (disk_added)

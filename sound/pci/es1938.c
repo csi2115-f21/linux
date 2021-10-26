@@ -1557,7 +1557,12 @@ static int snd_es1938_create(struct snd_card *card,
 	*rchip = NULL;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
         /* check, if we can restrict PCI DMA transfers to 24 bits */
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(24))) {
@@ -1577,7 +1582,12 @@ static int snd_es1938_create(struct snd_card *card,
 	chip->card = card;
 	chip->pci = pci;
 	chip->irq = -1;
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "ESS Solo-1")) < 0) {
+=======
+	err = pci_request_regions(pci, "ESS Solo-1");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -1603,7 +1613,12 @@ static int snd_es1938_create(struct snd_card *card,
 
 	snd_es1938_chip_init(chip);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_es1938_free(chip);
 		return err;
 	}
@@ -1769,7 +1784,12 @@ static int snd_es1938_probe(struct pci_dev *pci,
 		    	return -ENODEV;
 		}
 	}
+<<<<<<< HEAD
 	if ((err = snd_es1938_create(card, pci, &chip)) < 0) {
+=======
+	err = snd_es1938_create(card, pci, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1782,11 +1802,21 @@ static int snd_es1938_probe(struct pci_dev *pci,
 		chip->revision,
 		chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_es1938_new_pcm(chip, 0)) < 0) {
 		snd_card_free(card);
 		return err;
 	}
 	if ((err = snd_es1938_mixer(chip)) < 0) {
+=======
+	err = snd_es1938_new_pcm(chip, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_es1938_mixer(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1797,11 +1827,21 @@ static int snd_es1938_probe(struct pci_dev *pci,
 		dev_err(card->dev, "OPL3 not detected at 0x%lx\n",
 			   SLSB_REG(chip, FMLOWADDR));
 	} else {
+<<<<<<< HEAD
 	        if ((err = snd_opl3_timer_new(opl3, 0, 1)) < 0) {
 	                snd_card_free(card);
 	                return err;
 		}
 	        if ((err = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+		err = snd_opl3_timer_new(opl3, 0, 1);
+		if (err < 0) {
+	                snd_card_free(card);
+	                return err;
+		}
+		err = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+		if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	                snd_card_free(card);
 	                return err;
 		}
@@ -1819,7 +1859,12 @@ static int snd_es1938_probe(struct pci_dev *pci,
 
 	snd_es1938_create_gameport(chip);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

@@ -586,7 +586,12 @@ int snd_ad1816a_create(struct snd_card *card,
 	chip->dma1 = -1;
 	chip->dma2 = -1;
 
+<<<<<<< HEAD
 	if ((chip->res_port = request_region(port, 16, "AD1816A")) == NULL) {
+=======
+	chip->res_port = request_region(port, 16, "AD1816A");
+	if (!chip->res_port) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_printk(KERN_ERR "ad1816a: can't grab port 0x%lx\n", port);
 		snd_ad1816a_free(chip);
 		return -EBUSY;
@@ -615,7 +620,12 @@ int snd_ad1816a_create(struct snd_card *card,
 	chip->port = port;
 	spin_lock_init(&chip->lock);
 
+<<<<<<< HEAD
 	if ((error = snd_ad1816a_probe(chip))) {
+=======
+	error = snd_ad1816a_probe(chip);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_ad1816a_free(chip);
 		return error;
 	}
@@ -623,7 +633,12 @@ int snd_ad1816a_create(struct snd_card *card,
 	snd_ad1816a_init(chip);
 
 	/* Register device */
+<<<<<<< HEAD
 	if ((error = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	error = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_ad1816a_free(chip);
 		return error;
 	}

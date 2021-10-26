@@ -621,6 +621,11 @@ struct hl_cs_chunk {
 #define HL_CS_FLAGS_STAGED_SUBMISSION		0x40
 #define HL_CS_FLAGS_STAGED_SUBMISSION_FIRST	0x80
 #define HL_CS_FLAGS_STAGED_SUBMISSION_LAST	0x100
+<<<<<<< HEAD
+=======
+#define HL_CS_FLAGS_CUSTOM_TIMEOUT		0x200
+#define HL_CS_FLAGS_SKIP_RESET_ON_TIMEOUT	0x400
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define HL_CS_STATUS_SUCCESS		0
 
@@ -634,6 +639,7 @@ struct hl_cs_in {
 	/* holds address of array of hl_cs_chunk for execution phase */
 	__u64 chunks_execute;
 
+<<<<<<< HEAD
 	union {
 		/* this holds address of array of hl_cs_chunk for store phase -
 		 * Currently not in use
@@ -645,6 +651,12 @@ struct hl_cs_in {
 		 */
 		__u64 seq;
 	};
+=======
+	/* Sequence number of a staged submission CS
+	 * valid only if HL_CS_FLAGS_STAGED_SUBMISSION is set
+	 */
+	__u64 seq;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Number of chunks in restore phase array. Maximum number is
 	 * HL_MAX_JOBS_PER_CS
@@ -682,6 +694,7 @@ union hl_cs_args {
 	struct hl_cs_out out;
 };
 
+<<<<<<< HEAD
 struct hl_wait_cs_in {
 	/* Command submission sequence number */
 	__u64 seq;
@@ -690,6 +703,48 @@ struct hl_wait_cs_in {
 	/* Context ID - Currently not in use */
 	__u32 ctx_id;
 	__u32 pad;
+=======
+#define HL_WAIT_CS_FLAGS_INTERRUPT	0x2
+#define HL_WAIT_CS_FLAGS_INTERRUPT_MASK 0xFFF00000
+
+struct hl_wait_cs_in {
+	union {
+		struct {
+			/* Command submission sequence number */
+			__u64 seq;
+			/* Absolute timeout to wait for command submission
+			 * in microseconds
+			 */
+			__u64 timeout_us;
+		};
+
+		struct {
+			/* User address for completion comparison.
+			 * upon interrupt, driver will compare the value pointed
+			 * by this address with the supplied target value.
+			 * in order not to perform any comparison, set address
+			 * to all 1s.
+			 * Relevant only when HL_WAIT_CS_FLAGS_INTERRUPT is set
+			 */
+			__u64 addr;
+			/* Target value for completion comparison */
+			__u32 target;
+			/* Absolute timeout to wait for interrupt
+			 * in microseconds
+			 */
+			__u32 interrupt_timeout_us;
+		};
+	};
+
+	/* Context ID - Currently not in use */
+	__u32 ctx_id;
+	/* HL_WAIT_CS_FLAGS_*
+	 * If HL_WAIT_CS_FLAGS_INTERRUPT is set, this field should include
+	 * interrupt id according to HL_WAIT_CS_FLAGS_INTERRUPT_MASK, in order
+	 * not to specify an interrupt id ,set mask to all 1s.
+	 */
+	__u32 flags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define HL_WAIT_CS_STATUS_COMPLETED	0

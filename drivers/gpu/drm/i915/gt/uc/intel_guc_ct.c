@@ -15,6 +15,37 @@
 #else
 #define CT_DEBUG(...)	do { } while (0)
 #endif
+<<<<<<< HEAD
+=======
+#define CT_PROBE_ERROR(_ct, _fmt, ...) \
+	i915_probe_error(ct_to_i915(ct), "CT: " _fmt, ##__VA_ARGS__)
+
+/**
+ * DOC: CTB Blob
+ *
+ * We allocate single blob to hold both CTB descriptors and buffers:
+ *
+ *      +--------+-----------------------------------------------+------+
+ *      | offset | contents                                      | size |
+ *      +========+===============================================+======+
+ *      | 0x0000 | H2G `CTB Descriptor`_ (send)                  |      |
+ *      +--------+-----------------------------------------------+  4K  |
+ *      | 0x0800 | G2H `CTB Descriptor`_ (recv)                  |      |
+ *      +--------+-----------------------------------------------+------+
+ *      | 0x1000 | H2G `CT Buffer`_ (send)                       | n*4K |
+ *      |        |                                               |      |
+ *      +--------+-----------------------------------------------+------+
+ *      | 0x1000 | G2H `CT Buffer`_ (recv)                       | m*4K |
+ *      | + n*4K |                                               |      |
+ *      +--------+-----------------------------------------------+------+
+ *
+ * Size of each `CT Buffer`_ must be multiple of 4K.
+ * As we don't expect too many messages, for now use minimum sizes.
+ */
+#define CTB_DESC_SIZE		ALIGN(sizeof(struct guc_ct_buffer_desc), SZ_2K)
+#define CTB_H2G_BUFFER_SIZE	(SZ_4K)
+#define CTB_G2H_BUFFER_SIZE	(SZ_4K)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct ct_request {
 	struct list_head link;
@@ -45,6 +76,7 @@ void intel_guc_ct_init_early(struct intel_guc_ct *ct)
 	INIT_LIST_HEAD(&ct->requests.pending);
 	INIT_LIST_HEAD(&ct->requests.incoming);
 	INIT_WORK(&ct->requests.worker, ct_incoming_request_worker_func);
+<<<<<<< HEAD
 }
 
 static inline struct intel_guc *ct_to_guc(struct intel_guc_ct *ct)
@@ -65,6 +97,9 @@ static inline struct drm_i915_private *ct_to_i915(struct intel_guc_ct *ct)
 static inline struct device *ct_to_dev(struct intel_guc_ct *ct)
 {
 	return ct_to_i915(ct)->drm.dev;
+=======
+	tasklet_setup(&ct->receive_tasklet, ct_receive_tasklet_func);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline const char *guc_ct_buffer_type_to_str(u32 type)
@@ -88,11 +123,30 @@ static void guc_ct_buffer_desc_init(struct guc_ct_buffer_desc *desc,
 	desc->owner = CTB_OWNER_HOST;
 }
 
+<<<<<<< HEAD
 static void guc_ct_buffer_desc_reset(struct guc_ct_buffer_desc *desc)
 {
 	desc->head = 0;
 	desc->tail = 0;
 	desc->is_in_error = 0;
+=======
+static void guc_ct_buffer_reset(struct intel_guc_ct_buffer *ctb, u32 cmds_addr)
+{
+	guc_ct_buffer_desc_init(ctb->desc, cmds_addr, ctb->size);
+}
+
+static void guc_ct_buffer_init(struct intel_guc_ct_buffer *ctb,
+			       struct guc_ct_buffer_desc *desc,
+			       u32 *cmds, u32 size)
+{
+	GEM_BUG_ON(size % 4);
+
+	ctb->desc = desc;
+	ctb->cmds = cmds;
+	ctb->size = size;
+
+	guc_ct_buffer_reset(ctb, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int guc_action_register_ct_buffer(struct intel_guc *guc,
@@ -153,9 +207,18 @@ static int ct_deregister_buffer(struct intel_guc_ct *ct, u32 type)
 int intel_guc_ct_init(struct intel_guc_ct *ct)
 {
 	struct intel_guc *guc = ct_to_guc(ct);
+<<<<<<< HEAD
+=======
+	struct guc_ct_buffer_desc *desc;
+	u32 blob_size;
+	u32 cmds_size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	void *blob;
 	int err;
+<<<<<<< HEAD
 	int i;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	GEM_BUG_ON(ct->vma);
 
@@ -189,12 +252,32 @@ int intel_guc_ct_init(struct intel_guc_ct *ct)
 
 	CT_DEBUG(ct, "vma base=%#x\n", intel_guc_ggtt_offset(guc, ct->vma));
 
+<<<<<<< HEAD
 	/* store pointers to desc and cmds */
 	for (i = 0; i < ARRAY_SIZE(ct->ctbs); i++) {
 		GEM_BUG_ON((i !=  CTB_SEND) && (i != CTB_RECV));
 		ct->ctbs[i].desc = blob + PAGE_SIZE/4 * i;
 		ct->ctbs[i].cmds = blob + PAGE_SIZE/4 * i + PAGE_SIZE/2;
 	}
+=======
+	/* store pointers to desc and cmds for send ctb */
+	desc = blob;
+	cmds = blob + 2 * CTB_DESC_SIZE;
+	cmds_size = CTB_H2G_BUFFER_SIZE;
+	CT_DEBUG(ct, "%s desc %#tx cmds %#tx size %u\n", "send",
+		 ptrdiff(desc, blob), ptrdiff(cmds, blob), cmds_size);
+
+	guc_ct_buffer_init(&ct->ctbs.send, desc, cmds, cmds_size);
+
+	/* store pointers to desc and cmds for recv ctb */
+	desc = blob + CTB_DESC_SIZE;
+	cmds = blob + 2 * CTB_DESC_SIZE + CTB_H2G_BUFFER_SIZE;
+	cmds_size = CTB_G2H_BUFFER_SIZE;
+	CT_DEBUG(ct, "%s desc %#tx cmds %#tx size %u\n", "recv",
+		 ptrdiff(desc, blob), ptrdiff(cmds, blob), cmds_size);
+
+	guc_ct_buffer_init(&ct->ctbs.recv, desc, cmds, cmds_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -222,7 +305,12 @@ void intel_guc_ct_fini(struct intel_guc_ct *ct)
 int intel_guc_ct_enable(struct intel_guc_ct *ct)
 {
 	struct intel_guc *guc = ct_to_guc(ct);
+<<<<<<< HEAD
 	u32 base, cmds, size;
+=======
+	u32 base, cmds;
+	void *blob;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int err;
 	int i;
 
@@ -232,6 +320,7 @@ int intel_guc_ct_enable(struct intel_guc_ct *ct)
 	GEM_BUG_ON(!ct->vma);
 	base = intel_guc_ggtt_offset(guc, ct->vma);
 
+<<<<<<< HEAD
 	/* (re)initialize descriptors
 	 * cmds buffers are in the second half of the blob page
 	 */
@@ -242,17 +331,37 @@ int intel_guc_ct_enable(struct intel_guc_ct *ct)
 		CT_DEBUG(ct, "%d: addr=%#x size=%u\n", i, cmds, size);
 		guc_ct_buffer_desc_init(ct->ctbs[i].desc, cmds, size);
 	}
+=======
+	/* blob should start with send descriptor */
+	blob = __px_vaddr(ct->vma->obj);
+	GEM_BUG_ON(blob != ct->ctbs.send.desc);
+
+	/* (re)initialize descriptors */
+	cmds = base + ptrdiff(ct->ctbs.send.cmds, blob);
+	guc_ct_buffer_reset(&ct->ctbs.send, cmds);
+
+	cmds = base + ptrdiff(ct->ctbs.recv.cmds, blob);
+	guc_ct_buffer_reset(&ct->ctbs.recv, cmds);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Register both CT buffers starting with RECV buffer.
 	 * Descriptors are in first half of the blob.
 	 */
+<<<<<<< HEAD
 	err = ct_register_buffer(ct, base + PAGE_SIZE / 4 * CTB_RECV,
+=======
+	err = ct_register_buffer(ct, base + ptrdiff(ct->ctbs.recv.desc, blob),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				 INTEL_GUC_CT_BUFFER_TYPE_RECV);
 	if (unlikely(err))
 		goto err_out;
 
+<<<<<<< HEAD
 	err = ct_register_buffer(ct, base + PAGE_SIZE / 4 * CTB_SEND,
+=======
+	err = ct_register_buffer(ct, base + ptrdiff(ct->ctbs.send.desc, blob),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				 INTEL_GUC_CT_BUFFER_TYPE_SEND);
 	if (unlikely(err))
 		goto err_deregister;
@@ -310,17 +419,43 @@ static u32 ct_get_next_fence(struct intel_guc_ct *ct)
  *                   ^-----------------len-------------------^
  */
 
+/**
+ * DOC: CTB Host to GuC request
+ *
+ * Format of the CTB Host to GuC request message is as follows::
+ *
+ *      +------------+---------+---------+---------+---------+
+ *      |   msg[0]   |   [1]   |   [2]   |   ...   |  [n-1]  |
+ *      +------------+---------+---------+---------+---------+
+ *      |   MESSAGE  |       MESSAGE PAYLOAD                 |
+ *      +   HEADER   +---------+---------+---------+---------+
+ *      |            |    0    |    1    |   ...   |    n    |
+ *      +============+=========+=========+=========+=========+
+ *      |  len >= 1  |  FENCE  |     request specific data   |
+ *      +------+-----+---------+---------+---------+---------+
+ *
+ *                   ^-----------------len-------------------^
+ */
+
 static int ct_write(struct intel_guc_ct *ct,
 		    const u32 *action,
 		    u32 len /* in dwords */,
+<<<<<<< HEAD
 		    u32 fence,
 		    bool want_response)
+=======
+		    u32 fence)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct intel_guc_ct_buffer *ctb = &ct->ctbs[CTB_SEND];
 	struct guc_ct_buffer_desc *desc = ctb->desc;
 	u32 head = desc->head;
 	u32 tail = desc->tail;
+<<<<<<< HEAD
 	u32 size = desc->size;
+=======
+	u32 size = ctb->size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 used;
 	u32 header;
 	u32 *cmds = ctb->cmds;
@@ -329,7 +464,11 @@ static int ct_write(struct intel_guc_ct *ct,
 	if (unlikely(desc->is_in_error))
 		return -EPIPE;
 
+<<<<<<< HEAD
 	if (unlikely(!IS_ALIGNED(head | tail | size, 4) ||
+=======
+	if (unlikely(!IS_ALIGNED(head | tail, 4) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		     (tail | head) >= size))
 		goto corrupted;
 
@@ -346,6 +485,7 @@ static int ct_write(struct intel_guc_ct *ct,
 		used = (size - head) + tail;
 	else
 		used = tail - head;
+<<<<<<< HEAD
 
 	/* make sure there is a space including extra dw for the fence */
 	if (unlikely(used + len + 1 >= size))
@@ -362,6 +502,23 @@ static int ct_write(struct intel_guc_ct *ct,
 		 (want_response ? GUC_CT_MSG_SEND_STATUS : 0) |
 		 (action[0] << GUC_CT_MSG_ACTION_SHIFT);
 
+=======
+
+	/* make sure there is a space including extra dw for the fence */
+	if (unlikely(used + len + 1 >= size))
+		return -ENOSPC;
+
+	/*
+	 * Write the message. The format is the following:
+	 * DW0: header (including action code)
+	 * DW1: fence
+	 * DW2+: action data
+	 */
+	header = (len << GUC_CT_MSG_LEN_SHIFT) |
+		 GUC_CT_MSG_SEND_STATUS |
+		 (action[0] << GUC_CT_MSG_ACTION_SHIFT);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	CT_DEBUG(ct, "writing %*ph %*ph %*ph\n",
 		 4, &header, 4, &fence, 4 * (len - 1), &action[1]);
 
@@ -377,6 +534,15 @@ static int ct_write(struct intel_guc_ct *ct,
 	}
 	GEM_BUG_ON(tail > size);
 
+<<<<<<< HEAD
+=======
+	/*
+	 * make sure H2G buffer update and LRC tail update (if this triggering a
+	 * submission) are visible before updating the descriptor tail
+	 */
+	write_barrier(ct);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* now update desc tail (back in bytes) */
 	desc->tail = tail * 4;
 	return 0;
@@ -481,8 +647,11 @@ static int ct_send(struct intel_guc_ct *ct,
 		   u32 response_buf_size,
 		   u32 *status)
 {
+<<<<<<< HEAD
 	struct intel_guc_ct_buffer *ctb = &ct->ctbs[CTB_SEND];
 	struct guc_ct_buffer_desc *desc = ctb->desc;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct ct_request request;
 	unsigned long flags;
 	u32 fence;
@@ -492,6 +661,11 @@ static int ct_send(struct intel_guc_ct *ct,
 	GEM_BUG_ON(!len);
 	GEM_BUG_ON(len & ~GUC_CT_MSG_LEN_MASK);
 	GEM_BUG_ON(!response_buf && response_buf_size);
+<<<<<<< HEAD
+=======
+
+	spin_lock_irqsave(&ct->ctbs.send.lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	fence = ct_get_next_fence(ct);
 	request.fence = fence;
@@ -501,7 +675,15 @@ static int ct_send(struct intel_guc_ct *ct,
 
 	spin_lock_irqsave(&ct->requests.lock, flags);
 	list_add_tail(&request.link, &ct->requests.pending);
+<<<<<<< HEAD
 	spin_unlock_irqrestore(&ct->requests.lock, flags);
+=======
+	spin_unlock(&ct->requests.lock);
+
+	err = ct_write(ct, action, len, fence);
+
+	spin_unlock_irqrestore(&ct->ctbs.send.lock, flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	err = ct_write(ct, action, len, fence, !!response_buf);
 	if (unlikely(err))
@@ -509,10 +691,14 @@ static int ct_send(struct intel_guc_ct *ct,
 
 	intel_guc_notify(ct_to_guc(ct));
 
+<<<<<<< HEAD
 	if (response_buf)
 		err = wait_for_ct_request_update(&request, status);
 	else
 		err = wait_for_ctb_desc_update(desc, fence, status);
+=======
+	err = wait_for_ct_request_update(&request, status);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(err))
 		goto unlink;
 
@@ -556,8 +742,11 @@ int intel_guc_ct_send(struct intel_guc_ct *ct, const u32 *action, u32 len,
 		return -ENODEV;
 	}
 
+<<<<<<< HEAD
 	mutex_lock(&guc->send_mutex);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = ct_send(ct, action, len, response_buf, response_buf_size, &status);
 	if (unlikely(ret < 0)) {
 		CT_ERROR(ct, "Sending action %#x failed (err=%d status=%#X)\n",
@@ -572,6 +761,24 @@ int intel_guc_ct_send(struct intel_guc_ct *ct, const u32 *action, u32 len,
 }
 
 static inline unsigned int ct_header_get_len(u32 header)
+<<<<<<< HEAD
+=======
+{
+	return (header >> GUC_CT_MSG_LEN_SHIFT) & GUC_CT_MSG_LEN_MASK;
+}
+
+static inline unsigned int ct_header_get_action(u32 header)
+{
+	return (header >> GUC_CT_MSG_ACTION_SHIFT) & GUC_CT_MSG_ACTION_MASK;
+}
+
+static inline bool ct_header_is_response(u32 header)
+{
+	return !!(header & GUC_CT_MSG_IS_RESPONSE);
+}
+
+static struct ct_incoming_msg *ct_alloc_msg(u32 num_dwords)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return (header >> GUC_CT_MSG_LEN_SHIFT) & GUC_CT_MSG_LEN_MASK;
 }
@@ -592,7 +799,11 @@ static int ct_read(struct intel_guc_ct *ct, u32 *data)
 	struct guc_ct_buffer_desc *desc = ctb->desc;
 	u32 head = desc->head;
 	u32 tail = desc->tail;
+<<<<<<< HEAD
 	u32 size = desc->size;
+=======
+	u32 size = ctb->size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 *cmds = ctb->cmds;
 	s32 available;
 	unsigned int len;
@@ -601,7 +812,11 @@ static int ct_read(struct intel_guc_ct *ct, u32 *data)
 	if (unlikely(desc->is_in_error))
 		return -EPIPE;
 
+<<<<<<< HEAD
 	if (unlikely(!IS_ALIGNED(head | tail | size, 4) ||
+=======
+	if (unlikely(!IS_ALIGNED(head | tail, 4) ||
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		     (tail | head) >= size))
 		goto corrupted;
 
@@ -625,7 +840,11 @@ static int ct_read(struct intel_guc_ct *ct, u32 *data)
 	head = (head + 1) % size;
 
 	/* message len with header */
+<<<<<<< HEAD
 	len = ct_header_get_len(data[0]) + 1;
+=======
+	len = ct_header_get_len(header) + 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(len > (u32)available)) {
 		CT_ERROR(ct, "Incomplete message %*ph %*ph %*ph\n",
 			 4, data,
@@ -640,10 +859,17 @@ static int ct_read(struct intel_guc_ct *ct, u32 *data)
 		data[i] = cmds[head];
 		head = (head + 1) % size;
 	}
+<<<<<<< HEAD
 	CT_DEBUG(ct, "received %*ph\n", 4 * len, data);
 
 	desc->head = head * 4;
 	return 0;
+=======
+	CT_DEBUG(ct, "received %*ph\n", 4 * len, (*msg)->msg);
+
+	desc->head = head * 4;
+	return available - len;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 corrupted:
 	CT_ERROR(ct, "Corrupted descriptor addr=%#x head=%u tail=%u size=%u\n",
@@ -670,11 +896,18 @@ corrupted:
  *                   ^-----------------------len-----------------------^
  */
 
+<<<<<<< HEAD
 static int ct_handle_response(struct intel_guc_ct *ct, const u32 *msg)
 {
 	u32 header = msg[0];
 	u32 len = ct_header_get_len(header);
 	u32 msgsize = (len + 1) * sizeof(u32); /* msg size in bytes w/header */
+=======
+static int ct_handle_response(struct intel_guc_ct *ct, struct ct_incoming_msg *response)
+{
+	u32 header = response->msg[0];
+	u32 len = ct_header_get_len(header);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 fence;
 	u32 status;
 	u32 datalen;
@@ -682,6 +915,7 @@ static int ct_handle_response(struct intel_guc_ct *ct, const u32 *msg)
 	bool found = false;
 
 	GEM_BUG_ON(!ct_header_is_response(header));
+<<<<<<< HEAD
 	GEM_BUG_ON(!in_irq());
 
 	/* Response payload shall at least include fence and status */
@@ -689,6 +923,26 @@ static int ct_handle_response(struct intel_guc_ct *ct, const u32 *msg)
 		CT_ERROR(ct, "Corrupted response %*ph\n", msgsize, msg);
 		return -EPROTO;
 	}
+=======
+
+	/* Response payload shall at least include fence and status */
+	if (unlikely(len < 2)) {
+		CT_ERROR(ct, "Corrupted response (len %u)\n", len);
+		return -EPROTO;
+	}
+
+	fence = response->msg[1];
+	status = response->msg[2];
+	datalen = len - 2;
+
+	/* Format of the status follows RESPONSE message */
+	if (unlikely(!INTEL_GUC_MSG_IS_RESPONSE(status))) {
+		CT_ERROR(ct, "Corrupted response (status %#x)\n", status);
+		return -EPROTO;
+	}
+
+	CT_DEBUG(ct, "response fence %u status %#x\n", fence, status);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	fence = msg[1];
 	status = msg[2];
@@ -715,13 +969,29 @@ static int ct_handle_response(struct intel_guc_ct *ct, const u32 *msg)
 			datalen = 0;
 		}
 		if (datalen)
+<<<<<<< HEAD
 			memcpy(req->response_buf, msg + 3, 4 * datalen);
+=======
+			memcpy(req->response_buf, response->msg + 3, 4 * datalen);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		req->response_len = datalen;
 		WRITE_ONCE(req->status, status);
 		found = true;
 		break;
 	}
+<<<<<<< HEAD
 	spin_unlock(&ct->requests.lock);
+=======
+	spin_unlock_irqrestore(&ct->requests.lock, flags);
+
+	if (!found) {
+		CT_ERROR(ct, "Unsolicited response (fence %u)\n", fence);
+		return -ENOKEY;
+	}
+
+	if (unlikely(err))
+		return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!found)
 		CT_ERROR(ct, "Unsolicited response %*ph\n", msgsize, msg);
@@ -732,8 +1002,20 @@ static void ct_process_request(struct intel_guc_ct *ct,
 			       u32 action, u32 len, const u32 *payload)
 {
 	struct intel_guc *guc = ct_to_guc(ct);
+<<<<<<< HEAD
 	int ret;
 
+=======
+	u32 header, action, len;
+	const u32 *payload;
+	int ret;
+
+	header = request->msg[0];
+	payload = &request->msg[1];
+	action = ct_header_get_action(header);
+	len = ct_header_get_len(header);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	CT_DEBUG(ct, "request %x %*ph\n", action, 4 * len, payload);
 
 	switch (action) {
@@ -742,7 +1024,10 @@ static void ct_process_request(struct intel_guc_ct *ct,
 		if (unlikely(ret))
 			goto fail_unexpected;
 		break;
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 fail_unexpected:
 		CT_ERROR(ct, "Unexpected request %x %*ph\n",
@@ -810,6 +1095,7 @@ static void ct_incoming_request_worker_func(struct work_struct *w)
  *                   ^-----------------------len-----------------------^
  */
 
+<<<<<<< HEAD
 static int ct_handle_request(struct intel_guc_ct *ct, const u32 *msg)
 {
 	u32 header = msg[0];
@@ -826,6 +1112,13 @@ static int ct_handle_request(struct intel_guc_ct *ct, const u32 *msg)
 		return 0; /* XXX: -ENOMEM ? */
 	}
 	memcpy(request->msg, msg, msgsize);
+=======
+static int ct_handle_request(struct intel_guc_ct *ct, struct ct_incoming_msg *request)
+{
+	unsigned long flags;
+
+	GEM_BUG_ON(ct_header_is_response(request->msg[0]));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	spin_lock_irqsave(&ct->requests.lock, flags);
 	list_add_tail(&request->link, &ct->requests.incoming);
@@ -835,6 +1128,67 @@ static int ct_handle_request(struct intel_guc_ct *ct, const u32 *msg)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void ct_handle_msg(struct intel_guc_ct *ct, struct ct_incoming_msg *msg)
+{
+	u32 header = msg->msg[0];
+	int err;
+
+	if (ct_header_is_response(header))
+		err = ct_handle_response(ct, msg);
+	else
+		err = ct_handle_request(ct, msg);
+
+	if (unlikely(err)) {
+		CT_ERROR(ct, "Failed to process CT message (%pe) %*ph\n",
+			 ERR_PTR(err), 4 * msg->size, msg->msg);
+		ct_free_msg(msg);
+	}
+}
+
+/*
+ * Return: number available remaining dwords to read (0 if empty)
+ *         or a negative error code on failure
+ */
+static int ct_receive(struct intel_guc_ct *ct)
+{
+	struct ct_incoming_msg *msg = NULL;
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(&ct->ctbs.recv.lock, flags);
+	ret = ct_read(ct, &msg);
+	spin_unlock_irqrestore(&ct->ctbs.recv.lock, flags);
+	if (ret < 0)
+		return ret;
+
+	if (msg)
+		ct_handle_msg(ct, msg);
+
+	return ret;
+}
+
+static void ct_try_receive_message(struct intel_guc_ct *ct)
+{
+	int ret;
+
+	if (GEM_WARN_ON(!ct->enabled))
+		return;
+
+	ret = ct_receive(ct);
+	if (ret > 0)
+		tasklet_hi_schedule(&ct->receive_tasklet);
+}
+
+static void ct_receive_tasklet_func(struct tasklet_struct *t)
+{
+	struct intel_guc_ct *ct = from_tasklet(ct, t, receive_tasklet);
+
+	ct_try_receive_message(ct);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * When we're communicating with the GuC over CT, GuC uses events
  * to notify us about new messages being posted on the RECV buffer.
@@ -849,6 +1203,7 @@ void intel_guc_ct_event_handler(struct intel_guc_ct *ct)
 		return;
 	}
 
+<<<<<<< HEAD
 	do {
 		err = ct_read(ct, msg);
 		if (err)
@@ -859,4 +1214,7 @@ void intel_guc_ct_event_handler(struct intel_guc_ct *ct)
 		else
 			err = ct_handle_request(ct, msg);
 	} while (!err);
+=======
+	ct_try_receive_message(ct);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

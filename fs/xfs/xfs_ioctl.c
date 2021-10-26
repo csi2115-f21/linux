@@ -1236,8 +1236,13 @@ xfs_ioctl_setattr_xflags(
 		return -EINVAL;
 
 	/* diflags2 only valid for v3 inodes. */
+<<<<<<< HEAD
 	di_flags2 = xfs_flags2diflags2(ip, fa->fsx_xflags);
 	if (di_flags2 && !xfs_sb_version_has_v3inode(&mp->m_sb))
+=======
+	i_flags2 = xfs_flags2diflags2(ip, fa->fsx_xflags);
+	if (i_flags2 && !xfs_sb_version_has_v3inode(&mp->m_sb))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EINVAL;
 
 	ip->i_d.di_flags = xfs_flags2diflags(ip, fa->fsx_xflags);
@@ -1299,6 +1304,7 @@ xfs_ioctl_setattr_get_trans(
 	if (error)
 		goto out_error;
 
+<<<<<<< HEAD
 	/*
 	 * CAP_FOWNER overrides the following restrictions:
 	 *
@@ -1310,6 +1316,8 @@ xfs_ioctl_setattr_get_trans(
 		goto out_cancel;
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (mp->m_flags & XFS_MOUNT_WSYNC)
 		xfs_trans_set_sync(tp);
 
@@ -1424,6 +1432,12 @@ xfs_ioctl_setattr_check_projid(
 	struct xfs_inode	*ip,
 	struct fsxattr		*fa)
 {
+<<<<<<< HEAD
+=======
+	if (!fa->fsx_valid)
+		return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Disallow 32bit project ids if projid32bit feature is not enabled. */
 	if (fa->fsx_projid > (uint16_t)-1 &&
 	    !xfs_sb_version_hasprojid32bit(&ip->i_mount->m_sb))
@@ -1505,7 +1519,11 @@ xfs_ioctl_setattr(
 		VFS_I(ip)->i_mode &= ~(S_ISUID|S_ISGID);
 
 	/* Change the ownerships and register project quota modifications */
+<<<<<<< HEAD
 	if (ip->i_d.di_projid != fa->fsx_projid) {
+=======
+	if (ip->i_projid != fa->fsx_projid) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (XFS_IS_QUOTA_RUNNING(mp) && XFS_IS_PQUOTA_ON(mp)) {
 			olddquot = xfs_qm_vop_chown(tp, ip,
 						&ip->i_pdquot, pdqp);
@@ -1521,6 +1539,7 @@ xfs_ioctl_setattr(
 	if (ip->i_d.di_flags & (XFS_DIFLAG_EXTSIZE | XFS_DIFLAG_EXTSZINHERIT))
 		ip->i_d.di_extsize = fa->fsx_extsize >> mp->m_sb.sb_blocklog;
 	else
+<<<<<<< HEAD
 		ip->i_d.di_extsize = 0;
 	if (xfs_sb_version_has_v3inode(&mp->m_sb) &&
 	    (ip->i_d.di_flags2 & XFS_DIFLAG2_COWEXTSIZE))
@@ -1528,6 +1547,16 @@ xfs_ioctl_setattr(
 				mp->m_sb.sb_blocklog;
 	else
 		ip->i_d.di_cowextsize = 0;
+=======
+		ip->i_extsize = 0;
+
+	if (xfs_sb_version_has_v3inode(&mp->m_sb)) {
+		if (ip->i_diflags2 & XFS_DIFLAG2_COWEXTSIZE)
+			ip->i_cowextsize = XFS_B_TO_FSB(mp, fa->fsx_cowextsize);
+		else
+			ip->i_cowextsize = 0;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	error = xfs_trans_commit(tp);
 

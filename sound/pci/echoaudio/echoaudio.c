@@ -1912,7 +1912,12 @@ static int snd_echo_create(struct snd_card *card,
 
 	pci_write_config_byte(pci, PCI_LATENCY_TIMER, 0xC0);
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	pci_set_master(pci);
 
@@ -1944,8 +1949,14 @@ static int snd_echo_create(struct snd_card *card,
 	if (sz > PAGE_SIZE)
 		sz = PAGE_SIZE;		/* We map only the required part */
 
+<<<<<<< HEAD
 	if ((chip->iores = request_mem_region(chip->dsp_registers_phys, sz,
 					      ECHOCARD_NAME)) == NULL) {
+=======
+	chip->iores = request_mem_region(chip->dsp_registers_phys, sz,
+					 ECHOCARD_NAME);
+	if (!chip->iores) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dev_err(chip->card->dev, "cannot get memory region\n");
 		snd_echo_free(chip);
 		return -EBUSY;
@@ -1989,7 +2000,12 @@ static int snd_echo_create(struct snd_card *card,
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_echo_free(chip);
 		return err;
 	}
@@ -2025,7 +2041,12 @@ static int snd_echo_probe(struct pci_dev *pci,
 		return err;
 
 	chip = NULL;	/* Tells snd_echo_create to allocate chip */
+<<<<<<< HEAD
 	if ((err = snd_echo_create(card, pci, &chip)) < 0) {
+=======
+	err = snd_echo_create(card, pci, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2059,7 +2080,12 @@ static int snd_echo_probe(struct pci_dev *pci,
 
 #ifdef ECHOCARD_HAS_VMIXER
 	snd_echo_vmixer.count = num_pipes_out(chip) * num_busses_out(chip);
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_vmixer, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_vmixer, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 #ifdef ECHOCARD_HAS_LINE_OUT_GAIN
 	err = snd_ctl_add(chip->card,
@@ -2075,11 +2101,17 @@ static int snd_echo_probe(struct pci_dev *pci,
 #endif /* ECHOCARD_HAS_VMIXER */
 
 #ifdef ECHOCARD_HAS_INPUT_GAIN
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_line_input_gain, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_line_input_gain, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 #endif
 
 #ifdef ECHOCARD_HAS_INPUT_NOMINAL_LEVEL
+<<<<<<< HEAD
 	if (!chip->hasnt_input_nominal_level)
 		if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_intput_nominal_level, chip))) < 0)
 			goto ctl_error;
@@ -2094,20 +2126,56 @@ static int snd_echo_probe(struct pci_dev *pci,
 		goto ctl_error;
 
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_vumeters, chip))) < 0)
+=======
+	if (!chip->hasnt_input_nominal_level) {
+		err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_intput_nominal_level, chip));
+		if (err < 0)
+			goto ctl_error;
+	}
+#endif
+
+#ifdef ECHOCARD_HAS_OUTPUT_NOMINAL_LEVEL
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_output_nominal_level, chip));
+	if (err < 0)
+		goto ctl_error;
+#endif
+
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_vumeters_switch, chip));
+	if (err < 0)
+		goto ctl_error;
+
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_vumeters, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 
 #ifdef ECHOCARD_HAS_MONITOR
 	snd_echo_monitor_mixer.count = num_busses_in(chip) * num_busses_out(chip);
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_monitor_mixer, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_monitor_mixer, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 #endif
 
 #ifdef ECHOCARD_HAS_DIGITAL_IN_AUTOMUTE
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_automute_switch, chip))) < 0)
 		goto ctl_error;
 #endif
 
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_channels_info, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_automute_switch, chip));
+	if (err < 0)
+		goto ctl_error;
+#endif
+
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_channels_info, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 
 #ifdef ECHOCARD_HAS_DIGITAL_MODE_SWITCH
@@ -2117,7 +2185,12 @@ static int snd_echo_probe(struct pci_dev *pci,
 		if (chip->digital_modes & (1 << i))
 			chip->digital_mode_list[chip->num_digital_modes++] = i;
 
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_digital_mode_switch, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_digital_mode_switch, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 #endif /* ECHOCARD_HAS_DIGITAL_MODE_SWITCH */
 
@@ -2130,20 +2203,38 @@ static int snd_echo_probe(struct pci_dev *pci,
 
 	if (chip->num_clock_sources > 1) {
 		chip->clock_src_ctl = snd_ctl_new1(&snd_echo_clock_source_switch, chip);
+<<<<<<< HEAD
 		if ((err = snd_ctl_add(chip->card, chip->clock_src_ctl)) < 0)
+=======
+		err = snd_ctl_add(chip->card, chip->clock_src_ctl);
+		if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto ctl_error;
 	}
 #endif /* ECHOCARD_HAS_EXTERNAL_CLOCK */
 
 #ifdef ECHOCARD_HAS_DIGITAL_IO
+<<<<<<< HEAD
 	if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_spdif_mode_switch, chip))) < 0)
+=======
+	err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_spdif_mode_switch, chip));
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto ctl_error;
 #endif
 
 #ifdef ECHOCARD_HAS_PHANTOM_POWER
+<<<<<<< HEAD
 	if (chip->has_phantom_power)
 		if ((err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_phantom_power_switch, chip))) < 0)
 			goto ctl_error;
+=======
+	if (chip->has_phantom_power) {
+		err = snd_ctl_add(chip->card, snd_ctl_new1(&snd_echo_phantom_power_switch, chip));
+		if (err < 0)
+			goto ctl_error;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 	err = snd_card_register(card);

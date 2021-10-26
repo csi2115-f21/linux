@@ -210,10 +210,17 @@ int amdgpu_sync_resv(struct amdgpu_device *adev, struct amdgpu_sync *sync,
 		return -EINVAL;
 
 	/* always sync to the exclusive fence */
+<<<<<<< HEAD
 	f = dma_resv_get_excl(resv);
 	r = amdgpu_sync_fence(sync, f);
 
 	flist = dma_resv_get_list(resv);
+=======
+	f = dma_resv_excl_fence(resv);
+	r = amdgpu_sync_fence(sync, f);
+
+	flist = dma_resv_shared_list(resv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!flist || r)
 		return r;
 

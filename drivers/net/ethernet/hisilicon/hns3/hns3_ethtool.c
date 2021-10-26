@@ -307,7 +307,11 @@ out:
 }
 
 /**
+<<<<<<< HEAD
  * hns3_nic_self_test - self test
+=======
+ * hns3_self_test - self test
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @ndev: net device
  * @eth_test: test cmd
  * @data: test result
@@ -1117,8 +1121,13 @@ static void hns3_get_channels(struct net_device *netdev,
 		h->ae_algo->ops->get_channels(h, ch);
 }
 
+<<<<<<< HEAD
 static int hns3_get_coalesce_per_queue(struct net_device *netdev, u32 queue,
 				       struct ethtool_coalesce *cmd)
+=======
+static int hns3_get_coalesce(struct net_device *netdev,
+			     struct ethtool_coalesce *cmd)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct hns3_enet_tqp_vector *tx_vector, *rx_vector;
 	struct hns3_nic_priv *priv = netdev_priv(netdev);
@@ -1149,8 +1158,13 @@ static int hns3_get_coalesce_per_queue(struct net_device *netdev, u32 queue,
 	cmd->tx_coalesce_usecs_high = h->kinfo.int_rl_setting;
 	cmd->rx_coalesce_usecs_high = h->kinfo.int_rl_setting;
 
+<<<<<<< HEAD
 	cmd->tx_max_coalesced_frames = tx_vector->tx_group.coal.int_ql;
 	cmd->rx_max_coalesced_frames = rx_vector->rx_group.coal.int_ql;
+=======
+	cmd->tx_max_coalesced_frames = tx_coal->int_ql;
+	cmd->rx_max_coalesced_frames = rx_coal->int_ql;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -1603,6 +1617,20 @@ static int hns3_set_priv_flags(struct net_device *netdev, u32 pflags)
 				 ETHTOOL_COALESCE_TX_USECS_HIGH |	\
 				 ETHTOOL_COALESCE_MAX_FRAMES)
 
+<<<<<<< HEAD
+=======
+static int hns3_get_ts_info(struct net_device *netdev,
+			    struct ethtool_ts_info *info)
+{
+	struct hnae3_handle *handle = hns3_get_handle(netdev);
+
+	if (handle->ae_algo->ops->get_ts_info)
+		return handle->ae_algo->ops->get_ts_info(handle, info);
+
+	return ethtool_op_get_ts_info(netdev, info);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct ethtool_ops hns3vf_ethtool_ops = {
 	.supported_coalesce_params = HNS3_ETHTOOL_COALESCE,
 	.get_drvinfo = hns3_get_drvinfo,
@@ -1629,6 +1657,11 @@ static const struct ethtool_ops hns3vf_ethtool_ops = {
 	.set_msglevel = hns3_set_msglevel,
 	.get_priv_flags = hns3_get_priv_flags,
 	.set_priv_flags = hns3_set_priv_flags,
+<<<<<<< HEAD
+=======
+	.get_tunable = hns3_get_tunable,
+	.set_tunable = hns3_set_tunable,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct ethtool_ops hns3_ethtool_ops = {
@@ -1667,6 +1700,12 @@ static const struct ethtool_ops hns3_ethtool_ops = {
 	.get_module_eeprom = hns3_get_module_eeprom,
 	.get_priv_flags = hns3_get_priv_flags,
 	.set_priv_flags = hns3_set_priv_flags,
+<<<<<<< HEAD
+=======
+	.get_ts_info = hns3_get_ts_info,
+	.get_tunable = hns3_get_tunable,
+	.set_tunable = hns3_set_tunable,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 void hns3_ethtool_set_ops(struct net_device *netdev)

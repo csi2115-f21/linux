@@ -165,11 +165,17 @@ skip_dm:
 void rtw_hal_dm_init(struct adapter *Adapter)
 {
 	struct dm_priv *pdmpriv = &Adapter->HalData->dmpriv;
+<<<<<<< HEAD
 	struct odm_dm_struct *podmpriv = &Adapter->HalData->odmpriv;
 
 	memset(pdmpriv, 0, sizeof(struct dm_priv));
 	Init_ODM_ComInfo_88E(Adapter);
 	ODM_InitDebugSetting(podmpriv);
+=======
+
+	memset(pdmpriv, 0, sizeof(struct dm_priv));
+	Init_ODM_ComInfo_88E(Adapter);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*  Add new function to reset the state of antenna diversity before link. */

@@ -3420,6 +3420,7 @@ static int vega20_print_clock_levels(struct pp_hwmgr *hwmgr,
 		current_lane_width =
 			vega20_get_current_pcie_link_width_level(hwmgr);
 		for (i = 0; i < NUM_LINK_LEVELS; i++) {
+<<<<<<< HEAD
 			if (i == 1 && data->pcie_parameters_override) {
 				gen_speed = data->pcie_gen_level1;
 				lane_width = data->pcie_width_level1;
@@ -3427,6 +3428,11 @@ static int vega20_print_clock_levels(struct pp_hwmgr *hwmgr,
 				gen_speed = pptable->PcieGenSpeed[i];
 				lane_width = pptable->PcieLaneCount[i];
 			}
+=======
+			gen_speed = pptable->PcieGenSpeed[i];
+			lane_width = pptable->PcieLaneCount[i];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			size += sprintf(buf + size, "%d: %s %s %dMhz %s\n", i,
 					(gen_speed == 0) ? "2.5GT/s," :
 					(gen_speed == 1) ? "5.0GT/s," :

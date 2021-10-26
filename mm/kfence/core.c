@@ -18,6 +18,10 @@
 #include <linux/moduleparam.h>
 #include <linux/random.h>
 #include <linux/rcupdate.h>
+<<<<<<< HEAD
+=======
+#include <linux/sched/sysctl.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>

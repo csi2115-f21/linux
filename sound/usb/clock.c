@@ -324,6 +324,21 @@ static int __uac_clock_find_source(struct snd_usb_audio *chip,
 		ret = __uac_clock_find_source(chip, fmt,
 					      selector->baCSourceID[ret - 1],
 					      visited, validate);
+<<<<<<< HEAD
+=======
+		if (ret > 0) {
+			/*
+			 * For Samsung USBC Headset (AKG), setting clock selector again
+			 * will result in incorrect default clock setting problems
+			 */
+			if (chip->usb_id == USB_ID(0x04e8, 0xa051))
+				return ret;
+			err = uac_clock_selector_set_val(chip, entity_id, cur);
+			if (err < 0)
+				return err;
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!validate || ret > 0 || !chip->autoclock)
 			return ret;
 
@@ -632,6 +647,16 @@ static int set_sample_rate_v2v3(struct snd_usb_audio *chip,
 		 * rate.
 		 */
 		clock = snd_usb_clock_find_source(chip, fmt, false);
+<<<<<<< HEAD
+=======
+
+		/* Denon DN-X1600 hardcoded
+		 * Sample rate seems to be set on the hardware itself
+		 */
+		if (chip->usb_id == USB_ID(0x154e, 0x500e))
+			return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (clock < 0)
 			return clock;
 	}

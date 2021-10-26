@@ -619,7 +619,11 @@ static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
 			ns->shm_tot + numpages > ns->shm_ctlall)
 		return -ENOSPC;
 
+<<<<<<< HEAD
 	shp = kvmalloc(sizeof(*shp), GFP_KERNEL);
+=======
+	shp = kmalloc(sizeof(*shp), GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(!shp))
 		return -ENOMEM;
 

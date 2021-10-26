@@ -1147,7 +1147,12 @@ static int snd_cs46xx_playback_hw_params(struct snd_pcm_substream *substream,
 			runtime->dma_addr = 0;
 			runtime->dma_bytes = 0;
 		}
+<<<<<<< HEAD
 		if ((err = snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params))) < 0) {
+=======
+		err = snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
+		if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 			mutex_unlock(&chip->spos_mutex);
 #endif
@@ -1295,7 +1300,12 @@ static int snd_cs46xx_capture_hw_params(struct snd_pcm_substream *substream,
 			runtime->dma_addr = 0;
 			runtime->dma_bytes = 0;
 		}
+<<<<<<< HEAD
 		if ((err = snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params))) < 0)
+=======
+		err = snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
+		if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return err;
 		substream->ops = &snd_cs46xx_capture_indirect_ops;
 	}
@@ -3871,7 +3881,12 @@ int snd_cs46xx_create(struct snd_card *card,
 	*rchip = NULL;
 
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
@@ -3965,8 +3980,14 @@ int snd_cs46xx_create(struct snd_card *card,
 
 	for (idx = 0; idx < 5; idx++) {
 		region = &chip->region.idx[idx];
+<<<<<<< HEAD
 		if ((region->resource = request_mem_region(region->base, region->size,
 							   region->name)) == NULL) {
+=======
+		region->resource = request_mem_region(region->base, region->size,
+						      region->name);
+		if (!region->resource) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			dev_err(chip->card->dev,
 				"unable to request memory region 0x%lx-0x%lx\n",
 				   region->base, region->base + region->size - 1);
@@ -4002,6 +4023,7 @@ int snd_cs46xx_create(struct snd_card *card,
 	err = snd_cs46xx_chip_init(chip);
 	if (err < 0) {
 		snd_cs46xx_free(chip);
+<<<<<<< HEAD
 		return err;
 	}
 
@@ -4009,6 +4031,16 @@ int snd_cs46xx_create(struct snd_card *card,
 		snd_cs46xx_free(chip);
 		return err;
 	}
+=======
+		return err;
+	}
+
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+		snd_cs46xx_free(chip);
+		return err;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	
 	snd_cs46xx_proc_init(card, chip);
 

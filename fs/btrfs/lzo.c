@@ -258,10 +258,16 @@ int lzo_compress_pages(struct list_head *ws, struct address_space *mapping,
 	}
 
 	/* store the size of all chunks of compressed data */
+<<<<<<< HEAD
 	cpage_out = kmap(pages[0]);
 	write_compress_length(cpage_out, tot_out);
 
 	kunmap(pages[0]);
+=======
+	sizes_ptr = kmap_local_page(pages[0]);
+	write_compress_length(sizes_ptr, tot_out);
+	kunmap_local(sizes_ptr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = 0;
 	*total_out = tot_out;
@@ -467,7 +473,11 @@ int lzo_decompress(struct list_head *ws, unsigned char *data_in,
 	destlen = min_t(unsigned long, destlen, PAGE_SIZE);
 	bytes = min_t(unsigned long, destlen, out_len - start_byte);
 
+<<<<<<< HEAD
 	kaddr = kmap_atomic(dest_page);
+=======
+	kaddr = kmap_local_page(dest_page);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	memcpy(kaddr, workspace->buf + start_byte, bytes);
 
 	/*
@@ -477,7 +487,11 @@ int lzo_decompress(struct list_head *ws, unsigned char *data_in,
 	 */
 	if (bytes < destlen)
 		memset(kaddr+bytes, 0, destlen-bytes);
+<<<<<<< HEAD
 	kunmap_atomic(kaddr);
+=======
+	kunmap_local(kaddr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out:
 	return ret;
 }

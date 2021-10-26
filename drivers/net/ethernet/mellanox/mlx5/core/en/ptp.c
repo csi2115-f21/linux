@@ -3,6 +3,26 @@
 
 #include "en/ptp.h"
 #include "en/txrx.h"
+<<<<<<< HEAD
+=======
+#include "en/params.h"
+#include "en/fs_tt_redirect.h"
+
+struct mlx5e_ptp_fs {
+	struct mlx5_flow_handle *l2_rule;
+	struct mlx5_flow_handle *udp_v4_rule;
+	struct mlx5_flow_handle *udp_v6_rule;
+	bool valid;
+};
+
+#define MLX5E_PTP_CHANNEL_IX 0
+
+struct mlx5e_ptp_params {
+	struct mlx5e_params params;
+	struct mlx5e_sq_param txq_sq_param;
+	struct mlx5e_rq_param rq_param;
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct mlx5e_skb_cb_hwtstamp {
 	ktime_t cqe_hwtstamp;
@@ -419,7 +439,32 @@ static void mlx5e_ptp_build_params(struct mlx5e_port_ptp *c,
 	/* SQ */
 	params->log_sq_size = orig->log_sq_size;
 
+<<<<<<< HEAD
 	mlx5e_ptp_build_sq_param(c->priv, params, &cparams->txq_sq_param);
+=======
+static int mlx5e_init_ptp_rq(struct mlx5e_ptp *c, struct mlx5e_params *params,
+			     struct mlx5e_rq *rq)
+{
+	struct mlx5_core_dev *mdev = c->mdev;
+	struct mlx5e_priv *priv = c->priv;
+	int err;
+
+	rq->wq_type      = params->rq_wq_type;
+	rq->pdev         = c->pdev;
+	rq->netdev       = priv->netdev;
+	rq->priv         = priv;
+	rq->clock        = &mdev->clock;
+	rq->tstamp       = &priv->tstamp;
+	rq->mdev         = mdev;
+	rq->hw_mtu       = MLX5E_SW2HW_MTU(params, params->sw_mtu);
+	rq->stats        = &c->priv->ptp_stats.rq;
+	rq->ptp_cyc2time = mlx5_rq_ts_translator(mdev);
+	err = mlx5e_rq_set_handlers(rq, params, false);
+	if (err)
+		return err;
+
+	return xdp_rxq_info_reg(&rq->xdp_rxq, rq->netdev, rq->ix, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int mlx5e_ptp_open_queues(struct mlx5e_port_ptp *c,
@@ -445,8 +490,63 @@ close_cqs:
 
 static void mlx5e_ptp_close_queues(struct mlx5e_port_ptp *c)
 {
+<<<<<<< HEAD
 	mlx5e_ptp_close_txqsqs(c);
 	mlx5e_ptp_close_cqs(c);
+=======
+	struct mlx5e_ptp_fs *ptp_fs = priv->fs.ptp_fs;
+	struct mlx5_flow_handle *rule;
+	u32 tirn = priv->ptp_tir.tirn;
+	int err;
+
+	if (ptp_fs->valid)
+		return 0;
+
+	err = mlx5e_fs_tt_redirect_udp_create(priv);
+	if (err)
+		goto out_free;
+
+	rule = mlx5e_fs_tt_redirect_udp_add_rule(priv, MLX5E_TT_IPV4_UDP,
+						 tirn, PTP_EV_PORT);
+	if (IS_ERR(rule)) {
+		err = PTR_ERR(rule);
+		goto out_destroy_fs_udp;
+	}
+	ptp_fs->udp_v4_rule = rule;
+
+	rule = mlx5e_fs_tt_redirect_udp_add_rule(priv, MLX5E_TT_IPV6_UDP,
+						 tirn, PTP_EV_PORT);
+	if (IS_ERR(rule)) {
+		err = PTR_ERR(rule);
+		goto out_destroy_udp_v4_rule;
+	}
+	ptp_fs->udp_v6_rule = rule;
+
+	err = mlx5e_fs_tt_redirect_any_create(priv);
+	if (err)
+		goto out_destroy_udp_v6_rule;
+
+	rule = mlx5e_fs_tt_redirect_any_add_rule(priv, tirn, ETH_P_1588);
+	if (IS_ERR(rule)) {
+		err = PTR_ERR(rule);
+		goto out_destroy_fs_any;
+	}
+	ptp_fs->l2_rule = rule;
+	ptp_fs->valid = true;
+
+	return 0;
+
+out_destroy_fs_any:
+	mlx5e_fs_tt_redirect_any_destroy(priv);
+out_destroy_udp_v6_rule:
+	mlx5e_fs_tt_redirect_del_rule(ptp_fs->udp_v6_rule);
+out_destroy_udp_v4_rule:
+	mlx5e_fs_tt_redirect_del_rule(ptp_fs->udp_v4_rule);
+out_destroy_fs_udp:
+	mlx5e_fs_tt_redirect_udp_destroy(priv);
+out_free:
+	return err;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int mlx5e_port_ptp_open(struct mlx5e_priv *priv, struct mlx5e_params *params,
@@ -475,9 +575,15 @@ int mlx5e_port_ptp_open(struct mlx5e_priv *priv, struct mlx5e_params *params,
 	c->ix       = 0;
 	c->pdev     = mlx5_core_dma_dev(priv->mdev);
 	c->netdev   = priv->netdev;
+<<<<<<< HEAD
 	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.mkey.key);
 	c->num_tc   = params->num_tc;
 	c->stats    = &priv->port_ptp_stats.ch;
+=======
+	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.hw_objs.mkey.key);
+	c->num_tc   = params->num_tc;
+	c->stats    = &priv->ptp_stats.ch;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	c->lag_port = lag_port;
 
 	netif_napi_add(netdev, &c->napi, mlx5e_ptp_napi_poll, 64);

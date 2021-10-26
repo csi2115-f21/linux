@@ -12,7 +12,13 @@
 #include "cfg80211.h"
 
 struct wilc_spi {
+<<<<<<< HEAD
 	int crc_off;
+=======
+	bool probing_crc;	/* true if we're probing chip's CRC config */
+	bool crc7_enabled;	/* true if crc7 is currently enabled */
+	bool crc16_enabled;	/* true if crc16 is currently enabled */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct wilc_hif_func wilc_hif_spi;
@@ -112,7 +118,11 @@ static int wilc_bus_probe(struct spi_device *spi)
 	wilc->bus_data = spi_priv;
 	wilc->dev_irq_num = spi->irq;
 
+<<<<<<< HEAD
 	wilc->rtc_clk = devm_clk_get(&spi->dev, "rtc_clk");
+=======
+	wilc->rtc_clk = devm_clk_get(&spi->dev, "rtc");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (PTR_ERR_OR_ZERO(wilc->rtc_clk) == -EPROBE_DEFER) {
 		kfree(spi_priv);
 		return -EPROBE_DEFER;
@@ -772,7 +782,11 @@ static int wilc_spi_init(struct wilc *wilc, bool resume)
 	u32 reg;
 	u32 chipid;
 	static int isinit;
+<<<<<<< HEAD
 	int ret;
+=======
+	int ret, i;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (isinit) {
 		ret = wilc_spi_read_reg(wilc, WILC_CHIPID, &chipid);

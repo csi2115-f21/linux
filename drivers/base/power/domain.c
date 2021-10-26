@@ -397,8 +397,11 @@ err:
 int dev_pm_genpd_set_performance_state(struct device *dev, unsigned int state)
 {
 	struct generic_pm_domain *genpd;
+<<<<<<< HEAD
 	struct generic_pm_domain_data *gpd_data;
 	unsigned int prev;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	genpd = dev_to_genpd_safe(dev);
@@ -410,6 +413,7 @@ int dev_pm_genpd_set_performance_state(struct device *dev, unsigned int state)
 		return -EINVAL;
 
 	genpd_lock(genpd);
+<<<<<<< HEAD
 
 	gpd_data = to_gpd_data(dev->power.subsys_data->domain_data);
 	prev = gpd_data->performance_state;
@@ -420,6 +424,9 @@ int dev_pm_genpd_set_performance_state(struct device *dev, unsigned int state)
 	if (ret)
 		gpd_data->performance_state = prev;
 
+=======
+	ret = genpd_set_performance_state(dev, state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	genpd_unlock(genpd);
 
 	return ret;

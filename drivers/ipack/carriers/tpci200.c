@@ -596,8 +596,16 @@ static int tpci200_pci_probe(struct pci_dev *pdev,
 
 out_err_bus_register:
 	tpci200_uninstall(tpci200);
+<<<<<<< HEAD
 out_err_install:
 	iounmap(tpci200->info->cfg_regs);
+=======
+	/* tpci200->info->cfg_regs is unmapped in tpci200_uninstall */
+	tpci200->info->cfg_regs = NULL;
+out_err_install:
+	if (tpci200->info->cfg_regs)
+		iounmap(tpci200->info->cfg_regs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_err_ioremap:
 	pci_release_region(pdev, TPCI200_CFG_MEM_BAR);
 out_err_pci_request:

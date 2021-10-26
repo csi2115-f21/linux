@@ -344,6 +344,7 @@ __setup("rootflags=", root_data_setup);
 __setup("rootfstype=", fs_names_setup);
 __setup("rootdelay=", root_delay_setup);
 
+<<<<<<< HEAD
 static void __init get_fs_names(char *page)
 {
 	char *s = page;
@@ -357,6 +358,22 @@ static void __init get_fs_names(char *page)
 	} else {
 		int len = get_filesystem_list(page);
 		char *p, *next;
+=======
+static int __init split_fs_names(char *page, char *names)
+{
+	int count = 0;
+	char *p = page;
+
+	strcpy(p, root_fs_names);
+	while (*p++) {
+		if (p[-1] == ',')
+			p[-1] = '\0';
+	}
+	*p = '\0';
+
+	for (p = page; *p; p += strlen(p)+1)
+		count++;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		page[len] = '\0';
 		for (p = page-1; p; p = next) {
@@ -417,9 +434,18 @@ void __init mount_block_root(char *name, int flags)
 
 	scnprintf(b, BDEVNAME_SIZE, "unknown-block(%u,%u)",
 		  MAJOR(ROOT_DEV), MINOR(ROOT_DEV));
+<<<<<<< HEAD
 	get_fs_names(fs_names);
 retry:
 	for (p = fs_names; *p; p += strlen(p)+1) {
+=======
+	if (root_fs_names)
+		num_fs = split_fs_names(fs_names, root_fs_names);
+	else
+		num_fs = list_bdev_fs_names(fs_names, PAGE_SIZE);
+retry:
+	for (i = 0, p = fs_names; i < num_fs; i++, p += strlen(p)+1) {
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		int err = do_mount_root(name, p, flags, root_mount_data);
 		switch (err) {
 			case 0:
@@ -536,6 +562,50 @@ static int __init mount_cifs_root(void)
 }
 #endif
 
+<<<<<<< HEAD
+=======
+static bool __init fs_is_nodev(char *fstype)
+{
+	struct file_system_type *fs = get_fs_type(fstype);
+	bool ret = false;
+
+	if (fs) {
+		ret = !(fs->fs_flags & FS_REQUIRES_DEV);
+		put_filesystem(fs);
+	}
+
+	return ret;
+}
+
+static int __init mount_nodev_root(void)
+{
+	char *fs_names, *fstype;
+	int err = -EINVAL;
+	int num_fs, i;
+
+	fs_names = (void *)__get_free_page(GFP_KERNEL);
+	if (!fs_names)
+		return -EINVAL;
+	num_fs = split_fs_names(fs_names, root_fs_names);
+
+	for (i = 0, fstype = fs_names; i < num_fs;
+	     i++, fstype += strlen(fstype) + 1) {
+		if (!fs_is_nodev(fstype))
+			continue;
+		err = do_mount_root(root_device_name, fstype, root_mountflags,
+				    root_mount_data);
+		if (!err)
+			break;
+		if (err != -EACCES && err != -EINVAL)
+			panic("VFS: Unable to mount root \"%s\" (%s), err=%d\n",
+			      root_device_name, fstype, err);
+	}
+
+	free_page((unsigned long)fs_names);
+	return err;
+}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 void __init mount_root(void)
 {
 #ifdef CONFIG_ROOT_NFS

@@ -34,7 +34,11 @@ typedef struct { unsigned long long pmd; } pmd_t;
 
 static inline unsigned long pud_page_vaddr(pud_t pud)
 {
+<<<<<<< HEAD
 	return pud_val(pud);
+=======
+	return (pmd_t *)pud_val(pud);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* only used by the stubbed out hugetlb gup code, should never be called */

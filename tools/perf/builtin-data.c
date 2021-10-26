@@ -55,7 +55,12 @@ static const char * const data_convert_usage[] = {
 
 static int cmd_data_convert(int argc, const char **argv)
 {
+<<<<<<< HEAD
 	const char *to_ctf     = NULL;
+=======
+	const char *to_json = NULL;
+	const char *to_ctf = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct perf_data_convert_opts opts = {
 		.force = false,
 		.all = false,
@@ -72,11 +77,14 @@ static int cmd_data_convert(int argc, const char **argv)
 		OPT_END()
 	};
 
+<<<<<<< HEAD
 #ifndef HAVE_LIBBABELTRACE_SUPPORT
 	pr_err("No conversion support compiled in. perf should be compiled with environment variables LIBBABELTRACE=1 and LIBBABELTRACE_DIR=/path/to/libbabeltrace/\n");
 	return -1;
 #endif
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	argc = parse_options(argc, argv, options,
 			     data_convert_usage, 0);
 	if (argc) {

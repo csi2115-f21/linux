@@ -90,6 +90,7 @@ struct mem_cgroup_reclaim_iter {
 
 struct lruvec_stat {
 	long count[NR_VM_NODE_STAT_ITEMS];
+<<<<<<< HEAD
 };
 
 struct batched_lruvec_stat {
@@ -105,6 +106,24 @@ struct memcg_shrinker_map {
 	unsigned long map[];
 };
 
+=======
+};
+
+struct batched_lruvec_stat {
+	s32 count[NR_VM_NODE_STAT_ITEMS];
+};
+
+/*
+ * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
+ * shrinkers, which have elements charged to this memcg.
+ */
+struct shrinker_info {
+	struct rcu_head rcu;
+	atomic_long_t *nr_deferred;
+	unsigned long *map;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * per-node information in memory controller.
  */
@@ -556,10 +575,17 @@ static inline unsigned long mem_cgroup_protection(struct mem_cgroup *root,
 	 */
 	if (root == memcg)
 		return 0;
+<<<<<<< HEAD
 
 	if (in_low_reclaim)
 		return READ_ONCE(memcg->memory.emin);
 
+=======
+
+	if (in_low_reclaim)
+		return READ_ONCE(memcg->memory.emin);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return max(READ_ONCE(memcg->memory.emin),
 		   READ_ONCE(memcg->memory.elow));
 }
@@ -596,6 +622,7 @@ static inline bool mem_cgroup_below_min(struct mem_cgroup *memcg)
 }
 
 int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
+<<<<<<< HEAD
 
 void mem_cgroup_uncharge(struct page *page);
 void mem_cgroup_uncharge_list(struct list_head *page_list);
@@ -607,6 +634,14 @@ mem_cgroup_nodeinfo(struct mem_cgroup *memcg, int nid)
 {
 	return memcg->nodeinfo[nid];
 }
+=======
+int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
+				  gfp_t gfp, swp_entry_t entry);
+void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
+
+void mem_cgroup_uncharge(struct page *page);
+void mem_cgroup_uncharge_list(struct list_head *page_list);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /**
  * mem_cgroup_lruvec - get the lru list vector for a memcg & node

@@ -270,6 +270,14 @@ void nf_conntrack_udp_init_net(struct net *net)
 
 	for (i = 0; i < UDP_CT_MAX; i++)
 		un->timeouts[i] = udp_timeouts[i];
+<<<<<<< HEAD
+=======
+
+#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
+	un->offload_timeout = 30 * HZ;
+	un->offload_pickup = 30 * HZ;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp =

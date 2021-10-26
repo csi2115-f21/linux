@@ -429,8 +429,13 @@ pipe_write(struct kiocb *iocb, struct iov_iter *from)
 #endif
 
 	/*
+<<<<<<< HEAD
 	 * Only wake up if the pipe started out empty, since
 	 * otherwise there should be no readers waiting.
+=======
+	 * Epoll nonsensically wants a wakeup whether the pipe
+	 * was already empty or not.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 *
 	 * If it wasn't empty we try to merge new data into
 	 * the last buffer.
@@ -440,9 +445,9 @@ pipe_write(struct kiocb *iocb, struct iov_iter *from)
 	 * spanning multiple pages.
 	 */
 	head = pipe->head;
-	was_empty = pipe_empty(head, pipe->tail);
+	was_empty = true;
 	chars = total_len & (PAGE_SIZE-1);
-	if (chars && !was_empty) {
+	if (chars && !pipe_empty(head, pipe->tail)) {
 		unsigned int mask = pipe->ring_size - 1;
 		struct pipe_buffer *buf = &pipe->bufs[(head - 1) & mask];
 		int offset = buf->offset + buf->len;

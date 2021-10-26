@@ -1176,6 +1176,10 @@ static int cosa_net_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 {
 	int rv;
 	struct channel_data *chan = dev_to_chan(dev);
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rv = cosa_ioctl_common(chan->cosa, chan, cmd,
 			       (unsigned long)ifr->ifr_data);
 	if (rv != -ENOIOCTLCMD)

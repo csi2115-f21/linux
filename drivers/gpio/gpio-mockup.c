@@ -479,6 +479,7 @@ static struct platform_device *gpio_mockup_pdevs[GPIO_MOCKUP_MAX_GC];
 
 static void gpio_mockup_unregister_pdevs(void)
 {
+<<<<<<< HEAD
 	struct platform_device *pdev;
 	int i;
 
@@ -488,6 +489,12 @@ static void gpio_mockup_unregister_pdevs(void)
 		if (pdev)
 			platform_device_unregister(pdev);
 	}
+=======
+	int i;
+
+	for (i = 0; i < GPIO_MOCKUP_MAX_GC; i++)
+		platform_device_unregister(gpio_mockup_pdevs[i]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static __init char **gpio_mockup_make_line_names(const char *label,

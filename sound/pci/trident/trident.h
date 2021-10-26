@@ -251,7 +251,10 @@ struct snd_trident_memblk_arg {
 struct snd_trident_tlb {
 	__le32 *entries;		/* 16k-aligned TLB table */
 	dma_addr_t entries_dmaaddr;	/* 16k-aligned PCI address to TLB table */
+<<<<<<< HEAD
 	unsigned long * shadow_entries;	/* shadow entries with virtual addresses */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct snd_dma_buffer buffer;
 	struct snd_util_memhdr * memhdr;	/* page allocation list */
 	struct snd_dma_buffer silent_page;

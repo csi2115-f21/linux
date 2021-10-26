@@ -487,5 +487,24 @@ struct exception_regs {
 /* ensure this structure is always sized to a multiple of the stack alignment */
 #define STACK_EXC_LVL_FRAME_SIZE	ALIGN(sizeof (struct exception_regs), 16)
 
+#else /* __ASSEMBLY__ */
+struct exception_regs {
+	unsigned long mas0;
+	unsigned long mas1;
+	unsigned long mas2;
+	unsigned long mas3;
+	unsigned long mas6;
+	unsigned long mas7;
+	unsigned long srr0;
+	unsigned long srr1;
+	unsigned long csrr0;
+	unsigned long csrr1;
+	unsigned long dsrr0;
+	unsigned long dsrr1;
+};
+
+/* ensure this structure is always sized to a multiple of the stack alignment */
+#define STACK_EXC_LVL_FRAME_SIZE	ALIGN(sizeof (struct exception_regs), 16)
+
 #endif /* __ASSEMBLY__ */
 #endif /* __HEAD_BOOKE_H__ */

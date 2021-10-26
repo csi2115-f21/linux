@@ -61,6 +61,7 @@ typedef unsigned long pte_t;
 #endif
 typedef unsigned long pgd_t;
 typedef unsigned long pgprot_t;
+<<<<<<< HEAD
 
 #define pte_val(x)	(x)
 #define pgd_val(x)	(x)
@@ -70,6 +71,17 @@ typedef unsigned long pgprot_t;
 #define __pgprot(x)	(x)
 #define pte_pgprot(x)	(x)
 
+=======
+
+#define pte_val(x)	(x)
+#define pgd_val(x)	(x)
+#define pgprot_val(x)	(x)
+#define __pte(x)	(x)
+#define __pgd(x)	(x)
+#define __pgprot(x)	(x)
+#define pte_pgprot(x)	(x)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 typedef pte_t * pgtable_t;

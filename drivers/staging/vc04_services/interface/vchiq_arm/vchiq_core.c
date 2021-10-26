@@ -3605,8 +3605,14 @@ int vchiq_dump_service_state(void *dump_context, struct vchiq_service *service)
 				scnprintf(remoteport + len2,
 					sizeof(remoteport) - len2,
 					" (client %x)", service->client_id);
+<<<<<<< HEAD
 		} else
 			strcpy(remoteport, "n/a");
+=======
+		} else {
+			strcpy(remoteport, "n/a");
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		len += scnprintf(buf + len, sizeof(buf) - len,
 			" '%c%c%c%c' remote %s (msg use %d/%d, slot use %d/%d)",

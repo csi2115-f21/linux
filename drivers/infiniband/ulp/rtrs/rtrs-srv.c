@@ -529,7 +529,13 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
 	}
 	if (unlikely(atomic_sub_return(1,
 				       &con->sq_wr_avail) < 0)) {
+<<<<<<< HEAD
 		pr_err("IB send queue full\n");
+=======
+		rtrs_err(s, "IB send queue full: sess=%s cid=%d\n",
+			 kobject_name(&sess->kobj),
+			 con->c.cid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		atomic_add(1, &con->sq_wr_avail);
 		spin_lock(&con->rsp_wr_wait_lock);
 		list_add_tail(&id->wait_list, &con->rsp_wr_wait_list);
@@ -543,7 +549,12 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
 		err = rdma_write_sg(id);
 
 	if (unlikely(err)) {
+<<<<<<< HEAD
 		rtrs_err_rl(s, "IO response failed: %d\n", err);
+=======
+		rtrs_err_rl(s, "IO response failed: %d: sess=%s\n", err,
+			    kobject_name(&sess->kobj));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		close_sess(sess);
 	}
 out:
@@ -1051,7 +1062,11 @@ static void process_write(struct rtrs_srv_con *con,
 	usr_len = le16_to_cpu(req->usr_len);
 	data_len = off - usr_len;
 	data = page_address(srv->chunks[buf_id]);
+<<<<<<< HEAD
 	ret = ctx->ops.rdma_ev(srv, srv->priv, id, WRITE, data, data_len,
+=======
+	ret = ctx->ops.rdma_ev(srv->priv, id, WRITE, data, data_len,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			   data + data_len, usr_len);
 	if (unlikely(ret)) {
 		rtrs_err_rl(s,
@@ -1615,14 +1630,24 @@ static int create_con(struct rtrs_srv_sess *sess,
 	con->c.sess = &sess->s;
 	con->c.cid = cid;
 	atomic_set(&con->wr_cnt, 1);
+<<<<<<< HEAD
+=======
+	wr_limit = sess->s.dev->ib_dev->attrs.max_qp_wr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (con->c.cid == 0) {
 		/*
 		 * All receive and all send (each requiring invalidate)
 		 * + 2 for drain and heartbeat
 		 */
+<<<<<<< HEAD
 		wr_queue_size = SERVICE_CON_QUEUE_DEPTH * 3 + 2;
 		cq_size = wr_queue_size;
+=======
+		max_send_wr = min_t(int, wr_limit,
+				    SERVICE_CON_QUEUE_DEPTH * 2 + 2);
+		max_recv_wr = max_send_wr;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		/*
 		 * If we have all receive requests posted and
@@ -1639,7 +1664,12 @@ static int create_con(struct rtrs_srv_sess *sess,
 		 */
 		wr_queue_size = sess->s.dev->ib_dev->attrs.max_qp_wr / 3;
 	}
+<<<<<<< HEAD
 	atomic_set(&con->sq_wr_avail, wr_queue_size);
+=======
+	cq_num = max_send_wr + max_recv_wr;
+	atomic_set(&con->sq_wr_avail, max_send_wr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cq_vector = rtrs_srv_get_next_cq_vector(sess);
 
 	/* TODO: SOFTIRQ can be faster, but be careful with softirq context */
@@ -1842,6 +1872,10 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
 	}
 	err = create_con(sess, cm_id, cid);
 	if (err) {
+<<<<<<< HEAD
+=======
+		rtrs_err((&sess->s), "create_con(), error %d\n", err);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		(void)rtrs_rdma_do_reject(cm_id, err);
 		/*
 		 * Since session has other connections we follow normal way
@@ -1852,6 +1886,10 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
 	}
 	err = rtrs_rdma_do_accept(sess, cm_id);
 	if (err) {
+<<<<<<< HEAD
+=======
+		rtrs_err((&sess->s), "rtrs_rdma_do_accept(), error %d\n", err);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		(void)rtrs_rdma_do_reject(cm_id, err);
 		/*
 		 * Since current connection was successfully added to the

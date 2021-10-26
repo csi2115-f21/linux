@@ -439,8 +439,14 @@ EXPORT_SYMBOL(host1x_syncpt_request);
  */
 void host1x_syncpt_free(struct host1x_syncpt *sp)
 {
+<<<<<<< HEAD
 	if (!sp)
 		return;
+=======
+	struct host1x_syncpt *sp = container_of(ref, struct host1x_syncpt, ref);
+
+	atomic_set(&sp->max_val, host1x_syncpt_read(sp));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&sp->host->syncpt_mutex);
 

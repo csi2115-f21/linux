@@ -175,7 +175,12 @@ static inline void ww_acquire_fini(struct ww_acquire_ctx *ctx)
 {
 #ifdef CONFIG_DEBUG_MUTEXES
 	mutex_release(&ctx->dep_map, _THIS_IP_);
+<<<<<<< HEAD
 
+=======
+#endif
+#ifdef CONFIG_DEBUG_MUTEXES
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	DEBUG_LOCKS_WARN_ON(ctx->acquired);
 	if (!IS_ENABLED(CONFIG_PROVE_LOCKING))
 		/*

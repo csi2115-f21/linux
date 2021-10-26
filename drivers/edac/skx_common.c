@@ -315,7 +315,11 @@ int skx_get_dimm_info(u32 mtr, u32 mcmtr, u32 amap, struct dimm_info *dimm,
 	rows = numrow(mtr);
 	cols = numcol(mtr);
 
+<<<<<<< HEAD
 	if (cfg->support_ddr5 && (amap & 0x8)) {
+=======
+	if (cfg->support_ddr5 && ((amap & 0x8) || imc->hbm_mc)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		banks = 32;
 		mtype = MEM_DDR5;
 	} else {

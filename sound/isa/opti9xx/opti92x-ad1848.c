@@ -1012,11 +1012,21 @@ static int snd_opti9xx_isa_probe(struct device *devptr,
 	if (error < 0)
 		return error;
 
+<<<<<<< HEAD
 	if ((error = snd_card_opti9xx_detect(card, card->private_data)) < 0) {
 		snd_card_free(card);
 		return error;
 	}
 	if ((error = snd_opti9xx_probe(card)) < 0) {
+=======
+	error = snd_card_opti9xx_detect(card, card->private_data);
+	if (error < 0) {
+		snd_card_free(card);
+		return error;
+	}
+	error = snd_opti9xx_probe(card);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -1117,7 +1127,12 @@ static int snd_opti9xx_pnp_probe(struct pnp_card_link *pcard,
 		return -ENODEV;
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_opti9xx_init(chip, hw))) {
+=======
+	error = snd_opti9xx_init(chip, hw);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -1127,7 +1142,12 @@ static int snd_opti9xx_pnp_probe(struct pnp_card_link *pcard,
 		snd_card_free(card);
 		return error;
 	}
+<<<<<<< HEAD
 	if ((error = snd_opti9xx_probe(card)) < 0) {
+=======
+	error = snd_opti9xx_probe(card);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}

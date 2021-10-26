@@ -34,6 +34,11 @@
 #include "sienna_cichlid_ppt.h"
 #include "renoir_ppt.h"
 #include "vangogh_ppt.h"
+<<<<<<< HEAD
+=======
+#include "aldebaran_ppt.h"
+#include "yellow_carp_ppt.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "amd_pcie.h"
 
 /*
@@ -46,9 +51,32 @@
 #undef pr_info
 #undef pr_debug
 
+<<<<<<< HEAD
 size_t smu_sys_get_pp_feature_mask(struct smu_context *smu, char *buf)
 {
 	size_t size = 0;
+=======
+static const struct amd_pm_funcs swsmu_pm_funcs;
+static int smu_force_smuclk_levels(struct smu_context *smu,
+				   enum smu_clk_type clk_type,
+				   uint32_t mask);
+static int smu_handle_task(struct smu_context *smu,
+			   enum amd_dpm_forced_level level,
+			   enum amd_pp_task task_id,
+			   bool lock_needed);
+static int smu_reset(struct smu_context *smu);
+static int smu_set_fan_speed_percent(void *handle, u32 speed);
+static int smu_set_fan_control_mode(struct smu_context *smu, int value);
+static int smu_set_power_limit(void *handle, uint32_t limit);
+static int smu_set_fan_speed_rpm(void *handle, uint32_t speed);
+static int smu_set_gfx_cgpg(struct smu_context *smu, bool enabled);
+
+static int smu_sys_get_pp_feature_mask(void *handle,
+				       char *buf)
+{
+	struct smu_context *smu = handle;
+	int size = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!smu->pm_enabled || !smu->adev->pm.dpm_enabled)
 		return -EOPNOTSUPP;
@@ -533,6 +561,12 @@ static int smu_set_funcs(struct amdgpu_device *adev)
 	case CHIP_VANGOGH:
 		vangogh_set_ppt_funcs(smu);
 		break;
+<<<<<<< HEAD
+=======
+	case CHIP_YELLOW_CARP:
+		yellow_carp_set_ppt_funcs(smu);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -EINVAL;
 	}
@@ -552,6 +586,12 @@ static int smu_early_init(void *handle)
 	mutex_init(&smu->smu_baco.mutex);
 	smu->smu_baco.state = SMU_BACO_STATE_EXIT;
 	smu->smu_baco.platform_support = false;
+<<<<<<< HEAD
+=======
+
+	adev->powerplay.pp_handle = smu;
+	adev->powerplay.pp_funcs = &swsmu_pm_funcs;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return smu_set_funcs(adev);
 }
@@ -1310,7 +1350,13 @@ static int smu_disable_dpms(struct smu_context *smu)
 	if (smu->uploading_custom_pp_table &&
 	    (adev->asic_type >= CHIP_NAVI10) &&
 	    (adev->asic_type <= CHIP_DIMGREY_CAVEFISH))
+<<<<<<< HEAD
 		return 0;
+=======
+		return smu_disable_all_features_with_exception(smu,
+							       true,
+							       SMU_FEATURE_COUNT);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * For Sienna_Cichlid, PMFW will handle the features disablement properly
@@ -2022,6 +2068,10 @@ int smu_set_gfx_cgpg(struct smu_context *smu, bool enabled)
 
 int smu_set_fan_speed_rpm(struct smu_context *smu, uint32_t speed)
 {
+<<<<<<< HEAD
+=======
+	struct smu_context *smu = handle;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 percent;
 	int ret = 0;
 
@@ -2033,7 +2083,11 @@ int smu_set_fan_speed_rpm(struct smu_context *smu, uint32_t speed)
 	if (smu->ppt_funcs->set_fan_speed_percent) {
 		percent = speed * 100 / smu->fan_max_rpm;
 		ret = smu->ppt_funcs->set_fan_speed_percent(smu, percent);
+<<<<<<< HEAD
 		if (!ret && smu->user_dpm_profile.flags != SMU_DPM_USER_PROFILE_RESTORE)
+=======
+		if (!ret && !(smu->user_dpm_profile.flags & SMU_DPM_USER_PROFILE_RESTORE))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			smu->user_dpm_profile.fan_speed_percent = percent;
 	}
 
@@ -2292,13 +2346,29 @@ int smu_set_fan_control_mode(struct smu_context *smu, int value)
 
 	/* reset user dpm fan speed */
 	if (!ret && value != AMD_FAN_CTRL_MANUAL &&
+<<<<<<< HEAD
 			smu->user_dpm_profile.flags != SMU_DPM_USER_PROFILE_RESTORE)
+=======
+			!(smu->user_dpm_profile.flags & SMU_DPM_USER_PROFILE_RESTORE))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		smu->user_dpm_profile.fan_speed_percent = 0;
 
 	return ret;
 }
 
+<<<<<<< HEAD
 int smu_get_fan_speed_percent(struct smu_context *smu, uint32_t *speed)
+=======
+static void smu_pp_set_fan_control_mode(void *handle, u32 value)
+{
+	struct smu_context *smu = handle;
+
+	smu_set_fan_control_mode(smu, value);
+}
+
+
+static int smu_get_fan_speed_percent(void *handle, u32 *speed)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret = 0;
 	uint32_t percent;
@@ -2321,7 +2391,11 @@ int smu_get_fan_speed_percent(struct smu_context *smu, uint32_t *speed)
 	return ret;
 }
 
+<<<<<<< HEAD
 int smu_set_fan_speed_percent(struct smu_context *smu, uint32_t speed)
+=======
+static int smu_set_fan_speed_percent(void *handle, u32 speed)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret = 0;
 
@@ -2334,7 +2408,11 @@ int smu_set_fan_speed_percent(struct smu_context *smu, uint32_t speed)
 		if (speed > 100)
 			speed = 100;
 		ret = smu->ppt_funcs->set_fan_speed_percent(smu, speed);
+<<<<<<< HEAD
 		if (!ret && smu->user_dpm_profile.flags != SMU_DPM_USER_PROFILE_RESTORE)
+=======
+		if (!ret && !(smu->user_dpm_profile.flags & SMU_DPM_USER_PROFILE_RESTORE))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			smu->user_dpm_profile.fan_speed_percent = speed;
 	}
 
@@ -2723,3 +2801,108 @@ int smu_gfx_state_change_set(struct smu_context *smu, uint32_t state)
 
 	return ret;
 }
+<<<<<<< HEAD
+=======
+
+int smu_set_light_sbr(struct smu_context *smu, bool enable)
+{
+	int ret = 0;
+
+	mutex_lock(&smu->mutex);
+	if (smu->ppt_funcs->set_light_sbr)
+		ret = smu->ppt_funcs->set_light_sbr(smu, enable);
+	mutex_unlock(&smu->mutex);
+
+	return ret;
+}
+
+static int smu_get_prv_buffer_details(void *handle, void **addr, size_t *size)
+{
+	struct smu_context *smu = handle;
+	struct smu_table_context *smu_table = &smu->smu_table;
+	struct smu_table *memory_pool = &smu_table->memory_pool;
+
+	if (!addr || !size)
+		return -EINVAL;
+
+	*addr = NULL;
+	*size = 0;
+	mutex_lock(&smu->mutex);
+	if (memory_pool->bo) {
+		*addr = memory_pool->cpu_addr;
+		*size = memory_pool->size;
+	}
+	mutex_unlock(&smu->mutex);
+
+	return 0;
+}
+
+static const struct amd_pm_funcs swsmu_pm_funcs = {
+	/* export for sysfs */
+	.set_fan_control_mode    = smu_pp_set_fan_control_mode,
+	.get_fan_control_mode    = smu_get_fan_control_mode,
+	.set_fan_speed_percent   = smu_set_fan_speed_percent,
+	.get_fan_speed_percent   = smu_get_fan_speed_percent,
+	.force_clock_level       = smu_force_ppclk_levels,
+	.print_clock_levels      = smu_print_ppclk_levels,
+	.force_performance_level = smu_force_performance_level,
+	.read_sensor             = smu_read_sensor,
+	.get_performance_level   = smu_get_performance_level,
+	.get_current_power_state = smu_get_current_power_state,
+	.get_fan_speed_rpm       = smu_get_fan_speed_rpm,
+	.set_fan_speed_rpm       = smu_set_fan_speed_rpm,
+	.get_pp_num_states       = smu_get_power_num_states,
+	.get_pp_table            = smu_sys_get_pp_table,
+	.set_pp_table            = smu_sys_set_pp_table,
+	.switch_power_profile    = smu_switch_power_profile,
+	/* export to amdgpu */
+	.dispatch_tasks          = smu_handle_dpm_task,
+	.load_firmware           = smu_load_microcode,
+	.set_powergating_by_smu  = smu_dpm_set_power_gate,
+	.set_power_limit         = smu_set_power_limit,
+	.get_power_limit         = smu_get_power_limit,
+	.get_power_profile_mode  = smu_get_power_profile_mode,
+	.set_power_profile_mode  = smu_set_power_profile_mode,
+	.odn_edit_dpm_table      = smu_od_edit_dpm_table,
+	.set_mp1_state           = smu_set_mp1_state,
+	.gfx_state_change_set    = smu_gfx_state_change_set,
+	/* export to DC */
+	.get_sclk                         = smu_get_sclk,
+	.get_mclk                         = smu_get_mclk,
+	.display_configuration_change     = smu_display_configuration_change,
+	.get_clock_by_type_with_latency   = smu_get_clock_by_type_with_latency,
+	.display_clock_voltage_request    = smu_display_clock_voltage_request,
+	.enable_mgpu_fan_boost            = smu_enable_mgpu_fan_boost,
+	.set_active_display_count         = smu_set_display_count,
+	.set_min_deep_sleep_dcefclk       = smu_set_deep_sleep_dcefclk,
+	.get_asic_baco_capability         = smu_get_baco_capability,
+	.set_asic_baco_state              = smu_baco_set_state,
+	.get_ppfeature_status             = smu_sys_get_pp_feature_mask,
+	.set_ppfeature_status             = smu_sys_set_pp_feature_mask,
+	.asic_reset_mode_2                = smu_mode2_reset,
+	.set_df_cstate                    = smu_set_df_cstate,
+	.set_xgmi_pstate                  = smu_set_xgmi_pstate,
+	.get_gpu_metrics                  = smu_sys_get_gpu_metrics,
+	.set_watermarks_for_clock_ranges     = smu_set_watermarks_for_clock_ranges,
+	.display_disable_memory_clock_switch = smu_display_disable_memory_clock_switch,
+	.get_max_sustainable_clocks_by_dc    = smu_get_max_sustainable_clocks_by_dc,
+	.get_uclk_dpm_states              = smu_get_uclk_dpm_states,
+	.get_dpm_clock_table              = smu_get_dpm_clock_table,
+	.get_smu_prv_buf_details = smu_get_prv_buffer_details,
+};
+
+int smu_wait_for_event(struct amdgpu_device *adev, enum smu_event_type event,
+		       uint64_t event_arg)
+{
+	int ret = -EINVAL;
+	struct smu_context *smu = &adev->smu;
+
+	if (smu->ppt_funcs->wait_for_event) {
+		mutex_lock(&smu->mutex);
+		ret = smu->ppt_funcs->wait_for_event(smu, event, event_arg);
+		mutex_unlock(&smu->mutex);
+	}
+
+	return ret;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

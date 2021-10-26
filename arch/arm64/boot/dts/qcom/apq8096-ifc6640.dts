@@ -88,7 +88,19 @@
 	pinctrl-1 = <&blsp2_uart1_2pins_sleep>;
 };
 
+<<<<<<< HEAD
 &msmgpio {
+=======
+&gpu {
+	status = "okay";
+};
+
+&mdss {
+	status = "okay";
+};
+
+&tlmm {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	sdc2_pins_default: sdc2-pins-default {
 		clk {
 			pins = "sdc2_clk";

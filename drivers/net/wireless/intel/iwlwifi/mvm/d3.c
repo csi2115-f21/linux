@@ -104,7 +104,11 @@ static const u8 *iwl_mvm_find_max_pn(struct ieee80211_key_conf *key,
 struct wowlan_key_data {
 	struct iwl_wowlan_rsc_tsc_params_cmd *rsc_tsc;
 	struct iwl_wowlan_tkip_params_cmd *tkip;
+<<<<<<< HEAD
 	struct iwl_wowlan_kek_kck_material_cmd_v3 *kek_kck_cmd;
+=======
+	struct iwl_wowlan_kek_kck_material_cmd_v4 *kek_kck_cmd;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bool error, use_rsc_tsc, use_tkip, configure_keys;
 	int wep_key_idx;
 };
@@ -162,6 +166,7 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 			wkc.wep_key.key_offset = data->wep_key_idx;
 		}
 
+<<<<<<< HEAD
 		if (data->configure_keys) {
 			mutex_lock(&mvm->mutex);
 			ret = iwl_mvm_send_cmd_pdu(mvm, WEP_KEY, 0,
@@ -174,6 +179,16 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 			mvm->gtk_icvlen = key->icv_len;
 			mutex_unlock(&mvm->mutex);
 		}
+=======
+		mutex_lock(&mvm->mutex);
+		ret = iwl_mvm_send_cmd_pdu(mvm, WEP_KEY, 0, sizeof(wkc), &wkc);
+		data->error = ret != 0;
+
+		mvm->ptk_ivlen = key->iv_len;
+		mvm->ptk_icvlen = key->icv_len;
+		mvm->gtk_ivlen = key->iv_len;
+		mvm->gtk_icvlen = key->icv_len;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 		/* don't upload key again */
 		return;
@@ -326,8 +341,66 @@ static void iwl_mvm_wowlan_program_keys(struct ieee80211_hw *hw,
 
 	IWL_DEBUG_WOWLAN(mvm, "GTK cipher %d\n", data->kek_kck_cmd->gtk_cipher);
 
+<<<<<<< HEAD
 	if (data->configure_keys) {
 		mutex_lock(&mvm->mutex);
+=======
+	/* only for ciphers that can be PTK/GTK */
+	switch (key->cipher) {
+	default:
+		return;
+	case WLAN_CIPHER_SUITE_TKIP:
+	case WLAN_CIPHER_SUITE_CCMP:
+	case WLAN_CIPHER_SUITE_GCMP:
+	case WLAN_CIPHER_SUITE_GCMP_256:
+		break;
+	}
+
+	if (sta) {
+		rsc = data->rsc->ucast_rsc;
+	} else {
+		if (WARN_ON(data->gtks > ARRAY_SIZE(data->gtk_ids)))
+			return;
+		data->gtk_ids[data->gtks] = key->keyidx;
+		rsc = data->rsc->mcast_rsc[data->gtks % 2];
+		if (WARN_ON(key->keyidx >
+				ARRAY_SIZE(data->rsc->mcast_key_id_map)))
+			return;
+		data->rsc->mcast_key_id_map[key->keyidx] = data->gtks % 2;
+		if (data->gtks >= 2) {
+			int prev = data->gtks - 2;
+			int prev_idx = data->gtk_ids[prev];
+
+			data->rsc->mcast_key_id_map[prev_idx] =
+				IWL_MCAST_KEY_MAP_INVALID;
+		}
+		data->gtks++;
+	}
+
+	switch (key->cipher) {
+	default:
+		WARN_ON(1);
+		break;
+	case WLAN_CIPHER_SUITE_TKIP:
+
+		/*
+		 * For non-QoS this relies on the fact that both the uCode and
+		 * mac80211 use TID 0 (as they need to to avoid replay attacks)
+		 * for checking the IV in the frames.
+		 */
+		for (i = 0; i < IWL_MAX_TID_COUNT; i++) {
+			ieee80211_get_key_rx_seq(key, i, &seq);
+
+			rsc[i] = cpu_to_le64(((u64)seq.tkip.iv32 << 16) |
+					     seq.tkip.iv16);
+		}
+
+		data->have_rsc = true;
+		break;
+	case WLAN_CIPHER_SUITE_CCMP:
+	case WLAN_CIPHER_SUITE_GCMP:
+	case WLAN_CIPHER_SUITE_GCMP_256:
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 		/*
 		 * The D3 firmware hardcodes the key offset 0 as the key it
 		 * uses to transmit packets to the AP, i.e. the PTK.
@@ -706,7 +779,12 @@ static int iwl_mvm_wowlan_config_key_params(struct iwl_mvm *mvm,
 					    struct ieee80211_vif *vif,
 					    u32 cmd_flags)
 {
+<<<<<<< HEAD
 	struct iwl_wowlan_kek_kck_material_cmd_v3 kek_kck_cmd = {};
+=======
+	struct iwl_wowlan_kek_kck_material_cmd_v4 kek_kck_cmd = {};
+	struct iwl_wowlan_kek_kck_material_cmd_v4 *_kek_kck_cmd = &kek_kck_cmd;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct iwl_wowlan_tkip_params_cmd tkip_cmd = {};
 	bool unified = fw_has_capa(&mvm->fw->ucode_capa,
 				   IWL_UCODE_TLV_CAPA_CNSLDTD_D3_D0_IMG);
@@ -715,7 +793,11 @@ static int iwl_mvm_wowlan_config_key_params(struct iwl_mvm *mvm,
 		.use_rsc_tsc = false,
 		.tkip = &tkip_cmd,
 		.use_tkip = false,
+<<<<<<< HEAD
 		.kek_kck_cmd = &kek_kck_cmd,
+=======
+		.kek_kck_cmd = _kek_kck_cmd,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	};
 	struct iwl_mvm_vif *mvmvif = iwl_mvm_vif_from_mac80211(vif);
 	int ret;
@@ -812,10 +894,13 @@ static int iwl_mvm_wowlan_config_key_params(struct iwl_mvm *mvm,
 		if (WARN_ON(cmd_ver != 2 && cmd_ver != 3 &&
 			    cmd_ver != IWL_FW_CMD_VER_UNKNOWN))
 			return -EINVAL;
+<<<<<<< HEAD
 		if (cmd_ver == 3)
 			cmd_size = sizeof(struct iwl_wowlan_kek_kck_material_cmd_v3);
 		else
 			cmd_size = sizeof(struct iwl_wowlan_kek_kck_material_cmd_v2);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		memcpy(kek_kck_cmd.kck, mvmvif->rekey_data.kck,
 		       mvmvif->rekey_data.kck_len);
@@ -832,7 +917,11 @@ static int iwl_mvm_wowlan_config_key_params(struct iwl_mvm *mvm,
 		ret = iwl_mvm_send_cmd_pdu(mvm,
 					   WOWLAN_KEK_KCK_MATERIAL, cmd_flags,
 					   cmd_size,
+<<<<<<< HEAD
 					   &kek_kck_cmd);
+=======
+					   _kek_kck_cmd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (ret)
 			goto out;
 	}
@@ -1654,7 +1743,11 @@ struct iwl_wowlan_status *iwl_mvm_send_wowlan_get_status(struct iwl_mvm *mvm)
 
 		status->gtk[0] = v7->gtk[0];
 		status->igtk[0] = v7->igtk[0];
+<<<<<<< HEAD
 	} else if (notif_ver == 9) {
+=======
+	} else if (notif_ver == 9 || notif_ver == 10) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		struct iwl_wowlan_status_v9 *v9 = (void *)cmd.resp_pkt->data;
 
 		status = iwl_mvm_parse_wowlan_status_common_v9(mvm,

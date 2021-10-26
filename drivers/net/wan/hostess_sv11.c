@@ -151,6 +151,7 @@ static int hostess_close(struct net_device *d)
 
 static int hostess_ioctl(struct net_device *d, struct ifreq *ifr, int cmd)
 {
+<<<<<<< HEAD
 	/* struct z8530_dev *sv11=dev_to_sv(d);
 	   z8530_ioctl(d,&sv11->chanA,ifr,cmd) */
 	return hdlc_ioctl(d, ifr, cmd);
@@ -158,6 +159,12 @@ static int hostess_ioctl(struct net_device *d, struct ifreq *ifr, int cmd)
 
 /*
  *	Passed network frames, fire them downwind.
+=======
+	return hdlc_ioctl(d, ifr, cmd);
+}
+
+/*	Passed network frames, fire them downwind.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 
 static netdev_tx_t hostess_queue_xmit(struct sk_buff *skb,

@@ -802,7 +802,12 @@ static int hidg_bind(struct usb_configuration *c, struct usb_function *f)
 		hidg_fs_out_ep_desc.bEndpointAddress;
 
 	status = usb_assign_descriptors(f, hidg_fs_descriptors,
+<<<<<<< HEAD
 			hidg_hs_descriptors, hidg_ss_descriptors, NULL);
+=======
+			hidg_hs_descriptors, hidg_ss_descriptors,
+			hidg_ss_descriptors);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (status)
 		goto fail;
 

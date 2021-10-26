@@ -79,6 +79,12 @@ static void job_free(struct kref *ref)
 {
 	struct host1x_job *job = container_of(ref, struct host1x_job, ref);
 
+<<<<<<< HEAD
+=======
+	if (job->syncpt)
+		host1x_syncpt_put(job->syncpt);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(job);
 }
 

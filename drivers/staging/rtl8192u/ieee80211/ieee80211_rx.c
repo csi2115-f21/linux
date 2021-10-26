@@ -1365,6 +1365,11 @@ static int ieee80211_read_qos_info_element(
 	u16 size = sizeof(struct ieee80211_qos_information_element) - 2;
 
 	if (!element_info)
+<<<<<<< HEAD
+		return -1;
+	if (!info_element)
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -1;
 	if (!info_element)
 		return -1;
@@ -1377,6 +1382,17 @@ static int ieee80211_read_qos_info_element(
 	} else
 		ret = -1;
 
+<<<<<<< HEAD
+	if ((info_element->id == QOS_ELEMENT_ID) && (info_element->len == size)) {
+		memcpy(element_info->qui, info_element->data,
+		       info_element->len);
+		element_info->elementID = info_element->id;
+		element_info->length = info_element->len;
+	} else
+		ret = -1;
+
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret == 0)
 		ret = ieee80211_verify_qos_info(element_info,
 						QOS_OUI_INFO_SUB_TYPE);

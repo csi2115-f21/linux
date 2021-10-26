@@ -123,6 +123,12 @@ struct res_config {
 	/* Per DDR channel memory-mapped I/O size */
 	int ddr_chan_mmio_sz;
 	bool support_ddr5;
+<<<<<<< HEAD
+=======
+	/* SAD device number and function number */
+	unsigned int sad_all_devfn;
+	int sad_all_offset;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 typedef int (*get_dimm_config_f)(struct mem_ctl_info *mci,

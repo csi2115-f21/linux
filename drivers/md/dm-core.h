@@ -114,6 +114,14 @@ struct mapped_device {
 	bool init_tio_pdu:1;
 
 	struct srcu_struct io_barrier;
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_BLK_DEV_ZONED
+	unsigned int nr_zones;
+	unsigned int *zwp_offset;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 void disable_discard(struct mapped_device *md);

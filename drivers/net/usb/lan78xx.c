@@ -3981,6 +3981,7 @@ static int lan78xx_suspend(struct usb_interface *intf, pm_message_t message)
 			ret = lan78xx_read_reg(dev, MAC_RX, &buf);
 			buf &= ~MAC_RX_RXEN_;
 			ret = lan78xx_write_reg(dev, MAC_RX, buf);
+<<<<<<< HEAD
 
 			ret = lan78xx_write_reg(dev, WUCSR, 0);
 			ret = lan78xx_write_reg(dev, WUCSR2, 0);
@@ -4008,6 +4009,35 @@ static int lan78xx_suspend(struct usb_interface *intf, pm_message_t message)
 
 			ret = lan78xx_read_reg(dev, PMT_CTL, &buf);
 
+=======
+
+			ret = lan78xx_write_reg(dev, WUCSR, 0);
+			ret = lan78xx_write_reg(dev, WUCSR2, 0);
+			ret = lan78xx_write_reg(dev, WK_SRC, 0xFFF1FF1FUL);
+
+			/* set goodframe wakeup */
+			ret = lan78xx_read_reg(dev, WUCSR, &buf);
+
+			buf |= WUCSR_RFE_WAKE_EN_;
+			buf |= WUCSR_STORE_WAKE_;
+
+			ret = lan78xx_write_reg(dev, WUCSR, buf);
+
+			ret = lan78xx_read_reg(dev, PMT_CTL, &buf);
+
+			buf &= ~PMT_CTL_RES_CLR_WKP_EN_;
+			buf |= PMT_CTL_RES_CLR_WKP_STS_;
+
+			buf |= PMT_CTL_PHY_WAKE_EN_;
+			buf |= PMT_CTL_WOL_EN_;
+			buf &= ~PMT_CTL_SUS_MODE_MASK_;
+			buf |= PMT_CTL_SUS_MODE_3_;
+
+			ret = lan78xx_write_reg(dev, PMT_CTL, buf);
+
+			ret = lan78xx_read_reg(dev, PMT_CTL, &buf);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			buf |= PMT_CTL_WUPS_MASK_;
 
 			ret = lan78xx_write_reg(dev, PMT_CTL, buf);

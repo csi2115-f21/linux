@@ -13,7 +13,11 @@
 #define BATADV_DRIVER_DEVICE "batman-adv"
 
 #ifndef BATADV_SOURCE_VERSION
+<<<<<<< HEAD
 #define BATADV_SOURCE_VERSION "2021.1"
+=======
+#define BATADV_SOURCE_VERSION "2021.2"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 
 /* B.A.T.M.A.N. parameters */

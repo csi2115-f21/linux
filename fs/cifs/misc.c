@@ -672,6 +672,141 @@ cifs_add_pending_open(struct cifs_fid *fid, struct tcon_link *tlink,
 	spin_unlock(&tlink_tcon(open->tlink)->open_file_lock);
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * Critical section which runs after acquiring deferred_lock.
+ * As there is no reference count on cifs_deferred_close, pdclose
+ * should not be used outside deferred_lock.
+ */
+bool
+cifs_is_deferred_close(struct cifsFileInfo *cfile, struct cifs_deferred_close **pdclose)
+{
+	struct cifs_deferred_close *dclose;
+
+	list_for_each_entry(dclose, &CIFS_I(d_inode(cfile->dentry))->deferred_closes, dlist) {
+		if ((dclose->netfid == cfile->fid.netfid) &&
+			(dclose->persistent_fid == cfile->fid.persistent_fid) &&
+			(dclose->volatile_fid == cfile->fid.volatile_fid)) {
+			*pdclose = dclose;
+			return true;
+		}
+	}
+	return false;
+}
+
+/*
+ * Critical section which runs after acquiring deferred_lock.
+ */
+void
+cifs_add_deferred_close(struct cifsFileInfo *cfile, struct cifs_deferred_close *dclose)
+{
+	bool is_deferred = false;
+	struct cifs_deferred_close *pdclose;
+
+	is_deferred = cifs_is_deferred_close(cfile, &pdclose);
+	if (is_deferred) {
+		kfree(dclose);
+		return;
+	}
+
+	dclose->tlink = cfile->tlink;
+	dclose->netfid = cfile->fid.netfid;
+	dclose->persistent_fid = cfile->fid.persistent_fid;
+	dclose->volatile_fid = cfile->fid.volatile_fid;
+	list_add_tail(&dclose->dlist, &CIFS_I(d_inode(cfile->dentry))->deferred_closes);
+}
+
+/*
+ * Critical section which runs after acquiring deferred_lock.
+ */
+void
+cifs_del_deferred_close(struct cifsFileInfo *cfile)
+{
+	bool is_deferred = false;
+	struct cifs_deferred_close *dclose;
+
+	is_deferred = cifs_is_deferred_close(cfile, &dclose);
+	if (!is_deferred)
+		return;
+	list_del(&dclose->dlist);
+	kfree(dclose);
+}
+
+void
+cifs_close_deferred_file(struct cifsInodeInfo *cifs_inode)
+{
+	struct cifsFileInfo *cfile = NULL;
+	struct cifs_deferred_close *dclose;
+
+	list_for_each_entry(cfile, &cifs_inode->openFileList, flist) {
+<<<<<<< HEAD
+		spin_lock(&cifs_inode->deferred_lock);
+		if (cifs_is_deferred_close(cfile, &dclose))
+			mod_delayed_work(deferredclose_wq, &cfile->deferred, 0);
+		spin_unlock(&cifs_inode->deferred_lock);
+=======
+		if (delayed_work_pending(&cfile->deferred)) {
+			if (cancel_delayed_work(&cfile->deferred)) {
+				tmp_list = kmalloc(sizeof(struct file_list), GFP_ATOMIC);
+				if (tmp_list == NULL)
+					continue;
+				tmp_list->cfile = cfile;
+				list_add_tail(&tmp_list->list, &file_head);
+			}
+		}
+	}
+	spin_unlock(&cifs_inode->open_file_lock);
+
+	list_for_each_entry_safe(tmp_list, tmp_next_list, &file_head, list) {
+		_cifsFileInfo_put(tmp_list->cfile, true, false);
+		list_del(&tmp_list->list);
+		kfree(tmp_list);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
+	}
+}
+
+void
+cifs_close_all_deferred_files(struct cifs_tcon *tcon)
+{
+	struct cifsFileInfo *cfile;
+	struct list_head *tmp;
+
+	spin_lock(&tcon->open_file_lock);
+	list_for_each(tmp, &tcon->openFileList) {
+		cfile = list_entry(tmp, struct cifsFileInfo, tlist);
+		if (delayed_work_pending(&cfile->deferred)) {
+<<<<<<< HEAD
+			/*
+			 * If there is no pending work, mod_delayed_work queues new work.
+			 * So, Increase the ref count to avoid use-after-free.
+			 */
+			if (!mod_delayed_work(deferredclose_wq, &cfile->deferred, 0))
+				cifsFileInfo_get(cfile);
+		}
+	}
+	spin_unlock(&tcon->open_file_lock);
+=======
+			if (cancel_delayed_work(&cfile->deferred)) {
+				tmp_list = kmalloc(sizeof(struct file_list), GFP_ATOMIC);
+				if (tmp_list == NULL)
+					continue;
+				tmp_list->cfile = cfile;
+				list_add_tail(&tmp_list->list, &file_head);
+			}
+		}
+	}
+	spin_unlock(&tcon->open_file_lock);
+
+	list_for_each_entry_safe(tmp_list, tmp_next_list, &file_head, list) {
+		_cifsFileInfo_put(tmp_list->cfile, true, false);
+		list_del(&tmp_list->list);
+		kfree(tmp_list);
+	}
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* parses DFS refferal V3 structure
  * caller is responsible for freeing target_nodes
  * returns:

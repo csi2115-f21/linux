@@ -1141,6 +1141,7 @@ void afs_fs_store_data(struct afs_operation *op)
 	pos = (loff_t)op->store.first << PAGE_SHIFT;
 	pos += op->store.first_offset;
 
+<<<<<<< HEAD
 	i_size = i_size_read(&vp->vnode->vfs_inode);
 	if (pos + size > i_size)
 		i_size = size + pos;
@@ -1149,9 +1150,18 @@ void afs_fs_store_data(struct afs_operation *op)
 	       (unsigned long long) size, (unsigned long long) pos,
 	       (unsigned long long) i_size);
 
+<<<<<<< HEAD
 	if (upper_32_bits(pos) || upper_32_bits(i_size) || upper_32_bits(size) ||
 	    upper_32_bits(pos + size))
 		return afs_fs_store_data64(op, pos, size, i_size);
+=======
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
+	if (upper_32_bits(op->store.pos) ||
+	    upper_32_bits(op->store.size) ||
+	    upper_32_bits(op->store.i_size))
+		return afs_fs_store_data64(op);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	call = afs_alloc_flat_call(op->net, &afs_RXFSStoreData,
 				   (4 + 6 + 3) * 4,

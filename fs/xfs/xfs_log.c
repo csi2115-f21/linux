@@ -361,6 +361,11 @@ xfs_log_writable(
 	 * restrict that case here.
 	 */
 	if (mp->m_flags & XFS_MOUNT_NORECOVERY)
+<<<<<<< HEAD
+=======
+		return false;
+	if (xfs_readonly_buftarg(mp->m_ddev_targp))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 	if (xfs_readonly_buftarg(mp->m_log->l_targ))
 		return false;
@@ -485,6 +490,7 @@ out_error:
 	return error;
 }
 
+<<<<<<< HEAD
 static bool
 __xlog_state_release_iclog(
 	struct xlog		*log,
@@ -507,6 +513,8 @@ __xlog_state_release_iclog(
 	return false;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Flush iclog to disk if this is the last reference to the given iclog and the
  * it is in the WANT_SYNC state.
@@ -516,10 +524,31 @@ xlog_state_release_iclog(
 	struct xlog		*log,
 	struct xlog_in_core	*iclog)
 {
+<<<<<<< HEAD
 	lockdep_assert_held(&log->l_icloglock);
 
 	if (iclog->ic_state == XLOG_STATE_IOERROR)
 		return -EIO;
+=======
+	xfs_lsn_t		tail_lsn;
+	lockdep_assert_held(&log->l_icloglock);
+
+	trace_xlog_iclog_release(iclog, _RET_IP_);
+	if (iclog->ic_state == XLOG_STATE_IOERROR)
+		return -EIO;
+
+	/*
+	 * Grabbing the current log tail needs to be atomic w.r.t. the writing
+	 * of the tail LSN into the iclog so we guarantee that the log tail does
+	 * not move between deciding if a cache flush is required and writing
+	 * the LSN into the iclog below.
+	 */
+	if (old_tail_lsn || iclog->ic_state == XLOG_STATE_WANT_SYNC) {
+		tail_lsn = xlog_assign_tail_lsn(log->l_mp);
+
+		if (old_tail_lsn && tail_lsn != old_tail_lsn)
+			iclog->ic_flags |= XLOG_ICL_NEED_FLUSH;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (atomic_dec_and_test(&iclog->ic_refcnt) &&
 	    __xlog_state_release_iclog(log, iclog)) {
@@ -528,6 +557,7 @@ xlog_state_release_iclog(
 		spin_lock(&log->l_icloglock);
 	}
 
+<<<<<<< HEAD
 	return 0;
 }
 
@@ -537,6 +567,10 @@ xfs_log_release_iclog(
 {
 	struct xlog		*log = iclog->ic_log;
 	bool			sync = false;
+=======
+	if (!atomic_dec_and_test(&iclog->ic_refcnt))
+		return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (atomic_dec_and_lock(&iclog->ic_refcnt, &log->l_icloglock)) {
 		if (iclog->ic_state != XLOG_STATE_IOERROR)
@@ -657,12 +691,21 @@ xfs_log_mount(
 	if (!(mp->m_flags & XFS_MOUNT_NORECOVERY)) {
 		int	readonly = (mp->m_flags & XFS_MOUNT_RDONLY);
 
+<<<<<<< HEAD
 		if (readonly)
 			mp->m_flags &= ~XFS_MOUNT_RDONLY;
 
 		error = xlog_recover(mp->m_log);
 
 		if (readonly)
+=======
+		if (readonly)
+			mp->m_flags &= ~XFS_MOUNT_RDONLY;
+
+		error = xlog_recover(mp->m_log);
+
+		if (readonly)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			mp->m_flags |= XFS_MOUNT_RDONLY;
 		if (error) {
 			xfs_warn(mp, "log mount/recovery failed: error %d",
@@ -767,6 +810,12 @@ xfs_log_mount_finish(
 
 	if (readonly)
 		mp->m_flags |= XFS_MOUNT_RDONLY;
+<<<<<<< HEAD
+=======
+
+	/* Make sure the log is dead if we're returning failure. */
+	ASSERT(!error || (mp->m_log->l_flags & XLOG_IO_ERROR));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return error;
 }
@@ -794,6 +843,10 @@ xlog_wait_on_iclog(
 {
 	struct xlog		*log = iclog->ic_log;
 
+<<<<<<< HEAD
+=======
+	trace_xlog_iclog_wait_on(iclog, _RET_IP_);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!XLOG_FORCED_SHUTDOWN(log) &&
 	    iclog->ic_state != XLOG_STATE_ACTIVE &&
 	    iclog->ic_state != XLOG_STATE_DIRTY) {
@@ -835,7 +888,12 @@ xlog_write_unmount_record(
 
 	/* account for space used by record data */
 	ticket->t_curr_res -= sizeof(ulf);
+<<<<<<< HEAD
 	return xlog_write(log, &vec, ticket, lsn, NULL, flags, false);
+=======
+
+	return xlog_write(log, &vec, ticket, NULL, NULL, XLOG_UNMOUNT_TRANS);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -1399,6 +1457,14 @@ xlog_alloc_log(
 	xlog_assign_atomic_lsn(&log->l_last_sync_lsn, 1, 0);
 	log->l_curr_cycle  = 1;	    /* 0 is bad since this is initial value */
 
+<<<<<<< HEAD
+=======
+	if (xfs_sb_version_haslogv2(&mp->m_sb) && mp->m_sb.sb_logsunit > 1)
+		log->l_iclog_roundoff = mp->m_sb.sb_logsunit;
+	else
+		log->l_iclog_roundoff = BBSIZE;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	xlog_grant_head_init(&log->l_reserve_head);
 	xlog_grant_head_init(&log->l_write_head);
 
@@ -1544,8 +1610,12 @@ xlog_commit_record(
 	if (XLOG_FORCED_SHUTDOWN(log))
 		return -EIO;
 
+<<<<<<< HEAD
 	error = xlog_write(log, &vec, ticket, lsn, iclog, XLOG_COMMIT_TRANS,
 			   false);
+=======
+	error = xlog_write(log, &vec, ticket, lsn, iclog, XLOG_COMMIT_TRANS);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (error)
 		xfs_force_shutdown(log->l_mp, SHUTDOWN_LOG_IO_ERROR);
 	return error;
@@ -2382,8 +2452,12 @@ xlog_write(
 	struct xlog_ticket	*ticket,
 	xfs_lsn_t		*start_lsn,
 	struct xlog_in_core	**commit_iclog,
+<<<<<<< HEAD
 	uint			flags,
 	bool			need_start_rec)
+=======
+	uint			optype)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct xlog_in_core	*iclog = NULL;
 	struct xfs_log_vec	*lv = log_vector;
@@ -2411,8 +2485,14 @@ xlog_write(
 		xfs_force_shutdown(log->l_mp, SHUTDOWN_LOG_IO_ERROR);
 	}
 
+<<<<<<< HEAD
 	len = xlog_write_calc_vec_length(ticket, log_vector, need_start_rec);
 	*start_lsn = 0;
+=======
+	len = xlog_write_calc_vec_length(ticket, log_vector, optype);
+	if (start_lsn)
+		*start_lsn = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	while (lv && (!lv->lv_niovecs || index < lv->lv_niovecs)) {
 		void		*ptr;
 		int		log_offset;
@@ -2425,8 +2505,13 @@ xlog_write(
 		ASSERT(log_offset <= iclog->ic_size - 1);
 		ptr = iclog->ic_datap + log_offset;
 
+<<<<<<< HEAD
 		/* start_lsn is the first lsn written to. That's all we need. */
 		if (!*start_lsn)
+=======
+		/* Start_lsn is the first lsn written to. */
+		if (start_lsn && !*start_lsn)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			*start_lsn = be64_to_cpu(iclog->ic_header.h_lsn);
 
 		/*
@@ -2544,10 +2629,17 @@ next_lv:
 	spin_lock(&log->l_icloglock);
 	xlog_state_finish_copy(log, iclog, record_cnt, data_cnt);
 	if (commit_iclog) {
+<<<<<<< HEAD
 		ASSERT(flags & XLOG_COMMIT_TRANS);
 		*commit_iclog = iclog;
 	} else {
 		error = xlog_state_release_iclog(log, iclog);
+=======
+		ASSERT(optype & XLOG_COMMIT_TRANS);
+		*commit_iclog = iclog;
+	} else {
+		error = xlog_state_release_iclog(log, iclog, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	spin_unlock(&log->l_icloglock);
 
@@ -2773,6 +2865,7 @@ xlog_state_iodone_process_iclog(
 	}
 }
 
+<<<<<<< HEAD
 /*
  * Keep processing entries in the iclog callback list until we come around and
  * it is empty.  We need to atomically see that the list is empty and change the
@@ -2854,6 +2947,56 @@ xlog_state_do_callback(
 			 */
 			cycled_icloglock = true;
 			xlog_state_do_iclog_callbacks(log, iclog);
+=======
+STATIC void
+xlog_state_do_callback(
+	struct xlog		*log)
+{
+	struct xlog_in_core	*iclog;
+	struct xlog_in_core	*first_iclog;
+	bool			cycled_icloglock;
+	bool			ioerror;
+	int			flushcnt = 0;
+	int			repeats = 0;
+
+	spin_lock(&log->l_icloglock);
+	do {
+		/*
+		 * Scan all iclogs starting with the one pointed to by the
+		 * log.  Reset this starting point each time the log is
+		 * unlocked (during callbacks).
+		 *
+		 * Keep looping through iclogs until one full pass is made
+		 * without running any callbacks.
+		 */
+		first_iclog = log->l_iclog;
+		iclog = log->l_iclog;
+		cycled_icloglock = false;
+		ioerror = false;
+		repeats++;
+
+		do {
+			LIST_HEAD(cb_list);
+
+			if (xlog_state_iodone_process_iclog(log, iclog,
+							&ioerror))
+				break;
+
+			if (iclog->ic_state != XLOG_STATE_CALLBACK &&
+			    iclog->ic_state != XLOG_STATE_IOERROR) {
+				iclog = iclog->ic_next;
+				continue;
+			}
+			list_splice_init(&iclog->ic_callbacks, &cb_list);
+			spin_unlock(&log->l_icloglock);
+
+			trace_xlog_iclog_callbacks_start(iclog, _RET_IP_);
+			xlog_cil_process_committed(&cb_list);
+			trace_xlog_iclog_callbacks_done(iclog, _RET_IP_);
+			cycled_icloglock = true;
+
+			spin_lock(&log->l_icloglock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			if (XLOG_FORCED_SHUTDOWN(log))
 				wake_up_all(&iclog->ic_force_wait);
 			else
@@ -3219,6 +3362,11 @@ xfs_log_force(
 	iclog = log->l_iclog;
 	if (iclog->ic_state == XLOG_STATE_IOERROR)
 		goto out_error;
+<<<<<<< HEAD
+=======
+
+	trace_xlog_iclog_force(iclog, _RET_IP_);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (iclog->ic_state == XLOG_STATE_DIRTY ||
 	    (iclog->ic_state == XLOG_STATE_ACTIVE &&

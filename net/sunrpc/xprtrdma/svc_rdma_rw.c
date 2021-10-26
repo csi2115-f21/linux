@@ -307,6 +307,7 @@ static void svc_rdma_wc_read_done(struct ib_cq *cq, struct ib_wc *wc)
 	atomic_add(cc->cc_sqecount, &rdma->sc_sq_avail);
 	wake_up(&rdma->sc_send_wait);
 
+<<<<<<< HEAD
 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
 		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
 		svc_rdma_recv_ctxt_put(rdma, info->ri_readctxt);
@@ -322,6 +323,11 @@ static void svc_rdma_wc_read_done(struct ib_cq *cq, struct ib_wc *wc)
 	}
 
 	svc_rdma_read_info_free(info);
+=======
+	cc->cc_status = wc->status;
+	complete(&cc->cc_done);
+	return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* This function sleeps when the transport's Send Queue is congested.

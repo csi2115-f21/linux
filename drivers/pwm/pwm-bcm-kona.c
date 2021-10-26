@@ -301,7 +301,11 @@ static int kona_pwmc_probe(struct platform_device *pdev)
 
 	clk_disable_unprepare(kp->clk);
 
+<<<<<<< HEAD
 	ret = pwmchip_add_with_polarity(&kp->chip, PWM_POLARITY_INVERSED);
+=======
+	ret = pwmchip_add(&kp->chip);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret < 0)
 		dev_err(&pdev->dev, "failed to add PWM chip: %d\n", ret);
 
@@ -311,11 +315,14 @@ static int kona_pwmc_probe(struct platform_device *pdev)
 static int kona_pwmc_remove(struct platform_device *pdev)
 {
 	struct kona_pwmc *kp = platform_get_drvdata(pdev);
+<<<<<<< HEAD
 	unsigned int chan;
 
 	for (chan = 0; chan < kp->chip.npwm; chan++)
 		if (pwm_is_enabled(&kp->chip.pwms[chan]))
 			clk_disable_unprepare(kp->clk);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return pwmchip_remove(&kp->chip);
 }

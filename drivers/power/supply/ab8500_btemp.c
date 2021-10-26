@@ -27,6 +27,11 @@
 #include <linux/mfd/abx500/ab8500.h>
 #include <linux/mfd/abx500/ab8500-bm.h>
 #include <linux/iio/consumer.h>
+<<<<<<< HEAD
+=======
+
+#include "ab8500-bm.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define VTVOUT_V			1800
 

@@ -179,7 +179,14 @@ void EXhalbtc8723b1ant_SpecialPacketNotify(PBTC_COEXIST pBtCoexist, u8 type);
 void EXhalbtc8723b1ant_BtInfoNotify(
 	PBTC_COEXIST pBtCoexist, u8 *tmpBuf, u8 length
 );
+<<<<<<< HEAD
 void EXhalbtc8723b1ant_HaltNotify(PBTC_COEXIST pBtCoexist);
 void EXhalbtc8723b1ant_PnpNotify(PBTC_COEXIST pBtCoexist, u8 pnpState);
 void EXhalbtc8723b1ant_Periodical(PBTC_COEXIST pBtCoexist);
 void EXhalbtc8723b1ant_DisplayCoexInfo(PBTC_COEXIST pBtCoexist);
+=======
+void EXhalbtc8723b1ant_HaltNotify(struct btc_coexist *pBtCoexist);
+void EXhalbtc8723b1ant_PnpNotify(struct btc_coexist *pBtCoexist, u8 pnpState);
+void EXhalbtc8723b1ant_Periodical(struct btc_coexist *pBtCoexist);
+void EXhalbtc8723b1ant_DisplayCoexInfo(struct btc_coexist *pBtCoexist);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

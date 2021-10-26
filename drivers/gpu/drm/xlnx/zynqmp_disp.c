@@ -1195,7 +1195,11 @@ zynqmp_disp_plane_atomic_update(struct drm_plane *plane,
 		zynqmp_disp_layer_set_format(layer, plane->state);
 	}
 
+<<<<<<< HEAD
 	zynqmp_disp_layer_update(layer, plane->state);
+=======
+	zynqmp_disp_layer_update(layer, new_state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Enable or re-enable the plane is the format has changed. */
 	if (format_changed)

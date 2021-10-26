@@ -55,6 +55,7 @@ int kvm_arm_pmu_v3_get_attr(struct kvm_vcpu *vcpu,
 int kvm_arm_pmu_v3_has_attr(struct kvm_vcpu *vcpu,
 			    struct kvm_device_attr *attr);
 int kvm_arm_pmu_v3_enable(struct kvm_vcpu *vcpu);
+int kvm_pmu_probe_pmuver(void);
 #else
 struct kvm_pmu {
 };
@@ -111,6 +112,17 @@ static inline u64 kvm_pmu_get_pmceid(struct kvm_vcpu *vcpu, bool pmceid1)
 {
 	return 0;
 }
+<<<<<<< HEAD
+=======
+
+static inline int kvm_pmu_probe_pmuver(void) { return 0xf; }
+
+<<<<<<< HEAD
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+static inline int kvm_pmu_probe_pmuver(void) { return 0xf; }
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #endif
 
 #endif

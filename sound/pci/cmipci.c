@@ -2991,7 +2991,12 @@ static int snd_cmipci_create(struct snd_card *card, struct pci_dev *pci,
 
 	*rcmipci = NULL;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	cm = kzalloc(sizeof(*cm), GFP_KERNEL);
@@ -3010,7 +3015,12 @@ static int snd_cmipci_create(struct snd_card *card, struct pci_dev *pci,
 	cm->channel[1].ch = 1;
 	cm->channel[0].is_dac = cm->channel[1].is_dac = 1; /* dual DAC mode */
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, card->driver)) < 0) {
+=======
+	err = pci_request_regions(pci, card->driver);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(cm);
 		pci_disable_device(pci);
 		return err;
@@ -3124,7 +3134,12 @@ static int snd_cmipci_create(struct snd_card *card, struct pci_dev *pci,
 	sprintf(card->longname, "%s%s at %#lx, irq %i",
 		card->shortname, modelstr, cm->iobase, cm->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, cm, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, cm, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_cmipci_free(cm);
 		return err;
 	}
@@ -3277,6 +3292,7 @@ static int snd_cmipci_probe(struct pci_dev *pci,
 free_card:
 	snd_card_free(card);
 	return err;
+<<<<<<< HEAD
 }
 
 static void snd_cmipci_remove(struct pci_dev *pci)
@@ -3284,6 +3300,15 @@ static void snd_cmipci_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
+=======
+}
+
+static void snd_cmipci_remove(struct pci_dev *pci)
+{
+	snd_card_free(pci_get_drvdata(pci));
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_PM_SLEEP
 /*

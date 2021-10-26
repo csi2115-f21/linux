@@ -48,9 +48,12 @@ config ARC
 	select HAVE_ARCH_JUMP_LABEL if ISA_ARCV2 && !CPU_ENDIAN_BE32
 	select SET_FS
 
+<<<<<<< HEAD
 config ARCH_HAS_CACHE_LINE_SIZE
 	def_bool y
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 config TRACE_IRQFLAGS_SUPPORT
 	def_bool y
 
@@ -349,6 +352,7 @@ config ARC_HUGEPAGE_16M
 
 endchoice
 
+<<<<<<< HEAD
 config NODES_SHIFT
 	int "Maximum NUMA Nodes (as a power of 2)"
 	default "0" if !DISCONTIGMEM
@@ -358,6 +362,8 @@ config NODES_SHIFT
 	  Accessing memory beyond 1GB (with or w/o PAE) requires 2 memory
 	  zones.
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 config ARC_COMPACT_IRQ_LEVELS
 	depends on ISA_ARCOMPACT
 	bool "Setup Timer IRQ as high Priority"

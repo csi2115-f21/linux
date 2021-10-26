@@ -149,7 +149,12 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 	*rchip = NULL;
 
 	// check PCI availability (DMA).
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(32))) {
 		dev_err(card->dev, "error to set DMA mask\n");
@@ -176,7 +181,12 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 	// (1) PCI resource allocation
 	// Get MMIO area
 	//
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, CARD_NAME_SHORT)) != 0)
+=======
+	err = pci_request_regions(pci, CARD_NAME_SHORT);
+	if (err)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto regions_out;
 
 	chip->mmio = pci_ioremap_bar(pci, 0);
@@ -194,9 +204,15 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 		goto core_out;
 	}
 
+<<<<<<< HEAD
 	if ((err = request_irq(pci->irq, vortex_interrupt,
 			       IRQF_SHARED, KBUILD_MODNAME,
 	                       chip)) != 0) {
+=======
+	err = request_irq(pci->irq, vortex_interrupt,
+			  IRQF_SHARED, KBUILD_MODNAME, chip);
+	if (err) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dev_err(card->dev, "cannot grab irq\n");
 		goto irq_out;
 	}
@@ -207,9 +223,15 @@ snd_vortex_create(struct snd_card *card, struct pci_dev *pci, vortex_t ** rchip)
 	// End of PCI setup.
 
 	// Register alsa root device.
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
 		goto alloc_out;
 	}
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0)
+		goto alloc_out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	*rchip = chip;
 
@@ -254,7 +276,12 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 		return err;
 
 	// (3)
+<<<<<<< HEAD
 	if ((err = snd_vortex_create(card, pci, &chip)) < 0) {
+=======
+	err = snd_vortex_create(card, pci, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -280,12 +307,22 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	}
 #ifndef CHIP_AU8820
 	// ADB SPDIF
+<<<<<<< HEAD
 	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_SPDIF, 1)) < 0) {
+=======
+	err = snd_vortex_new_pcm(chip, VORTEX_PCM_SPDIF, 1);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	// A3D
+<<<<<<< HEAD
 	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_A3D, NR_A3D)) < 0) {
+=======
+	err = snd_vortex_new_pcm(chip, VORTEX_PCM_A3D, NR_A3D);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -299,12 +336,22 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	 */
 #ifndef CHIP_AU8810
 	// WT pcm.
+<<<<<<< HEAD
 	if ((err = snd_vortex_new_pcm(chip, VORTEX_PCM_WT, NR_WT)) < 0) {
+=======
+	err = snd_vortex_new_pcm(chip, VORTEX_PCM_WT, NR_WT);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 #endif
+<<<<<<< HEAD
 	if ((err = snd_vortex_midi(chip)) < 0) {
+=======
+	err = snd_vortex_midi(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -329,6 +376,7 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 #endif
 
 	// (5)
+<<<<<<< HEAD
 	if ((err = pci_read_config_word(pci, PCI_DEVICE_ID,
 				  &(chip->device))) < 0) {
 		snd_card_free(card);
@@ -336,6 +384,15 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 	}	
 	if ((err = pci_read_config_word(pci, PCI_VENDOR_ID,
 				  &(chip->vendor))) < 0) {
+=======
+	err = pci_read_config_word(pci, PCI_DEVICE_ID, &chip->device);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}	
+	err = pci_read_config_word(pci, PCI_VENDOR_ID, &chip->vendor);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -354,7 +411,12 @@ snd_vortex_probe(struct pci_dev *pci, const struct pci_device_id *pci_id)
 #endif
 
 	// (6)
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

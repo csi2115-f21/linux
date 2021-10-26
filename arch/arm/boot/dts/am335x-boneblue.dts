@@ -436,7 +436,11 @@
 };
 
 &gpio3 {
+<<<<<<< HEAD
 	ls_buf_en {
+=======
+	ls-buf-en-hog {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		gpio-hog;
 		gpios = <10 GPIO_ACTIVE_HIGH>;
 		output-high;

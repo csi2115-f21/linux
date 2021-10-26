@@ -1364,6 +1364,47 @@ static void rvu_health_reporters_destroy(struct rvu *rvu)
 	rvu_nix_health_reporters_destroy(rvu_dl);
 }
 
+<<<<<<< HEAD
+=======
+static int rvu_devlink_eswitch_mode_get(struct devlink *devlink, u16 *mode)
+{
+	struct rvu_devlink *rvu_dl = devlink_priv(devlink);
+	struct rvu *rvu = rvu_dl->rvu;
+	struct rvu_switch *rswitch;
+
+	rswitch = &rvu->rswitch;
+	*mode = rswitch->mode;
+
+	return 0;
+}
+
+static int rvu_devlink_eswitch_mode_set(struct devlink *devlink, u16 mode,
+					struct netlink_ext_ack *extack)
+{
+	struct rvu_devlink *rvu_dl = devlink_priv(devlink);
+	struct rvu *rvu = rvu_dl->rvu;
+	struct rvu_switch *rswitch;
+
+	rswitch = &rvu->rswitch;
+	switch (mode) {
+	case DEVLINK_ESWITCH_MODE_LEGACY:
+	case DEVLINK_ESWITCH_MODE_SWITCHDEV:
+		if (rswitch->mode == mode)
+			return 0;
+		rswitch->mode = mode;
+		if (mode == DEVLINK_ESWITCH_MODE_SWITCHDEV)
+			rvu_switch_enable(rvu);
+		else
+			rvu_switch_disable(rvu);
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int rvu_devlink_info_get(struct devlink *devlink, struct devlink_info_req *req,
 				struct netlink_ext_ack *extack)
 {
@@ -1380,10 +1421,13 @@ int rvu_register_dl(struct rvu *rvu)
 	struct devlink *dl;
 	int err;
 
+<<<<<<< HEAD
 	rvu_dl = kzalloc(sizeof(*rvu_dl), GFP_KERNEL);
 	if (!rvu_dl)
 		return -ENOMEM;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dl = devlink_alloc(&rvu_devlink_ops, sizeof(struct rvu_devlink));
 	if (!dl) {
 		dev_warn(rvu->dev, "devlink_alloc failed\n");

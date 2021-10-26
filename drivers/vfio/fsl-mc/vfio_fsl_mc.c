@@ -75,7 +75,12 @@ static int vfio_fsl_mc_reflck_attach(struct vfio_fsl_mc_device *vdev)
 			goto unlock;
 		}
 
+<<<<<<< HEAD
 		cont_vdev = vfio_device_data(device);
+=======
+		cont_vdev =
+			container_of(device, struct vfio_fsl_mc_device, vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!cont_vdev || !cont_vdev->reflck) {
 			vfio_device_put(device);
 			ret = -ENODEV;
@@ -135,6 +140,7 @@ static void vfio_fsl_mc_regions_cleanup(struct vfio_fsl_mc_device *vdev)
 	kfree(vdev->regions);
 }
 
+<<<<<<< HEAD
 static int vfio_fsl_mc_open(void *device_data)
 {
 	struct vfio_fsl_mc_device *vdev = device_data;
@@ -142,11 +148,19 @@ static int vfio_fsl_mc_open(void *device_data)
 
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
+=======
+static int vfio_fsl_mc_open(struct vfio_device *core_vdev)
+{
+	struct vfio_fsl_mc_device *vdev =
+		container_of(core_vdev, struct vfio_fsl_mc_device, vdev);
+	int ret = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&vdev->reflck->lock);
 	if (!vdev->refcnt) {
 		ret = vfio_fsl_mc_regions_init(vdev);
 		if (ret)
+<<<<<<< HEAD
 			goto err_reg_init;
 	}
 	vdev->refcnt++;
@@ -164,6 +178,21 @@ err_reg_init:
 static void vfio_fsl_mc_release(void *device_data)
 {
 	struct vfio_fsl_mc_device *vdev = device_data;
+=======
+			goto out;
+	}
+	vdev->refcnt++;
+out:
+	mutex_unlock(&vdev->reflck->lock);
+
+	return ret;
+}
+
+static void vfio_fsl_mc_release(struct vfio_device *core_vdev)
+{
+	struct vfio_fsl_mc_device *vdev =
+		container_of(core_vdev, struct vfio_fsl_mc_device, vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	mutex_lock(&vdev->reflck->lock);
@@ -180,6 +209,7 @@ static void vfio_fsl_mc_release(void *device_data)
 		      mc_cont->mc_handle,
 			  mc_cont->obj_desc.id,
 			  DPRC_RESET_OPTION_NON_RECURSIVE);
+<<<<<<< HEAD
 
 		if (ret) {
 			dev_warn(&mc_cont->dev, "VFIO_FLS_MC: reset device has failed (%d)\n",
@@ -195,6 +225,21 @@ static void vfio_fsl_mc_release(void *device_data)
 	mutex_unlock(&vdev->reflck->lock);
 
 	module_put(THIS_MODULE);
+=======
+
+		if (ret) {
+			dev_warn(&mc_cont->dev, "VFIO_FLS_MC: reset device has failed (%d)\n",
+				 ret);
+			WARN_ON(1);
+		}
+
+		vfio_fsl_mc_irqs_cleanup(vdev);
+
+		fsl_mc_cleanup_irq_pool(mc_cont);
+	}
+
+	mutex_unlock(&vdev->reflck->lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static long vfio_fsl_mc_ioctl(void *device_data, unsigned int cmd,
@@ -607,14 +652,38 @@ static int vfio_fsl_mc_probe(struct fsl_mc_device *mc_dev)
 	}
 
 	vdev->mc_dev = mc_dev;
+<<<<<<< HEAD
 
 	ret = vfio_add_group_dev(dev, &vfio_fsl_mc_ops, vdev);
+=======
+	mutex_init(&vdev->igate);
+
+	ret = vfio_fsl_mc_reflck_attach(vdev);
+	if (ret)
+		goto out_kfree;
+
+	ret = vfio_fsl_mc_init_device(vdev);
+	if (ret)
+		goto out_reflck;
+
+	ret = vfio_register_group_dev(&vdev->vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		dev_err(dev, "VFIO_FSL_MC: Failed to add to vfio group\n");
 		goto out_group_put;
 	}
 
+<<<<<<< HEAD
 	ret = vfio_fsl_mc_reflck_attach(vdev);
+=======
+	/*
+	 * This triggers recursion into vfio_fsl_mc_probe() on another device
+	 * and the vfio_fsl_mc_reflck_attach() must succeed, which relies on the
+	 * vfio_add_group_dev() above. It has no impact on this vdev, so it is
+	 * safe to be after the vfio device is made live.
+	 */
+	ret = vfio_fsl_mc_scan_container(mc_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		goto out_group_dev;
 
@@ -629,7 +698,17 @@ static int vfio_fsl_mc_probe(struct fsl_mc_device *mc_dev)
 out_reflck:
 	vfio_fsl_mc_reflck_put(vdev->reflck);
 out_group_dev:
+<<<<<<< HEAD
 	vfio_del_group_dev(dev);
+=======
+	vfio_unregister_group_dev(&vdev->vdev);
+out_device:
+	vfio_fsl_uninit_device(vdev);
+out_reflck:
+	vfio_fsl_mc_reflck_put(vdev->reflck);
+out_kfree:
+	kfree(vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_group_put:
 	vfio_iommu_group_put(group, dev);
 	return ret;
@@ -646,6 +725,7 @@ static int vfio_fsl_mc_remove(struct fsl_mc_device *mc_dev)
 
 	mutex_destroy(&vdev->igate);
 
+<<<<<<< HEAD
 	vfio_fsl_mc_reflck_put(vdev->reflck);
 
 	if (is_fsl_mc_bus_dprc(mc_dev)) {
@@ -656,6 +736,13 @@ static int vfio_fsl_mc_remove(struct fsl_mc_device *mc_dev)
 	if (vdev->nb.notifier_call)
 		bus_unregister_notifier(&fsl_mc_bus_type, &vdev->nb);
 
+=======
+	dprc_remove_devices(mc_dev, NULL, 0);
+	vfio_fsl_uninit_device(vdev);
+	vfio_fsl_mc_reflck_put(vdev->reflck);
+
+	kfree(vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	vfio_iommu_group_put(mc_dev->dev.iommu_group, dev);
 
 	return 0;

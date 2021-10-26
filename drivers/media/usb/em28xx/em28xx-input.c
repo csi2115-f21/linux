@@ -839,6 +839,12 @@ error:
 	dev->ir = NULL;
 	rc_free_device(rc);
 	kfree(ir);
+<<<<<<< HEAD
+=======
+ref_put:
+	em28xx_shutdown_buttons(dev);
+	kref_put(&dev->ref, em28xx_free_device);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return err;
 }
 

@@ -3481,6 +3481,7 @@ uint32_t dc_bandwidth_in_kbps_from_timing(
 {
 	uint32_t bits_per_channel = 0;
 	uint32_t kbps;
+<<<<<<< HEAD
 	struct fixed31_32 link_bw_kbps;
 
 	if (timing->flags.DSC) {
@@ -3490,6 +3491,16 @@ uint32_t dc_bandwidth_in_kbps_from_timing(
 		kbps = dc_fixpt_ceil(link_bw_kbps);
 		return kbps;
 	}
+=======
+
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+	if (timing->flags.DSC)
+		return dc_dsc_stream_bandwidth_in_kbps(timing,
+				timing->dsc_cfg.bits_per_pixel,
+				timing->dsc_cfg.num_slices_h,
+				timing->dsc_cfg.is_dp);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	switch (timing->display_color_depth) {
 	case COLOR_DEPTH_666:

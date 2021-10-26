@@ -844,7 +844,11 @@ static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
 	case 3:
 	case 5:
 	case 7:
+<<<<<<< HEAD
 		align = 8;
+=======
+		align = 3;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	}
 

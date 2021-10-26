@@ -198,8 +198,11 @@ void hdlc_close(struct net_device *dev)
 		hdlc->proto->close(dev);
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int hdlc_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 {
 	struct hdlc_proto *proto = first_proto;
@@ -217,7 +220,12 @@ int hdlc_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	/* Not handled by currently attached protocol (if any) */
 
 	while (proto) {
+<<<<<<< HEAD
 		if ((result = proto->ioctl(dev, ifr)) != -EINVAL)
+=======
+		result = proto->ioctl(dev, ifr);
+		if (result != -EINVAL)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return result;
 		proto = proto->next;
 	}

@@ -47,10 +47,17 @@
 
 /* Firmware versioning. */
 #ifdef DMUB_EXPOSE_VERSION
+<<<<<<< HEAD
 #define DMUB_FW_VERSION_GIT_HASH 0x6444c02e7
 #define DMUB_FW_VERSION_MAJOR 0
 #define DMUB_FW_VERSION_MINOR 0
 #define DMUB_FW_VERSION_REVISION 51
+=======
+#define DMUB_FW_VERSION_GIT_HASH 0xf3da2b656
+#define DMUB_FW_VERSION_MAJOR 0
+#define DMUB_FW_VERSION_MINOR 0
+#define DMUB_FW_VERSION_REVISION 71
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define DMUB_FW_VERSION_TEST 0
 #define DMUB_FW_VERSION_VBIOS 0
 #define DMUB_FW_VERSION_HOTFIX 0
@@ -184,10 +191,37 @@ union dmub_fw_meta {
 /* Register bit definition for SCRATCH0 */
 union dmub_fw_boot_status {
 	struct {
+<<<<<<< HEAD
 		uint32_t dal_fw : 1;
 		uint32_t mailbox_rdy : 1;
 		uint32_t optimized_init_done : 1;
 		uint32_t restore_required : 1;
+=======
+		uint32_t dal_fw : 1; /**< 1 if DAL FW */
+		uint32_t mailbox_rdy : 1; /**< 1 if mailbox ready */
+		uint32_t optimized_init_done : 1; /**< 1 if optimized init done */
+		uint32_t restore_required : 1; /**< 1 if driver should call restore */
+	} bits; /**< status bits */
+	uint32_t all; /**< 32-bit access to status bits */
+};
+
+/**
+ * enum dmub_fw_boot_status_bit - Enum bit definitions for SCRATCH0.
+ */
+enum dmub_fw_boot_status_bit {
+	DMUB_FW_BOOT_STATUS_BIT_DAL_FIRMWARE = (1 << 0), /**< 1 if DAL FW */
+	DMUB_FW_BOOT_STATUS_BIT_MAILBOX_READY = (1 << 1), /**< 1 if mailbox ready */
+	DMUB_FW_BOOT_STATUS_BIT_OPTIMIZED_INIT_DONE = (1 << 2), /**< 1 if init done */
+	DMUB_FW_BOOT_STATUS_BIT_RESTORE_REQUIRED = (1 << 3), /**< 1 if driver should call restore */
+};
+
+/* Register bit definition for SCRATCH5 */
+union dmub_lvtma_status {
+	struct {
+		uint32_t psp_ok : 1;
+		uint32_t edp_on : 1;
+		uint32_t reserved : 30;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} bits;
 	uint32_t all;
 };
@@ -199,6 +233,7 @@ enum dmub_fw_boot_status_bit {
 	DMUB_FW_BOOT_STATUS_BIT_RESTORE_REQUIRED = (1 << 3),
 };
 
+<<<<<<< HEAD
 /* Register bit definition for SCRATCH15 */
 union dmub_fw_boot_options {
 	struct {
@@ -211,6 +246,23 @@ union dmub_fw_boot_options {
 		uint32_t reserved : 26;
 	} bits;
 	uint32_t all;
+=======
+/**
+ * union dmub_fw_boot_options - Boot option definitions for SCRATCH15
+ */
+union dmub_fw_boot_options {
+	struct {
+		uint32_t pemu_env : 1; /**< 1 if PEMU */
+		uint32_t fpga_env : 1; /**< 1 if FPGA */
+		uint32_t optimized_init : 1; /**< 1 if optimized init */
+		uint32_t skip_phy_access : 1; /**< 1 if PHY access should be skipped */
+		uint32_t disable_clk_gate: 1; /**< 1 if clock gating should be disabled */
+		uint32_t skip_phy_init_panel_sequence: 1; /**< 1 to skip panel init seq */
+		uint32_t z10_disable: 1; /**< 1 to disable z10 */
+		uint32_t reserved : 25; /**< reserved */
+	} bits; /**< boot bits */
+	uint32_t all; /**< 32-bit access to bits */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 enum dmub_fw_boot_options_bit {
@@ -292,6 +344,20 @@ enum dmub_gpint_command {
 	 */
 	DMUB_GPINT__IDLE_OPT_NOTIFY_STREAM_MASK = 8,
 	DMUB_GPINT__PSR_RESIDENCY = 9,
+<<<<<<< HEAD
+=======
+};
+
+/**
+ * INBOX0 generic command definition
+ */
+union dmub_inbox0_cmd_common {
+	struct {
+		uint32_t command_code: 8; /**< INBOX0 command code */
+		uint32_t param: 24; /**< 24-bit parameter */
+	} bits;
+	uint32_t all;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 //==============================================================================
@@ -464,6 +530,7 @@ struct dmub_rb_cmd_mall {
 	uint8_t reserved2;
 };
 
+<<<<<<< HEAD
 struct dmub_cmd_digx_encoder_control_data {
 	union dig_encoder_control_parameters_v1_5 dig;
 };
@@ -471,6 +538,16 @@ struct dmub_cmd_digx_encoder_control_data {
 struct dmub_rb_cmd_digx_encoder_control {
 	struct dmub_cmd_header header;
 	struct dmub_cmd_digx_encoder_control_data encoder_control;
+=======
+/**
+ * enum dmub_cmd_idle_opt_type - Idle optimization command type.
+ */
+enum dmub_cmd_idle_opt_type {
+	/**
+	 * DCN hardware restore.
+	 */
+	DMUB_CMD__IDLE_OPT_DCN_RESTORE = 0,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct dmub_cmd_set_pixel_clock_data {
@@ -675,6 +752,28 @@ struct dmub_cmd_psr_copy_settings_data {
 	uint16_t init_sdp_deadline;
 	uint16_t pad2;
 	uint32_t line_time_in_us;
+<<<<<<< HEAD
+=======
+	/**
+	 * FEC enable status in driver
+	 */
+	uint8_t fec_enable_status;
+	/**
+	 * FEC re-enable delay when PSR exit.
+	 * unit is 100us, range form 0~255(0xFF).
+	 */
+	uint8_t fec_enable_delay_in100us;
+	/**
+	 * PSR control version.
+	 */
+	uint8_t cmd_version;
+	/**
+	 * Panel Instance.
+	 * Panel isntance to identify which psr_state to use
+	 * Currently the support is only for 0 or 1
+	 */
+	uint8_t panel_inst;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct dmub_rb_cmd_psr_copy_settings {
@@ -684,7 +783,20 @@ struct dmub_rb_cmd_psr_copy_settings {
 
 struct dmub_cmd_psr_set_level_data {
 	uint16_t psr_level;
+<<<<<<< HEAD
 	uint8_t pad[2];
+=======
+		/**
+	 * PSR control version.
+	 */
+	uint8_t cmd_version;
+	/**
+	 * Panel Instance.
+	 * Panel isntance to identify which psr_state to use
+	 * Currently the support is only for 0 or 1
+	 */
+	uint8_t panel_inst;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct dmub_rb_cmd_psr_set_level {

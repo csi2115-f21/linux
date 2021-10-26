@@ -1851,12 +1851,20 @@ fst_set_iface(struct fst_card_info *card, struct fst_port_info *port,
 	sync_serial_settings sync;
 	int i;
 
+<<<<<<< HEAD
 	if (ifr->ifr_settings.size != sizeof (sync)) {
+=======
+	if (ifr->ifr_settings.size != sizeof(sync))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	}
 
 	if (copy_from_user
+<<<<<<< HEAD
 	    (&sync, ifr->ifr_settings.ifs_ifsu.sync, sizeof (sync))) {
+=======
+	    (&sync, ifr->ifr_settings.ifs_ifsu.sync, sizeof(sync)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EFAULT;
 	}
 
@@ -1951,10 +1959,17 @@ fst_get_iface(struct fst_card_info *card, struct fst_port_info *port,
 		ifr->ifr_settings.type = IF_IFACE_X21;
 		break;
 	}
+<<<<<<< HEAD
 	if (ifr->ifr_settings.size == 0) {
 		return 0;	/* only type requested */
 	}
 	if (ifr->ifr_settings.size < sizeof (sync)) {
+=======
+	if (ifr->ifr_settings.size == 0)
+		return 0;	/* only type requested */
+
+	if (ifr->ifr_settings.size < sizeof(sync))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	}
 
@@ -1966,11 +1981,19 @@ fst_get_iface(struct fst_card_info *card, struct fst_port_info *port,
 	    INTCLK ? CLOCK_INT : CLOCK_EXT;
 	sync.loopback = 0;
 
+<<<<<<< HEAD
 	if (copy_to_user(ifr->ifr_settings.ifs_ifsu.sync, &sync, sizeof (sync))) {
+=======
+	if (copy_to_user(ifr->ifr_settings.ifs_ifsu.sync, &sync, sizeof(sync)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EFAULT;
 	}
 
+<<<<<<< HEAD
 	ifr->ifr_settings.size = sizeof (sync);
+=======
+	ifr->ifr_settings.size = sizeof(sync);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -2008,11 +2031,19 @@ fst_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		/* First copy in the header with the length and offset of data
 		 * to write
 		 */
+<<<<<<< HEAD
 		if (ifr->ifr_data == NULL) {
 			return -EINVAL;
 		}
 		if (copy_from_user(&wrthdr, ifr->ifr_data,
 				   sizeof (struct fstioc_write))) {
+=======
+		if (!ifr->ifr_data)
+			return -EINVAL;
+
+		if (copy_from_user(&wrthdr, ifr->ifr_data,
+				   sizeof(struct fstioc_write)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -EFAULT;
 		}
 
@@ -2059,13 +2090,21 @@ fst_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 			}
 		}
 
+<<<<<<< HEAD
 		if (ifr->ifr_data == NULL) {
+=======
+		if (!ifr->ifr_data)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -EINVAL;
 		}
 
 		gather_conf_info(card, port, &info);
 
+<<<<<<< HEAD
 		if (copy_to_user(ifr->ifr_data, &info, sizeof (info))) {
+=======
+		if (copy_to_user(ifr->ifr_data, &info, sizeof(info)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -EFAULT;
 		}
 		return 0;
@@ -2082,7 +2121,11 @@ fst_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 			       card->card_no, card->state);
 			return -EIO;
 		}
+<<<<<<< HEAD
 		if (copy_from_user(&info, ifr->ifr_data, sizeof (info))) {
+=======
+		if (copy_from_user(&info, ifr->ifr_data, sizeof(info)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return -EFAULT;
 		}
 

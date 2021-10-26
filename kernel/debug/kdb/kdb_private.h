@@ -174,8 +174,16 @@ typedef struct _kdbtab {
 	short    cmd_minlen;		/* Minimum legal # command
 					 * chars required */
 	kdb_cmdflags_t cmd_flags;	/* Command behaviour flags */
+<<<<<<< HEAD
 } kdbtab_t;
 
+=======
+	struct list_head list_node;	/* Command list */
+	bool    is_dynamic;		/* Command table allocation type */
+} kdbtab_t;
+
+extern void kdb_register_table(kdbtab_t *kp, size_t len);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 extern int kdb_bt(int, const char **);	/* KDB display back trace */
 
 /* KDB breakpoint management functions */

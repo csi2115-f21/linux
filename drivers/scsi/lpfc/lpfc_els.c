@@ -55,6 +55,11 @@ static int lpfc_issue_els_fdisc(struct lpfc_vport *vport,
 				struct lpfc_nodelist *ndlp, uint8_t retry);
 static int lpfc_issue_fabric_iocb(struct lpfc_hba *phba,
 				  struct lpfc_iocbq *iocb);
+<<<<<<< HEAD
+=======
+static void lpfc_cmpl_els_uvem(struct lpfc_hba *, struct lpfc_iocbq *,
+			       struct lpfc_iocbq *);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static int lpfc_max_els_tries = 3;
 
@@ -3218,6 +3223,18 @@ lpfc_issue_els_scr(struct lpfc_vport *vport, uint8_t retry)
 	if (!elsiocb)
 		return 1;
 
+<<<<<<< HEAD
+=======
+	if (phba->sli_rev == LPFC_SLI_REV4) {
+		rc = lpfc_reg_fab_ctrl_node(vport, ndlp);
+		if (rc) {
+			lpfc_printf_vlog(vport, KERN_ERR, LOG_NODE,
+					 "0937 %s: Failed to reg fc node, rc %d\n",
+					 __func__, rc);
+			return 1;
+		}
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pcmd = (uint8_t *) (((struct lpfc_dmabuf *) elsiocb->context2)->virt);
 
 	*((uint32_t *) (pcmd)) = ELS_CMD_SCR;
@@ -3509,6 +3526,17 @@ lpfc_issue_els_rdf(struct lpfc_vport *vport, uint8_t retry)
 	if (!elsiocb)
 		return -ENOMEM;
 
+	if (phba->sli_rev == LPFC_SLI_REV4 &&
+	    !(ndlp->nlp_flag & NLP_RPI_REGISTERED)) {
+		lpfc_printf_vlog(vport, KERN_ERR, LOG_NODE,
+				 "0939 %s: FC_NODE x%x RPI x%x flag x%x "
+				 "ste x%x type x%x Not registered\n",
+				 __func__, ndlp->nlp_DID, ndlp->nlp_rpi,
+				 ndlp->nlp_flag, ndlp->nlp_state,
+				 ndlp->nlp_type);
+		return -ENODEV;
+	}
+
 	/* Configure the payload for the supported FPIN events. */
 	prdf = (struct lpfc_els_rdf_req *)
 		(((struct lpfc_dmabuf *)elsiocb->context2)->virt);
@@ -3539,6 +3567,7 @@ lpfc_issue_els_rdf(struct lpfc_vport *vport, uint8_t retry)
 			      ndlp->nlp_DID, kref_read(&ndlp->kref), 0);
 
 	rc = lpfc_sli_issue_iocb(phba, LPFC_ELS_RING, elsiocb, 0);
+<<<<<<< HEAD
 	if (rc == IOCB_ERROR)
 		goto io_err;
 	return 0;
@@ -3548,6 +3577,496 @@ lpfc_issue_els_rdf(struct lpfc_vport *vport, uint8_t retry)
  node_err:
 	lpfc_els_free_iocb(phba, elsiocb);
 	return -EIO;
+=======
+	if (rc == IOCB_ERROR) {
+		lpfc_els_free_iocb(phba, elsiocb);
+		lpfc_nlp_put(ndlp);
+		return -EIO;
+	}
+	return 0;
+}
+
+ /**
+  * lpfc_els_rcv_rdf - Receive RDF ELS request from the fabric.
+  * @vport: pointer to a host virtual N_Port data structure.
+  * @cmdiocb: pointer to lpfc command iocb data structure.
+  * @ndlp: pointer to a node-list data structure.
+  *
+  * A received RDF implies a possible change to fabric supported diagnostic
+  * functions.  This routine sends LS_ACC and then has the Nx_Port issue a new
+  * RDF request to reregister for supported diagnostic functions.
+  *
+  * Return code
+  *   0 - Success
+  *   -EIO - Failed to process received RDF
+  **/
+static int
+lpfc_els_rcv_rdf(struct lpfc_vport *vport, struct lpfc_iocbq *cmdiocb,
+		 struct lpfc_nodelist *ndlp)
+{
+	/* Send LS_ACC */
+	if (lpfc_els_rsp_acc(vport, ELS_CMD_RDF, cmdiocb, ndlp, NULL)) {
+		lpfc_printf_vlog(vport, KERN_INFO, LOG_ELS,
+				 "1623 Failed to RDF_ACC from x%x for x%x\n",
+				 ndlp->nlp_DID, vport->fc_myDID);
+		return -EIO;
+	}
+
+	/* Issue new RDF for reregistering */
+	if (lpfc_issue_els_rdf(vport, 0)) {
+		lpfc_printf_vlog(vport, KERN_INFO, LOG_ELS,
+				 "2623 Failed to re register RDF for x%x\n",
+				 vport->fc_myDID);
+		return -EIO;
+	}
+
+	return 0;
+<<<<<<< HEAD
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+}
+
+/**
+ * lpfc_least_capable_settings - helper function for EDC rsp processing
+ * @phba: pointer to lpfc hba data structure.
+ * @pcgd: pointer to congestion detection descriptor in EDC rsp.
+ *
+ * This helper routine determines the least capable setting for
+ * congestion signals, signal freq, including scale, from the
+ * congestion detection descriptor in the EDC rsp.  The routine
+ * sets @phba values in preparation for a set_featues mailbox.
+ **/
+static void
+lpfc_least_capable_settings(struct lpfc_hba *phba,
+			    struct fc_diag_cg_sig_desc *pcgd)
+{
+	u32 rsp_sig_cap = 0, drv_sig_cap = 0;
+	u32 rsp_sig_freq_cyc = 0, rsp_sig_freq_scale = 0;
+	struct lpfc_cgn_info *cp;
+	u32 crc;
+	u16 sig_freq;
+
+	/* Get rsp signal and frequency capabilities.  */
+	rsp_sig_cap = be32_to_cpu(pcgd->xmt_signal_capability);
+	rsp_sig_freq_cyc = be16_to_cpu(pcgd->xmt_signal_frequency.count);
+	rsp_sig_freq_scale = be16_to_cpu(pcgd->xmt_signal_frequency.units);
+
+	/* If the Fport does not support signals. Set FPIN only */
+	if (rsp_sig_cap == EDC_CG_SIG_NOTSUPPORTED)
+		goto out_no_support;
+
+	/* Apply the xmt scale to the xmt cycle to get the correct frequency.
+	 * Adapter default is 100 millisSeconds.  Convert all xmt cycle values
+	 * to milliSeconds.
+	 */
+	switch (rsp_sig_freq_scale) {
+	case EDC_CG_SIGFREQ_SEC:
+		rsp_sig_freq_cyc *= MSEC_PER_SEC;
+		break;
+	case EDC_CG_SIGFREQ_MSEC:
+		rsp_sig_freq_cyc = 1;
+		break;
+	default:
+		goto out_no_support;
+	}
+
+	/* Convenient shorthand. */
+	drv_sig_cap = phba->cgn_reg_signal;
+
+	/* Choose the least capable frequency. */
+	if (rsp_sig_freq_cyc > phba->cgn_sig_freq)
+		phba->cgn_sig_freq = rsp_sig_freq_cyc;
+
+	/* Should be some common signals support. Settle on least capable
+	 * signal and adjust FPIN values. Initialize defaults to ease the
+	 * decision.
+	 */
+	phba->cgn_reg_fpin = LPFC_CGN_FPIN_WARN | LPFC_CGN_FPIN_ALARM;
+	phba->cgn_reg_signal = EDC_CG_SIG_NOTSUPPORTED;
+	if (rsp_sig_cap == EDC_CG_SIG_WARN_ONLY &&
+	    (drv_sig_cap == EDC_CG_SIG_WARN_ONLY ||
+	     drv_sig_cap == EDC_CG_SIG_WARN_ALARM)) {
+		phba->cgn_reg_signal = EDC_CG_SIG_WARN_ONLY;
+		phba->cgn_reg_fpin &= ~LPFC_CGN_FPIN_WARN;
+	}
+	if (rsp_sig_cap == EDC_CG_SIG_WARN_ALARM) {
+		if (drv_sig_cap == EDC_CG_SIG_WARN_ALARM) {
+			phba->cgn_reg_signal = EDC_CG_SIG_WARN_ALARM;
+			phba->cgn_reg_fpin = LPFC_CGN_FPIN_NONE;
+		}
+		if (drv_sig_cap == EDC_CG_SIG_WARN_ONLY) {
+			phba->cgn_reg_signal = EDC_CG_SIG_WARN_ONLY;
+			phba->cgn_reg_fpin &= ~LPFC_CGN_FPIN_WARN;
+		}
+	}
+
+	if (!phba->cgn_i)
+		return;
+
+	/* Update signal frequency in congestion info buffer */
+	cp = (struct lpfc_cgn_info *)phba->cgn_i->virt;
+
+	/* Frequency (in ms) Signal Warning/Signal Congestion Notifications
+	 * are received by the HBA
+	 */
+	sig_freq = phba->cgn_sig_freq;
+
+	if (phba->cgn_reg_signal == EDC_CG_SIG_WARN_ONLY)
+		cp->cgn_warn_freq = cpu_to_le16(sig_freq);
+	if (phba->cgn_reg_signal == EDC_CG_SIG_WARN_ALARM) {
+		cp->cgn_alarm_freq = cpu_to_le16(sig_freq);
+		cp->cgn_warn_freq = cpu_to_le16(sig_freq);
+	}
+	crc = lpfc_cgn_calc_crc32(cp, LPFC_CGN_INFO_SZ, LPFC_CGN_CRC32_SEED);
+	cp->cgn_info_crc = cpu_to_le32(crc);
+	return;
+
+out_no_support:
+	phba->cgn_reg_signal = EDC_CG_SIG_NOTSUPPORTED;
+	phba->cgn_sig_freq = 0;
+	phba->cgn_reg_fpin = LPFC_CGN_FPIN_ALARM | LPFC_CGN_FPIN_WARN;
+}
+
+DECLARE_ENUM2STR_LOOKUP(lpfc_get_tlv_dtag_nm, fc_ls_tlv_dtag,
+			FC_LS_TLV_DTAG_INIT);
+
+/**
+ * lpfc_cmpl_els_edc - Completion callback function for EDC
+ * @phba: pointer to lpfc hba data structure.
+ * @cmdiocb: pointer to lpfc command iocb data structure.
+ * @rspiocb: pointer to lpfc response iocb data structure.
+ *
+ * This routine is the completion callback function for issuing the Exchange
+ * Diagnostic Capabilities (EDC) command. The driver issues an EDC to
+ * notify the FPort of its Congestion and Link Fault capabilities.  This
+ * routine parses the FPort's response and decides on the least common
+ * values applicable to both FPort and NPort for Warnings and Alarms that
+ * are communicated via hardware signals.
+ **/
+static void
+lpfc_cmpl_els_edc(struct lpfc_hba *phba, struct lpfc_iocbq *cmdiocb,
+		  struct lpfc_iocbq *rspiocb)
+{
+	IOCB_t *irsp;
+	struct fc_els_edc_resp *edc_rsp;
+	struct fc_tlv_desc *tlv;
+	struct fc_diag_cg_sig_desc *pcgd;
+	struct fc_diag_lnkflt_desc *plnkflt;
+	struct lpfc_dmabuf *pcmd, *prsp;
+	const char *dtag_nm;
+	u32 *pdata, dtag;
+	int desc_cnt = 0, bytes_remain;
+	bool rcv_cap_desc = false;
+	struct lpfc_nodelist *ndlp;
+
+	irsp = &rspiocb->iocb;
+	ndlp = cmdiocb->context1;
+
+	lpfc_debugfs_disc_trc(phba->pport, LPFC_DISC_TRC_ELS_CMD,
+			      "EDC cmpl:    status:x%x/x%x did:x%x",
+			      irsp->ulpStatus, irsp->un.ulpWord[4],
+			      irsp->un.elsreq64.remoteID);
+
+	/* ELS cmd tag <ulpIoTag> completes */
+	lpfc_printf_log(phba, KERN_INFO, LOG_ELS | LOG_CGN_MGMT,
+			"4201 EDC cmd tag x%x completes Data: x%x x%x x%x\n",
+			irsp->ulpIoTag, irsp->ulpStatus,
+			irsp->un.ulpWord[4], irsp->ulpTimeout);
+
+	pcmd = (struct lpfc_dmabuf *)cmdiocb->context2;
+	if (!pcmd)
+		goto out;
+
+	pdata = (u32 *)pcmd->virt;
+	if (!pdata)
+		goto out;
+
+	/* Need to clear signal values, send features MB and RDF with FPIN. */
+	if (irsp->ulpStatus)
+		goto out;
+
+	prsp = list_get_first(&pcmd->list, struct lpfc_dmabuf, list);
+	if (!prsp)
+		goto out;
+
+	edc_rsp = prsp->virt;
+	if (!edc_rsp)
+		goto out;
+
+	/* ELS cmd tag <ulpIoTag> completes */
+	lpfc_printf_log(phba, KERN_INFO, LOG_ELS | LOG_CGN_MGMT,
+			"4676 Fabric EDC Rsp: "
+			"0x%02x, 0x%08x\n",
+			edc_rsp->acc_hdr.la_cmd,
+			be32_to_cpu(edc_rsp->desc_list_len));
+
+	/*
+	 * Payload length in bytes is the response descriptor list
+	 * length minus the 12 bytes of Link Service Request
+	 * Information descriptor in the reply.
+	 */
+	bytes_remain = be32_to_cpu(edc_rsp->desc_list_len) -
+				   sizeof(struct fc_els_lsri_desc);
+	if (bytes_remain <= 0)
+		goto out;
+
+	tlv = edc_rsp->desc;
+
+	/*
+	 * cycle through EDC diagnostic descriptors to find the
+	 * congestion signaling capability descriptor
+	 */
+	while (bytes_remain) {
+		if (bytes_remain < FC_TLV_DESC_HDR_SZ) {
+			lpfc_printf_log(phba, KERN_WARNING, LOG_CGN_MGMT,
+					"6461 Truncated TLV hdr on "
+					"Diagnostic descriptor[%d]\n",
+					desc_cnt);
+			goto out;
+		}
+
+		dtag = be32_to_cpu(tlv->desc_tag);
+		switch (dtag) {
+		case ELS_DTAG_LNK_FAULT_CAP:
+			if (bytes_remain < FC_TLV_DESC_SZ_FROM_LENGTH(tlv) ||
+			    FC_TLV_DESC_SZ_FROM_LENGTH(tlv) !=
+					sizeof(struct fc_diag_lnkflt_desc)) {
+				lpfc_printf_log(
+					phba, KERN_WARNING, LOG_CGN_MGMT,
+					"6462 Truncated Link Fault Diagnostic "
+					"descriptor[%d]: %d vs 0x%zx 0x%zx\n",
+					desc_cnt, bytes_remain,
+					FC_TLV_DESC_SZ_FROM_LENGTH(tlv),
+					sizeof(struct fc_diag_cg_sig_desc));
+				goto out;
+			}
+			plnkflt = (struct fc_diag_lnkflt_desc *)tlv;
+			lpfc_printf_log(
+				phba, KERN_INFO, LOG_ELS | LOG_CGN_MGMT,
+				"4617 Link Fault Desc Data: 0x%08x 0x%08x "
+				"0x%08x 0x%08x 0x%08x\n",
+				be32_to_cpu(plnkflt->desc_tag),
+				be32_to_cpu(plnkflt->desc_len),
+				be32_to_cpu(
+					plnkflt->degrade_activate_threshold),
+				be32_to_cpu(
+					plnkflt->degrade_deactivate_threshold),
+				be32_to_cpu(plnkflt->fec_degrade_interval));
+			break;
+		case ELS_DTAG_CG_SIGNAL_CAP:
+			if (bytes_remain < FC_TLV_DESC_SZ_FROM_LENGTH(tlv) ||
+			    FC_TLV_DESC_SZ_FROM_LENGTH(tlv) !=
+					sizeof(struct fc_diag_cg_sig_desc)) {
+				lpfc_printf_log(
+					phba, KERN_WARNING, LOG_CGN_MGMT,
+					"6463 Truncated Cgn Signal Diagnostic "
+					"descriptor[%d]: %d vs 0x%zx 0x%zx\n",
+					desc_cnt, bytes_remain,
+					FC_TLV_DESC_SZ_FROM_LENGTH(tlv),
+					sizeof(struct fc_diag_cg_sig_desc));
+				goto out;
+			}
+
+			pcgd = (struct fc_diag_cg_sig_desc *)tlv;
+			lpfc_printf_log(
+				phba, KERN_INFO, LOG_ELS | LOG_CGN_MGMT,
+				"4616 CGN Desc Data: 0x%08x 0x%08x "
+				"0x%08x 0x%04x 0x%04x 0x%08x 0x%04x 0x%04x\n",
+				be32_to_cpu(pcgd->desc_tag),
+				be32_to_cpu(pcgd->desc_len),
+				be32_to_cpu(pcgd->xmt_signal_capability),
+				be32_to_cpu(pcgd->xmt_signal_frequency.count),
+				be32_to_cpu(pcgd->xmt_signal_frequency.units),
+				be32_to_cpu(pcgd->rcv_signal_capability),
+				be32_to_cpu(pcgd->rcv_signal_frequency.count),
+				be32_to_cpu(pcgd->rcv_signal_frequency.units));
+
+			/* Compare driver and Fport capabilities and choose
+			 * least common.
+			 */
+			lpfc_least_capable_settings(phba, pcgd);
+			rcv_cap_desc = true;
+			break;
+		default:
+			dtag_nm = lpfc_get_tlv_dtag_nm(dtag);
+			lpfc_printf_log(phba, KERN_WARNING, LOG_CGN_MGMT,
+					"4919 unknown Diagnostic "
+					"Descriptor[%d]: tag x%x (%s)\n",
+					desc_cnt, dtag, dtag_nm);
+		}
+
+		bytes_remain -= FC_TLV_DESC_SZ_FROM_LENGTH(tlv);
+		tlv = fc_tlv_next_desc(tlv);
+		desc_cnt++;
+	}
+
+out:
+	if (!rcv_cap_desc) {
+		phba->cgn_reg_fpin = LPFC_CGN_FPIN_ALARM | LPFC_CGN_FPIN_WARN;
+		phba->cgn_reg_signal = EDC_CG_SIG_NOTSUPPORTED;
+		phba->cgn_sig_freq = 0;
+		lpfc_printf_log(phba, KERN_WARNING, LOG_ELS | LOG_CGN_MGMT,
+				"4202 EDC rsp error - sending RDF "
+				"for FPIN only.\n");
+	}
+
+	lpfc_config_cgn_signal(phba);
+
+	/* Check to see if link went down during discovery */
+	lpfc_els_chk_latt(phba->pport);
+	lpfc_debugfs_disc_trc(phba->pport, LPFC_DISC_TRC_ELS_CMD,
+			      "EDC Cmpl:     did:x%x refcnt %d",
+			      ndlp->nlp_DID, kref_read(&ndlp->kref), 0);
+	lpfc_els_free_iocb(phba, cmdiocb);
+	lpfc_nlp_put(ndlp);
+}
+
+static void
+lpfc_format_edc_cgn_desc(struct lpfc_hba *phba, struct fc_diag_cg_sig_desc *cgd)
+{
+	/* We are assuming cgd was zero'ed before calling this routine */
+
+	/* Configure the congestion detection capability */
+	cgd->desc_tag = cpu_to_be32(ELS_DTAG_CG_SIGNAL_CAP);
+
+	/* Descriptor len doesn't include the tag or len fields. */
+	cgd->desc_len = cpu_to_be32(
+		FC_TLV_DESC_LENGTH_FROM_SZ(struct fc_diag_cg_sig_desc));
+
+	/* xmt_signal_capability already set to EDC_CG_SIG_NOTSUPPORTED.
+	 * xmt_signal_frequency.count already set to 0.
+	 * xmt_signal_frequency.units already set to 0.
+	 */
+
+	if (phba->cmf_active_mode == LPFC_CFG_OFF) {
+		/* rcv_signal_capability already set to EDC_CG_SIG_NOTSUPPORTED.
+		 * rcv_signal_frequency.count already set to 0.
+		 * rcv_signal_frequency.units already set to 0.
+		 */
+		phba->cgn_sig_freq = 0;
+		return;
+	}
+	switch (phba->cgn_reg_signal) {
+	case EDC_CG_SIG_WARN_ONLY:
+		cgd->rcv_signal_capability = cpu_to_be32(EDC_CG_SIG_WARN_ONLY);
+		break;
+	case EDC_CG_SIG_WARN_ALARM:
+		cgd->rcv_signal_capability = cpu_to_be32(EDC_CG_SIG_WARN_ALARM);
+		break;
+	default:
+		/* rcv_signal_capability left 0 thus no support */
+		break;
+	}
+
+	/* We start negotiation with lpfc_fabric_cgn_frequency, after
+	 * the completion we settle on the higher frequency.
+	 */
+	cgd->rcv_signal_frequency.count =
+		cpu_to_be16(lpfc_fabric_cgn_frequency);
+	cgd->rcv_signal_frequency.units =
+		cpu_to_be16(EDC_CG_SIGFREQ_MSEC);
+}
+
+ /**
+  * lpfc_issue_els_edc - Exchange Diagnostic Capabilities with the fabric.
+  * @vport: pointer to a host virtual N_Port data structure.
+  * @retry: retry counter for the command iocb.
+  *
+  * This routine issues an ELS EDC to the F-Port Controller to communicate
+  * this N_Port's support of hardware signals in its Congestion
+  * Capabilities Descriptor.
+  *
+  * Note: This routine does not check if one or more signals are
+  * set in the cgn_reg_signal parameter.  The caller makes the
+  * decision to enforce cgn_reg_signal as nonzero or zero depending
+  * on the conditions.  During Fabric requests, the driver
+  * requires cgn_reg_signals to be nonzero.  But a dynamic request
+  * to set the congestion mode to OFF from Monitor or Manage
+  * would correctly issue an EDC with no signals enabled to
+  * turn off switch functionality and then update the FW.
+  *
+  * Return code
+  *   0 - Successfully issued edc command
+  *   1 - Failed to issue edc command
+  **/
+int
+lpfc_issue_els_edc(struct lpfc_vport *vport, uint8_t retry)
+{
+	struct lpfc_hba  *phba = vport->phba;
+	struct lpfc_iocbq *elsiocb;
+	struct lpfc_els_edc_req *edc_req;
+	struct fc_diag_cg_sig_desc *cgn_desc;
+	u16 cmdsize;
+	struct lpfc_nodelist *ndlp;
+	u8 *pcmd = NULL;
+	u32 edc_req_size, cgn_desc_size;
+	int rc;
+
+	if (vport->port_type == LPFC_NPIV_PORT)
+		return -EACCES;
+
+	ndlp = lpfc_findnode_did(vport, Fabric_DID);
+	if (!ndlp || ndlp->nlp_state != NLP_STE_UNMAPPED_NODE)
+		return -ENODEV;
+
+	/* If HBA doesn't support signals, drop into RDF */
+	if (!phba->cgn_init_reg_signal)
+		goto try_rdf;
+
+	edc_req_size = sizeof(struct fc_els_edc);
+	cgn_desc_size = sizeof(struct fc_diag_cg_sig_desc);
+	cmdsize = edc_req_size + cgn_desc_size;
+	elsiocb = lpfc_prep_els_iocb(vport, 1, cmdsize, retry, ndlp,
+				     ndlp->nlp_DID, ELS_CMD_EDC);
+	if (!elsiocb)
+		goto try_rdf;
+
+	/* Configure the payload for the supported Diagnostics capabilities. */
+	pcmd = (u8 *)(((struct lpfc_dmabuf *)elsiocb->context2)->virt);
+	memset(pcmd, 0, cmdsize);
+	edc_req = (struct lpfc_els_edc_req *)pcmd;
+	edc_req->edc.desc_len = cpu_to_be32(cgn_desc_size);
+	edc_req->edc.edc_cmd = ELS_EDC;
+
+	cgn_desc = &edc_req->cgn_desc;
+
+	lpfc_format_edc_cgn_desc(phba, cgn_desc);
+
+	phba->cgn_sig_freq = lpfc_fabric_cgn_frequency;
+
+	lpfc_printf_vlog(vport, KERN_INFO, LOG_CGN_MGMT,
+			 "4623 Xmit EDC to remote "
+			 "NPORT x%x reg_sig x%x reg_fpin:x%x\n",
+			 ndlp->nlp_DID, phba->cgn_reg_signal,
+			 phba->cgn_reg_fpin);
+
+	elsiocb->iocb_cmpl = lpfc_cmpl_els_disc_cmd;
+	elsiocb->context1 = lpfc_nlp_get(ndlp);
+	if (!elsiocb->context1) {
+		lpfc_els_free_iocb(phba, elsiocb);
+		return -EIO;
+	}
+
+	lpfc_debugfs_disc_trc(vport, LPFC_DISC_TRC_ELS_CMD,
+			      "Issue EDC:     did:x%x refcnt %d",
+			      ndlp->nlp_DID, kref_read(&ndlp->kref), 0);
+	rc = lpfc_sli_issue_iocb(phba, LPFC_ELS_RING, elsiocb, 0);
+	if (rc == IOCB_ERROR) {
+		/* The additional lpfc_nlp_put will cause the following
+		 * lpfc_els_free_iocb routine to trigger the rlease of
+		 * the node.
+		 */
+		lpfc_els_free_iocb(phba, elsiocb);
+		lpfc_nlp_put(ndlp);
+		goto try_rdf;
+	}
+	return 0;
+try_rdf:
+	phba->cgn_reg_fpin = LPFC_CGN_FPIN_WARN | LPFC_CGN_FPIN_ALARM;
+	phba->cgn_reg_signal = EDC_CG_SIG_NOTSUPPORTED;
+	rc = lpfc_issue_els_rdf(vport, 0);
+	return rc;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 /**
@@ -4927,6 +5446,7 @@ lpfc_els_rsp_reject(struct lpfc_vport *vport, uint32_t rejectError,
 	phba->fc_stat.elsXmitLSRJT++;
 	elsiocb->iocb_cmpl = lpfc_cmpl_els_rsp;
 	elsiocb->context1 = lpfc_nlp_get(ndlp);
+<<<<<<< HEAD
 	if (!elsiocb->context1)
 		goto node_err;
 
@@ -4941,6 +5461,32 @@ lpfc_els_rsp_reject(struct lpfc_vport *vport, uint32_t rejectError,
  node_err:
 	lpfc_els_free_iocb(phba, elsiocb);
 	return 1;
+=======
+	if (!elsiocb->context1) {
+		lpfc_els_free_iocb(phba, elsiocb);
+		return 1;
+	}
+
+	/* The NPIV instance is rejecting this unsolicited ELS. Make sure the
+	 * node's assigned RPI needs to be released as this node will get
+	 * freed.
+	 */
+	if (phba->sli_rev == LPFC_SLI_REV4 &&
+	    vport->port_type == LPFC_NPIV_PORT) {
+		spin_lock_irq(&ndlp->lock);
+		ndlp->nlp_flag |= NLP_RELEASE_RPI;
+		spin_unlock_irq(&ndlp->lock);
+	}
+
+	rc = lpfc_sli_issue_iocb(phba, LPFC_ELS_RING, elsiocb, 0);
+	if (rc == IOCB_ERROR) {
+		lpfc_els_free_iocb(phba, elsiocb);
+		lpfc_nlp_put(ndlp);
+		return 1;
+	}
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -8472,6 +9018,82 @@ DECLARE_ENUM2STR_LOOKUP(lpfc_get_tlv_dtag_nm, fc_ls_tlv_dtag,
 DECLARE_ENUM2STR_LOOKUP(lpfc_get_fpin_li_event_nm, fc_fpin_li_event_types,
 			FC_FPIN_LI_EVT_TYPES_INIT);
 
+<<<<<<< HEAD
+=======
+DECLARE_ENUM2STR_LOOKUP(lpfc_get_fpin_deli_event_nm, fc_fpin_deli_event_types,
+			FC_FPIN_DELI_EVT_TYPES_INIT);
+
+DECLARE_ENUM2STR_LOOKUP(lpfc_get_fpin_congn_event_nm, fc_fpin_congn_event_types,
+			FC_FPIN_CONGN_EVT_TYPES_INIT);
+
+DECLARE_ENUM2STR_LOOKUP(lpfc_get_fpin_congn_severity_nm,
+			fc_fpin_congn_severity_types,
+			FC_FPIN_CONGN_SEVERITY_INIT);
+
+
+/**
+ * lpfc_display_fpin_wwpn - Display WWPNs accessible by the attached port
+ * @phba: Pointer to phba object.
+ * @wwnlist: Pointer to list of WWPNs in FPIN payload
+ * @cnt: count of WWPNs in FPIN payload
+ *
+ * This routine is called by LI and PC descriptors.
+ * Limit the number of WWPNs displayed to 6 log messages, 6 per log message
+ */
+static void
+lpfc_display_fpin_wwpn(struct lpfc_hba *phba, __be64 *wwnlist, u32 cnt)
+{
+	char buf[LPFC_FPIN_WWPN_LINE_SZ];
+	__be64 wwn;
+	u64 wwpn;
+	int i, len;
+	int line = 0;
+	int wcnt = 0;
+	bool endit = false;
+
+	len = scnprintf(buf, LPFC_FPIN_WWPN_LINE_SZ, "Accessible WWPNs:");
+	for (i = 0; i < cnt; i++) {
+		/* Are we on the last WWPN */
+		if (i == (cnt - 1))
+			endit = true;
+
+		/* Extract the next WWPN from the payload */
+		wwn = *wwnlist++;
+		wwpn = be64_to_cpu(wwn);
+		len += scnprintf(buf + len, LPFC_FPIN_WWPN_LINE_SZ,
+				 " %016llx", wwpn);
+
+		/* Log a message if we are on the last WWPN
+		 * or if we hit the max allowed per message.
+		 */
+		wcnt++;
+		if (wcnt == LPFC_FPIN_WWPN_LINE_CNT || endit) {
+			buf[len] = 0;
+			lpfc_printf_log(phba, KERN_INFO, LOG_ELS,
+					"4686 %s\n", buf);
+
+			/* Check if we reached the last WWPN */
+			if (endit)
+				return;
+
+			/* Limit the number of log message displayed per FPIN */
+			line++;
+			if (line == LPFC_FPIN_WWPN_NUM_LINE) {
+				lpfc_printf_log(phba, KERN_INFO, LOG_ELS,
+						"4687 %d WWPNs Truncated\n",
+						cnt - i - 1);
+				return;
+			}
+
+			/* Start over with next log message */
+			wcnt = 0;
+			len = scnprintf(buf, LPFC_FPIN_WWPN_LINE_SZ,
+					"Additional WWPNs:");
+		}
+	}
+}
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 /**
  * lpfc_els_rcv_fpin_li - Process an FPIN Link Integrity Event.
  * @vport: Pointer to vport object.
@@ -8935,6 +9557,23 @@ lpfc_els_unsol_buffer(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
 
 		/* There are no replies, so no rjt codes */
 		break;
+<<<<<<< HEAD
+=======
+	case ELS_CMD_RDF:
+		phba->fc_stat.elsRcvRDF++;
+		/* Accept RDF only from fabric controller */
+		if (did != Fabric_Cntl_DID) {
+			lpfc_printf_vlog(vport, KERN_WARNING, LOG_ELS,
+					 "1115 Received RDF from invalid DID "
+					 "x%x\n", did);
+			rjt_err = LSRJT_PROTOCOL_ERR;
+			rjt_exp = LSEXP_NOTHING_MORE;
+			goto lsrjt;
+		}
+
+		lpfc_els_rcv_rdf(vport, elsiocb, ndlp);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		lpfc_debugfs_disc_trc(vport, LPFC_DISC_TRC_ELS_UNSOL,
 			"RCV ELS cmd:     cmd:x%x did:x%x/ste:x%x",

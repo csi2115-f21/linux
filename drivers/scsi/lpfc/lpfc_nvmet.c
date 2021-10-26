@@ -1806,7 +1806,12 @@ lpfc_sli4_nvmet_xri_aborted(struct lpfc_hba *phba,
 		}
 		ctxp->flag &= ~LPFC_NVME_XBUSY;
 		spin_unlock(&ctxp->ctxlock);
+<<<<<<< HEAD
 		spin_unlock(&phba->sli4_hba.abts_nvmet_buf_list_lock);
+=======
+		spin_unlock_irqrestore(&phba->sli4_hba.abts_nvmet_buf_list_lock,
+				       iflag);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		rrq_empty = list_empty(&phba->active_rrq_list);
 		spin_unlock_irqrestore(&phba->hbalock, iflag);

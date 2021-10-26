@@ -87,7 +87,10 @@ static void __i915_globals_cleanup(void)
 
 static __initconst int (* const initfn[])(void) = {
 	i915_global_active_init,
+<<<<<<< HEAD
 	i915_global_buddy_init,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	i915_global_context_init,
 	i915_global_gem_context_init,
 	i915_global_objects_init,
@@ -139,7 +142,11 @@ void i915_globals_unpark(void)
 	atomic_inc(&active);
 }
 
+<<<<<<< HEAD
 static void __exit __i915_globals_flush(void)
+=======
+static void  __i915_globals_flush(void)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	atomic_inc(&active); /* skip shrinking */
 
@@ -149,7 +156,11 @@ static void __exit __i915_globals_flush(void)
 	atomic_dec(&active);
 }
 
+<<<<<<< HEAD
 void __exit i915_globals_exit(void)
+=======
+void i915_globals_exit(void)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	GEM_BUG_ON(atomic_read(&active));
 

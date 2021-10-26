@@ -710,21 +710,31 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
 	}
 
 	ret = hns_roce_init_uar_table(hr_dev);
+<<<<<<< HEAD
 	if (ret) {
 		dev_err(dev, "Failed to initialize uar table. aborting\n");
 		return ret;
 	}
 
 	ret = hns_roce_uar_alloc(hr_dev, &hr_dev->priv_uar);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
-		dev_err(dev, "Failed to allocate priv_uar.\n");
-		goto err_uar_table_free;
+		dev_err(dev, "Failed to initialize uar table. aborting\n");
+		return ret;
 	}
 
+<<<<<<< HEAD
 	ret = hns_roce_init_pd_table(hr_dev);
 	if (ret) {
 		dev_err(dev, "Failed to init protected domain table.\n");
 		goto err_uar_alloc_free;
+=======
+	ret = hns_roce_uar_alloc(hr_dev, &hr_dev->priv_uar);
+	if (ret) {
+		dev_err(dev, "Failed to allocate priv_uar.\n");
+		goto err_uar_table_free;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ret = hns_roce_init_mr_table(hr_dev);
@@ -735,11 +745,15 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
 
 	hns_roce_init_cq_table(hr_dev);
 
+<<<<<<< HEAD
 	ret = hns_roce_init_qp_table(hr_dev);
 	if (ret) {
 		dev_err(dev, "Failed to init queue pair table.\n");
 		goto err_cq_table_free;
 	}
+=======
+	hns_roce_init_qp_table(hr_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
 		ret = hns_roce_init_srq_table(hr_dev);
@@ -754,6 +768,7 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
 
 err_qp_table_free:
 	hns_roce_cleanup_qp_table(hr_dev);
+<<<<<<< HEAD
 
 err_cq_table_free:
 	hns_roce_cleanup_cq_table(hr_dev);
@@ -763,6 +778,15 @@ err_pd_table_free:
 	hns_roce_cleanup_pd_table(hr_dev);
 
 err_uar_alloc_free:
+=======
+	hns_roce_cleanup_cq_table(hr_dev);
+	ida_destroy(&hr_dev->mr_table.mtpt_ida.ida);
+
+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_XRC)
+		ida_destroy(&hr_dev->xrcd_ida.ida);
+
+	ida_destroy(&hr_dev->pd_ida.ida);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	hns_roce_uar_free(hr_dev, &hr_dev->priv_uar);
 
 err_uar_table_free:

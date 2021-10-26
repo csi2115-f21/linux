@@ -150,6 +150,12 @@ static int detect_quirks(struct snd_oxfw *oxfw)
 		return snd_oxfw_scs1x_add(oxfw);
 	}
 
+<<<<<<< HEAD
+=======
+	if (entry->vendor_id == OUI_APOGEE && entry->model_id == MODEL_DUET_FW)
+		oxfw->quirks |= SND_OXFW_QUIRK_BLOCKING_TRANSMISSION;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * TASCAM FireOne has physical control and requires a pair of additional
 	 * MIDI ports.
@@ -175,7 +181,15 @@ static int detect_quirks(struct snd_oxfw *oxfw)
 	 * value in 'dbs' field of CIP header against its format information.
 	 */
 	if (vendor == VENDOR_LOUD && model == MODEL_SATELLITE)
+<<<<<<< HEAD
+<<<<<<< HEAD
 		oxfw->wrong_dbs = true;
+=======
+		oxfw->quirks |= SND_OXFW_QUIRK_WRONG_DBS;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+		oxfw->quirks |= SND_OXFW_QUIRK_WRONG_DBS;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 	return 0;
 }

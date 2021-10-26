@@ -217,6 +217,14 @@ static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
 	return 0;
 }
 
+static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
+{
+	if (nodes_empty(*nodes))
+		return -EINVAL;
+	pol->nodes = *nodes;
+	return 0;
+}
+
 /*
  * mpol_set_nodemask is called after mpol_new() to set up the nodemask, if
  * any, for the new policy.  mpol_new() has already validated the nodes
@@ -427,6 +435,12 @@ static const struct mempolicy_operations mpol_ops[MPOL_MAX] = {
 		.create = mpol_new_bind,
 		.rebind = mpol_rebind_nodemask,
 	},
+<<<<<<< HEAD
+=======
+	[MPOL_LOCAL] = {
+		.rebind = mpol_rebind_default,
+	},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static int migrate_page_add(struct page *page, struct list_head *pagelist,
@@ -917,7 +931,12 @@ static void get_policy_nodemask(struct mempolicy *p, nodemask_t *nodes)
 	switch (p->mode) {
 	case MPOL_BIND:
 	case MPOL_INTERLEAVE:
+<<<<<<< HEAD
 		*nodes = p->v.nodes;
+=======
+	case MPOL_PREFERRED:
+		*nodes = p->nodes;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	case MPOL_PREFERRED:
 		if (!(p->flags & MPOL_F_LOCAL))
@@ -1456,6 +1475,22 @@ static int copy_nodes_to_user(unsigned long __user *mask, unsigned long maxnode,
 	return copy_to_user(mask, nodes_addr(*nodes), copy) ? -EFAULT : 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Basic parameter sanity check used by both mbind() and set_mempolicy() */
+static inline int sanitize_mpol_flags(int *mode, unsigned short *flags)
+{
+	*flags = *mode & MPOL_MODE_FLAGS;
+	*mode &= ~MPOL_MODE_FLAGS;
+	if ((unsigned int)(*mode) >= MPOL_MAX)
+		return -EINVAL;
+	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
+		return -EINVAL;
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static long kernel_mbind(unsigned long start, unsigned long len,
 			 unsigned long mode, const unsigned long __user *nmask,
 			 unsigned long maxnode, unsigned int flags)
@@ -1881,8 +1916,13 @@ nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
 	if (unlikely(policy->mode == MPOL_BIND) &&
 			apply_policy_zone(policy, gfp_zone(gfp)) &&
+<<<<<<< HEAD
 			cpuset_nodemask_valid_mems_allowed(&policy->v.nodes))
 		return &policy->v.nodes;
+=======
+			cpuset_nodemask_valid_mems_allowed(&policy->nodes))
+		return &policy->nodes;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return NULL;
 }
@@ -1969,7 +2009,11 @@ unsigned int mempolicy_slab_node(void)
  */
 static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
 {
+<<<<<<< HEAD
 	unsigned nnodes = nodes_weight(pol->v.nodes);
+=======
+	unsigned nnodes = nodes_weight(pol->nodes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned target;
 	int i;
 	int nid;
@@ -1977,9 +2021,15 @@ static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
 	if (!nnodes)
 		return numa_node_id();
 	target = (unsigned int)n % nnodes;
+<<<<<<< HEAD
 	nid = first_node(pol->v.nodes);
 	for (i = 0; i < target; i++)
 		nid = next_node(nid, pol->v.nodes);
+=======
+	nid = first_node(pol->nodes);
+	for (i = 0; i < target; i++)
+		nid = next_node(nid, pol->nodes);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return nid;
 }
 
@@ -2035,7 +2085,11 @@ int huge_node(struct vm_area_struct *vma, unsigned long addr, gfp_t gfp_flags,
 	} else {
 		nid = policy_node(gfp_flags, *mpol, numa_node_id());
 		if ((*mpol)->mode == MPOL_BIND)
+<<<<<<< HEAD
 			*nodemask = &(*mpol)->v.nodes;
+=======
+			*nodemask = &(*mpol)->nodes;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return nid;
 }
@@ -2068,11 +2122,17 @@ bool init_nodemask_of_mempolicy(nodemask_t *mask)
 	mempolicy = current->mempolicy;
 	switch (mempolicy->mode) {
 	case MPOL_PREFERRED:
+<<<<<<< HEAD
 		if (mempolicy->flags & MPOL_F_LOCAL)
 			nid = numa_node_id();
 		else
 			nid = mempolicy->v.preferred_node;
 		init_nodemask_of_node(mask, nid);
+=======
+	case MPOL_BIND:
+	case MPOL_INTERLEAVE:
+		*mask = mempolicy->nodes;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 
 	case MPOL_BIND:
@@ -2345,10 +2405,16 @@ bool __mpol_equal(struct mempolicy *a, struct mempolicy *b)
 	case MPOL_INTERLEAVE:
 		return !!nodes_equal(a->v.nodes, b->v.nodes);
 	case MPOL_PREFERRED:
+<<<<<<< HEAD
 		/* a's ->flags is the same as b's */
 		if (a->flags & MPOL_F_LOCAL)
 			return true;
 		return a->v.preferred_node == b->v.preferred_node;
+=======
+		return !!nodes_equal(a->nodes, b->nodes);
+	case MPOL_LOCAL:
+		return true;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		BUG();
 		return false;
@@ -2463,8 +2529,13 @@ static void sp_free(struct sp_node *n)
  *	-1	- not misplaced, page is in the right node
  *	node	- node id where the page should be
  *
+<<<<<<< HEAD
  * Policy determination "mimics" alloc_page_vma().
  * Called from fault path where we know the vma and faulting address.
+=======
+ * Return: -1 if the page is in a node that is valid for this policy, or a
+ * suitable node ID to allocate a replacement page from.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long addr)
 {
@@ -2489,10 +2560,18 @@ int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long 
 		break;
 
 	case MPOL_PREFERRED:
+<<<<<<< HEAD
 		if (pol->flags & MPOL_F_LOCAL)
 			polnid = numa_node_id();
 		else
 			polnid = pol->v.preferred_node;
+=======
+		polnid = first_node(pol->nodes);
+		break;
+
+	case MPOL_LOCAL:
+		polnid = numa_node_id();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 
 	case MPOL_BIND:
@@ -3031,11 +3110,14 @@ void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
 	case MPOL_DEFAULT:
 		break;
 	case MPOL_PREFERRED:
+<<<<<<< HEAD
 		if (flags & MPOL_F_LOCAL)
 			mode = MPOL_LOCAL;
 		else
 			node_set(pol->v.preferred_node, nodes);
 		break;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case MPOL_BIND:
 	case MPOL_INTERLEAVE:
 		nodes = pol->v.nodes;

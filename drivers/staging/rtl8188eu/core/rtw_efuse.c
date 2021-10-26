@@ -91,10 +91,15 @@ efuse_phymap_to_logical(u8 *phymap, u16 _offset, u16 _size_byte, u8  *pbuf)
 	tmp = kcalloc(EFUSE_MAX_SECTION_88E,
 		      sizeof(void *) + EFUSE_MAX_WORD_UNIT * sizeof(u16),
 		      GFP_KERNEL);
+<<<<<<< HEAD
 	if (!tmp) {
 		DBG_88E("%s: alloc eFuseWord fail!\n", __func__);
 		goto eFuseWord_failed;
 	}
+=======
+	if (!tmp)
+		goto eFuseWord_failed;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0; i < EFUSE_MAX_SECTION_88E; i++)
 		tmp[i] = ((char *)(tmp + EFUSE_MAX_SECTION_88E)) + i * EFUSE_MAX_WORD_UNIT * sizeof(u16);
 	eFuseWord = (u16 **)tmp;
@@ -113,7 +118,10 @@ efuse_phymap_to_logical(u8 *phymap, u16 _offset, u16 _size_byte, u8  *pbuf)
 		efuse_utilized++;
 		eFuse_Addr++;
 	} else {
+<<<<<<< HEAD
 		DBG_88E("EFUSE is empty efuse_Addr-%d efuse_data =%x\n", eFuse_Addr, rtemp8);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto exit;
 	}
 
@@ -220,8 +228,11 @@ static void efuse_read_phymap_from_txpktbuf(
 	if (bcnhead < 0) /* if not valid */
 		bcnhead = usb_read8(adapter, REG_TDECTRL + 1);
 
+<<<<<<< HEAD
 	DBG_88E("%s bcnhead:%d\n", __func__, bcnhead);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	usb_write8(adapter, REG_PKT_BUFF_ACCESS_CTRL, TXPKT_BUF_SELECT);
 
 	dbg_addr = bcnhead * 128 / 8; /* 8-bytes addressing */
@@ -232,15 +243,21 @@ static void efuse_read_phymap_from_txpktbuf(
 		usb_write8(adapter, REG_TXPKTBUF_DBG, 0);
 		start = jiffies;
 		while (!(reg_0x143 = usb_read8(adapter, REG_TXPKTBUF_DBG)) &&
+<<<<<<< HEAD
 		       jiffies_to_msecs(jiffies - start) < 1000) {
 			DBG_88E("%s polling reg_0x143:0x%02x, reg_0x106:0x%02x\n", __func__, reg_0x143, usb_read8(adapter, 0x106));
 			usleep_range(1000, 2000);
 		}
+=======
+		       jiffies_to_msecs(jiffies - start) < 1000)
+			usleep_range(1000, 2000);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		lo32 = usb_read32(adapter, REG_PKTBUF_DBG_DATA_L);
 		hi32 = usb_read32(adapter, REG_PKTBUF_DBG_DATA_H);
 
 		if (i == 0) {
+<<<<<<< HEAD
 			u8 lenc[2];
 			u16 lenbak, aaabak;
 			u16 aaa;
@@ -251,12 +268,20 @@ static void efuse_read_phymap_from_txpktbuf(
 			aaabak = le16_to_cpup((__le16 *)lenc);
 			lenbak = le16_to_cpu(*((__le16 *)lenc));
 			aaa = le16_to_cpup((__le16 *)&lo32);
+=======
+			usb_read8(adapter, REG_PKTBUF_DBG_DATA_L);
+			usb_read8(adapter, REG_PKTBUF_DBG_DATA_L + 1);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			len = le16_to_cpu(*((__le16 *)&lo32));
 
 			limit = min_t(u16, len - 2, limit);
 
+<<<<<<< HEAD
 			DBG_88E("%s len:%u, lenbak:%u, aaa:%u, aaabak:%u\n", __func__, len, lenbak, aaa, aaabak);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			memcpy(pos, ((u8 *)&lo32) + 2, (limit >= count + 2) ? 2 : limit - count);
 			count += (limit >= count + 2) ? 2 : limit - count;
 			pos = content + count;
@@ -278,7 +303,10 @@ static void efuse_read_phymap_from_txpktbuf(
 		i++;
 	}
 	usb_write8(adapter, REG_PKT_BUFF_ACCESS_CTRL, DISABLE_TRXPKT_BUF_ACCESS);
+<<<<<<< HEAD
 	DBG_88E("%s read count:%u\n", __func__, count);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	*size = count;
 }
 
@@ -298,7 +326,11 @@ static s32 iol_read_efuse(struct adapter *padapter, u8 txpktbuf_bndy, u16 offset
 	return status;
 }
 
+<<<<<<< HEAD
 void efuse_ReadEFuse(struct adapter *Adapter, u8 efuseType, u16 _offset, u16 _size_byte, u8 *pbuf)
+=======
+static void efuse_ReadEFuse(struct adapter *Adapter, u16 _offset, u16 _size_byte, u8 *pbuf)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (rtw_iol_applied(Adapter)) {
 		rtw_hal_power_on(Adapter);
@@ -432,7 +464,10 @@ int Efuse_PgPacketRead(struct adapter *pAdapter, u8 offset, u8 *data)
 						hoffset = ((tmp_header & 0xE0) >> 5) | ((efuse_data & 0xF0) >> 1);
 						hworden = efuse_data & 0x0F;
 					} else {
+<<<<<<< HEAD
 						DBG_88E("Error, All words disabled\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						efuse_addr++;
 						continue;
 					}
@@ -479,7 +514,11 @@ int Efuse_PgPacketRead(struct adapter *pAdapter, u8 offset, u8 *data)
 		return true;
 }
 
+<<<<<<< HEAD
 static bool hal_EfuseFixHeaderProcess(struct adapter *pAdapter, u8 efuseType, struct pgpkt *pFixPkt, u16 *pAddr)
+=======
+static bool hal_EfuseFixHeaderProcess(struct adapter *pAdapter, struct pgpkt *pFixPkt, u16 *pAddr)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	u8 originaldata[8], badworden = 0;
 	u16	efuse_addr = *pAddr;
@@ -508,7 +547,11 @@ static bool hal_EfuseFixHeaderProcess(struct adapter *pAdapter, u8 efuseType, st
 	return true;
 }
 
+<<<<<<< HEAD
 static bool hal_EfusePgPacketWrite2ByteHeader(struct adapter *pAdapter, u8 efuseType, u16 *pAddr, struct pgpkt *pTargetPkt)
+=======
+static bool hal_EfusePgPacketWrite2ByteHeader(struct adapter *pAdapter, u16 *pAddr, struct pgpkt *pTargetPkt)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool ret = false;
 	u16 efuse_addr = *pAddr;
@@ -559,7 +602,11 @@ static bool hal_EfusePgPacketWrite2ByteHeader(struct adapter *pAdapter, u8 efuse
 				fixPkt.offset = ((pg_header_temp & 0xE0) >> 5) | ((tmp_header & 0xF0) >> 1);
 				fixPkt.word_en = tmp_header & 0x0F;
 				fixPkt.word_cnts = Efuse_CalculateWordCnts(fixPkt.word_en);
+<<<<<<< HEAD
 				if (!hal_EfuseFixHeaderProcess(pAdapter, efuseType, &fixPkt, &efuse_addr))
+=======
+				if (!hal_EfuseFixHeaderProcess(pAdapter, &fixPkt, &efuse_addr))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					return false;
 			} else {
 				ret = true;
@@ -575,7 +622,11 @@ static bool hal_EfusePgPacketWrite2ByteHeader(struct adapter *pAdapter, u8 efuse
 	return ret;
 }
 
+<<<<<<< HEAD
 static bool hal_EfusePgPacketWrite1ByteHeader(struct adapter *pAdapter, u8 efuseType, u16 *pAddr, struct pgpkt *pTargetPkt)
+=======
+static bool hal_EfusePgPacketWrite1ByteHeader(struct adapter *pAdapter, u16 *pAddr, struct pgpkt *pTargetPkt)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool ret = false;
 	u8 pg_header = 0, tmp_header = 0;
@@ -602,7 +653,11 @@ static bool hal_EfusePgPacketWrite1ByteHeader(struct adapter *pAdapter, u8 efuse
 		fixPkt.offset = (tmp_header >> 4) & 0x0F;
 		fixPkt.word_en = tmp_header & 0x0F;
 		fixPkt.word_cnts = Efuse_CalculateWordCnts(fixPkt.word_en);
+<<<<<<< HEAD
 		if (!hal_EfuseFixHeaderProcess(pAdapter, efuseType, &fixPkt, &efuse_addr))
+=======
+		if (!hal_EfuseFixHeaderProcess(pAdapter, &fixPkt, &efuse_addr))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return false;
 	}
 
@@ -610,7 +665,11 @@ static bool hal_EfusePgPacketWrite1ByteHeader(struct adapter *pAdapter, u8 efuse
 	return ret;
 }
 
+<<<<<<< HEAD
 static bool hal_EfusePgPacketWriteData(struct adapter *pAdapter, u8 efuseType, u16 *pAddr, struct pgpkt *pTargetPkt)
+=======
+static bool hal_EfusePgPacketWriteData(struct adapter *pAdapter, u16 *pAddr, struct pgpkt *pTargetPkt)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	u16	efuse_addr = *pAddr;
 	u8 badworden;
@@ -632,16 +691,25 @@ static bool hal_EfusePgPacketWriteData(struct adapter *pAdapter, u8 efuseType, u
 static bool
 hal_EfusePgPacketWriteHeader(
 				struct adapter *pAdapter,
+<<<<<<< HEAD
 				u8 efuseType,
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				u16				*pAddr,
 				struct pgpkt *pTargetPkt)
 {
 	bool ret = false;
 
 	if (pTargetPkt->offset >= EFUSE_MAX_SECTION_BASE)
+<<<<<<< HEAD
 		ret = hal_EfusePgPacketWrite2ByteHeader(pAdapter, efuseType, pAddr, pTargetPkt);
 	else
 		ret = hal_EfusePgPacketWrite1ByteHeader(pAdapter, efuseType, pAddr, pTargetPkt);
+=======
+		ret = hal_EfusePgPacketWrite2ByteHeader(pAdapter, pAddr, pTargetPkt);
+	else
+		ret = hal_EfusePgPacketWrite1ByteHeader(pAdapter, pAddr, pTargetPkt);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -685,7 +753,11 @@ static bool hal_EfuseCheckIfDatafollowed(struct adapter *pAdapter, u8 word_cnts,
 	return ret;
 }
 
+<<<<<<< HEAD
 static bool hal_EfusePartialWriteCheck(struct adapter *pAdapter, u8 efuseType, u16 *pAddr, struct pgpkt *pTargetPkt)
+=======
+static bool hal_EfusePartialWriteCheck(struct adapter *pAdapter, u16 *pAddr, struct pgpkt *pTargetPkt)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool ret = false;
 	u8 i, efuse_data = 0, cur_header = 0;
@@ -772,13 +844,17 @@ bool Efuse_PgPacketWrite(struct adapter *pAdapter, u8 offset, u8 word_en, u8 *pD
 {
 	struct pgpkt	targetPkt;
 	u16			startAddr = 0;
+<<<<<<< HEAD
 	u8 efuseType = EFUSE_WIFI;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (Efuse_GetCurrentSize(pAdapter) >= EFUSE_MAP_LEN_88E)
 		return false;
 
 	hal_EfuseConstructPGPkt(offset, word_en, pData, &targetPkt);
 
+<<<<<<< HEAD
 	if (!hal_EfusePartialWriteCheck(pAdapter, efuseType, &startAddr, &targetPkt))
 		return false;
 
@@ -786,6 +862,15 @@ bool Efuse_PgPacketWrite(struct adapter *pAdapter, u8 offset, u8 word_en, u8 *pD
 		return false;
 
 	if (!hal_EfusePgPacketWriteData(pAdapter, efuseType, &startAddr, &targetPkt))
+=======
+	if (!hal_EfusePartialWriteCheck(pAdapter, &startAddr, &targetPkt))
+		return false;
+
+	if (!hal_EfusePgPacketWriteHeader(pAdapter, &startAddr, &targetPkt))
+		return false;
+
+	if (!hal_EfusePgPacketWriteData(pAdapter, &startAddr, &targetPkt))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return false;
 
 	return true;
@@ -875,22 +960,38 @@ void efuse_WordEnableDataRead(u8 word_en, u8 *sourdata, u8 *targetdata)
 }
 
 /* Read All Efuse content */
+<<<<<<< HEAD
 static void Efuse_ReadAllMap(struct adapter *pAdapter, u8 efuseType, u8 *Efuse)
 {
 	efuse_power_switch(pAdapter, false, true);
 
 	efuse_ReadEFuse(pAdapter, efuseType, 0, EFUSE_MAP_LEN_88E, Efuse);
+=======
+static void Efuse_ReadAllMap(struct adapter *pAdapter, u8 *Efuse)
+{
+	efuse_power_switch(pAdapter, false, true);
+
+	efuse_ReadEFuse(pAdapter, 0, EFUSE_MAP_LEN_88E, Efuse);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	efuse_power_switch(pAdapter, false, false);
 }
 
 /* Transfer current EFUSE content to shadow init and modify map. */
+<<<<<<< HEAD
 void EFUSE_ShadowMapUpdate(struct adapter *pAdapter, u8 efuseType)
+=======
+void EFUSE_ShadowMapUpdate(struct adapter *pAdapter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct eeprom_priv *pEEPROM = GET_EEPROM_EFUSE_PRIV(pAdapter);
 
 	if (pEEPROM->bautoload_fail_flag)
 		memset(pEEPROM->efuse_eeprom_data, 0xFF, EFUSE_MAP_LEN_88E);
 	else
+<<<<<<< HEAD
 		Efuse_ReadAllMap(pAdapter, efuseType, pEEPROM->efuse_eeprom_data);
+=======
+		Efuse_ReadAllMap(pAdapter, pEEPROM->efuse_eeprom_data);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

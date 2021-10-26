@@ -205,12 +205,19 @@ EXPORT_SYMBOL(raw_copy_to_user);
 static inline unsigned long copy_in_user_mvcos(void __user *to, const void __user *from,
 					       unsigned long size)
 {
+<<<<<<< HEAD
 	register unsigned long reg0 asm("0") = 0x810081UL;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long tmp1, tmp2;
 
 	tmp1 = -4096UL;
 	/* FIXME: copy with reduced length. */
 	asm volatile(
+<<<<<<< HEAD
+=======
+		"   lgr	  0,%[spec]\n"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		"0: .insn ss,0xc80000000000,0(%0,%1),0(%2),0\n"
 		"   jz	  2f\n"
 		"1: algr  %0,%3\n"
@@ -221,7 +228,12 @@ static inline unsigned long copy_in_user_mvcos(void __user *to, const void __use
 		"3: \n"
 		EX_TABLE(0b,3b)
 		: "+a" (size), "+a" (to), "+a" (from), "+a" (tmp1), "=a" (tmp2)
+<<<<<<< HEAD
 		: "d" (reg0) : "cc", "memory");
+=======
+		: [spec] "d" (0x810081UL)
+		: "cc", "memory", "0");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return size;
 }
 
@@ -338,10 +350,17 @@ EXPORT_SYMBOL(__clear_user);
 static inline unsigned long strnlen_user_srst(const char __user *src,
 					      unsigned long size)
 {
+<<<<<<< HEAD
 	register unsigned long reg0 asm("0") = 0;
 	unsigned long tmp1, tmp2;
 
 	asm volatile(
+=======
+	unsigned long tmp1, tmp2;
+
+	asm volatile(
+		"   lghi  0,0\n"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		"   la    %2,0(%1)\n"
 		"   la    %3,0(%0,%1)\n"
 		"   slgr  %0,%0\n"
@@ -353,7 +372,12 @@ static inline unsigned long strnlen_user_srst(const char __user *src,
 		"1: sacf  768\n"
 		EX_TABLE(0b,1b)
 		: "+a" (size), "+a" (src), "=a" (tmp1), "=a" (tmp2)
+<<<<<<< HEAD
 		: "d" (reg0) : "cc", "memory");
+=======
+		:
+		: "cc", "memory", "0");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return size;
 }
 

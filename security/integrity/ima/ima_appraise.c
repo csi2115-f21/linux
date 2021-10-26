@@ -76,7 +76,11 @@ int ima_must_appraise(struct user_namespace *mnt_userns, struct inode *inode,
 	if (!ima_appraise)
 		return 0;
 
+<<<<<<< HEAD
 	security_task_getsecid(current, &secid);
+=======
+	security_task_getsecid_subj(current, &secid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ima_match_policy(mnt_userns, inode, current_cred(), secid, func,
 				mask, IMA_APPRAISE | IMA_HASH, NULL, NULL, NULL);
 }
@@ -577,9 +581,20 @@ int ima_inode_setxattr(struct dentry *dentry, const char *xattr_name,
 	if (result == 1) {
 		if (!xattr_value_len || (xvalue->type >= IMA_XATTR_LAST))
 			return -EINVAL;
+<<<<<<< HEAD
 		ima_reset_appraise_flags(d_backing_inode(dentry),
 			xvalue->type == EVM_IMA_XATTR_DIGSIG);
 		result = 0;
+=======
+		digsig = (xvalue->type == EVM_IMA_XATTR_DIGSIG);
+	} else if (!strcmp(xattr_name, XATTR_NAME_EVM) && xattr_value_len > 0) {
+		digsig = (xvalue->type == EVM_XATTR_PORTABLE_DIGSIG);
+	}
+	if (result == 1 || evm_revalidate_status(xattr_name)) {
+		ima_reset_appraise_flags(d_backing_inode(dentry), digsig);
+		if (result == 1)
+			result = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return result;
 }

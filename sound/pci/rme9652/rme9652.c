@@ -1733,7 +1733,12 @@ static int snd_rme9652_free(struct snd_rme9652 *rme9652)
 	if (rme9652->port)
 		pci_release_regions(rme9652->pci);
 
+<<<<<<< HEAD
 	pci_disable_device(rme9652->pci);
+=======
+	if (pci_is_enabled(rme9652->pci))
+		pci_disable_device(rme9652->pci);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -2451,7 +2456,12 @@ static int snd_rme9652_create(struct snd_card *card,
 		return -ENODEV;
 	}
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	spin_lock_init(&rme9652->lock);

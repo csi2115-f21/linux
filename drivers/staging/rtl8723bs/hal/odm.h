@@ -1204,11 +1204,19 @@ typedef  struct DM_Out_Source_Dynamic_Mechanism_Structure {
 	#if (BEAMFORMING_SUPPORT == 1)
 	RT_BEAMFORMING_INFO BeamformingInfo;
 	#endif
+<<<<<<< HEAD
 } DM_ODM_T, *PDM_ODM_T; /*  DM_Dynamic_Mechanism_Structure */
 
 #define ODM_RF_PATH_MAX 2
 
 typedef enum _ODM_RF_RADIO_PATH {
+=======
+};
+
+#define ODM_RF_PATH_MAX 2
+
+enum odm_rf_radio_path_e {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ODM_RF_PATH_A = 0,   /* Radio Path A */
 	ODM_RF_PATH_B = 1,   /* Radio Path B */
 	ODM_RF_PATH_C = 2,   /* Radio Path C */
@@ -1224,9 +1232,15 @@ typedef enum _ODM_RF_RADIO_PATH {
 	ODM_RF_PATH_BCD,
 	ODM_RF_PATH_ABCD,
 	/*   ODM_RF_PATH_MAX,    Max RF number 90 support */
+<<<<<<< HEAD
 } ODM_RF_RADIO_PATH_E, *PODM_RF_RADIO_PATH_E;
 
  typedef enum _ODM_RF_CONTENT {
+=======
+};
+
+ enum odm_rf_content {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	odm_radioa_txt = 0x1000,
 	odm_radiob_txt = 0x1001,
 	odm_radioc_txt = 0x1002,

@@ -36,6 +36,10 @@
 #include <linux/mlx5/vport.h>
 #include <linux/mlx5/fs.h>
 #include "esw/acl/lgcy.h"
+<<<<<<< HEAD
+=======
+#include "esw/legacy.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "mlx5_core.h"
 #include "lib/eq.h"
 #include "eswitch.h"
@@ -1141,6 +1145,11 @@ int mlx5_esw_modify_vport_rate(struct mlx5_eswitch *esw, u16 vport_num,
 	struct mlx5_vport *vport;
 
 	vport = mlx5_eswitch_get_vport(esw, vport_num);
+<<<<<<< HEAD
+=======
+	if (IS_ERR(vport))
+		return PTR_ERR(vport);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!vport->qos.enabled)
 		return -EOPNOTSUPP;
@@ -1231,7 +1240,11 @@ static int esw_vport_setup(struct mlx5_eswitch *esw, struct mlx5_vport *vport)
 		return err;
 
 	/* Attach vport to the eswitch rate limiter */
+<<<<<<< HEAD
 	esw_vport_enable_qos(esw, vport, vport->info.max_rate, vport->qos.bw_share);
+=======
+	esw_vport_enable_qos(esw, vport, vport->qos.max_rate, vport->qos.bw_share);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (mlx5_esw_is_manager_vport(esw, vport_num))
 		return 0;
@@ -1696,6 +1709,10 @@ abort:
 		mlx5_rescan_drivers(esw->dev);
 
 	esw_destroy_tsar(esw);
+<<<<<<< HEAD
+=======
+	mlx5_esw_acls_ns_cleanup(esw);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return err;
 }
 
@@ -1714,7 +1731,11 @@ int mlx5_eswitch_enable(struct mlx5_eswitch *esw, int num_vfs)
 	if (!ESW_ALLOWED(esw))
 		return 0;
 
+<<<<<<< HEAD
 	mutex_lock(&esw->mode_lock);
+=======
+	down_write(&esw->mode_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (esw->mode == MLX5_ESWITCH_NONE) {
 		ret = mlx5_eswitch_enable_locked(esw, MLX5_ESWITCH_LEGACY, num_vfs);
 	} else {
@@ -1726,7 +1747,11 @@ int mlx5_eswitch_enable(struct mlx5_eswitch *esw, int num_vfs)
 		if (!ret)
 			esw->esw_funcs.num_vfs = num_vfs;
 	}
+<<<<<<< HEAD
 	mutex_unlock(&esw->mode_lock);
+=======
+	up_write(&esw->mode_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -1764,6 +1789,10 @@ void mlx5_eswitch_disable_locked(struct mlx5_eswitch *esw, bool clear_vf)
 		mlx5_rescan_drivers(esw->dev);
 
 	esw_destroy_tsar(esw);
+<<<<<<< HEAD
+=======
+	mlx5_esw_acls_ns_cleanup(esw);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (clear_vf)
 		mlx5_eswitch_clear_vf_vports_info(esw);
@@ -1774,10 +1803,17 @@ void mlx5_eswitch_disable(struct mlx5_eswitch *esw, bool clear_vf)
 	if (!ESW_ALLOWED(esw))
 		return;
 
+<<<<<<< HEAD
 	mutex_lock(&esw->mode_lock);
 	mlx5_eswitch_disable_locked(esw, clear_vf);
 	esw->esw_funcs.num_vfs = 0;
 	mutex_unlock(&esw->mode_lock);
+=======
+	down_write(&esw->mode_lock);
+	mlx5_eswitch_disable_locked(esw, clear_vf);
+	esw->esw_funcs.num_vfs = 0;
+	up_write(&esw->mode_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int mlx5_eswitch_init(struct mlx5_core_dev *dev)
@@ -1834,6 +1870,7 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
 	ida_init(&esw->offloads.vport_metadata_ida);
 	xa_init_flags(&esw->offloads.vhca_map, XA_FLAGS_ALLOC);
 	mutex_init(&esw->state_lock);
+<<<<<<< HEAD
 	mutex_init(&esw->mode_lock);
 
 	mlx5_esw_for_all_vports(esw, i, vport) {
@@ -1843,6 +1880,9 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
 		INIT_WORK(&vport->vport_change_handler,
 			  esw_vport_change_handler);
 	}
+=======
+	init_rwsem(&esw->mode_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	esw->enabled_vports = 0;
 	esw->mode = MLX5_ESWITCH_NONE;
@@ -1869,8 +1909,11 @@ void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw)
 
 	esw->dev->priv.eswitch = NULL;
 	destroy_workqueue(esw->work_queue);
+<<<<<<< HEAD
 	esw_offloads_cleanup_reps(esw);
 	mutex_destroy(&esw->mode_lock);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	mutex_destroy(&esw->state_lock);
 	WARN_ON(!xa_empty(&esw->offloads.vhca_map));
 	xa_destroy(&esw->offloads.vhca_map);
@@ -2101,6 +2144,7 @@ int __mlx5_eswitch_set_vport_vlan(struct mlx5_eswitch *esw,
 	return err;
 }
 
+<<<<<<< HEAD
 int mlx5_eswitch_set_vport_vlan(struct mlx5_eswitch *esw,
 				u16 vport, u16 vlan, u8 qos)
 {
@@ -2280,17 +2324,28 @@ int mlx5_eswitch_set_vport_trust(struct mlx5_eswitch *esw,
 	return 0;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static u32 calculate_vports_min_rate_divider(struct mlx5_eswitch *esw)
 {
 	u32 fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
 	struct mlx5_vport *evport;
 	u32 max_guarantee = 0;
+<<<<<<< HEAD
 	int i;
 
 	mlx5_esw_for_all_vports(esw, i, evport) {
 		if (!evport->enabled || evport->info.min_rate < max_guarantee)
 			continue;
 		max_guarantee = evport->info.min_rate;
+=======
+	unsigned long i;
+
+	mlx5_esw_for_each_vport(esw, i, evport) {
+		if (!evport->enabled || evport->qos.min_rate < max_guarantee)
+			continue;
+		max_guarantee = evport->qos.min_rate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (max_guarantee)
@@ -2305,6 +2360,7 @@ static int normalize_vports_min_rate(struct mlx5_eswitch *esw)
 	struct mlx5_vport *evport;
 	u32 vport_max_rate;
 	u32 vport_min_rate;
+<<<<<<< HEAD
 	u32 bw_share;
 	int err;
 	int i;
@@ -2314,6 +2370,17 @@ static int normalize_vports_min_rate(struct mlx5_eswitch *esw)
 			continue;
 		vport_min_rate = evport->info.min_rate;
 		vport_max_rate = evport->info.max_rate;
+=======
+	unsigned long i;
+	u32 bw_share;
+	int err;
+
+	mlx5_esw_for_each_vport(esw, i, evport) {
+		if (!evport->enabled)
+			continue;
+		vport_min_rate = evport->qos.min_rate;
+		vport_max_rate = evport->qos.max_rate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bw_share = 0;
 
 		if (divider)
@@ -2345,7 +2412,11 @@ int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, u16 vport,
 	bool max_rate_supported;
 	int err = 0;
 
+<<<<<<< HEAD
 	if (!ESW_ALLOWED(esw))
+=======
+	if (!mlx5_esw_allowed(esw))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -EPERM;
 	if (IS_ERR(evport))
 		return PTR_ERR(evport);
@@ -2360,6 +2431,7 @@ int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, u16 vport,
 
 	mutex_lock(&esw->state_lock);
 
+<<<<<<< HEAD
 	if (min_rate == evport->info.min_rate)
 		goto set_max_rate;
 
@@ -2368,15 +2440,30 @@ int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, u16 vport,
 	err = normalize_vports_min_rate(esw);
 	if (err) {
 		evport->info.min_rate = previous_min_rate;
+=======
+	if (min_rate == evport->qos.min_rate)
+		goto set_max_rate;
+
+	previous_min_rate = evport->qos.min_rate;
+	evport->qos.min_rate = min_rate;
+	err = normalize_vports_min_rate(esw);
+	if (err) {
+		evport->qos.min_rate = previous_min_rate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto unlock;
 	}
 
 set_max_rate:
+<<<<<<< HEAD
 	if (max_rate == evport->info.max_rate)
+=======
+	if (max_rate == evport->qos.max_rate)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto unlock;
 
 	err = esw_vport_qos_config(esw, evport, max_rate, evport->qos.bw_share);
 	if (!err)
+<<<<<<< HEAD
 		evport->info.max_rate = max_rate;
 
 unlock:
@@ -2422,6 +2509,9 @@ static int mlx5_eswitch_query_vport_drop_stats(struct mlx5_core_dev *dev,
 		stats->rx_dropped += rx_discard_vport_down;
 	if (MLX5_CAP_GEN(dev, transmit_discard_vport_down))
 		stats->tx_dropped += tx_discard_vport_down;
+=======
+		evport->qos.max_rate = max_rate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 unlock:
 	mutex_unlock(&esw->state_lock);
@@ -2552,3 +2642,113 @@ void mlx5_esw_event_notifier_unregister(struct mlx5_eswitch *esw, struct notifie
 {
 	blocking_notifier_chain_unregister(&esw->n_head, nb);
 }
+<<<<<<< HEAD
+=======
+
+/**
+ * mlx5_esw_hold() - Try to take a read lock on esw mode lock.
+ * @mdev: mlx5 core device.
+ *
+ * Should be called by esw resources callers.
+ *
+ * Return: true on success or false.
+ */
+bool mlx5_esw_hold(struct mlx5_core_dev *mdev)
+{
+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
+
+	/* e.g. VF doesn't have eswitch so nothing to do */
+	if (!mlx5_esw_allowed(esw))
+		return true;
+
+	if (down_read_trylock(&esw->mode_lock) != 0)
+		return true;
+
+	return false;
+}
+
+/**
+ * mlx5_esw_release() - Release a read lock on esw mode lock.
+ * @mdev: mlx5 core device.
+ */
+void mlx5_esw_release(struct mlx5_core_dev *mdev)
+{
+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
+
+	if (mlx5_esw_allowed(esw))
+		up_read(&esw->mode_lock);
+}
+
+/**
+ * mlx5_esw_get() - Increase esw user count.
+ * @mdev: mlx5 core device.
+ */
+void mlx5_esw_get(struct mlx5_core_dev *mdev)
+{
+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
+
+	if (mlx5_esw_allowed(esw))
+		atomic64_inc(&esw->user_count);
+}
+
+/**
+ * mlx5_esw_put() - Decrease esw user count.
+ * @mdev: mlx5 core device.
+ */
+void mlx5_esw_put(struct mlx5_core_dev *mdev)
+{
+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
+
+	if (mlx5_esw_allowed(esw))
+		atomic64_dec_if_positive(&esw->user_count);
+}
+
+/**
+ * mlx5_esw_try_lock() - Take a write lock on esw mode lock.
+ * @esw: eswitch device.
+ *
+ * Should be called by esw mode change routine.
+ *
+ * Return:
+ * * 0       - esw mode if successfully locked and refcount is 0.
+ * * -EBUSY  - refcount is not 0.
+ * * -EINVAL - In the middle of switching mode or lock is already held.
+ */
+int mlx5_esw_try_lock(struct mlx5_eswitch *esw)
+{
+	if (down_write_trylock(&esw->mode_lock) == 0)
+		return -EINVAL;
+
+	if (atomic64_read(&esw->user_count) > 0) {
+		up_write(&esw->mode_lock);
+		return -EBUSY;
+	}
+
+	return esw->mode;
+}
+
+/**
+ * mlx5_esw_unlock() - Release write lock on esw mode lock
+ * @esw: eswitch device.
+ */
+void mlx5_esw_unlock(struct mlx5_eswitch *esw)
+{
+	up_write(&esw->mode_lock);
+}
+
+/**
+ * mlx5_eswitch_get_total_vports - Get total vports of the eswitch
+ *
+ * @dev: Pointer to core device
+ *
+ * mlx5_eswitch_get_total_vports returns total number of eswitch vports.
+ */
+u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev)
+{
+	struct mlx5_eswitch *esw;
+
+	esw = dev->priv.eswitch;
+	return mlx5_esw_allowed(esw) ? esw->total_vports : 0;
+}
+EXPORT_SYMBOL_GPL(mlx5_eswitch_get_total_vports);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

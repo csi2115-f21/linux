@@ -69,6 +69,7 @@
 #define DESC_RATEMCS29				0x29
 #define DESC_RATEMCS30				0x2A
 #define DESC_RATEMCS31				0x2B
+<<<<<<< HEAD
 #define DESC_RATEVHTSS1MCS0		0x2C
 #define DESC_RATEVHTSS1MCS1		0x2D
 #define DESC_RATEVHTSS1MCS2		0x2E
@@ -109,6 +110,8 @@
 #define DESC_RATEVHTSS4MCS7		0x51
 #define DESC_RATEVHTSS4MCS8		0x52
 #define DESC_RATEVHTSS4MCS9		0x53
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define HDATA_RATE(rate)\
 (rate == DESC_RATE1M) ? "CCK_1M" : \
@@ -138,6 +141,7 @@
 (rate == DESC_RATEMCS12) ? "MCS12" : \
 (rate == DESC_RATEMCS13) ? "MCS13" : \
 (rate == DESC_RATEMCS14) ? "MCS14" : \
+<<<<<<< HEAD
 (rate == DESC_RATEMCS15) ? "MCS15" : \
 (rate == DESC_RATEVHTSS1MCS0) ? "VHTSS1MCS0" : \
 (rate == DESC_RATEVHTSS1MCS1) ? "VHTSS1MCS1" : \
@@ -159,6 +163,9 @@
 (rate == DESC_RATEVHTSS2MCS7) ? "VHTSS2MCS7" : \
 (rate == DESC_RATEVHTSS2MCS8) ? "VHTSS2MCS8" : \
 (rate == DESC_RATEVHTSS2MCS9) ? "VHTSS2MCS9" : "UNKNOW"
+=======
+(rate == DESC_RATEMCS15) ? "MCS15" : "UNKNOWN"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 enum{

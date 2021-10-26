@@ -37,8 +37,13 @@ static void noinstr enter_from_kernel_mode(struct pt_regs *regs)
 	lockdep_hardirqs_off(CALLER_ADDR0);
 	rcu_irq_enter_check_tick();
 	trace_hardirqs_off_finish();
+
+<<<<<<< HEAD
+=======
+	mte_check_tfsr_entry();
 }
 
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * This is intended to match the logic in irqentry_exit(), handling the kernel
  * mode transitions only, and with preemption handled elsewhere.
@@ -46,6 +51,8 @@ static void noinstr enter_from_kernel_mode(struct pt_regs *regs)
 static void noinstr exit_to_kernel_mode(struct pt_regs *regs)
 {
 	lockdep_assert_irqs_disabled();
+
+	mte_check_tfsr_exit();
 
 	if (interrupts_enabled(regs)) {
 		if (regs->exit_rcu) {
@@ -63,7 +70,11 @@ static void noinstr exit_to_kernel_mode(struct pt_regs *regs)
 	}
 }
 
+<<<<<<< HEAD
 void noinstr arm64_enter_nmi(struct pt_regs *regs)
+=======
+static void noinstr arm64_enter_nmi(struct pt_regs *regs)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	regs->lockdep_hardirqs = lockdep_hardirqs_enabled();
 
@@ -76,7 +87,11 @@ void noinstr arm64_enter_nmi(struct pt_regs *regs)
 	ftrace_nmi_enter();
 }
 
+<<<<<<< HEAD
 void noinstr arm64_exit_nmi(struct pt_regs *regs)
+=======
+static void noinstr arm64_exit_nmi(struct pt_regs *regs)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool restore = regs->lockdep_hardirqs;
 
@@ -93,7 +108,11 @@ void noinstr arm64_exit_nmi(struct pt_regs *regs)
 	__nmi_exit();
 }
 
+<<<<<<< HEAD
 asmlinkage void noinstr enter_el1_irq_or_nmi(struct pt_regs *regs)
+=======
+static void noinstr enter_el1_irq_or_nmi(struct pt_regs *regs)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (IS_ENABLED(CONFIG_ARM64_PSEUDO_NMI) && !interrupts_enabled(regs))
 		arm64_enter_nmi(regs);
@@ -189,6 +208,7 @@ static void noinstr el1_undef(struct pt_regs *regs)
 	exit_to_kernel_mode(regs);
 }
 
+<<<<<<< HEAD
 static void noinstr el1_inv(struct pt_regs *regs, unsigned long esr)
 {
 	enter_from_kernel_mode(regs);
@@ -198,6 +218,8 @@ static void noinstr el1_inv(struct pt_regs *regs, unsigned long esr)
 	exit_to_kernel_mode(regs);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void noinstr arm64_enter_el1_dbg(struct pt_regs *regs)
 {
 	regs->lockdep_hardirqs = lockdep_hardirqs_enabled();
@@ -293,6 +315,24 @@ asmlinkage void noinstr enter_from_user_mode(void)
 
 asmlinkage void noinstr exit_to_user_mode(void)
 {
+	trace_hardirqs_on_prepare();
+	lockdep_hardirqs_on_prepare(CALLER_ADDR0);
+	user_enter_irqoff();
+	lockdep_hardirqs_on(CALLER_ADDR0);
+}
+
+asmlinkage void noinstr enter_from_user_mode(void)
+{
+	lockdep_hardirqs_off(CALLER_ADDR0);
+	CT_WARN_ON(ct_state() != CONTEXT_USER);
+	user_exit_irqoff();
+	trace_hardirqs_off_finish();
+}
+
+asmlinkage void noinstr exit_to_user_mode(void)
+{
+	mte_check_tfsr_exit();
+
 	trace_hardirqs_on_prepare();
 	lockdep_hardirqs_on_prepare(CALLER_ADDR0);
 	user_enter_irqoff();
@@ -398,19 +438,28 @@ static void noinstr el0_dbg(struct pt_regs *regs, unsigned long esr)
 	/* Only watchpoints write FAR_EL1, otherwise its UNKNOWN */
 	unsigned long far = read_sysreg(far_el1);
 
+<<<<<<< HEAD
 	if (system_uses_irq_prio_masking())
 		gic_write_pmr(GIC_PRIO_IRQON | GIC_PRIO_PSR_I_SET);
 
 	enter_from_user_mode();
 	do_debug_exception(far, esr, regs);
 	local_daif_restore(DAIF_PROCCTX_NOIRQ);
+=======
+	enter_from_user_mode();
+	do_debug_exception(far, esr, regs);
+	local_daif_restore(DAIF_PROCCTX);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void noinstr el0_svc(struct pt_regs *regs)
 {
+<<<<<<< HEAD
 	if (system_uses_irq_prio_masking())
 		gic_write_pmr(GIC_PRIO_IRQON | GIC_PRIO_PSR_I_SET);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	enter_from_user_mode();
 	cortex_a76_erratum_1463225_svc_handler();
 	do_el0_svc(regs);
@@ -476,6 +525,59 @@ asmlinkage void noinstr el0_sync_handler(struct pt_regs *regs)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void noinstr el0_interrupt(struct pt_regs *regs,
+				  void (*handler)(struct pt_regs *))
+{
+	enter_from_user_mode();
+
+	write_sysreg(DAIF_PROCCTX_NOIRQ, daif);
+
+	if (regs->pc & BIT(55))
+		arm64_apply_bp_hardening();
+
+	do_interrupt_handler(regs, handler);
+}
+
+static void noinstr __el0_irq_handler_common(struct pt_regs *regs)
+{
+	el0_interrupt(regs, handle_arch_irq);
+}
+
+asmlinkage void noinstr el0t_64_irq_handler(struct pt_regs *regs)
+{
+	__el0_irq_handler_common(regs);
+}
+
+static void noinstr __el0_fiq_handler_common(struct pt_regs *regs)
+{
+	el0_interrupt(regs, handle_arch_fiq);
+}
+
+asmlinkage void noinstr el0t_64_fiq_handler(struct pt_regs *regs)
+{
+	__el0_fiq_handler_common(regs);
+}
+
+static void noinstr __el0_error_handler_common(struct pt_regs *regs)
+{
+	unsigned long esr = read_sysreg(esr_el1);
+
+	enter_from_user_mode();
+	local_daif_restore(DAIF_ERRCTX);
+	arm64_enter_nmi(regs);
+	do_serror(regs, esr);
+	arm64_exit_nmi(regs);
+	local_daif_restore(DAIF_PROCCTX);
+}
+
+asmlinkage void noinstr el0t_64_error_handler(struct pt_regs *regs)
+{
+	__el0_error_handler_common(regs);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_COMPAT
 static void noinstr el0_cp15(struct pt_regs *regs, unsigned long esr)
 {
@@ -486,9 +588,12 @@ static void noinstr el0_cp15(struct pt_regs *regs, unsigned long esr)
 
 static void noinstr el0_svc_compat(struct pt_regs *regs)
 {
+<<<<<<< HEAD
 	if (system_uses_irq_prio_masking())
 		gic_write_pmr(GIC_PRIO_IRQON | GIC_PRIO_PSR_I_SET);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	enter_from_user_mode();
 	cortex_a76_erratum_1463225_svc_handler();
 	do_el0_svc_compat(regs);

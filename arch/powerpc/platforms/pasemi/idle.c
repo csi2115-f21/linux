@@ -58,7 +58,11 @@ static int pasemi_system_reset_exception(struct pt_regs *regs)
 	restore_astate(hard_smp_processor_id());
 
 	/* everything handled */
+<<<<<<< HEAD
 	regs->msr |= MSR_RI;
+=======
+	regs_set_return_msr(regs, regs->msr | MSR_RI);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 1;
 }
 

@@ -42,6 +42,10 @@ struct audit_context;
 struct backing_dev_info;
 struct bio_list;
 struct blk_plug;
+<<<<<<< HEAD
+=======
+struct bpf_local_storage;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct capture_control;
 struct cfs_rq;
 struct fs_struct;
@@ -121,6 +125,8 @@ struct task_group;
 
 #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
 
+#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+
 /*
  * Special states are those that do not use the normal wait-loop pattern. See
  * the comment with set_special_state().
@@ -132,6 +138,7 @@ struct task_group;
 	do {							\
 		WARN_ON_ONCE(is_special_task_state(state_value));\
 		current->task_state_change = _THIS_IP_;		\
+<<<<<<< HEAD
 		current->state = (state_value);			\
 	} while (0)
 
@@ -142,13 +149,29 @@ struct task_group;
 		smp_store_mb(current->state, (state_value));	\
 	} while (0)
 
+=======
+		WRITE_ONCE(current->__state, (state_value));	\
+	} while (0)
+
+#define set_current_state(state_value)				\
+	do {							\
+		WARN_ON_ONCE(is_special_task_state(state_value));\
+		current->task_state_change = _THIS_IP_;		\
+		smp_store_mb(current->__state, (state_value));	\
+	} while (0)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define set_special_state(state_value)					\
 	do {								\
 		unsigned long flags; /* may shadow */			\
 		WARN_ON_ONCE(!is_special_task_state(state_value));	\
 		raw_spin_lock_irqsave(&current->pi_lock, flags);	\
 		current->task_state_change = _THIS_IP_;			\
+<<<<<<< HEAD
 		current->state = (state_value);				\
+=======
+		WRITE_ONCE(current->__state, (state_value));		\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		raw_spin_unlock_irqrestore(&current->pi_lock, flags);	\
 	} while (0)
 #else
@@ -190,10 +213,17 @@ struct task_group;
  * Also see the comments of try_to_wake_up().
  */
 #define __set_current_state(state_value)				\
+<<<<<<< HEAD
 	current->state = (state_value)
 
 #define set_current_state(state_value)					\
 	smp_store_mb(current->state, (state_value))
+=======
+	WRITE_ONCE(current->__state, (state_value))
+
+#define set_current_state(state_value)					\
+	smp_store_mb(current->__state, (state_value))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * set_special_state() should be used for those states when the blocking task
@@ -205,11 +235,20 @@ struct task_group;
 	do {								\
 		unsigned long flags; /* may shadow */			\
 		raw_spin_lock_irqsave(&current->pi_lock, flags);	\
+<<<<<<< HEAD
 		current->state = (state_value);				\
+=======
+		WRITE_ONCE(current->__state, (state_value));		\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		raw_spin_unlock_irqrestore(&current->pi_lock, flags);	\
 	} while (0)
 
 #endif
+<<<<<<< HEAD
+=======
+
+#define get_current_state()	READ_ONCE(current->__state)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Task command name length: */
 #define TASK_COMM_LEN			16
@@ -654,8 +693,12 @@ struct task_struct {
 	 */
 	struct thread_info		thread_info;
 #endif
+<<<<<<< HEAD
 	/* -1 unrunnable, 0 runnable, >0 stopped: */
 	volatile long			state;
+=======
+	unsigned int			__state;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * This begins the randomizable portion of task_struct. Only
@@ -841,6 +884,13 @@ struct task_struct {
 	/* Stalled due to lack of memory */
 	unsigned			in_memstall:1;
 #endif
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_PAGE_OWNER
+	/* Used by page_owner=on to detect recursion in page tracking. */
+	unsigned			in_page_owner:1;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
 
@@ -1351,6 +1401,13 @@ struct task_struct {
 	/* Used by LSM modules for access restriction: */
 	void				*security;
 #endif
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_BPF_SYSCALL
+	/* Used by BPF task local storage */
+	struct bpf_local_storage __rcu	*bpf_storage;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_GCC_PLUGIN_STACKLEAK
 	unsigned long			lowest_stack;

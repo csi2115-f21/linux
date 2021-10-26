@@ -32,10 +32,14 @@ struct cmd_obj {
 
 struct cmd_priv {
 	struct completion cmd_queue_comp;
+<<<<<<< HEAD
 	struct completion terminate_cmdthread_comp;
 	struct __queue cmd_queue;
 	u8 cmdthd_running;
 	struct adapter *padapter;
+=======
+	struct __queue cmd_queue;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define init_h2fwcmd_w_parm_no_rsp(pcmd, pparm, code) \
@@ -54,7 +58,11 @@ void rtw_free_cmd_obj(struct cmd_obj *pcmd);
 
 int rtw_cmd_thread(void *context);
 
+<<<<<<< HEAD
 int rtw_init_cmd_priv(struct cmd_priv *pcmdpriv);
+=======
+void rtw_init_cmd_priv(struct cmd_priv *pcmdpriv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 enum rtw_drvextra_cmd_id {
 	NONE_WK_CID,
@@ -361,6 +369,7 @@ enum rtw_h2c_cmd {
 	MAX_H2CCMD
 };
 
+<<<<<<< HEAD
 #ifdef _RTW_CMD_C_
 static struct _cmd_callback	rtw_cmd_callback[] = {
 	{_JoinBss_CMD_, &rtw_joinbss_cmd_callback},
@@ -381,4 +390,6 @@ static struct _cmd_callback	rtw_cmd_callback[] = {
 };
 #endif
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /*  _CMD_H_ */

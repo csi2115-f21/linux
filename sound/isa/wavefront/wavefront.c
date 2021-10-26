@@ -556,7 +556,12 @@ static int snd_wavefront_isa_probe(struct device *pdev,
 	err = snd_wavefront_card_new(pdev, dev, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_wavefront_probe(card, dev)) < 0) {
+=======
+	err = snd_wavefront_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

@@ -742,7 +742,11 @@ static const struct drm_plane_helper_funcs meson_overlay_helper_funcs = {
 	.atomic_check	= meson_overlay_atomic_check,
 	.atomic_disable	= meson_overlay_atomic_disable,
 	.atomic_update	= meson_overlay_atomic_update,
+<<<<<<< HEAD
 	.prepare_fb	= drm_gem_fb_prepare_fb,
+=======
+	.prepare_fb	= drm_gem_plane_helper_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static bool meson_overlay_format_mod_supported(struct drm_plane *plane,

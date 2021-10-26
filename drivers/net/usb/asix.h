@@ -178,6 +178,13 @@ struct asix_common_private {
 	u16 presvd_phy_advertise;
 	u16 presvd_phy_bmcr;
 	struct asix_rx_fixup_info rx_fixup_info;
+<<<<<<< HEAD
+=======
+	struct mii_bus *mdio;
+	struct phy_device *phydev;
+	u16 phy_addr;
+	char phy_name[20];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 extern const struct driver_info ax88172a_info;

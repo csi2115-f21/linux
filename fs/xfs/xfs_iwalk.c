@@ -376,7 +376,11 @@ xfs_iwalk_run_callbacks(
 		return 0;
 
 	/* ...and recreate the cursor just past where we left off. */
+<<<<<<< HEAD
 	error = xfs_inobt_cur(mp, tp, agno, XFS_BTNUM_INO, curpp, agi_bpp);
+=======
+	error = xfs_inobt_cur(mp, tp, iwag->pag, XFS_BTNUM_INO, curpp, agi_bpp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (error)
 		return error;
 
@@ -390,6 +394,10 @@ xfs_iwalk_ag(
 {
 	struct xfs_mount		*mp = iwag->mp;
 	struct xfs_trans		*tp = iwag->tp;
+<<<<<<< HEAD
+=======
+	struct xfs_perag		*pag = iwag->pag;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct xfs_buf			*agi_bp = NULL;
 	struct xfs_btree_cur		*cur = NULL;
 	xfs_agnumber_t			agno;

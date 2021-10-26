@@ -126,7 +126,11 @@ xfs_rmapbt_free_block(
 	int			error;
 
 	bno = xfs_daddr_to_agbno(cur->bc_mp, XFS_BUF_ADDR(bp));
+<<<<<<< HEAD
 	trace_xfs_rmapbt_free_block(cur->bc_mp, cur->bc_ag.agno,
+=======
+	trace_xfs_rmapbt_free_block(cur->bc_mp, pag->pag_agno,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			bno, 1);
 	be32_add_cpu(&agf->agf_rmap_blocks, -1);
 	xfs_alloc_log_agf(cur->bc_tp, agbp, XFS_AGF_RMAP_BLOCKS);

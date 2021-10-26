@@ -660,7 +660,10 @@ static void _InitRFType(struct adapter *padapter)
 	pHalData->rf_chip	= RF_6052;
 
 	pHalData->rf_type = RF_1T1R;
+<<<<<<< HEAD
 	DBG_8192C("Set RF Chip ID to RF_6052 and RF type to 1T1R.\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void _RfPowerSave(struct adapter *padapter)

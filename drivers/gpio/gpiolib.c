@@ -382,10 +382,13 @@ static int devprop_gpiochip_set_names(struct gpio_chip *chip)
 	if (!dev)
 		return 0;
 
+<<<<<<< HEAD
 	count = device_property_string_array_count(dev, "gpio-line-names");
 	if (count < 0)
 		return 0;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (count > gdev->ngpio) {
 		dev_warn(&gdev->dev, "gpio-line-names is length %d but should be at most length %d",
 			 count, gdev->ngpio);

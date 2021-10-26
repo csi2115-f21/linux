@@ -140,7 +140,11 @@ static bool __send_ipi_mask(const struct cpumask *mask, int vector)
 {
 	int cur_cpu, vcpu;
 	struct hv_send_ipi ipi_arg;
+<<<<<<< HEAD
 	int ret = 1;
+=======
+	u64 status;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	trace_hyperv_send_ipi_mask(mask, vector);
 

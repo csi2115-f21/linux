@@ -4042,7 +4042,12 @@ static int xdp_do_generic_redirect_map(struct net_device *dev,
 		if (err)
 			goto err;
 		consume_skb(skb);
+<<<<<<< HEAD
 	} else {
+=======
+		break;
+	default:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* TODO: Handle BPF_MAP_TYPE_CPUMAP */
 		err = -EBADRQC;
 		goto err;
@@ -10050,7 +10055,11 @@ struct sock *bpf_run_sk_reuseport(struct sock_reuseport *reuse, struct sock *sk,
 	struct sk_reuseport_kern reuse_kern;
 	enum sk_action action;
 
+<<<<<<< HEAD
 	bpf_init_reuseport_kern(&reuse_kern, reuse, sk, skb, hash);
+=======
+	bpf_init_reuseport_kern(&reuse_kern, reuse, sk, skb, migrating_sk, hash);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	action = BPF_PROG_RUN(prog, &reuse_kern);
 
 	if (action == SK_PASS)

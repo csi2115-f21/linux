@@ -1296,12 +1296,31 @@ static void i915_audio_component_init(struct drm_i915_private *dev_priv)
 		return;
 	}
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 9) {
 		dev_priv->audio_freq_cntrl = intel_de_read(dev_priv,
 							   AUD_FREQ_CNTRL);
 		drm_dbg_kms(&dev_priv->drm,
 			    "init value of AUD_FREQ_CNTRL of 0x%x\n",
 			    dev_priv->audio_freq_cntrl);
+=======
+	if (DISPLAY_VER(dev_priv) >= 9) {
+		aud_freq_init = intel_de_read(dev_priv, AUD_FREQ_CNTRL);
+
+		if (DISPLAY_VER(dev_priv) >= 12)
+			aud_freq = AUD_FREQ_GEN12;
+		else
+			aud_freq = aud_freq_init;
+
+		/* use BIOS provided value for TGL unless it is a known bad value */
+		if (IS_TIGERLAKE(dev_priv) && aud_freq_init != AUD_FREQ_TGL_BROKEN)
+			aud_freq = aud_freq_init;
+
+		drm_dbg_kms(&dev_priv->drm, "use AUD_FREQ_CNTRL of 0x%x (init value 0x%x)\n",
+			    aud_freq, aud_freq_init);
+
+		dev_priv->audio_freq_cntrl = aud_freq;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	dev_priv->audio_component_registered = true;

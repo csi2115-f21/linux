@@ -210,7 +210,12 @@ static int snd_interwave_detect_stb(struct snd_interwave *iwcard,
 			port = 0x360;
 		}
 		while (port <= 0x380) {
+<<<<<<< HEAD
 			if ((iwcard->i2c_res = request_region(port, 1, "InterWave (I2C bus)")) != NULL)
+=======
+			iwcard->i2c_res = request_region(port, 1, "InterWave (I2C bus)");
+			if (iwcard->i2c_res)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				break;
 			port += 0x10;
 		}
@@ -639,6 +644,7 @@ static int snd_interwave_probe(struct snd_card *card, int dev)
 	xdma1 = dma1[dev];
 	xdma2 = dma2[dev];
 
+<<<<<<< HEAD
 	if ((err = snd_gus_create(card,
 				  port[dev],
 				  -xirq, xdma1, xdma2,
@@ -647,6 +653,17 @@ static int snd_interwave_probe(struct snd_card *card, int dev)
 		return err;
 
 	if ((err = snd_interwave_detect(iwcard, gus, dev
+=======
+	err = snd_gus_create(card,
+			     port[dev],
+			     -xirq, xdma1, xdma2,
+			     0, 32,
+			     pcm_channels[dev], effect[dev], &gus);
+	if (err < 0)
+		return err;
+
+	err = snd_interwave_detect(iwcard, gus, dev
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef SNDRV_STB
             , &i2c_bus
 #endif
@@ -764,7 +781,12 @@ static int snd_interwave_isa_probe1(int dev, struct device *devptr)
 	if (err < 0)
 		return err;
 
+<<<<<<< HEAD
 	if ((err = snd_interwave_probe(card, dev)) < 0) {
+=======
+	err = snd_interwave_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -859,11 +881,21 @@ static int snd_interwave_pnp_detect(struct pnp_card_link *pcard,
 	if (res < 0)
 		return res;
 
+<<<<<<< HEAD
 	if ((res = snd_interwave_pnp(dev, card->private_data, pcard, pid)) < 0) {
 		snd_card_free(card);
 		return res;
 	}
 	if ((res = snd_interwave_probe(card, dev)) < 0) {
+=======
+	res = snd_interwave_pnp(dev, card->private_data, pcard, pid);
+	if (res < 0) {
+		snd_card_free(card);
+		return res;
+	}
+	res = snd_interwave_probe(card, dev);
+	if (res < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return res;
 	}

@@ -25,6 +25,10 @@
 #include "xfs_icache.h"
 #include "xfs_error.h"
 #include "xfs_buf_item.h"
+<<<<<<< HEAD
+=======
+#include "xfs_ag.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define BLK_AVG(blk1, blk2)	((blk1+blk2) >> 1)
 
@@ -3457,6 +3461,10 @@ xlog_recover_finish(
 			 * this) before we get around to xfs_log_mount_cancel.
 			 */
 			xlog_recover_cancel_intents(log);
+<<<<<<< HEAD
+=======
+			xfs_force_shutdown(log->l_mp, SHUTDOWN_LOG_IO_ERROR);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			xfs_alert(log->l_mp, "Failed to recover intents");
 			return error;
 		}

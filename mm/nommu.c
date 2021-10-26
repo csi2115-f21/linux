@@ -1306,7 +1306,11 @@ unsigned long ksys_mmap_pgoff(unsigned long addr, unsigned long len,
 			goto out;
 	}
 
+<<<<<<< HEAD
 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
+=======
+	flags &= ~MAP_DENYWRITE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
 

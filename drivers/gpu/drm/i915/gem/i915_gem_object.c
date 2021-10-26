@@ -228,6 +228,7 @@ static void __i915_gem_free_objects(struct drm_i915_private *i915,
 							       obj_link))) {
 				GEM_BUG_ON(vma->obj != obj);
 				spin_unlock(&obj->vma.lock);
+<<<<<<< HEAD
 
 				__i915_vma_put(vma);
 
@@ -252,6 +253,38 @@ static void __i915_gem_free_objects(struct drm_i915_private *i915,
 
 		if (obj->ops->release)
 			obj->ops->release(obj);
+=======
+
+				__i915_vma_put(vma);
+
+				spin_lock(&obj->vma.lock);
+			}
+			spin_unlock(&obj->vma.lock);
+		}
+
+		__i915_gem_object_free_mmaps(obj);
+
+		GEM_BUG_ON(!list_empty(&obj->lut_list));
+
+		atomic_set(&obj->mm.pages_pin_count, 0);
+		__i915_gem_object_put_pages(obj);
+		GEM_BUG_ON(i915_gem_object_has_pages(obj));
+		bitmap_free(obj->bit_17);
+
+		if (obj->base.import_attach)
+			drm_prime_gem_destroy(&obj->base, NULL);
+
+		drm_gem_free_mmap_offset(&obj->base);
+
+		if (obj->ops->release)
+			obj->ops->release(obj);
+
+		if (obj->mm.n_placements > 1)
+			kfree(obj->mm.placements);
+
+		if (obj->shares_resv_from)
+			i915_vm_resv_put(obj->shares_resv_from);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/* But keep the pointer alive for RCU-protected lookups */
 		call_rcu(&obj->rcu, __i915_gem_free_object_rcu);

@@ -18,6 +18,10 @@
 #include <linux/ptp_clock_kernel.h>
 #include <linux/timecounter.h>
 #include <linux/soc/marvell/octeontx2/asm.h>
+<<<<<<< HEAD
+=======
+#include <net/pkt_cls.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <mbox.h>
 #include <npc.h>
@@ -179,6 +183,10 @@ struct otx2_hw {
 
 	/* NIX */
 	u16		txschq_list[NIX_TXSCH_LVL_CNT][MAX_TXSCHQ_PER_FUNC];
+<<<<<<< HEAD
+=======
+	u16			matchall_ipolicer;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* HW settings, coalescing etc */
 	u16			rx_chan_base;
@@ -216,10 +224,22 @@ struct otx2_hw {
 	unsigned long		cap_flag;
 
 #define LMT_LINE_SIZE		128
+<<<<<<< HEAD
 #define NIX_LMTID_BASE		72 /* RX + TX + XDP */
 	void __iomem		*lmt_base;
 	u64			*npa_lmt_base;
 	u64			*nix_lmt_base;
+=======
+#define LMT_BURST_SIZE		32 /* 32 LMTST lines for burst SQE flush */
+	u64			*lmt_base;
+	u64			*npa_lmt_base;
+	u64			*nix_lmt_base;
+};
+
+enum vfperm {
+	OTX2_RESET_VF_PERM,
+	OTX2_TRUSTED_VF,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct otx2_vf_config {
@@ -260,6 +280,7 @@ struct otx2_mac_table {
 
 struct otx2_flow_config {
 	u16			entry[NPC_MAX_NONCONTIG_ENTRIES];
+<<<<<<< HEAD
 	u32			nr_flows;
 #define OTX2_MAX_NTUPLE_FLOWS	32
 #define OTX2_MAX_UNICAST_FLOWS	8
@@ -278,6 +299,42 @@ struct otx2_flow_config {
 	struct list_head	flow_list;
 };
 
+=======
+	u16			*flow_ent;
+	u16			*def_ent;
+	u16			nr_flows;
+#define OTX2_DEFAULT_FLOWCOUNT		16
+#define OTX2_MAX_UNICAST_FLOWS		8
+#define OTX2_MAX_VLAN_FLOWS		1
+#define OTX2_MAX_TC_FLOWS	OTX2_DEFAULT_FLOWCOUNT
+#define OTX2_MCAM_COUNT		(OTX2_DEFAULT_FLOWCOUNT + \
+				 OTX2_MAX_UNICAST_FLOWS + \
+				 OTX2_MAX_VLAN_FLOWS)
+	u16			ntuple_offset;
+	u16			unicast_offset;
+	u16			rx_vlan_offset;
+	u16			vf_vlan_offset;
+#define OTX2_PER_VF_VLAN_FLOWS	2 /* Rx + Tx per VF */
+#define OTX2_VF_VLAN_RX_INDEX	0
+#define OTX2_VF_VLAN_TX_INDEX	1
+	u16			tc_flower_offset;
+	u16                     ntuple_max_flows;
+	u16			tc_max_flows;
+	u8			dmacflt_max_flows;
+	u8			*bmap_to_dmacindex;
+	unsigned long		dmacflt_bmap;
+	struct list_head	flow_list;
+};
+
+struct otx2_tc_info {
+	/* hash table to store TC offloaded flows */
+	struct rhashtable		flow_table;
+	struct rhashtable_params	flow_ht_params;
+	DECLARE_BITMAP(tc_entries_bitmap, OTX2_MAX_TC_FLOWS);
+	unsigned long			num_entries;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct dev_hw_ops {
 	int	(*sq_aq_init)(void *dev, u16 qidx, u16 sqb_aura);
 	void	(*sqe_flush)(void *dev, struct otx2_snd_queue *sq,
@@ -347,6 +404,11 @@ struct otx2_nic {
 	struct hwtstamp_config	tstamp;
 
 	struct otx2_flow_config	*flow_cfg;
+<<<<<<< HEAD
+=======
+	struct otx2_tc_info	tc_info;
+	unsigned long		rq_bmap;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static inline bool is_otx2_lbkvf(struct pci_dev *pdev)
@@ -802,4 +864,19 @@ int otx2_add_macfilter(struct net_device *netdev, const u8 *mac);
 int otx2_enable_rxvlan(struct otx2_nic *pf, bool enable);
 int otx2_install_rxvlan_offload_flow(struct otx2_nic *pfvf);
 u16 otx2_get_max_mtu(struct otx2_nic *pfvf);
+<<<<<<< HEAD
+=======
+/* tc support */
+int otx2_init_tc(struct otx2_nic *nic);
+void otx2_shutdown_tc(struct otx2_nic *nic);
+int otx2_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+		  void *type_data);
+/* CGX/RPM DMAC filters support */
+int otx2_dmacflt_get_max_cnt(struct otx2_nic *pf);
+int otx2_dmacflt_add(struct otx2_nic *pf, const u8 *mac, u8 bit_pos);
+int otx2_dmacflt_remove(struct otx2_nic *pf, const u8 *mac, u8 bit_pos);
+int otx2_dmacflt_update(struct otx2_nic *pf, u8 *mac, u8 bit_pos);
+void otx2_dmacflt_reinstall_flows(struct otx2_nic *pf);
+void otx2_dmacflt_update_pfmac_flow(struct otx2_nic *pfvf);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* OTX2_COMMON_H */

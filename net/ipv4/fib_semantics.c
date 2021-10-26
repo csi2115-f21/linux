@@ -1710,11 +1710,27 @@ static int fib_add_multipath(struct sk_buff *skb, struct fib_info *fi)
 	for_nexthops(fi) {
 		if (fib_add_nexthop(skb, &nh->nh_common, nh->fib_nh_weight,
 				    AF_INET) < 0)
+<<<<<<< HEAD
+<<<<<<< HEAD
 			goto nla_put_failure;
 #ifdef CONFIG_IP_ROUTE_CLASSID
 		if (nh->nh_tclassid &&
 		    nla_put_u32(skb, RTA_FLOW, nh->nh_tclassid))
 			goto nla_put_failure;
+=======
+			goto nla_put_failure;
+#ifdef CONFIG_IP_ROUTE_CLASSID
+		if (nh->nh_tclassid &&
+		    nla_put_u32(skb, RTA_FLOW, nh->nh_tclassid))
+			goto nla_put_failure;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+=======
+			goto nla_put_failure;
+#ifdef CONFIG_IP_ROUTE_CLASSID
+		if (nh->nh_tclassid &&
+		    nla_put_u32(skb, RTA_FLOW, nh->nh_tclassid))
+			goto nla_put_failure;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 #endif
 	} endfor_nexthops(fi);
 

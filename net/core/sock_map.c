@@ -221,18 +221,39 @@ out:
 	return psock;
 }
 
+<<<<<<< HEAD
 static int sock_map_link(struct bpf_map *map, struct sk_psock_progs *progs,
 			 struct sock *sk)
+=======
+static bool sock_map_redirect_allowed(const struct sock *sk);
+
+static int sock_map_link(struct bpf_map *map, struct sock *sk)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct bpf_prog *msg_parser, *skb_parser, *skb_verdict;
 	struct sk_psock *psock;
 	int ret;
 
+<<<<<<< HEAD
 	skb_verdict = READ_ONCE(progs->skb_verdict);
 	if (skb_verdict) {
 		skb_verdict = bpf_prog_inc_not_zero(skb_verdict);
 		if (IS_ERR(skb_verdict))
 			return PTR_ERR(skb_verdict);
+=======
+	/* Only sockets we can redirect into/from in BPF need to hold
+	 * refs to parser/verdict progs and have their sk_data_ready
+	 * and sk_write_space callbacks overridden.
+	 */
+	if (!sock_map_redirect_allowed(sk))
+		goto no_progs;
+
+	stream_verdict = READ_ONCE(progs->stream_verdict);
+	if (stream_verdict) {
+		stream_verdict = bpf_prog_inc_not_zero(stream_verdict);
+		if (IS_ERR(stream_verdict))
+			return PTR_ERR(stream_verdict);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	skb_parser = READ_ONCE(progs->skb_parser);
@@ -253,6 +274,7 @@ static int sock_map_link(struct bpf_map *map, struct sk_psock_progs *progs,
 		}
 	}
 
+no_progs:
 	psock = sock_map_psock_get_checked(sk);
 	if (IS_ERR(psock)) {
 		ret = PTR_ERR(psock);

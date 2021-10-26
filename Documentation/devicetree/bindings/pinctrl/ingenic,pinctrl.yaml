@@ -17,10 +17,19 @@ description: >
   naming scheme "PxN" where x is a character identifying the GPIO port with
   which the pin is associated and N is an integer from 0 to 31 identifying the
   pin within that GPIO port. For example PA0 is the first pin in GPIO port A,
+<<<<<<< HEAD
   and PB31 is the last pin in GPIO port B. The JZ4740, the X1000 and the X1830
   contains 4 GPIO ports, PA to PD, for a total of 128 pins. The JZ4760, the
   JZ4770 and the JZ4780 contains 6 GPIO ports, PA to PF, for a total of 192
   pins.
+=======
+  and PB31 is the last pin in GPIO port B. The JZ4730, the JZ4740, the JZ4725B,
+  the X1000 and the X1830 contains 4 GPIO ports, PA to PD, for a total of 128
+  pins. The X2000 contains 5 GPIO ports, PA to PE, for a total of 160 pins.
+  The JZ4750, the JZ4755 the JZ4760, the JZ4770 and the JZ4780 contains 6 GPIO
+  ports, PA to PF, for a total of 192 pins. The JZ4775 contains 7 GPIO ports,
+  PA to PG, for a total of 224 pins.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 maintainers:
   - Paul Cercueil <paul@crapouillou.net>
@@ -40,6 +49,10 @@ properties:
           - ingenic,x1000-pinctrl
           - ingenic,x1500-pinctrl
           - ingenic,x1830-pinctrl
+<<<<<<< HEAD
+=======
+          - ingenic,x2000-pinctrl
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
       - items:
           - const: ingenic,jz4760b-pinctrl
           - const: ingenic,jz4760-pinctrl
@@ -70,6 +83,10 @@ patternProperties:
           - ingenic,x1000-gpio
           - ingenic,x1500-gpio
           - ingenic,x1830-gpio
+<<<<<<< HEAD
+=======
+          - ingenic,x2000-gpio
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
       reg:
         items:

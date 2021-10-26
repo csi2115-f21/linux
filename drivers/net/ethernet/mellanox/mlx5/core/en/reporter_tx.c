@@ -496,7 +496,11 @@ static int mlx5e_tx_reporter_dump_all_sqs(struct mlx5e_priv *priv,
 		}
 	}
 
+<<<<<<< HEAD
 	if (ptp_ch) {
+=======
+	if (ptp_ch && test_bit(MLX5E_PTP_STATE_TX, ptp_ch->state)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		for (tc = 0; tc < priv->channels.params.num_tc; tc++) {
 			struct mlx5e_txqsq *sq = &ptp_ch->ptpsq[tc].txqsq;
 

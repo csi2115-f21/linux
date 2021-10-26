@@ -25,6 +25,10 @@
 #include "util/string2.h"
 #include "util/perf_api_probe.h"
 #include "util/evsel_fprintf.h"
+<<<<<<< HEAD
+=======
+#include "util/evlist-hybrid.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <signal.h>
 #include <unistd.h>
 #include <sched.h>

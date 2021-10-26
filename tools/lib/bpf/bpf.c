@@ -636,7 +636,11 @@ int bpf_link_create(int prog_fd, int target_fd,
 	target_btf_id = OPTS_GET(opts, target_btf_id, 0);
 
 	if (iter_info_len && target_btf_id)
+<<<<<<< HEAD
 		return -EINVAL;
+=======
+		return libbpf_err(-EINVAL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memset(&attr, 0, sizeof(attr));
 	attr.link_create.prog_fd = prog_fd;
@@ -652,7 +656,12 @@ int bpf_link_create(int prog_fd, int target_fd,
 		attr.link_create.target_btf_id = target_btf_id;
 	}
 
+<<<<<<< HEAD
 	return sys_bpf(BPF_LINK_CREATE, &attr, sizeof(attr));
+=======
+	fd = sys_bpf(BPF_LINK_CREATE, &attr, sizeof(attr));
+	return libbpf_err_errno(fd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int bpf_link_detach(int link_fd)

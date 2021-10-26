@@ -1080,10 +1080,19 @@ static int snd_via82xx_create(struct snd_card *card,
 		.dev_free =	snd_via82xx_dev_free,
         };
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
 		return err;
 
 	if ((chip = kzalloc(sizeof(*chip), GFP_KERNEL)) == NULL) {
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+		return err;
+
+	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+	if (!chip) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
@@ -1093,7 +1102,12 @@ static int snd_via82xx_create(struct snd_card *card,
 	chip->pci = pci;
 	chip->irq = -1;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, card->driver)) < 0) {
+=======
+	err = pci_request_regions(pci, card->driver);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -1110,12 +1124,22 @@ static int snd_via82xx_create(struct snd_card *card,
 	if (ac97_clock >= 8000 && ac97_clock <= 48000)
 		chip->ac97_clock = ac97_clock;
 
+<<<<<<< HEAD
 	if ((err = snd_via82xx_chip_init(chip)) < 0) {
+=======
+	err = snd_via82xx_chip_init(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_via82xx_free(chip);
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_via82xx_free(chip);
 		return err;
 	}
@@ -1155,6 +1179,7 @@ static int snd_via82xx_probe(struct pci_dev *pci,
 		goto __error;
 	}
 		
+<<<<<<< HEAD
 	if ((err = snd_via82xx_create(card, pci, chip_type, pci->revision,
 				      ac97_clock, &chip)) < 0)
 		goto __error;
@@ -1163,6 +1188,19 @@ static int snd_via82xx_probe(struct pci_dev *pci,
 		goto __error;
 
 	if ((err = snd_via686_pcm_new(chip)) < 0 )
+=======
+	err = snd_via82xx_create(card, pci, chip_type, pci->revision,
+				 ac97_clock, &chip);
+	if (err < 0)
+		goto __error;
+	card->private_data = chip;
+	err = snd_via82xx_mixer_new(chip);
+	if (err < 0)
+		goto __error;
+
+	err = snd_via686_pcm_new(chip);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto __error;
 
 	/* disable interrupts */
@@ -1174,7 +1212,12 @@ static int snd_via82xx_probe(struct pci_dev *pci,
 
 	snd_via82xx_proc_init(chip);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

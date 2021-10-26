@@ -835,12 +835,38 @@ static bool can_mmap(struct drm_i915_gem_object *obj, enum i915_mmap_type type)
 		return false;
 
 	if (type != I915_MMAP_TYPE_GTT &&
+<<<<<<< HEAD
 	    !i915_gem_object_type_has(obj,
 				      I915_GEM_OBJECT_HAS_STRUCT_PAGE |
 				      I915_GEM_OBJECT_HAS_IOMEM))
 		return false;
 
 	return true;
+=======
+	    !i915_gem_object_has_struct_page(obj) &&
+	    !i915_gem_object_type_has(obj, I915_GEM_OBJECT_HAS_IOMEM))
+		return false;
+
+	return true;
+}
+
+static void object_set_placements(struct drm_i915_gem_object *obj,
+				  struct intel_memory_region **placements,
+				  unsigned int n_placements)
+{
+	GEM_BUG_ON(!n_placements);
+
+	if (n_placements == 1) {
+		struct drm_i915_private *i915 = to_i915(obj->base.dev);
+		struct intel_memory_region *mr = placements[0];
+
+		obj->mm.placements = &i915->mm.regions[mr->id];
+		obj->mm.n_placements = 1;
+	} else {
+		obj->mm.placements = placements;
+		obj->mm.n_placements = n_placements;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 #define expand32(x) (((x) << 0) | ((x) << 8) | ((x) << 16) | ((x) << 24))
@@ -951,6 +977,8 @@ static int igt_mmap(void *arg)
 			if (IS_ERR(obj))
 				return PTR_ERR(obj);
 
+			object_set_placements(obj, &mr, 1);
+
 			err = __igt_mmap(i915, obj, I915_MMAP_TYPE_GTT);
 			if (err == 0)
 				err = __igt_mmap(i915, obj, I915_MMAP_TYPE_WC);
@@ -977,10 +1005,15 @@ static const char *repr_mmap_type(enum i915_mmap_type type)
 
 static bool can_access(const struct drm_i915_gem_object *obj)
 {
+<<<<<<< HEAD
 	unsigned int flags =
 		I915_GEM_OBJECT_HAS_STRUCT_PAGE | I915_GEM_OBJECT_HAS_IOMEM;
 
 	return i915_gem_object_type_has(obj, flags);
+=======
+	return i915_gem_object_has_struct_page(obj) ||
+	       i915_gem_object_type_has(obj, I915_GEM_OBJECT_HAS_IOMEM);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int __igt_mmap_access(struct drm_i915_private *i915,
@@ -1070,6 +1103,8 @@ static int igt_mmap_access(void *arg)
 
 		if (IS_ERR(obj))
 			return PTR_ERR(obj);
+
+		object_set_placements(obj, &mr, 1);
 
 		err = __igt_mmap_access(i915, obj, I915_MMAP_TYPE_GTT);
 		if (err == 0)
@@ -1214,6 +1249,8 @@ static int igt_mmap_gpu(void *arg)
 		if (IS_ERR(obj))
 			return PTR_ERR(obj);
 
+		object_set_placements(obj, &mr, 1);
+
 		err = __igt_mmap_gpu(i915, obj, I915_MMAP_TYPE_GTT);
 		if (err == 0)
 			err = __igt_mmap_gpu(i915, obj, I915_MMAP_TYPE_WC);
@@ -1354,6 +1391,8 @@ static int igt_mmap_revoke(void *arg)
 
 		if (IS_ERR(obj))
 			return PTR_ERR(obj);
+
+		object_set_placements(obj, &mr, 1);
 
 		err = __igt_mmap_revoke(i915, obj, I915_MMAP_TYPE_GTT);
 		if (err == 0)

@@ -159,7 +159,11 @@ void mlx5e_arfs_destroy_tables(struct mlx5e_priv *priv)
 static int arfs_add_default_rule(struct mlx5e_priv *priv,
 				 enum arfs_type type)
 {
+<<<<<<< HEAD
 	struct arfs_table *arfs_t = &priv->fs.arfs.arfs_tables[type];
+=======
+	struct arfs_table *arfs_t = &priv->fs.arfs->arfs_tables[type];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlx5e_tir *tir = priv->indir_tir;
 	struct mlx5_flow_destination dest = {};
 	MLX5_DECLARE_FLOW_ACT(flow_act);

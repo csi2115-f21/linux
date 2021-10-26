@@ -150,7 +150,12 @@ enum dc_irq_source {
 	DC_IRQ_SOURCE_DC4_VLINE1,
 	DC_IRQ_SOURCE_DC5_VLINE1,
 	DC_IRQ_SOURCE_DC6_VLINE1,
+<<<<<<< HEAD
 
+=======
+	DC_IRQ_SOURCE_DMCUB_OUTBOX,
+	DC_IRQ_SOURCE_DMCUB_OUTBOX0,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	DAL_IRQ_SOURCES_NUMBER
 };

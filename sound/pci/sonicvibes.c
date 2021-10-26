@@ -1227,7 +1227,12 @@ static int snd_sonicvibes_create(struct snd_card *card,
 
 	*rsonic = NULL;
 	/* enable PCI device */
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 	/* check, if we can restrict PCI DMA transfers to 24 bits */
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(24))) {
@@ -1247,7 +1252,12 @@ static int snd_sonicvibes_create(struct snd_card *card,
 	sonic->pci = pci;
 	sonic->irq = -1;
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "S3 SonicVibes")) < 0) {
+=======
+	err = pci_request_regions(pci, "S3 SonicVibes");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(sonic);
 		pci_disable_device(pci);
 		return err;
@@ -1290,14 +1300,24 @@ static int snd_sonicvibes_create(struct snd_card *card,
 	pci_write_config_dword(pci, 0x40, dmaa);
 	pci_write_config_dword(pci, 0x48, dmac);
 
+<<<<<<< HEAD
 	if ((sonic->res_dmaa = request_region(dmaa, 0x10, "S3 SonicVibes DDMA-A")) == NULL) {
+=======
+	sonic->res_dmaa = request_region(dmaa, 0x10, "S3 SonicVibes DDMA-A");
+	if (!sonic->res_dmaa) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_sonicvibes_free(sonic);
 		dev_err(card->dev,
 			"unable to grab DDMA-A port at 0x%x-0x%x\n",
 			dmaa, dmaa + 0x10 - 1);
 		return -EBUSY;
 	}
+<<<<<<< HEAD
 	if ((sonic->res_dmac = request_region(dmac, 0x10, "S3 SonicVibes DDMA-C")) == NULL) {
+=======
+	sonic->res_dmac = request_region(dmac, 0x10, "S3 SonicVibes DDMA-C");
+	if (!sonic->res_dmac) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_sonicvibes_free(sonic);
 		dev_err(card->dev,
 			"unable to grab DDMA-C port at 0x%x-0x%x\n",
@@ -1359,7 +1379,12 @@ static int snd_sonicvibes_create(struct snd_card *card,
 #endif
 	sonic->revision = snd_sonicvibes_in(sonic, SV_IREG_REVISION);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, sonic, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, sonic, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_sonicvibes_free(sonic);
 		return err;
 	}
@@ -1440,10 +1465,18 @@ static int snd_sonic_probe(struct pci_dev *pci,
 			return -ENODEV;
 		}
 	}
+<<<<<<< HEAD
 	if ((err = snd_sonicvibes_create(card, pci,
 					 reverb[dev] ? 1 : 0,
 					 mge[dev] ? 1 : 0,
 					 &sonic)) < 0) {
+=======
+	err = snd_sonicvibes_create(card, pci,
+				    reverb[dev] ? 1 : 0,
+				    mge[dev] ? 1 : 0,
+				    &sonic);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1456,6 +1489,7 @@ static int snd_sonic_probe(struct pci_dev *pci,
 		(unsigned long long)pci_resource_start(pci, 1),
 		sonic->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_sonicvibes_pcm(sonic, 0)) < 0) {
 		snd_card_free(card);
 		return err;
@@ -1469,10 +1503,29 @@ static int snd_sonic_probe(struct pci_dev *pci,
 				       MPU401_INFO_INTEGRATED |
 				       MPU401_INFO_IRQ_HOOK,
 				       -1, &midi_uart)) < 0) {
+=======
+	err = snd_sonicvibes_pcm(sonic, 0);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_sonicvibes_mixer(sonic);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_mpu401_uart_new(card, 0, MPU401_HW_SONICVIBES,
+				  sonic->midi_port,
+				  MPU401_INFO_INTEGRATED |
+				  MPU401_INFO_IRQ_HOOK,
+				  -1, &midi_uart);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
 	snd_sonicvibes_midi(sonic, midi_uart);
+<<<<<<< HEAD
 	if ((err = snd_opl3_create(card, sonic->synth_port,
 				   sonic->synth_port + 2,
 				   OPL3_HW_OPL3_SV, 1, &opl3)) < 0) {
@@ -1480,6 +1533,17 @@ static int snd_sonic_probe(struct pci_dev *pci,
 		return err;
 	}
 	if ((err = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+	err = snd_opl3_create(card, sonic->synth_port,
+			      sonic->synth_port + 2,
+			      OPL3_HW_OPL3_SV, 1, &opl3);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -1490,7 +1554,12 @@ static int snd_sonic_probe(struct pci_dev *pci,
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

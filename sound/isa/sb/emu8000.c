@@ -1093,9 +1093,16 @@ snd_emu8000_new(struct snd_card *card, int index, long port, int seq_ports,
 	hw->port1 = port;
 	hw->port2 = port + 0x400;
 	hw->port3 = port + 0x800;
+<<<<<<< HEAD
 	if (!(hw->res_port1 = request_region(hw->port1, 4, "Emu8000-1")) ||
 	    !(hw->res_port2 = request_region(hw->port2, 4, "Emu8000-2")) ||
 	    !(hw->res_port3 = request_region(hw->port3, 4, "Emu8000-3"))) {
+=======
+	hw->res_port1 = request_region(hw->port1, 4, "Emu8000-1");
+	hw->res_port2 = request_region(hw->port2, 4, "Emu8000-2");
+	hw->res_port3 = request_region(hw->port3, 4, "Emu8000-3");
+	if (!hw->res_port1 || !hw->res_port2 || !hw->res_port3) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_printk(KERN_ERR "sbawe: can't grab ports 0x%lx, 0x%lx, 0x%lx\n", hw->port1, hw->port2, hw->port3);
 		snd_emu8000_free(hw);
 		return -EBUSY;
@@ -1116,12 +1123,22 @@ snd_emu8000_new(struct snd_card *card, int index, long port, int seq_ports,
 	}
 
 	snd_emu8000_init_hw(hw);
+<<<<<<< HEAD
 	if ((err = snd_emu8000_create_mixer(card, hw)) < 0) {
+=======
+	err = snd_emu8000_create_mixer(card, hw);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_emu8000_free(hw);
 		return err;
 	}
 	
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_CODEC, hw, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_CODEC, hw, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_emu8000_free(hw);
 		return err;
 	}

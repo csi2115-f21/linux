@@ -1798,7 +1798,12 @@ static int snd_riptide_free(struct snd_riptide *chip)
 	if (!chip)
 		return 0;
 
+<<<<<<< HEAD
 	if ((cif = chip->cif)) {
+=======
+	cif = chip->cif;
+	if (cif) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		SET_GRESET(cif->hwport);
 		udelay(100);
 		UNSET_GRESET(cif->hwport);
@@ -1831,9 +1836,17 @@ snd_riptide_create(struct snd_card *card, struct pci_dev *pci,
 	};
 
 	*rchip = NULL;
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
 		return err;
 	if (!(chip = kzalloc(sizeof(struct snd_riptide), GFP_KERNEL)))
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+		return err;
+	chip = kzalloc(sizeof(struct snd_riptide), GFP_KERNEL);
+	if (!chip)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 
 	spin_lock_init(&chip->lock);
@@ -1846,8 +1859,13 @@ snd_riptide_create(struct snd_card *card, struct pci_dev *pci,
 	chip->handled_irqs = 0;
 	chip->cif = NULL;
 
+<<<<<<< HEAD
 	if ((chip->res_port =
 	     request_region(chip->port, 64, "RIPTIDE")) == NULL) {
+=======
+	chip->res_port = request_region(chip->port, 64, "RIPTIDE");
+	if (!chip->res_port) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_printk(KERN_ERR
 			   "Riptide: unable to grab region 0x%lx-0x%lx\n",
 			   chip->port, chip->port + 64 - 1);
@@ -1869,6 +1887,7 @@ snd_riptide_create(struct snd_card *card, struct pci_dev *pci,
 	card->sync_irq = chip->irq;
 	chip->device_id = pci->device;
 	pci_set_master(pci);
+<<<<<<< HEAD
 	if ((err = snd_riptide_initialize(chip)) < 0) {
 		snd_riptide_free(chip);
 		return err;
@@ -1879,6 +1898,20 @@ snd_riptide_create(struct snd_card *card, struct pci_dev *pci,
 		return err;
 	}
 
+=======
+	err = snd_riptide_initialize(chip);
+	if (err < 0) {
+		snd_riptide_free(chip);
+		return err;
+	}
+
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+		snd_riptide_free(chip);
+		return err;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	*rchip = chip;
 	return 0;
 }

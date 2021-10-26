@@ -570,6 +570,10 @@
 		NOINSTR_TEXT						\
 		*(.text..refcount)					\
 		*(.ref.text)						\
+<<<<<<< HEAD
+=======
+		TEXT_CFI_JT						\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	MEM_KEEP(init.text*)						\
 	MEM_KEEP(exit.text*)						\
 

@@ -192,11 +192,18 @@ static int bgmac_probe(struct platform_device *pdev)
 	bgmac->dev = &pdev->dev;
 	bgmac->dma_dev = &pdev->dev;
 
+<<<<<<< HEAD
 	mac_addr = of_get_mac_address(np);
 	if (!IS_ERR(mac_addr))
 		ether_addr_copy(bgmac->net_dev->dev_addr, mac_addr);
 	else
 		dev_warn(&pdev->dev, "MAC address not present in device tree\n");
+=======
+	ret = of_get_mac_address(np, bgmac->net_dev->dev_addr);
+	if (ret)
+		dev_warn(&pdev->dev,
+			 "MAC address not present in device tree\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	bgmac->irq = platform_get_irq(pdev, 0);
 	if (bgmac->irq < 0)

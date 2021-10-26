@@ -323,6 +323,22 @@ retry:
 			 */
 			goto retry;
 		}
+<<<<<<< HEAD
+=======
+		dm_put(md);
+		if (likely(keep_open_devices))
+			dm_destroy(md);
+		else
+			dm_destroy_immediate(md);
+
+		/*
+		 * Some mapped devices may be using other mapped
+		 * devices, so repeat until we make no further
+		 * progress.  If a new mapped device is created
+		 * here it will also get removed.
+		 */
+		goto retry;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	up_write(&_hash_lock);

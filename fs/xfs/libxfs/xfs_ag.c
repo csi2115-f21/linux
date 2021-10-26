@@ -38,7 +38,10 @@ xfs_get_aghdr_buf(
 	if (error)
 		return error;
 
+<<<<<<< HEAD
 	xfs_buf_zero(bp, 0, BBTOB(bp->b_length));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	bp->b_bn = blkno;
 	bp->b_maps[0].bm_bn = blkno;
 	bp->b_ops = ops;

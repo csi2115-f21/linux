@@ -1159,6 +1159,7 @@ static void snd_atiixp_proc_init(struct atiixp_modem *chip)
  */
 
 static int snd_atiixp_free(struct atiixp_modem *chip)
+<<<<<<< HEAD
 {
 	if (chip->irq < 0)
 		goto __hw_end;
@@ -1176,6 +1177,25 @@ static int snd_atiixp_free(struct atiixp_modem *chip)
 
 static int snd_atiixp_dev_free(struct snd_device *device)
 {
+=======
+{
+	if (chip->irq < 0)
+		goto __hw_end;
+	snd_atiixp_chip_stop(chip);
+
+      __hw_end:
+	if (chip->irq >= 0)
+		free_irq(chip->irq, chip);
+	iounmap(chip->remap_addr);
+	pci_release_regions(chip->pci);
+	pci_disable_device(chip->pci);
+	kfree(chip);
+	return 0;
+}
+
+static int snd_atiixp_dev_free(struct snd_device *device)
+{
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct atiixp_modem *chip = device->device_data;
 	return snd_atiixp_free(chip);
 }
@@ -1193,7 +1213,12 @@ static int snd_atiixp_create(struct snd_card *card,
 	struct atiixp_modem *chip;
 	int err;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
@@ -1207,7 +1232,12 @@ static int snd_atiixp_create(struct snd_card *card,
 	chip->card = card;
 	chip->pci = pci;
 	chip->irq = -1;
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "ATI IXP MC97")) < 0) {
+=======
+	err = pci_request_regions(pci, "ATI IXP MC97");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -1230,7 +1260,12 @@ static int snd_atiixp_create(struct snd_card *card,
 	card->sync_irq = chip->irq;
 	pci_set_master(pci);
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_atiixp_free(chip);
 		return err;
 	}
@@ -1253,6 +1288,7 @@ static int snd_atiixp_probe(struct pci_dev *pci,
 
 	strcpy(card->driver, "ATIIXP-MODEM");
 	strcpy(card->shortname, "ATI IXP Modem");
+<<<<<<< HEAD
 	if ((err = snd_atiixp_create(card, pci, &chip)) < 0)
 		goto __error;
 	card->private_data = chip;
@@ -1264,6 +1300,23 @@ static int snd_atiixp_probe(struct pci_dev *pci,
 		goto __error;
 
 	if ((err = snd_atiixp_pcm_new(chip)) < 0)
+=======
+	err = snd_atiixp_create(card, pci, &chip);
+	if (err < 0)
+		goto __error;
+	card->private_data = chip;
+
+	err = snd_atiixp_aclink_reset(chip);
+	if (err < 0)
+		goto __error;
+
+	err = snd_atiixp_mixer_new(chip, ac97_clock);
+	if (err < 0)
+		goto __error;
+
+	err = snd_atiixp_pcm_new(chip);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto __error;
 	
 	snd_atiixp_proc_init(chip);
@@ -1273,7 +1326,12 @@ static int snd_atiixp_probe(struct pci_dev *pci,
 	sprintf(card->longname, "%s rev %x at 0x%lx, irq %i",
 		card->shortname, pci->revision, chip->addr, chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0)
+=======
+	err = snd_card_register(card);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto __error;
 
 	pci_set_drvdata(pci, card);

@@ -1100,6 +1100,11 @@ int iommu_take_ownership(struct iommu_table *tbl)
 
 	iommu_table_release_pages(tbl);
 
+<<<<<<< HEAD
+=======
+	iommu_table_release_pages(tbl);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!bitmap_empty(tbl->it_map, tbl->it_size)) {
 		pr_err("iommu_tce: it_map is not empty");
 		ret = -EBUSY;

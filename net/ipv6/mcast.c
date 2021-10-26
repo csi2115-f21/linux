@@ -420,7 +420,11 @@ int ip6_mc_source(int add, int omode, struct sock *sk,
 
 		if (psl)
 			count += psl->sl_max;
+<<<<<<< HEAD
 		newpsl = sock_kmalloc(sk, IP6_SFLSIZE(count), GFP_ATOMIC);
+=======
+		newpsl = sock_kmalloc(sk, IP6_SFLSIZE(count), GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!newpsl) {
 			err = -ENOBUFS;
 			goto done;
@@ -430,7 +434,12 @@ int ip6_mc_source(int add, int omode, struct sock *sk,
 		if (psl) {
 			for (i = 0; i < psl->sl_count; i++)
 				newpsl->sl_addr[i] = psl->sl_addr[i];
+<<<<<<< HEAD
 			sock_kfree_s(sk, psl, IP6_SFLSIZE(psl->sl_max));
+=======
+			atomic_sub(IP6_SFLSIZE(psl->sl_max), &sk->sk_omem_alloc);
+			kfree_rcu(psl, rcu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		pmc->sflist = psl = newpsl;
 	}
@@ -504,7 +513,11 @@ int ip6_mc_msfilter(struct sock *sk, struct group_filter *gsf,
 	}
 	if (gsf->gf_numsrc) {
 		newpsl = sock_kmalloc(sk, IP6_SFLSIZE(gsf->gf_numsrc),
+<<<<<<< HEAD
 							  GFP_ATOMIC);
+=======
+							  GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (!newpsl) {
 			err = -ENOBUFS;
 			goto done;
@@ -519,6 +532,10 @@ int ip6_mc_msfilter(struct sock *sk, struct group_filter *gsf,
 		err = ip6_mc_add_src(idev, group, gsf->gf_fmode,
 			newpsl->sl_count, newpsl->sl_addr, 0);
 		if (err) {
+<<<<<<< HEAD
+=======
+			mutex_unlock(&idev->mc_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			sock_kfree_s(sk, newpsl, IP6_SFLSIZE(newpsl->sl_max));
 			goto done;
 		}
@@ -530,12 +547,24 @@ int ip6_mc_msfilter(struct sock *sk, struct group_filter *gsf,
 	write_lock(&pmc->sflock);
 	psl = pmc->sflist;
 	if (psl) {
+<<<<<<< HEAD
 		(void) ip6_mc_del_src(idev, group, pmc->sfmode,
 			psl->sl_count, psl->sl_addr, 0);
 		sock_kfree_s(sk, psl, IP6_SFLSIZE(psl->sl_max));
 	} else
 		(void) ip6_mc_del_src(idev, group, pmc->sfmode, 0, NULL, 0);
 	pmc->sflist = newpsl;
+=======
+		ip6_mc_del_src(idev, group, pmc->sfmode,
+			       psl->sl_count, psl->sl_addr, 0);
+		atomic_sub(IP6_SFLSIZE(psl->sl_max), &sk->sk_omem_alloc);
+		kfree_rcu(psl, rcu);
+	} else {
+		ip6_mc_del_src(idev, group, pmc->sfmode, 0, NULL, 0);
+	}
+	mutex_unlock(&idev->mc_lock);
+	rcu_assign_pointer(pmc->sflist, newpsl);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmc->sfmode = gsf->gf_fmode;
 	write_unlock(&pmc->sflock);
 	err = 0;
@@ -1392,7 +1421,11 @@ int igmp6_event_query(struct sk_buff *skb)
 
 		err = mld_process_v2(idev, mlh2, &max_delay);
 		if (err < 0)
+<<<<<<< HEAD
 			return err;
+=======
+			goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (group_type == IPV6_ADDR_ANY) { /* general query */
 			if (mlh2->mld2q_nsrcs)
@@ -2438,9 +2471,16 @@ static int ip6_mc_leave_src(struct sock *sk, struct ipv6_mc_socklist *iml,
 		err = ip6_mc_del_src(idev, &iml->addr, iml->sfmode, 0, NULL, 0);
 	} else {
 		err = ip6_mc_del_src(idev, &iml->addr, iml->sfmode,
+<<<<<<< HEAD
 				iml->sflist->sl_count, iml->sflist->sl_addr, 0);
 		sock_kfree_s(sk, iml->sflist, IP6_SFLSIZE(iml->sflist->sl_max));
 		iml->sflist = NULL;
+=======
+				     psl->sl_count, psl->sl_addr, 0);
+		RCU_INIT_POINTER(iml->sflist, NULL);
+		atomic_sub(IP6_SFLSIZE(psl->sl_max), &sk->sk_omem_alloc);
+		kfree_rcu(psl, rcu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	write_unlock_bh(&iml->sflock);
 	return err;

@@ -685,7 +685,12 @@ static int cal_camerarx_sd_get_fmt(struct v4l2_subdev *sd,
 	struct cal_camerarx *phy = to_cal_camerarx(sd);
 	struct v4l2_mbus_framefmt *fmt;
 
+<<<<<<< HEAD
 	fmt = cal_camerarx_get_pad_format(phy, cfg, format->pad, format->which);
+=======
+	fmt = cal_camerarx_get_pad_format(phy, sd_state, format->pad,
+					  format->which);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	format->format = *fmt;
 
 	return 0;
@@ -702,7 +707,11 @@ static int cal_camerarx_sd_set_fmt(struct v4l2_subdev *sd,
 
 	/* No transcoding, source and sink formats must match. */
 	if (format->pad == CAL_CAMERARX_PAD_SOURCE)
+<<<<<<< HEAD
 		return cal_camerarx_sd_get_fmt(sd, cfg, format);
+=======
+		return cal_camerarx_sd_get_fmt(sd, sd_state, format);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Default to the first format is the requested media bus code isn't
@@ -727,11 +736,21 @@ static int cal_camerarx_sd_set_fmt(struct v4l2_subdev *sd,
 	format->format.code = fmtinfo->code;
 
 	/* Store the format and propagate it to the source pad. */
+<<<<<<< HEAD
 	fmt = cal_camerarx_get_pad_format(phy, cfg, CAL_CAMERARX_PAD_SINK,
 					  format->which);
 	*fmt = format->format;
 
 	fmt = cal_camerarx_get_pad_format(phy, cfg, CAL_CAMERARX_PAD_SOURCE,
+=======
+	fmt = cal_camerarx_get_pad_format(phy, sd_state,
+					  CAL_CAMERARX_PAD_SINK,
+					  format->which);
+	*fmt = format->format;
+
+	fmt = cal_camerarx_get_pad_format(phy, sd_state,
+					  CAL_CAMERARX_PAD_SOURCE,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					  format->which);
 	*fmt = format->format;
 

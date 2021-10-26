@@ -128,7 +128,11 @@ static u32 read_clock_frequency(struct intel_uncore *uncore)
 		} else {
 			u32 c0 = intel_uncore_read(uncore, RPM_CONFIG0);
 
+<<<<<<< HEAD
 			if (INTEL_GEN(uncore->i915) <= 10)
+=======
+			if (GRAPHICS_VER(uncore->i915) <= 10)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				freq = gen10_get_crystal_clock_freq(uncore, c0);
 			else
 				freq = gen11_get_crystal_clock_freq(uncore, c0);

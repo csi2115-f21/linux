@@ -325,7 +325,18 @@ active_instance(struct i915_active *ref, u64 idx)
 			p = &parent->rb_left;
 	}
 
+<<<<<<< HEAD
 	node = prealloc;
+=======
+	/*
+	 * XXX: We should preallocate this before i915_active_ref() is ever
+	 *  called, but we cannot call into fs_reclaim() anyway, so use GFP_ATOMIC.
+	 */
+	node = kmem_cache_alloc(global.slab_cache, GFP_ATOMIC);
+	if (!node)
+		goto out;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__i915_active_fence_init(&node->base, NULL, node_retire);
 	node->ref = ref;
 	node->timeline = idx;
@@ -1180,6 +1191,7 @@ struct i915_active *i915_active_create(void)
 #endif
 
 static void i915_global_active_shrink(void)
+<<<<<<< HEAD
 {
 	kmem_cache_shrink(global.slab_cache);
 }
@@ -1196,6 +1208,24 @@ static struct i915_global_active global = { {
 
 int __init i915_global_active_init(void)
 {
+=======
+{
+	kmem_cache_shrink(global.slab_cache);
+}
+
+static void i915_global_active_exit(void)
+{
+	kmem_cache_destroy(global.slab_cache);
+}
+
+static struct i915_global_active global = { {
+	.shrink = i915_global_active_shrink,
+	.exit = i915_global_active_exit,
+} };
+
+int __init i915_global_active_init(void)
+{
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	global.slab_cache = KMEM_CACHE(active_node, SLAB_HWCACHE_ALIGN);
 	if (!global.slab_cache)
 		return -ENOMEM;

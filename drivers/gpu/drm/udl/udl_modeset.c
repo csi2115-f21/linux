@@ -271,6 +271,10 @@ static int udl_handle_damage(struct drm_framebuffer *fb, int x, int y,
 {
 	struct drm_device *dev = fb->dev;
 	struct dma_buf_attachment *import_attach = fb->obj[0]->import_attach;
+<<<<<<< HEAD
+=======
+	void *vaddr = map->vaddr; /* TODO: Use mapping abstraction properly */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int i, ret, tmp_ret;
 	char *cmd;
 	struct urb *urb;
@@ -296,6 +300,7 @@ static int udl_handle_damage(struct drm_framebuffer *fb, int x, int y,
 		if (ret)
 			return ret;
 	}
+<<<<<<< HEAD
 
 	ret = drm_gem_shmem_vmap(fb->obj[0], &map);
 	if (ret) {
@@ -303,11 +308,17 @@ static int udl_handle_damage(struct drm_framebuffer *fb, int x, int y,
 		goto out_dma_buf_end_cpu_access;
 	}
 	vaddr = map.vaddr; /* TODO: Use mapping abstraction properly */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	urb = udl_get_urb(dev);
 	if (!urb) {
 		ret = -ENOMEM;
+<<<<<<< HEAD
 		goto out_drm_gem_shmem_vunmap;
+=======
+		goto out_dma_buf_end_cpu_access;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	cmd = urb->transfer_buffer;
 
@@ -320,7 +331,11 @@ static int udl_handle_damage(struct drm_framebuffer *fb, int x, int y,
 				       &cmd, byte_offset, dev_byte_offset,
 				       byte_width);
 		if (ret)
+<<<<<<< HEAD
 			goto out_drm_gem_shmem_vunmap;
+=======
+			goto out_dma_buf_end_cpu_access;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (cmd > (char *)urb->transfer_buffer) {
@@ -336,8 +351,11 @@ static int udl_handle_damage(struct drm_framebuffer *fb, int x, int y,
 
 	ret = 0;
 
+<<<<<<< HEAD
 out_drm_gem_shmem_vunmap:
 	drm_gem_shmem_vunmap(fb->obj[0], &map);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 out_dma_buf_end_cpu_access:
 	if (import_attach) {
 		tmp_ret = dma_buf_end_cpu_access(import_attach->dmabuf,
@@ -400,7 +418,11 @@ udl_simple_display_pipe_enable(struct drm_simple_display_pipe *pipe,
 
 	udl->mode_buf_len = wrptr - buf;
 
+<<<<<<< HEAD
 	udl_handle_damage(fb, 0, 0, fb->width, fb->height);
+=======
+	udl_handle_damage(fb, &shadow_plane_state->map[0], 0, 0, fb->width, fb->height);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!crtc_state->mode_changed)
 		return;
@@ -442,8 +464,13 @@ udl_simple_display_pipe_update(struct drm_simple_display_pipe *pipe,
 		return;
 
 	if (drm_atomic_helper_damage_merged(old_plane_state, state, &rect))
+<<<<<<< HEAD
 		udl_handle_damage(fb, rect.x1, rect.y1, rect.x2 - rect.x1,
 				  rect.y2 - rect.y1);
+=======
+		udl_handle_damage(fb, &shadow_plane_state->map[0], rect.x1, rect.y1,
+				  rect.x2 - rect.x1, rect.y2 - rect.y1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const

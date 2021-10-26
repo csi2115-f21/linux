@@ -181,12 +181,26 @@ int dsa_port_enable_rt(struct dsa_port *dp, struct phy_device *phy);
 int dsa_port_enable(struct dsa_port *dp, struct phy_device *phy);
 void dsa_port_disable_rt(struct dsa_port *dp);
 void dsa_port_disable(struct dsa_port *dp);
+<<<<<<< HEAD
 int dsa_port_bridge_join(struct dsa_port *dp, struct net_device *br);
+=======
+int dsa_port_bridge_join(struct dsa_port *dp, struct net_device *br,
+			 struct netlink_ext_ack *extack);
+int dsa_port_pre_bridge_leave(struct dsa_port *dp, struct net_device *br,
+			      struct netlink_ext_ack *extack);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void dsa_port_bridge_leave(struct dsa_port *dp, struct net_device *br);
 int dsa_port_lag_change(struct dsa_port *dp,
 			struct netdev_lag_lower_state_info *linfo);
 int dsa_port_lag_join(struct dsa_port *dp, struct net_device *lag_dev,
+<<<<<<< HEAD
 		      struct netdev_lag_upper_info *uinfo);
+=======
+		      struct netdev_lag_upper_info *uinfo,
+		      struct netlink_ext_ack *extack);
+int dsa_port_pre_lag_leave(struct dsa_port *dp, struct net_device *lag_dev,
+			   struct netlink_ext_ack *extack);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void dsa_port_lag_leave(struct dsa_port *dp, struct net_device *lag_dev);
 int dsa_port_vlan_filtering(struct dsa_port *dp, bool vlan_filtering,
 			    struct netlink_ext_ack *extack);
@@ -230,11 +244,17 @@ int dsa_port_hsr_join(struct dsa_port *dp, struct net_device *hsr);
 void dsa_port_hsr_leave(struct dsa_port *dp, struct net_device *hsr);
 extern const struct phylink_mac_ops dsa_port_phylink_mac_ops;
 
+<<<<<<< HEAD
 static inline bool dsa_port_offloads_netdev(struct dsa_port *dp,
 					    struct net_device *dev)
+=======
+static inline bool dsa_port_offloads_bridge_port(struct dsa_port *dp,
+						 struct net_device *dev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	/* Switchdev offloading can be configured on: */
 
+<<<<<<< HEAD
 	if (dev == dp->slave)
 		/* DSA ports directly connected to a bridge, and event
 		 * was emitted for the ports themselves.
@@ -246,6 +266,22 @@ static inline bool dsa_port_offloads_netdev(struct dsa_port *dp,
 		 * for the bridge.
 		 */
 		return true;
+=======
+static inline bool dsa_port_offloads_bridge(struct dsa_port *dp,
+					    struct net_device *bridge_dev)
+{
+	/* DSA ports connected to a bridge, and event was emitted
+	 * for the bridge.
+	 */
+	return dp->bridge_dev == bridge_dev;
+}
+
+/* Returns true if any port of this tree offloads the given net_device */
+static inline bool dsa_tree_offloads_bridge_port(struct dsa_switch_tree *dst,
+						 struct net_device *dev)
+{
+	struct dsa_port *dp;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (dp->lag_dev == dev)
 		/* DSA ports connected to a bridge via a LAG */
@@ -254,6 +290,7 @@ static inline bool dsa_port_offloads_netdev(struct dsa_port *dp,
 	return false;
 }
 
+<<<<<<< HEAD
 /* Returns true if any port of this tree offloads the given net_device */
 static inline bool dsa_tree_offloads_netdev(struct dsa_switch_tree *dst,
 					    struct net_device *dev)
@@ -267,6 +304,8 @@ static inline bool dsa_tree_offloads_netdev(struct dsa_switch_tree *dst,
 	return false;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* slave.c */
 extern const struct dsa_device_ops notag_netdev_ops;
 void dsa_slave_mii_bus_init(struct dsa_switch *ds);

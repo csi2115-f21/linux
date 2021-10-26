@@ -198,6 +198,10 @@ struct generic_pm_domain_data {
 	struct notifier_block *power_nb;
 	int cpu;
 	unsigned int performance_state;
+<<<<<<< HEAD
+=======
+	unsigned int rpm_pstate;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ktime_t	next_wakeup;
 	void *data;
 };

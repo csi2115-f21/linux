@@ -14,6 +14,10 @@
 #include <linux/libfdt.h>
 #include <linux/set_memory.h>
 #include <linux/dma-map-ops.h>
+<<<<<<< HEAD
+=======
+#include <linux/crash_dump.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <asm/fixmap.h>
 #include <asm/tlbflush.h>
@@ -123,7 +127,14 @@ void __init setup_bootmem(void)
 	 * memblock allocator is not aware of the fact that last 4K bytes of
 	 * the addressable memory can not be mapped because of IS_ERR_VALUE
 	 * macro. Make sure that last 4k bytes are not usable by memblock
+<<<<<<< HEAD
 	 * if end of dram is equal to maximum addressable memory.
+=======
+	 * if end of dram is equal to maximum addressable memory.  For 64-bit
+	 * kernel, this problem can't happen here as the end of the virtual
+	 * address space is occupied by the kernel mapping then this check must
+	 * be done in create_kernel_page_table.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 */
 	if (max_mapped_addr == (dram_end - 1))
 		memblock_set_current_limit(max_mapped_addr - 4096);
@@ -151,9 +162,19 @@ void __init setup_bootmem(void)
 #ifdef CONFIG_MMU
 static struct pt_alloc_ops pt_ops;
 
+<<<<<<< HEAD
 unsigned long va_pa_offset;
 EXPORT_SYMBOL(va_pa_offset);
 unsigned long pfn_base;
+=======
+#ifdef CONFIG_XIP_KERNEL
+#define pt_ops (*(struct pt_alloc_ops *)XIP_FIXUP(&_pt_ops))
+#else
+#define pt_ops _pt_ops
+#endif
+
+unsigned long pfn_base __ro_after_init;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 EXPORT_SYMBOL(pfn_base);
 
 pgd_t swapper_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
@@ -161,6 +182,15 @@ pgd_t trampoline_pg_dir[PTRS_PER_PGD] __page_aligned_bss;
 pte_t fixmap_pte[PTRS_PER_PTE] __page_aligned_bss;
 
 pgd_t early_pg_dir[PTRS_PER_PGD] __initdata __aligned(PAGE_SIZE);
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_XIP_KERNEL
+#define trampoline_pg_dir      ((pgd_t *)XIP_FIXUP(trampoline_pg_dir))
+#define fixmap_pte             ((pte_t *)XIP_FIXUP(fixmap_pte))
+#define early_pg_dir           ((pgd_t *)XIP_FIXUP(early_pg_dir))
+#endif /* CONFIG_XIP_KERNEL */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot)
 {
@@ -232,10 +262,23 @@ static void __init create_pte_mapping(pte_t *ptep,
 
 #ifndef __PAGETABLE_PMD_FOLDED
 
+<<<<<<< HEAD
 pmd_t trampoline_pmd[PTRS_PER_PMD] __page_aligned_bss;
 pmd_t fixmap_pmd[PTRS_PER_PMD] __page_aligned_bss;
 pmd_t early_pmd[PTRS_PER_PMD] __initdata __aligned(PAGE_SIZE);
 pmd_t early_dtb_pmd[PTRS_PER_PMD] __initdata __aligned(PAGE_SIZE);
+=======
+static pmd_t trampoline_pmd[PTRS_PER_PMD] __page_aligned_bss;
+static pmd_t fixmap_pmd[PTRS_PER_PMD] __page_aligned_bss;
+static pmd_t early_pmd[PTRS_PER_PMD] __initdata __aligned(PAGE_SIZE);
+static pmd_t early_dtb_pmd[PTRS_PER_PMD] __initdata __aligned(PAGE_SIZE);
+
+#ifdef CONFIG_XIP_KERNEL
+#define trampoline_pmd ((pmd_t *)XIP_FIXUP(trampoline_pmd))
+#define fixmap_pmd     ((pmd_t *)XIP_FIXUP(fixmap_pmd))
+#define early_pmd      ((pmd_t *)XIP_FIXUP(early_pmd))
+#endif /* CONFIG_XIP_KERNEL */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static pmd_t *__init get_pmd_virt_early(phys_addr_t pa)
 {
@@ -371,6 +414,7 @@ static uintptr_t __init best_map_size(phys_addr_t base, phys_addr_t size)
 #error "setup_vm() is called from head.S before relocate so it should not use absolute addressing."
 #endif
 
+<<<<<<< HEAD
 asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 {
 	uintptr_t va, pa, end_va;
@@ -383,6 +427,74 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 
 	va_pa_offset = PAGE_OFFSET - load_pa;
 	pfn_base = PFN_DOWN(load_pa);
+=======
+#ifdef CONFIG_XIP_KERNEL
+static void __init create_kernel_page_table(pgd_t *pgdir, uintptr_t map_size,
+					    __always_unused bool early)
+{
+	uintptr_t va, end_va;
+
+	/* Map the flash resident part */
+	end_va = kernel_map.virt_addr + kernel_map.xiprom_sz;
+	for (va = kernel_map.virt_addr; va < end_va; va += map_size)
+		create_pgd_mapping(pgdir, va,
+				   kernel_map.xiprom + (va - kernel_map.virt_addr),
+				   map_size, PAGE_KERNEL_EXEC);
+
+	/* Map the data in RAM */
+	end_va = kernel_map.virt_addr + XIP_OFFSET + kernel_map.size;
+	for (va = kernel_map.virt_addr + XIP_OFFSET; va < end_va; va += map_size)
+		create_pgd_mapping(pgdir, va,
+				   kernel_map.phys_addr + (va - (kernel_map.virt_addr + XIP_OFFSET)),
+				   map_size, PAGE_KERNEL);
+}
+#else
+static void __init create_kernel_page_table(pgd_t *pgdir, uintptr_t map_size,
+					    bool early)
+{
+	uintptr_t va, end_va;
+
+	end_va = kernel_map.virt_addr + kernel_map.size;
+	for (va = kernel_map.virt_addr; va < end_va; va += map_size)
+		create_pgd_mapping(pgdir, va,
+				   kernel_map.phys_addr + (va - kernel_map.virt_addr),
+				   map_size,
+				   early ?
+					PAGE_KERNEL_EXEC : pgprot_from_va(va));
+}
+#endif
+
+asmlinkage void __init setup_vm(uintptr_t dtb_pa)
+{
+	uintptr_t __maybe_unused pa;
+	uintptr_t map_size;
+#ifndef __PAGETABLE_PMD_FOLDED
+	pmd_t fix_bmap_spmd, fix_bmap_epmd;
+#endif
+
+	kernel_map.virt_addr = KERNEL_LINK_ADDR;
+
+#ifdef CONFIG_XIP_KERNEL
+	kernel_map.xiprom = (uintptr_t)CONFIG_XIP_PHYS_ADDR;
+	kernel_map.xiprom_sz = (uintptr_t)(&_exiprom) - (uintptr_t)(&_xiprom);
+
+	phys_ram_base = CONFIG_PHYS_RAM_BASE;
+	kernel_map.phys_addr = (uintptr_t)CONFIG_PHYS_RAM_BASE;
+	kernel_map.size = (uintptr_t)(&_end) - (uintptr_t)(&_sdata);
+
+	kernel_map.va_kernel_xip_pa_offset = kernel_map.virt_addr - kernel_map.xiprom;
+#else
+	kernel_map.phys_addr = (uintptr_t)(&_start);
+	kernel_map.size = (uintptr_t)(&_end) - kernel_map.phys_addr;
+#endif
+
+	kernel_map.va_pa_offset = PAGE_OFFSET - kernel_map.phys_addr;
+#ifdef CONFIG_64BIT
+	kernel_map.va_kernel_pa_offset = kernel_map.virt_addr - kernel_map.phys_addr;
+#endif
+
+	pfn_base = PFN_DOWN(kernel_map.phys_addr);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Enforce boot alignment requirements of RV32 and
@@ -392,7 +504,19 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 
 	/* Sanity check alignment and size */
 	BUG_ON((PAGE_OFFSET % PGDIR_SIZE) != 0);
+<<<<<<< HEAD
 	BUG_ON((load_pa % map_size) != 0);
+=======
+	BUG_ON((kernel_map.phys_addr % map_size) != 0);
+
+#ifdef CONFIG_64BIT
+	/*
+	 * The last 4K bytes of the addressable memory can not be mapped because
+	 * of IS_ERR_VALUE macro.
+	 */
+	BUG_ON((kernel_map.virt_addr + kernel_map.size) > ADDRESS_SPACE_END - SZ_4K);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pt_ops.alloc_pte = alloc_pte_early;
 	pt_ops.get_pte_virt = get_pte_virt_early;
@@ -424,11 +548,15 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 	 * us to reach paging_init(). We map all memory banks later
 	 * in setup_vm_final() below.
 	 */
+<<<<<<< HEAD
 	end_va = PAGE_OFFSET + load_sz;
 	for (va = PAGE_OFFSET; va < end_va; va += map_size)
 		create_pgd_mapping(early_pg_dir, va,
 				   load_pa + (va - PAGE_OFFSET),
 				   map_size, PAGE_KERNEL_EXEC);
+=======
+	create_kernel_page_table(early_pg_dir, map_size, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifndef __PAGETABLE_PMD_FOLDED
 	/* Setup early PMD for DTB */
@@ -443,7 +571,20 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 			   pa + PMD_SIZE, PMD_SIZE, PAGE_KERNEL);
 	dtb_early_va = (void *)DTB_EARLY_BASE_VA + (dtb_pa & (PMD_SIZE - 1));
 #else /* CONFIG_BUILTIN_DTB */
+<<<<<<< HEAD
 	dtb_early_va = __va(dtb_pa);
+=======
+#ifdef CONFIG_64BIT
+	/*
+	 * __va can't be used since it would return a linear mapping address
+	 * whereas dtb_early_va will be used before setup_vm_final installs
+	 * the linear mapping.
+	 */
+	dtb_early_va = kernel_mapping_pa_to_va(XIP_FIXUP(dtb_pa));
+#else
+	dtb_early_va = __va(dtb_pa);
+#endif /* CONFIG_64BIT */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* CONFIG_BUILTIN_DTB */
 #else
 #ifndef CONFIG_BUILTIN_DTB
@@ -455,7 +596,15 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 			   pa + PGDIR_SIZE, PGDIR_SIZE, PAGE_KERNEL);
 	dtb_early_va = (void *)DTB_EARLY_BASE_VA + (dtb_pa & (PGDIR_SIZE - 1));
 #else /* CONFIG_BUILTIN_DTB */
+<<<<<<< HEAD
 	dtb_early_va = __va(dtb_pa);
+=======
+#ifdef CONFIG_64BIT
+	dtb_early_va = kernel_mapping_pa_to_va(XIP_FIXUP(dtb_pa));
+#else
+	dtb_early_va = __va(dtb_pa);
+#endif /* CONFIG_64BIT */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* CONFIG_BUILTIN_DTB */
 #endif
 	dtb_early_pa = dtb_pa;
@@ -528,6 +677,14 @@ static void __init setup_vm_final(void)
 		}
 	}
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_64BIT
+	/* Map the kernel */
+	create_kernel_page_table(swapper_pg_dir, PMD_SIZE, false);
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Clear fixmap PTE and PMD mappings */
 	clear_fixmap(FIX_PTE);
 	clear_fixmap(FIX_PMD);
@@ -566,6 +723,7 @@ void protect_kernel_text_data(void)
 	unsigned long data_start = (unsigned long)_data;
 	unsigned long max_low = (unsigned long)(__va(PFN_PHYS(max_low_pfn)));
 
+<<<<<<< HEAD
 	set_memory_ro(text_start, (init_text_start - text_start) >> PAGE_SHIFT);
 	set_memory_ro(init_text_start, (init_data_start - init_text_start) >> PAGE_SHIFT);
 	set_memory_nx(init_data_start, (rodata_start - init_data_start) >> PAGE_SHIFT);
@@ -578,11 +736,67 @@ void mark_rodata_ro(void)
 {
 	unsigned long rodata_start = (unsigned long)__start_rodata;
 	unsigned long data_start = (unsigned long)_data;
+=======
+	crash_size = PAGE_ALIGN(crash_size);
+
+	if (crash_base == 0) {
+		/*
+		 * Current riscv boot protocol requires 2MB alignment for
+		 * RV64 and 4MB alignment for RV32 (hugepage size)
+		 */
+		crash_base = memblock_find_in_range(search_start, search_end,
+						    crash_size, PMD_SIZE);
+
+		if (crash_base == 0) {
+			pr_warn("crashkernel: couldn't allocate %lldKB\n",
+				crash_size >> 10);
+			return;
+		}
+	} else {
+		/* User specifies base address explicitly. */
+		if (!memblock_is_region_memory(crash_base, crash_size)) {
+			pr_warn("crashkernel: requested region is not memory\n");
+			return;
+		}
+
+		if (memblock_is_region_reserved(crash_base, crash_size)) {
+			pr_warn("crashkernel: requested region is reserved\n");
+			return;
+		}
+
+
+		if (!IS_ALIGNED(crash_base, PMD_SIZE)) {
+			pr_warn("crashkernel: requested region is misaligned\n");
+			return;
+		}
+	}
+	memblock_reserve(crash_base, crash_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	set_memory_ro(rodata_start, (data_start - rodata_start) >> PAGE_SHIFT);
 
 	debug_checkwx();
 }
+#endif
+
+#ifdef CONFIG_CRASH_DUMP
+/*
+ * We keep track of the ELF core header of the crashed
+ * kernel with a reserved-memory region with compatible
+ * string "linux,elfcorehdr". Here we register a callback
+ * to populate elfcorehdr_addr/size when this region is
+ * present. Note that this region will be marked as
+ * reserved once we call early_init_fdt_scan_reserved_mem()
+ * later on.
+ */
+static int __init elfcore_hdr_setup(struct reserved_mem *rmem)
+{
+	elfcorehdr_addr = rmem->base;
+	elfcorehdr_size = rmem->size;
+	return 0;
+}
+
+RESERVEDMEM_OF_DECLARE(elfcorehdr, "linux,elfcorehdr", elfcore_hdr_setup);
 #endif
 
 void __init paging_init(void)

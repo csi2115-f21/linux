@@ -769,8 +769,27 @@ static const struct proto_ops unix_seqpacket_ops = {
 	.show_fdinfo =	unix_show_fdinfo,
 };
 
+<<<<<<< HEAD
 static struct proto unix_proto = {
 	.name			= "UNIX",
+=======
+static void unix_close(struct sock *sk, long timeout)
+{
+	/* Nothing to do here, unix socket does not need a ->close().
+	 * This is merely for sockmap.
+	 */
+}
+
+static void unix_unhash(struct sock *sk)
+{
+	/* Nothing to do here, unix socket does not need a ->unhash().
+	 * This is merely for sockmap.
+	 */
+}
+
+struct proto unix_dgram_proto = {
+	.name			= "UNIX-DGRAM",
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	.owner			= THIS_MODULE,
 	.obj_size		= sizeof(struct unix_sock),
 };
@@ -783,8 +802,17 @@ static struct sock *unix_create1(struct net *net, struct socket *sock, int kern)
 	atomic_long_inc(&unix_nr_socks);
 	if (atomic_long_read(&unix_nr_socks) > 2 * get_max_files())
 		goto out;
+<<<<<<< HEAD
 
 	sk = sk_alloc(net, PF_UNIX, GFP_KERNEL, &unix_proto, kern);
+=======
+
+	if (type == SOCK_STREAM)
+		sk = sk_alloc(net, PF_UNIX, GFP_KERNEL, &unix_stream_proto, kern);
+	else /*dgram and  seqpacket */
+		sk = sk_alloc(net, PF_UNIX, GFP_KERNEL, &unix_dgram_proto, kern);
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (!sk)
 		goto out;
 
@@ -846,7 +874,11 @@ static int unix_create(struct net *net, struct socket *sock, int protocol,
 		return -ESOCKTNOSUPPORT;
 	}
 
+<<<<<<< HEAD
 	return unix_create1(net, sock, kern) ? 0 : -ENOMEM;
+=======
+	return unix_create1(net, sock, kern, sock->type) ? 0 : -ENOMEM;
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 static int unix_release(struct socket *sock)
@@ -1259,7 +1291,11 @@ static int unix_stream_connect(struct socket *sock, struct sockaddr *uaddr,
 	err = -ENOMEM;
 
 	/* create new sock for complete connection */
+<<<<<<< HEAD
 	newsk = unix_create1(sock_net(sk), NULL, 0);
+=======
+	newsk = unix_create1(sock_net(sk), NULL, 0, sock->type);
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	if (newsk == NULL)
 		goto out;
 
@@ -2532,10 +2568,12 @@ static int unix_shutdown(struct socket *sock, int mode)
 		other->sk_shutdown |= peer_mode;
 		unix_state_unlock(other);
 		other->sk_state_change(other);
-		if (peer_mode == SHUTDOWN_MASK)
+		if (peer_mode == SHUTDOWN_MASK) {
 			sk_wake_async(other, SOCK_WAKE_WAITD, POLL_HUP);
-		else if (peer_mode & RCV_SHUTDOWN)
+			other->sk_state = TCP_CLOSE;
+		} else if (peer_mode & RCV_SHUTDOWN) {
 			sk_wake_async(other, SOCK_WAKE_WAITD, POLL_IN);
+		}
 	}
 	if (other)
 		sock_put(other);

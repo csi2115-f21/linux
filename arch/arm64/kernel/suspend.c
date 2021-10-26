@@ -74,8 +74,14 @@ void notrace __cpu_suspend_exit(void)
 	 */
 	spectre_v4_enable_mitigation(NULL);
 
+<<<<<<< HEAD
 	/* Restore additional MTE-specific configuration */
 	mte_suspend_exit();
+=======
+	/* Restore additional feature-specific configuration */
+	mte_suspend_exit();
+	ptrauth_suspend_exit();
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*

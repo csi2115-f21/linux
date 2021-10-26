@@ -47,6 +47,12 @@
 #define MAX_POWER_DEFAULT_PCI		200000		/* 200W */
 #define MAX_POWER_DEFAULT_PMC		350000		/* 350W */
 
+<<<<<<< HEAD
+=======
+#define DC_POWER_DEFAULT_PCI		60000		/* 60W */
+#define DC_POWER_DEFAULT_PMC		60000		/* 60W */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define GAUDI_CPU_TIMEOUT_USEC		30000000	/* 30s */
 
 #define TPC_ENABLED_MASK		0xFF

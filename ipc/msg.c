@@ -147,7 +147,11 @@ static int newque(struct ipc_namespace *ns, struct ipc_params *params)
 	key_t key = params->key;
 	int msgflg = params->flg;
 
+<<<<<<< HEAD
 	msq = kvmalloc(sizeof(*msq), GFP_KERNEL);
+=======
+	msq = kmalloc(sizeof(*msq), GFP_KERNEL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (unlikely(!msq))
 		return -ENOMEM;
 

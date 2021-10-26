@@ -201,7 +201,12 @@ xfs_qm_scall_quotaoff(
 	 * depend on the quota inodes (and other things) being valid as long as
 	 * we keep the lock(s).
 	 */
+<<<<<<< HEAD
 	xfs_qm_dqrele_all_inodes(mp, flags);
+=======
+	error = xfs_dqrele_all_inodes(mp, flags);
+	ASSERT(!error);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Next we make the changes in the quota flag in the mount struct.

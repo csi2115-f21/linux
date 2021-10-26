@@ -97,7 +97,12 @@ config JME
 
 config KORINA
 	tristate "Korina (IDT RC32434) Ethernet support"
+<<<<<<< HEAD
 	depends on MIKROTIK_RB532
+=======
+	depends on MIKROTIK_RB532 || COMPILE_TEST
+	select MII
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	help
 	  If you have a Mikrotik RouterBoard 500 or IDT RC32434
 	  based system say Y. Otherwise say N.

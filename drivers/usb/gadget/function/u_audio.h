@@ -11,6 +11,17 @@
 
 #include <linux/usb/composite.h>
 
+<<<<<<< HEAD
+=======
+/*
+ * Same maximum frequency deviation on the slower side as in
+ * sound/usb/endpoint.c. Value is expressed in per-mil deviation.
+ * The maximum deviation on the faster side will be provided as
+ * parameter, as it impacts the endpoint required bandwidth.
+ */
+#define FBACK_SLOW_MAX	250
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct uac_params {
 	/* playback */
 	int p_chmask;	/* channel mask */

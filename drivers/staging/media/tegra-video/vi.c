@@ -508,8 +508,13 @@ static int __tegra_channel_try_format(struct tegra_vi_channel *chan,
 	if (!subdev)
 		return -ENODEV;
 
+<<<<<<< HEAD
 	pad_cfg = v4l2_subdev_alloc_pad_config(subdev);
 	if (!pad_cfg)
+=======
+	sd_state = v4l2_subdev_alloc_state(subdev);
+	if (!sd_state)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	/*
 	 * Retrieve the format information and if requested format isn't

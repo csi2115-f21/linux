@@ -12,7 +12,11 @@
 
 /* Current ACPICA subsystem version in YYYYMMDD format */
 
+<<<<<<< HEAD
 #define ACPI_CA_VERSION                 0x20210105
+=======
+#define ACPI_CA_VERSION                 0x20210604
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <acpi/acconfig.h>
 #include <acpi/actypes.h>

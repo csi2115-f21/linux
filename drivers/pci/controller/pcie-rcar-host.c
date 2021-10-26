@@ -42,11 +42,14 @@ struct rcar_msi {
 	int irq2;
 };
 
+<<<<<<< HEAD
 static inline struct rcar_msi *to_rcar_msi(struct msi_controller *chip)
 {
 	return container_of(chip, struct rcar_msi, chip);
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Structure representing the PCIe interface */
 struct rcar_pcie_host {
 	struct rcar_pcie	pcie;
@@ -527,6 +530,7 @@ static irqreturn_t rcar_pcie_msi_irq(int irq, void *data)
 		unsigned int index = find_first_bit(&reg, 32);
 		unsigned int msi_irq;
 
+<<<<<<< HEAD
 		/* clear the interrupt */
 		rcar_pci_write_reg(pcie, 1 << index, PCIEMSIFR);
 
@@ -536,6 +540,11 @@ static irqreturn_t rcar_pcie_msi_irq(int irq, void *data)
 				generic_handle_irq(msi_irq);
 			else
 				dev_info(dev, "unhandled MSI\n");
+=======
+		msi_irq = irq_find_mapping(msi->domain->parent, index);
+		if (msi_irq) {
+			generic_handle_irq(msi_irq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		} else {
 			/* Unknown MSI, just clear it */
 			dev_dbg(dev, "unexpected MSI\n");

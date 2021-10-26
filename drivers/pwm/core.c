@@ -379,7 +379,12 @@ int pwmchip_remove(struct pwm_chip *chip)
 
 out:
 	mutex_unlock(&pwm_lock);
+<<<<<<< HEAD
 	return ret;
+=======
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(pwmchip_remove);
 

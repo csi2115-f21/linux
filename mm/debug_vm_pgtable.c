@@ -91,7 +91,11 @@ static void __init pte_advanced_tests(struct mm_struct *mm,
 				      unsigned long pfn, unsigned long vaddr,
 				      pgprot_t prot)
 {
+<<<<<<< HEAD
 	pte_t pte = pfn_pte(pfn, prot);
+=======
+	pte_t pte;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Architectures optimize set_pte_at by avoiding TLB flush.
@@ -153,6 +157,10 @@ static void __init pmd_basic_tests(unsigned long pfn, int idx)
 		return;
 
 	pr_debug("Validating PMD basic (%pGv)\n", ptr);
+<<<<<<< HEAD
+=======
+	pmd = pfn_pmd(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * This test needs to be executed after the given page table entry
@@ -185,7 +193,11 @@ static void __init pmd_advanced_tests(struct mm_struct *mm,
 				      unsigned long pfn, unsigned long vaddr,
 				      pgprot_t prot, pgtable_t pgtable)
 {
+<<<<<<< HEAD
 	pmd_t pmd = pfn_pmd(pfn, prot);
+=======
+	pmd_t pmd;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!has_transparent_hugepage())
 		return;
@@ -235,6 +247,11 @@ static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
 	pmd_t pmd = pfn_pmd(pfn, prot);
 
 	pr_debug("Validating PMD leaf\n");
+<<<<<<< HEAD
+=======
+	pmd = pfn_pmd(pfn, prot);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * PMD based THP is a leaf entry.
 	 */
@@ -242,8 +259,12 @@ static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
 	WARN_ON(!pmd_leaf(pmd));
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
 static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+=======
+static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	pmd_t pmd;
 
@@ -273,6 +294,10 @@ static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
 		return;
 
 	pr_debug("Validating PMD saved write\n");
+<<<<<<< HEAD
+=======
+	pmd = pfn_pmd(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
 	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
 }
@@ -288,6 +313,10 @@ static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int 
 		return;
 
 	pr_debug("Validating PUD basic (%pGv)\n", ptr);
+<<<<<<< HEAD
+=======
+	pud = pfn_pud(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * This test needs to be executed after the given page table entry
@@ -323,7 +352,11 @@ static void __init pud_advanced_tests(struct mm_struct *mm,
 				      unsigned long pfn, unsigned long vaddr,
 				      pgprot_t prot)
 {
+<<<<<<< HEAD
 	pud_t pud = pfn_pud(pfn, prot);
+=======
+	pud_t pud;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!has_transparent_hugepage())
 		return;
@@ -332,6 +365,10 @@ static void __init pud_advanced_tests(struct mm_struct *mm,
 	/* Align the address wrt HPAGE_PUD_SIZE */
 	vaddr = (vaddr & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE;
 
+<<<<<<< HEAD
+=======
+	pud = pfn_pud(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	set_pud_at(mm, vaddr, pudp, pud);
 	pudp_set_wrprotect(mm, vaddr, pudp);
 	pud = READ_ONCE(*pudp);
@@ -373,19 +410,80 @@ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot)
 	pud_t pud = pfn_pud(pfn, prot);
 
 	pr_debug("Validating PUD leaf\n");
+<<<<<<< HEAD
+=======
+	pud = pfn_pud(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * PUD based THP is a leaf entry.
 	 */
 	pud = pud_mkhuge(pud);
 	WARN_ON(!pud_leaf(pud));
 }
+<<<<<<< HEAD
 
 #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+=======
+#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+static void __init pud_advanced_tests(struct mm_struct *mm,
+				      struct vm_area_struct *vma, pud_t *pudp,
+				      unsigned long pfn, unsigned long vaddr,
+				      pgprot_t prot)
+{
+}
+static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_basic_tests(unsigned long pfn, int idx) { }
+static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
+static void __init pmd_advanced_tests(struct mm_struct *mm,
+				      struct vm_area_struct *vma, pmd_t *pmdp,
+				      unsigned long pfn, unsigned long vaddr,
+				      pgprot_t prot, pgtable_t pgtable)
+{
+}
+static void __init pud_advanced_tests(struct mm_struct *mm,
+				      struct vm_area_struct *vma, pud_t *pudp,
+				      unsigned long pfn, unsigned long vaddr,
+				      pgprot_t prot)
+{
+}
+static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+
+#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot)
+{
+	pmd_t pmd;
+
+	if (!arch_vmap_pmd_supported(prot))
+		return;
+
+	pr_debug("Validating PMD huge\n");
+	/*
+	 * X86 defined pmd_set_huge() verifies that the given
+	 * PMD is not a populated non-leaf entry.
+	 */
+	WRITE_ONCE(*pmdp, __pmd(0));
+	WARN_ON(!pmd_set_huge(pmdp, __pfn_to_phys(pfn), prot));
+	WARN_ON(!pmd_clear_huge(pmdp));
+	pmd = READ_ONCE(*pmdp);
+	WARN_ON(!pmd_none(pmd));
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
 {
 	pud_t pud;
 
+<<<<<<< HEAD
 	if (!arch_ioremap_pud_supported())
+=======
+	if (!arch_vmap_pud_supported(prot))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 
 	pr_debug("Validating PUD huge\n");
@@ -400,6 +498,7 @@ static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
 	WARN_ON(!pud_none(pud));
 }
 #else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+<<<<<<< HEAD
 static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
 #endif /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
 
@@ -442,6 +541,12 @@ static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
 static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
+=======
+static void __init pmd_huge_tests(pmd_t *pmdp, unsigned long pfn, pgprot_t prot) { }
+static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
+#endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __init p4d_basic_tests(unsigned long pfn, pgprot_t prot)
 {
 	p4d_t p4d;
@@ -660,6 +765,10 @@ static void __init pmd_protnone_tests(unsigned long pfn, pgprot_t prot)
 		return;
 
 	pr_debug("Validating PMD protnone\n");
+<<<<<<< HEAD
+=======
+	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(!pmd_protnone(pmd));
 	WARN_ON(!pmd_present(pmd));
 }
@@ -682,6 +791,10 @@ static void __init pmd_devmap_tests(unsigned long pfn, pgprot_t prot)
 	pmd_t pmd = pfn_pmd(pfn, prot);
 
 	pr_debug("Validating PMD devmap\n");
+<<<<<<< HEAD
+=======
+	pmd = pfn_pmd(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(!pmd_devmap(pmd_mkdevmap(pmd)));
 }
 
@@ -691,6 +804,10 @@ static void __init pud_devmap_tests(unsigned long pfn, pgprot_t prot)
 	pud_t pud = pfn_pud(pfn, prot);
 
 	pr_debug("Validating PUD devmap\n");
+<<<<<<< HEAD
+=======
+	pud = pfn_pud(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(!pud_devmap(pud_mkdevmap(pud)));
 }
 #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
@@ -739,6 +856,10 @@ static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
 		return;
 
 	pr_debug("Validating PMD soft dirty\n");
+<<<<<<< HEAD
+=======
+	pmd = pfn_pmd(pfn, prot);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	WARN_ON(!pmd_soft_dirty(pmd_mksoft_dirty(pmd)));
 	WARN_ON(pmd_soft_dirty(pmd_clear_soft_dirty(pmd)));
 }
@@ -752,15 +873,27 @@ static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
 		return;
 
 	pr_debug("Validating PMD swap soft dirty\n");
+<<<<<<< HEAD
 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
 }
 #else  /* !CONFIG_ARCH_HAS_PTE_DEVMAP */
+=======
+	pmd = pfn_pmd(pfn, prot);
+	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
+	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
+}
+#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot) { }
 static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
 {
 }
+<<<<<<< HEAD
 #endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
+=======
+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static void __init pte_swap_tests(unsigned long pfn, pgprot_t prot)
 {

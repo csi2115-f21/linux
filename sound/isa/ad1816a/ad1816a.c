@@ -138,16 +138,30 @@ static int snd_card_ad1816a_probe(int dev, struct pnp_card_link *pcard,
 		return error;
 	chip = card->private_data;
 
+<<<<<<< HEAD
 	if ((error = snd_card_ad1816a_pnp(dev, pcard, pid))) {
+=======
+	error = snd_card_ad1816a_pnp(dev, pcard, pid);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_ad1816a_create(card, port[dev],
 					irq[dev],
 					dma1[dev],
 					dma2[dev],
 					chip)) < 0) {
+=======
+	error = snd_ad1816a_create(card, port[dev],
+				   irq[dev],
+				   dma1[dev],
+				   dma2[dev],
+				   chip);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -159,12 +173,22 @@ static int snd_card_ad1816a_probe(int dev, struct pnp_card_link *pcard,
 	sprintf(card->longname, "%s, SS at 0x%lx, irq %d, dma %d&%d",
 		card->shortname, chip->port, irq[dev], dma1[dev], dma2[dev]);
 
+<<<<<<< HEAD
 	if ((error = snd_ad1816a_pcm(chip, 0)) < 0) {
+=======
+	error = snd_ad1816a_pcm(chip, 0);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_ad1816a_mixer(chip)) < 0) {
+=======
+	error = snd_ad1816a_mixer(chip);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -196,7 +220,12 @@ static int snd_card_ad1816a_probe(int dev, struct pnp_card_link *pcard,
 		}
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_card_register(card)) < 0) {
+=======
+	error = snd_card_register(card);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}

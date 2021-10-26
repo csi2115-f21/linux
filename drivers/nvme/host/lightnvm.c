@@ -660,7 +660,11 @@ static struct request *nvme_nvm_alloc_request(struct request_queue *q,
 	rq->cmd_flags &= ~REQ_FAILFAST_DRIVER;
 
 	if (rqd->bio)
+<<<<<<< HEAD
 		blk_rq_append_bio(rq, &rqd->bio);
+=======
+		blk_rq_append_bio(rq, rqd->bio);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else
 		rq->ioprio = IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE, IOPRIO_NORM);
 
@@ -930,6 +934,7 @@ static int nvme_nvm_user_vcmd(struct nvme_ns *ns, int admin,
 	return ret;
 }
 
+<<<<<<< HEAD
 int nvme_nvm_ioctl(struct nvme_ns *ns, unsigned int cmd, unsigned long arg)
 {
 	switch (cmd) {
@@ -939,6 +944,17 @@ int nvme_nvm_ioctl(struct nvme_ns *ns, unsigned int cmd, unsigned long arg)
 		return nvme_nvm_user_vcmd(ns, 0, (void __user *)arg);
 	case NVME_NVM_IOCTL_SUBMIT_VIO:
 		return nvme_nvm_submit_vio(ns, (void __user *)arg);
+=======
+int nvme_nvm_ioctl(struct nvme_ns *ns, unsigned int cmd, void __user *argp)
+{
+	switch (cmd) {
+	case NVME_NVM_IOCTL_ADMIN_VIO:
+		return nvme_nvm_user_vcmd(ns, 1, argp);
+	case NVME_NVM_IOCTL_IO_VIO:
+		return nvme_nvm_user_vcmd(ns, 0, argp);
+	case NVME_NVM_IOCTL_SUBMIT_VIO:
+		return nvme_nvm_submit_vio(ns, argp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -ENOTTY;
 	}
@@ -1240,7 +1256,11 @@ static struct attribute *nvm_dev_attrs[] = {
 static umode_t nvm_dev_attrs_visible(struct kobject *kobj,
 				     struct attribute *attr, int index)
 {
+<<<<<<< HEAD
 	struct device *dev = container_of(kobj, struct device, kobj);
+=======
+	struct device *dev = kobj_to_dev(kobj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct gendisk *disk = dev_to_disk(dev);
 	struct nvme_ns *ns = disk->private_data;
 	struct nvm_dev *ndev = ns->ndev;

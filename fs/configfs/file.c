@@ -209,6 +209,7 @@ out:
 	return retval;
 }
 
+<<<<<<< HEAD
 
 /**
  *	fill_write_buffer - copy buffer from userspace.
@@ -224,12 +225,22 @@ static int
 fill_write_buffer(struct configfs_buffer * buffer, const char __user * buf, size_t count)
 {
 	int error;
+=======
+/* Fill [buffer, buffer + pos) with data coming from @from. */
+static int fill_write_buffer(struct configfs_buffer *buffer, loff_t pos,
+			     struct iov_iter *from)
+{
+	loff_t to_copy;
+	int copied;
+	u8 *to;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!buffer->page)
 		buffer->page = (char *)__get_free_pages(GFP_KERNEL, 0);
 	if (!buffer->page)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	if (count >= SIMPLE_ATTR_SIZE)
 		count = SIMPLE_ATTR_SIZE - 1;
 	error = copy_from_user(buffer->page,buf,count);
@@ -238,6 +249,18 @@ fill_write_buffer(struct configfs_buffer * buffer, const char __user * buf, size
 	 * so e.g. sscanf() can scan the string easily */
 	buffer->page[count] = 0;
 	return error ? -EFAULT : count;
+=======
+	to_copy = SIMPLE_ATTR_SIZE - 1 - pos;
+	if (to_copy <= 0)
+		return 0;
+	to = buffer->page + pos;
+	copied = copy_from_iter(to, to_copy, from);
+	buffer->needs_read_fill = 1;
+	/* if buf is assumed to contain a string, terminate it by \0,
+	 * so e.g. sscanf() can scan the string easily */
+	to[copied] = 0;
+	return copied ? : -EFAULT;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int
@@ -278,7 +301,11 @@ configfs_write_file(struct file *file, const char __user *buf, size_t count, lof
 	ssize_t len;
 
 	mutex_lock(&buffer->mutex);
+<<<<<<< HEAD
 	len = fill_write_buffer(buffer, buf, count);
+=======
+	len = fill_write_buffer(buffer, iocb->ki_pos, from);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (len > 0)
 		len = flush_write_buffer(file, buffer, len);
 	if (len > 0)

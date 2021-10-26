@@ -1111,7 +1111,11 @@ static int stm32_usart_of_dma_rx_probe(struct stm32_port *stm32port,
 	if (!stm32port->rx_ch) {
 		dev_info(dev, "rx dma alloc failed\n");
 		return -ENODEV;
+<<<<<<< HEAD
 	}
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	stm32port->rx_buf = dma_alloc_coherent(&pdev->dev, RX_BUF_L,
 					       &stm32port->rx_dma_buf,
 					       GFP_KERNEL);
@@ -1182,12 +1186,15 @@ static int stm32_usart_of_dma_tx_probe(struct stm32_port *stm32port,
 
 	stm32port->tx_dma_busy = false;
 
+<<<<<<< HEAD
 	/* Request DMA TX channel */
 	stm32port->tx_ch = dma_request_slave_channel(dev, "tx");
 	if (!stm32port->tx_ch) {
 		dev_info(dev, "tx dma alloc failed\n");
 		return -ENODEV;
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	stm32port->tx_buf = dma_alloc_coherent(&pdev->dev, TX_BUF_L,
 					       &stm32port->tx_dma_buf,
 					       GFP_KERNEL);

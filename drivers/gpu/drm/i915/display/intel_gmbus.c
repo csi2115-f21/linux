@@ -600,7 +600,11 @@ do_gmbus_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs, int num,
 	int ret = 0;
 
 	/* Display WA #0868: skl,bxt,kbl,cfl,glk,cnl */
+<<<<<<< HEAD
 	if (IS_GEN9_LP(dev_priv))
+=======
+	if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bxt_gmbus_clock_gating(dev_priv, false);
 	else if (HAS_PCH_SPT(dev_priv) || HAS_PCH_CNP(dev_priv))
 		pch_gmbus_clock_gating(dev_priv, false);
@@ -713,7 +717,11 @@ timeout:
 
 out:
 	/* Display WA #0868: skl,bxt,kbl,cfl,glk,cnl */
+<<<<<<< HEAD
 	if (IS_GEN9_LP(dev_priv))
+=======
+	if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bxt_gmbus_clock_gating(dev_priv, true);
 	else if (HAS_PCH_SPT(dev_priv) || HAS_PCH_CNP(dev_priv))
 		pch_gmbus_clock_gating(dev_priv, true);

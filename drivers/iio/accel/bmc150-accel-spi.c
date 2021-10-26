@@ -47,6 +47,7 @@ static const struct acpi_device_id bmc150_accel_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, bmc150_accel_acpi_match);
 
 static const struct spi_device_id bmc150_accel_id[] = {
+<<<<<<< HEAD
 	{"bmc150_accel",	bmc150},
 	{"bmi055_accel",	bmi055},
 	{"bma255",		bma255},
@@ -54,6 +55,16 @@ static const struct spi_device_id bmc150_accel_id[] = {
 	{"bma222",		bma222},
 	{"bma222e",		bma222e},
 	{"bma280",		bma280},
+=======
+	{"bma222"},
+	{"bma222e"},
+	{"bma250e"},
+	{"bma253"},
+	{"bma255"},
+	{"bma280"},
+	{"bmc150_accel"},
+	{"bmi055_accel"},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	{}
 };
 MODULE_DEVICE_TABLE(spi, bmc150_accel_id);

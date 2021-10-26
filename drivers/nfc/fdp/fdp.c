@@ -236,9 +236,13 @@ static int fdp_nci_send_patch(struct nci_dev *ndev, u8 conn_id, u8 type)
 
 static int fdp_nci_open(struct nci_dev *ndev)
 {
+<<<<<<< HEAD
 	int r;
 	struct fdp_nci_info *info = nci_get_drvdata(ndev);
 	struct device *dev = &info->phy->i2c_dev->dev;
+=======
+	struct fdp_nci_info *info = nci_get_drvdata(ndev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	dev_dbg(dev, "%s\n", __func__);
 
@@ -318,7 +322,10 @@ static int fdp_nci_request_firmware(struct nci_dev *ndev)
 
 	dev_dbg(dev, "OTP patch version: %d, size: %d\n",
 		 info->otp_patch_version, (int) info->otp_patch->size);
+<<<<<<< HEAD
 out:
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 error:
 	return r;

@@ -672,7 +672,11 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
 	 * Allocate the pad configuration to store formats and selection
 	 * rectangles.
 	 */
+<<<<<<< HEAD
 	entity->config = v4l2_subdev_alloc_pad_config(&entity->subdev);
+=======
+	entity->config = v4l2_subdev_alloc_state(&entity->subdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (entity->config == NULL) {
 		media_entity_cleanup(&entity->subdev.entity);
 		return -ENOMEM;

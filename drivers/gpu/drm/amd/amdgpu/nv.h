@@ -36,4 +36,10 @@ int navi12_reg_base_init(struct amdgpu_device *adev);
 int sienna_cichlid_reg_base_init(struct amdgpu_device *adev);
 void vangogh_reg_base_init(struct amdgpu_device *adev);
 int dimgrey_cavefish_reg_base_init(struct amdgpu_device *adev);
+<<<<<<< HEAD
+=======
+int beige_goby_reg_base_init(struct amdgpu_device *adev);
+int yellow_carp_reg_base_init(struct amdgpu_device *adev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

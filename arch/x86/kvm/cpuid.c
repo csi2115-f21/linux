@@ -215,6 +215,30 @@ static void cpuid_fix_nx_cap(struct kvm_vcpu *vcpu)
 	}
 }
 
+static int is_efer_nx(void)
+{
+	return host_efer & EFER_NX;
+}
+
+static void cpuid_fix_nx_cap(struct kvm_vcpu *vcpu)
+{
+	int i;
+	struct kvm_cpuid_entry2 *e, *entry;
+
+	entry = NULL;
+	for (i = 0; i < vcpu->arch.cpuid_nent; ++i) {
+		e = &vcpu->arch.cpuid_entries[i];
+		if (e->function == 0x80000001) {
+			entry = e;
+			break;
+		}
+	}
+	if (entry && cpuid_entry_has(entry, X86_FEATURE_NX) && !is_efer_nx()) {
+		cpuid_entry_clear(entry, X86_FEATURE_NX);
+		printk(KERN_INFO "kvm: guest NX capability removed\n");
+	}
+}
+
 int cpuid_query_maxphyaddr(struct kvm_vcpu *vcpu)
 {
 	struct kvm_cpuid_entry2 *best;

@@ -7,6 +7,10 @@
 #include "en.h"
 #include "en/params.h"
 #include "en_stats.h"
+<<<<<<< HEAD
+=======
+#include <linux/ptp_classify.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 struct mlx5e_ptpsq {
 	struct mlx5e_txqsq       txqsq;

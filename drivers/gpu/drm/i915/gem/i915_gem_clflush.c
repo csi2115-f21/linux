@@ -30,12 +30,16 @@ static int clflush_work(struct dma_fence_work *base)
 	struct drm_i915_gem_object *obj = clflush->obj;
 	int err;
 
+<<<<<<< HEAD
 	err = i915_gem_object_pin_pages(obj);
 	if (err)
 		return err;
 
 	__do_clflush(obj);
 	i915_gem_object_unpin_pages(obj);
+=======
+	__do_clflush(clflush->obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }

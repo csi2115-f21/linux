@@ -221,7 +221,15 @@ int ipa_modem_start(struct ipa *ipa)
 	priv->ipa = ipa;
 
 	ret = register_netdev(netdev);
+<<<<<<< HEAD
 	if (ret)
+=======
+	if (!ret) {
+		ipa->modem_netdev = netdev;
+		ipa->name_map[IPA_ENDPOINT_AP_MODEM_TX]->netdev = netdev;
+		ipa->name_map[IPA_ENDPOINT_AP_MODEM_RX]->netdev = netdev;
+	} else {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		free_netdev(netdev);
 	else
 		ipa->modem_netdev = netdev;
@@ -257,12 +265,20 @@ int ipa_modem_stop(struct ipa *ipa)
 	/* Prevent the modem from triggering a call to ipa_setup() */
 	ipa_smp2p_disable(ipa);
 
+<<<<<<< HEAD
 	if (netdev) {
 		/* Stop the queue and disable the endpoints if it's open */
 		ret = ipa_stop(netdev);
 		if (ret)
 			goto out_set_state;
 
+=======
+	/* Stop the queue and disable the endpoints if it's open */
+	if (netdev) {
+		(void)ipa_stop(netdev);
+		ipa->name_map[IPA_ENDPOINT_AP_MODEM_RX]->netdev = NULL;
+		ipa->name_map[IPA_ENDPOINT_AP_MODEM_TX]->netdev = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ipa->modem_netdev = NULL;
 		unregister_netdev(netdev);
 		free_netdev(netdev);

@@ -18,6 +18,8 @@
 
 #define HZ_PER_MHZ	1000000L
 
+#define HZ_PER_MHZ	1000000L
+
 static struct {
 	u32 usage_id;
 	int unit; /* 0 for default others from HID sensor spec */

@@ -303,6 +303,11 @@ static void pcpu_start_fn(struct pcpu *pcpu, void (*func)(void *), void *data)
 {
 	struct lowcore *lc = pcpu->lowcore;
 
+<<<<<<< HEAD
+=======
+	cpu = pcpu - pcpu_devices;
+	lc = lowcore_ptr[cpu];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	lc->restart_stack = lc->nodat_stack;
 	lc->restart_fn = (unsigned long) func;
 	lc->restart_data = (unsigned long) data;
@@ -319,7 +324,11 @@ static void __pcpu_delegate(void (*func)(void*), void *data)
 }
 
 static void __no_sanitize_address pcpu_delegate(struct pcpu *pcpu,
+<<<<<<< HEAD
 						void (*func)(void *),
+=======
+						pcpu_delegate_fn *func,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						void *data, unsigned long stack)
 {
 	struct lowcore *lc = lowcore_ptr[pcpu - pcpu_devices];
@@ -905,7 +914,11 @@ static void __no_sanitize_address smp_start_secondary(void *cpuvoid)
 	S390_lowcore.restart_source = -1UL;
 	__ctl_load(S390_lowcore.cregs_save_area, 0, 15);
 	__load_psw_mask(PSW_KERNEL_BITS | PSW_MASK_DAT);
+<<<<<<< HEAD
 	CALL_ON_STACK_NORETURN(smp_init_secondary, S390_lowcore.kernel_stack);
+=======
+	call_on_stack_noreturn(smp_init_secondary, S390_lowcore.kernel_stack);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* Upping and downing of CPUs */

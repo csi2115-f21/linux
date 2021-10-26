@@ -364,7 +364,11 @@ config SERIAL_8250_BCM2835AUX
 config SERIAL_8250_FSL
 	bool
 	depends on SERIAL_8250_CONSOLE
+<<<<<<< HEAD
 	default PPC || ARM || ARM64
+=======
+	default PPC || ARM || ARM64 || COMPILE_TEST
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 
 config SERIAL_8250_DW
 	tristate "Support for Synopsys DesignWare 8250 quirks"

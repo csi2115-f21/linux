@@ -909,6 +909,17 @@ void sas_task_abort(struct sas_task *task)
 		sas_ata_task_abort(task);
 	else
 		blk_abort_request(sc->request);
+<<<<<<< HEAD
+=======
+}
+
+int sas_slave_alloc(struct scsi_device *sdev)
+{
+	if (dev_is_sata(sdev_to_domain_dev(sdev)) && sdev->lun)
+		return -ENXIO;
+
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void sas_target_destroy(struct scsi_target *starget)

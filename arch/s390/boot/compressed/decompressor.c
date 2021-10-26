@@ -28,7 +28,11 @@ extern char _end[];
 extern unsigned char _compressed_start[];
 extern unsigned char _compressed_end[];
 
+<<<<<<< HEAD
 #ifdef CONFIG_HAVE_KERNEL_BZIP2
+=======
+#ifdef CONFIG_KERNEL_BZIP2
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define BOOT_HEAP_SIZE	0x400000
 #else
 #define BOOT_HEAP_SIZE	0x10000

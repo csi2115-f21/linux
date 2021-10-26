@@ -32,6 +32,10 @@ enum linux_mptcp_mib_field {
 	MPTCP_MIB_RMSUBFLOW,		/* Remove a subflow */
 	MPTCP_MIB_MPPRIOTX,		/* Transmit a MP_PRIO */
 	MPTCP_MIB_MPPRIORX,		/* Received a MP_PRIO */
+<<<<<<< HEAD
+=======
+	MPTCP_MIB_RCVPRUNED,		/* Incoming packet dropped due to memory limit */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__MPTCP_MIB_MAX
 };
 

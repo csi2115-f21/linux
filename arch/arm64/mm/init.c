@@ -217,6 +217,7 @@ static void __init zone_sizes_init(unsigned long min, unsigned long max)
 	free_area_init(max_zone_pfns);
 }
 
+<<<<<<< HEAD
 int pfn_valid(unsigned long pfn)
 {
 	phys_addr_t addr = pfn << PAGE_SHIFT;
@@ -231,6 +232,16 @@ int pfn_valid(unsigned long pfn)
 	if (!valid_section(__pfn_to_section(pfn)))
 		return 0;
 #endif
+=======
+int pfn_is_map_memory(unsigned long pfn)
+{
+	phys_addr_t addr = PFN_PHYS(pfn);
+
+	/* avoid false positives for bogus PFNs, see comment in pfn_valid() */
+	if (PHYS_PFN(addr) != pfn)
+		return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return memblock_is_map_memory(addr);
 }
 EXPORT_SYMBOL(pfn_valid);

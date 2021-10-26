@@ -330,6 +330,7 @@ static int img_pwm_remove(struct platform_device *pdev)
 	u32 val;
 	unsigned int i;
 	int ret;
+<<<<<<< HEAD
 
 	ret = pm_runtime_get_sync(&pdev->dev);
 	if (ret < 0) {
@@ -343,6 +344,21 @@ static int img_pwm_remove(struct platform_device *pdev)
 		img_pwm_writel(pwm_chip, PWM_CTRL_CFG, val);
 	}
 
+=======
+
+	ret = pm_runtime_get_sync(&pdev->dev);
+	if (ret < 0) {
+		pm_runtime_put(&pdev->dev);
+		return ret;
+	}
+
+	for (i = 0; i < pwm_chip->chip.npwm; i++) {
+		val = img_pwm_readl(pwm_chip, PWM_CTRL_CFG);
+		val &= ~BIT(i);
+		img_pwm_writel(pwm_chip, PWM_CTRL_CFG, val);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pm_runtime_put(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
 	if (!pm_runtime_status_suspended(&pdev->dev))

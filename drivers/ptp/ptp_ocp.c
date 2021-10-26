@@ -324,7 +324,11 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (!bp->base) {
 		dev_err(&pdev->dev, "io_remap bar0\n");
 		err = -ENOMEM;
+<<<<<<< HEAD
 		goto out;
+=======
+		goto out_release_regions;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	bp->reg = bp->base + OCP_REGISTER_OFFSET;
 	bp->tod = bp->base + TOD_REGISTER_OFFSET;
@@ -347,6 +351,11 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 
 out:
+<<<<<<< HEAD
+=======
+	pci_iounmap(pdev, bp->base);
+out_release_regions:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pci_release_regions(pdev);
 out_disable:
 	pci_disable_device(pdev);

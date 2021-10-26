@@ -804,6 +804,7 @@ qla24xx_set_t10dif_tags(srb_t *sp, struct fw_dif_context *pkt,
 
 		if (!qla2x00_hba_err_chk_enabled(sp))
 			break;
+<<<<<<< HEAD
 
 		/* enable ALL bytes of the ref tag */
 		pkt->ref_tag_mask[0] = 0xff;
@@ -819,6 +820,23 @@ qla24xx_set_t10dif_tags(srb_t *sp, struct fw_dif_context *pkt,
 								0x00;
 		break;
 
+=======
+
+		/* enable ALL bytes of the ref tag */
+		pkt->ref_tag_mask[0] = 0xff;
+		pkt->ref_tag_mask[1] = 0xff;
+		pkt->ref_tag_mask[2] = 0xff;
+		pkt->ref_tag_mask[3] = 0xff;
+		break;
+
+	/* For Type 3 protection: 16 bit GUARD only */
+	case SCSI_PROT_DIF_TYPE3:
+		pkt->ref_tag_mask[0] = pkt->ref_tag_mask[1] =
+			pkt->ref_tag_mask[2] = pkt->ref_tag_mask[3] =
+								0x00;
+		break;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * For TYpe 1 protection: 16 bit GUARD tag, 32 bit REF tag, and
 	 * 16 bit app tag.

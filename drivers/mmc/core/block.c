@@ -2307,6 +2307,7 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 		goto err_putdisk;
 
 	md->queue.blkdata = md;
+<<<<<<< HEAD
 
 	/*
 	 * Keep an extra reference to the queue so that we can shutdown the
@@ -2319,6 +2320,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 		ret = -ENODEV;
 		goto err_putdisk;
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	md->disk->major	= MMC_BLOCK_MAJOR;
 	md->disk->first_minor = devidx * perdev_minors;
@@ -2365,6 +2368,15 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 		blk_queue_write_cache(md->queue.queue, true, true);
 	}
 
+<<<<<<< HEAD
+=======
+	string_get_size((u64)size, 512, STRING_UNITS_2,
+			cap_str, sizeof(cap_str));
+	pr_info("%s: %s %s %s %s\n",
+		md->disk->disk_name, mmc_card_id(card), mmc_card_name(card),
+		cap_str, md->read_only ? "(ro)" : "");
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return md;
 
  err_putdisk:
@@ -2876,7 +2888,11 @@ static void mmc_blk_remove_debugfs(struct mmc_card *card,
 static int mmc_blk_probe(struct mmc_card *card)
 {
 	struct mmc_blk_data *md, *part_md;
+<<<<<<< HEAD
 	char cap_str[10];
+=======
+	int ret = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Check that the card supports the command class(es) we need.
@@ -2911,8 +2927,20 @@ static int mmc_blk_probe(struct mmc_card *card)
 	if (mmc_add_disk(md))
 		goto out;
 
+<<<<<<< HEAD
 	list_for_each_entry(part_md, &md->part, part) {
 		if (mmc_add_disk(part_md))
+=======
+	dev_set_drvdata(&card->dev, md);
+
+	ret = mmc_add_disk(md);
+	if (ret)
+		goto out;
+
+	list_for_each_entry(part_md, &md->part, part) {
+		ret = mmc_add_disk(part_md);
+		if (ret)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto out;
 	}
 

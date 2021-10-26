@@ -15,10 +15,26 @@ description:
 
 properties:
   compatible:
+<<<<<<< HEAD
     enum:
       - rockchip,rk3288-vpu
       - rockchip,rk3328-vpu
       - rockchip,rk3399-vpu
+=======
+    oneOf:
+      - enum:
+          - rockchip,rk3036-vpu
+          - rockchip,rk3066-vpu
+          - rockchip,rk3288-vpu
+          - rockchip,rk3328-vpu
+          - rockchip,rk3399-vpu
+      - items:
+          - const: rockchip,rk3188-vpu
+          - const: rockchip,rk3066-vpu
+      - items:
+          - const: rockchip,rk3228-vpu
+          - const: rockchip,rk3399-vpu
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
   reg:
     maxItems: 1

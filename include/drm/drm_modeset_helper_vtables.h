@@ -1179,7 +1179,11 @@ struct drm_plane_helper_funcs {
 	 * members in the plane structure.
 	 *
 	 * Drivers which always have their buffers pinned should use
+<<<<<<< HEAD
 	 * drm_gem_fb_prepare_fb() for this hook.
+=======
+	 * drm_gem_plane_helper_prepare_fb() for this hook.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	 *
 	 * The helpers will call @cleanup_fb with matching arguments for every
 	 * successful call to this hook.

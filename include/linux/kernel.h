@@ -3,6 +3,10 @@
 #define _LINUX_KERNEL_H
 
 #include <stdarg.h>
+<<<<<<< HEAD
+=======
+#include <linux/align.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/limits.h>
 #include <linux/linkage.h>
 #include <linux/stddef.h>

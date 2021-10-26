@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
+<<<<<<< HEAD
 # to be placed at drivers/phy
 config PHY_HI3670_USB
 	tristate "hi3670 USB PHY support"
@@ -22,6 +23,8 @@ config SPMI_HISI3670
 	  built-in SPMI PMIC Arbiter interface on Hisilicon 3670
 	  processors.
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 # to be placed at drivers/mfd
 config MFD_HI6421_SPMI
 	tristate "HiSilicon Hi6421v600 SPMI PMU/Codec IC"
@@ -39,6 +42,7 @@ config MFD_HI6421_SPMI
 	  individual components like voltage regulators under corresponding
 	  menus in order to enable them.
 	  We communicate with the Hi6421v600 via a SPMI bus.
+<<<<<<< HEAD
 
 # to be placed at drivers/regulator
 config REGULATOR_HI6421V600
@@ -50,3 +54,5 @@ config REGULATOR_HI6421V600
 	  This driver provides support for the voltage regulators on
 	  HiSilicon Hi6421v600 PMU / Codec IC.
 	  This is used on Kirin 3670 boards, like HiKey 970.
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

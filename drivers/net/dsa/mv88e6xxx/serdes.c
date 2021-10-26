@@ -1112,3 +1112,104 @@ void mv88e6390_serdes_get_regs(struct mv88e6xxx_chip *chip, int port, void *_p)
 			p[i] = reg;
 	}
 }
+<<<<<<< HEAD
+=======
+
+static int mv88e6393x_serdes_port_errata(struct mv88e6xxx_chip *chip, int lane)
+{
+	u16 reg, pcs;
+	int err;
+
+	/* mv88e6393x family errata 4.6:
+	 * Cannot clear PwrDn bit on SERDES on port 0 if device is configured
+	 * CPU_MGD mode or P0_mode is configured for [x]MII.
+	 * Workaround: Set Port0 SERDES register 4.F002 bit 5=0 and bit 15=1.
+	 *
+	 * It seems that after this workaround the SERDES is automatically
+	 * powered up (the bit is cleared), so power it down.
+	 */
+	if (lane == MV88E6393X_PORT0_LANE) {
+		err = mv88e6390_serdes_read(chip, MV88E6393X_PORT0_LANE,
+					    MDIO_MMD_PHYXS,
+					    MV88E6393X_SERDES_POC, &reg);
+		if (err)
+			return err;
+
+		reg &= ~MV88E6393X_SERDES_POC_PDOWN;
+		reg |= MV88E6393X_SERDES_POC_RESET;
+
+		err = mv88e6390_serdes_write(chip, lane, MDIO_MMD_PHYXS,
+					     MV88E6393X_SERDES_POC, reg);
+		if (err)
+			return err;
+
+		err = mv88e6390_serdes_power_sgmii(chip, lane, false);
+		if (err)
+			return err;
+	}
+
+	/* mv88e6393x family errata 4.8:
+	 * When a SERDES port is operating in 1000BASE-X or SGMII mode link may
+	 * not come up after hardware reset or software reset of SERDES core.
+	 * Workaround is to write SERDES register 4.F074.14=1 for only those
+	 * modes and 0 in all other modes.
+	 */
+	err = mv88e6390_serdes_read(chip, lane, MDIO_MMD_PHYXS,
+				    MV88E6393X_SERDES_POC, &pcs);
+	if (err)
+		return err;
+
+	pcs &= MV88E6393X_SERDES_POC_PCS_MASK;
+
+	err = mv88e6390_serdes_read(chip, lane, MDIO_MMD_PHYXS,
+				    MV88E6393X_ERRATA_4_8_REG, &reg);
+	if (err)
+		return err;
+
+	if (pcs == MV88E6393X_SERDES_POC_PCS_1000BASEX ||
+	    pcs == MV88E6393X_SERDES_POC_PCS_SGMII_PHY ||
+	    pcs == MV88E6393X_SERDES_POC_PCS_SGMII_MAC)
+		reg |= MV88E6393X_ERRATA_4_8_BIT;
+	else
+		reg &= ~MV88E6393X_ERRATA_4_8_BIT;
+
+	return mv88e6390_serdes_write(chip, lane, MDIO_MMD_PHYXS,
+				      MV88E6393X_ERRATA_4_8_REG, reg);
+}
+
+int mv88e6393x_serdes_setup_errata(struct mv88e6xxx_chip *chip)
+{
+	int err;
+
+	err = mv88e6393x_serdes_port_errata(chip, MV88E6393X_PORT0_LANE);
+	if (err)
+		return err;
+
+	err = mv88e6393x_serdes_port_errata(chip, MV88E6393X_PORT9_LANE);
+	if (err)
+		return err;
+
+	return mv88e6393x_serdes_port_errata(chip, MV88E6393X_PORT10_LANE);
+}
+
+int mv88e6393x_serdes_power(struct mv88e6xxx_chip *chip, int port, int lane,
+			    bool on)
+{
+	u8 cmode = chip->ports[port].cmode;
+
+	if (port != 0 && port != 9 && port != 10)
+		return -EOPNOTSUPP;
+
+	switch (cmode) {
+	case MV88E6XXX_PORT_STS_CMODE_SGMII:
+	case MV88E6XXX_PORT_STS_CMODE_1000BASEX:
+	case MV88E6XXX_PORT_STS_CMODE_2500BASEX:
+		return mv88e6390_serdes_power_sgmii(chip, lane, on);
+	case MV88E6393X_PORT_STS_CMODE_5GBASER:
+	case MV88E6393X_PORT_STS_CMODE_10GBASER:
+		return mv88e6390_serdes_power_10g(chip, lane, on);
+	}
+
+	return 0;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

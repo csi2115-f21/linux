@@ -33,11 +33,19 @@
 #define BUILD_TIMESTAMP
 #endif
 
+<<<<<<< HEAD
 #define DRIVER_VERSION		"1.2.16-012"
 #define DRIVER_MAJOR		1
 #define DRIVER_MINOR		2
 #define DRIVER_RELEASE		16
 #define DRIVER_REVISION		12
+=======
+#define DRIVER_VERSION		"2.1.8-045"
+#define DRIVER_MAJOR		2
+#define DRIVER_MINOR		1
+#define DRIVER_RELEASE		8
+#define DRIVER_REVISION		45
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define DRIVER_NAME		"Microsemi PQI Driver (v" \
 				DRIVER_VERSION BUILD_TIMESTAMP ")"
@@ -45,6 +53,12 @@
 
 #define PQI_EXTRA_SGL_MEMORY	(12 * sizeof(struct pqi_sg_descriptor))
 
+<<<<<<< HEAD
+=======
+#define PQI_POST_RESET_DELAY_SECS			5
+#define PQI_POST_OFA_RESET_DELAY_UPON_TIMEOUT_SECS	10
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 MODULE_AUTHOR("Microsemi");
 MODULE_DESCRIPTION("Driver for Microsemi Smart Family Controller version "
 	DRIVER_VERSION);
@@ -5302,6 +5316,17 @@ static inline u16 pqi_get_hw_queue(struct pqi_ctrl_info *ctrl_info,
 	return hw_queue;
 }
 
+<<<<<<< HEAD
+=======
+static inline bool pqi_is_bypass_eligible_request(struct scsi_cmnd *scmd)
+{
+	if (blk_rq_is_passthrough(scmd->request))
+		return false;
+
+	return scmd->SCp.this_residual == 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * This function gets called just before we hand the completed SCSI request
  * back to the SML.

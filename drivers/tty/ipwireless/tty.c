@@ -596,6 +596,7 @@ int ipwireless_tty_init(void)
 
 void ipwireless_tty_release(void)
 {
+<<<<<<< HEAD
 	int ret;
 
 	ret = tty_unregister_driver(ipw_tty_driver);
@@ -603,6 +604,10 @@ void ipwireless_tty_release(void)
 	if (ret != 0)
 		printk(KERN_ERR IPWIRELESS_PCCARD_NAME
 			": tty_unregister_driver failed with code %d\n", ret);
+=======
+	tty_unregister_driver(ipw_tty_driver);
+	put_tty_driver(ipw_tty_driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int ipwireless_tty_is_modem(struct ipw_tty *tty)

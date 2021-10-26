@@ -257,6 +257,7 @@ static void ipa_hardware_config_qsb(struct ipa *ipa)
 	u32 max1;
 	u32 val;
 
+<<<<<<< HEAD
 	/* QMB_0 represents DDR; QMB_1 represents PCIe */
 	val = u32_encode_bits(8, GEN_QMB_0_MAX_WRITES_FMASK);
 	switch (version) {
@@ -271,6 +272,21 @@ static void ipa_hardware_config_qsb(struct ipa *ipa)
 		break;
 	}
 	val |= u32_encode_bits(max1, GEN_QMB_1_MAX_WRITES_FMASK);
+=======
+	/* assert(data->qsb_count > 0); */
+	/* assert(data->qsb_count < 3); */
+
+	/* QMB 0 represents DDR; QMB 1 (if present) represents PCIe */
+	data0 = &data->qsb_data[IPA_QSB_MASTER_DDR];
+	if (data->qsb_count > 1)
+		data1 = &data->qsb_data[IPA_QSB_MASTER_PCIE];
+
+	/* Max outstanding write accesses for QSB masters */
+	val = u32_encode_bits(data0->max_writes, GEN_QMB_0_MAX_WRITES_FMASK);
+	if (data->qsb_count > 1)
+		val |= u32_encode_bits(data1->max_writes,
+				       GEN_QMB_1_MAX_WRITES_FMASK);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	iowrite32(val, ipa->reg_virt + IPA_REG_QSB_MAX_WRITES_OFFSET);
 
 	max1 = 12;
@@ -299,6 +315,24 @@ static void ipa_hardware_config_qsb(struct ipa *ipa)
 	iowrite32(val, ipa->reg_virt + IPA_REG_QSB_MAX_READS_OFFSET);
 }
 
+<<<<<<< HEAD
+=======
+/* The internal inactivity timer clock is used for the aggregation timer */
+#define TIMER_FREQUENCY	32000		/* 32 KHz inactivity timer clock */
+
+/* Compute the value to use in the COUNTER_CFG register AGGR_GRANULARITY
+ * field to represent the given number of microseconds.  The value is one
+ * less than the number of timer ticks in the requested period.  0 is not
+ * a valid granularity value.
+ */
+static u32 ipa_aggr_granularity_val(u32 usec)
+{
+	/* assert(usec != 0); */
+
+	return DIV_ROUND_CLOSEST(usec * TIMER_FREQUENCY, USEC_PER_SEC) - 1;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* IPA uses unified Qtime starting at IPA v4.5, implementing various
  * timestamps and timers independent of the IPA core clock rate.  The
  * Qtimer is based on a 56-bit timestamp incremented at each tick of
@@ -609,9 +643,15 @@ static int ipa_config(struct ipa *ipa, const struct ipa_data *data)
 	 * unless/until a system suspend request arrives.
 	 */
 	ipa_clock_get(ipa);
+<<<<<<< HEAD
 
 	ipa_hardware_config(ipa);
 
+=======
+
+	ipa_hardware_config(ipa, data);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ret = ipa_endpoint_config(ipa);
 	if (ret)
 		goto err_hardware_deconfig;
@@ -625,6 +665,7 @@ static int ipa_config(struct ipa *ipa, const struct ipa_data *data)
 	/* Assign resource limitation to each group */
 	ret = ipa_resource_config(ipa, data->resource_data);
 	if (ret)
+<<<<<<< HEAD
 		goto err_table_deconfig;
 
 	ret = ipa_modem_config(ipa);
@@ -637,6 +678,17 @@ err_resource_deconfig:
 	ipa_resource_deconfig(ipa);
 err_table_deconfig:
 	ipa_table_deconfig(ipa);
+=======
+		goto err_mem_deconfig;
+
+	ret = ipa_modem_config(ipa);
+	if (ret)
+		goto err_mem_deconfig;
+
+	return 0;
+
+err_mem_deconfig:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ipa_mem_deconfig(ipa);
 err_endpoint_deconfig:
 	ipa_endpoint_deconfig(ipa);
@@ -654,8 +706,11 @@ err_hardware_deconfig:
 static void ipa_deconfig(struct ipa *ipa)
 {
 	ipa_modem_deconfig(ipa);
+<<<<<<< HEAD
 	ipa_resource_deconfig(ipa);
 	ipa_table_deconfig(ipa);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ipa_mem_deconfig(ipa);
 	ipa_endpoint_deconfig(ipa);
 	ipa_hardware_deconfig(ipa);
@@ -735,8 +790,19 @@ MODULE_DEVICE_TABLE(of, ipa_match);
 static void ipa_validate_build(void)
 {
 #ifdef IPA_VALIDATE
+<<<<<<< HEAD
 	/* We assume we're working on 64-bit hardware */
 	BUILD_BUG_ON(!IS_ENABLED(CONFIG_64BIT));
+=======
+	/* At one time we assumed a 64-bit build, allowing some do_div()
+	 * calls to be replaced by simple division or modulo operations.
+	 * We currently only perform divide and modulo operations on u32,
+	 * u16, or size_t objects, and of those only size_t has any chance
+	 * of being a 64-bit value.  (It should be guaranteed 32 bits wide
+	 * on a 32-bit build, but there is no harm in verifying that.)
+	 */
+	BUILD_BUG_ON(!IS_ENABLED(CONFIG_64BIT) && sizeof(size_t) != 4);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Code assumes the EE ID for the AP is 0 (zeroed structure field) */
 	BUILD_BUG_ON(GSI_EE_AP != 0);
@@ -763,6 +829,30 @@ static void ipa_validate_build(void)
 	BUILD_BUG_ON(ipa_aggr_granularity_val(IPA_AGGR_GRANULARITY) >
 			field_max(AGGR_GRANULARITY_FMASK));
 #endif /* IPA_VALIDATE */
+<<<<<<< HEAD
+=======
+}
+
+static bool ipa_version_valid(enum ipa_version version)
+{
+	switch (version) {
+	case IPA_VERSION_3_0:
+	case IPA_VERSION_3_1:
+	case IPA_VERSION_3_5:
+	case IPA_VERSION_3_5_1:
+	case IPA_VERSION_4_0:
+	case IPA_VERSION_4_1:
+	case IPA_VERSION_4_2:
+	case IPA_VERSION_4_5:
+	case IPA_VERSION_4_7:
+	case IPA_VERSION_4_9:
+	case IPA_VERSION_4_11:
+		return true;
+
+	default:
+		return false;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -1005,6 +1095,16 @@ static int ipa_resume(struct device *dev)
 static const struct dev_pm_ops ipa_pm_ops = {
 	.suspend	= ipa_suspend,
 	.resume		= ipa_resume,
+<<<<<<< HEAD
+=======
+};
+
+static const struct attribute_group *ipa_attribute_groups[] = {
+	&ipa_attribute_group,
+	&ipa_feature_attribute_group,
+	&ipa_modem_attribute_group,
+	NULL,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static struct platform_driver ipa_driver = {

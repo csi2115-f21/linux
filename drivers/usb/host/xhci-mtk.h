@@ -9,8 +9,17 @@
 #ifndef _XHCI_MTK_H_
 #define _XHCI_MTK_H_
 
+<<<<<<< HEAD
 #include "xhci.h"
 
+=======
+#include <linux/clk.h>
+
+#include "xhci.h"
+
+#define BULK_CLKS_NUM	5
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * To simplify scheduler algorithm, set a upper limit for ESIT,
  * if a synchromous ep's ESIT is larger than @XHCI_MTK_MAX_ESIT,

@@ -20,7 +20,11 @@
  * included with this package.                                     *
  *******************************************************************/
 
+<<<<<<< HEAD
 #define LPFC_DRIVER_VERSION "12.8.0.7"
+=======
+#define LPFC_DRIVER_VERSION "12.8.0.10"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define LPFC_DRIVER_NAME		"lpfc"
 
 /* Used for SLI 2/3 */

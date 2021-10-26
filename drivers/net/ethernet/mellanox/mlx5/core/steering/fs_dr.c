@@ -542,6 +542,12 @@ static int mlx5_cmd_dr_packet_reformat_alloc(struct mlx5_flow_root_namespace *ns
 	case MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL:
 		dr_reformat = DR_ACTION_REFORMAT_TYP_L2_TO_TNL_L3;
 		break;
+<<<<<<< HEAD
+=======
+	case MLX5_REFORMAT_TYPE_INSERT_HDR:
+		dr_reformat = DR_ACTION_REFORMAT_TYP_INSERT_HDR;
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		mlx5_core_err(ns->dev, "Packet-reformat not supported(%d)\n",
 			      reformat_type);

@@ -214,6 +214,15 @@
        __SMU_DUMMY_MAP(SetSlowPPTLimit),                \
        __SMU_DUMMY_MAP(GetFastPPTLimit),                \
        __SMU_DUMMY_MAP(GetSlowPPTLimit),                \
+<<<<<<< HEAD
+=======
+	__SMU_DUMMY_MAP(EnableDeterminism),		\
+	__SMU_DUMMY_MAP(DisableDeterminism),		\
+	__SMU_DUMMY_MAP(SetUclkDpmMode),		\
+	__SMU_DUMMY_MAP(LightSBR),			\
+	__SMU_DUMMY_MAP(GfxDriverResetRecovery),	\
+	__SMU_DUMMY_MAP(BoardPowerCalibration),
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #undef __SMU_DUMMY_MAP
 #define __SMU_DUMMY_MAP(type)	SMU_MSG_##type
@@ -283,6 +292,10 @@ enum smu_clk_type {
        __SMU_DUMMY_MAP(DS_MP1CLK),                     	\
        __SMU_DUMMY_MAP(DS_MP0CLK),                     	\
        __SMU_DUMMY_MAP(XGMI),                          	\
+<<<<<<< HEAD
+=======
+       __SMU_DUMMY_MAP(XGMI_PER_LINK_PWR_DWN),          \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
        __SMU_DUMMY_MAP(DPM_GFX_PACE),                  	\
        __SMU_DUMMY_MAP(MEM_VDDCI_SCALING),             	\
        __SMU_DUMMY_MAP(MEM_MVDD_SCALING),              	\

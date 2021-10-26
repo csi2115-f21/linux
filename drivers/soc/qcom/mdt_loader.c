@@ -250,6 +250,18 @@ static int __qcom_mdt_load(struct device *dev, const struct firmware *fw,
 							ptr, phdr->p_filesz);
 			if (ret) {
 				dev_err(dev, "failed to load %s\n", fw_name);
+<<<<<<< HEAD
+=======
+				break;
+			}
+
+			if (seg_fw->size != phdr->p_filesz) {
+				dev_err(dev,
+					"failed to load segment %d from truncated file %s\n",
+					i, fw_name);
+				release_firmware(seg_fw);
+				ret = -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				break;
 			}
 

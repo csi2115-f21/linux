@@ -8,11 +8,23 @@
 #include <linux/percpu-rwsem.h>
 #include <linux/wait.h>
 #include <linux/cdev.h>
+<<<<<<< HEAD
+=======
+#include <linux/idr.h>
+#include <linux/pci.h>
+#include <linux/perf_event.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include "registers.h"
 
 #define IDXD_DRIVER_VERSION	"1.00"
 
 extern struct kmem_cache *idxd_desc_pool;
+<<<<<<< HEAD
+=======
+
+struct idxd_device;
+struct idxd_wq;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define IDXD_REG_TIMEOUT	50
 #define IDXD_DRAIN_TIMEOUT	5000
@@ -76,7 +88,11 @@ enum idxd_wq_type {
 
 struct idxd_cdev {
 	struct cdev cdev;
+<<<<<<< HEAD
 	struct device *dev;
+=======
+	struct device dev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int minor;
 	struct wait_queue_head err_queue;
 };
@@ -98,8 +114,16 @@ enum idxd_complete_type {
 
 struct idxd_wq {
 	void __iomem *portal;
+<<<<<<< HEAD
 	struct device conf_dev;
 	struct idxd_cdev idxd_cdev;
+=======
+	struct percpu_ref wq_active;
+	struct completion wq_dead;
+	struct device conf_dev;
+	struct idxd_cdev *idxd_cdev;
+	struct wait_queue_head err_queue;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct idxd_device *idxd;
 	int id;
 	enum idxd_wq_type type;
@@ -163,8 +187,13 @@ enum idxd_device_flag {
 };
 
 struct idxd_device {
+<<<<<<< HEAD
 	enum idxd_type type;
 	struct device conf_dev;
+=======
+	struct device conf_dev;
+	struct idxd_driver_data *data;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct list_head list;
 	struct idxd_hw hw;
 	enum idxd_device_state state;
@@ -232,9 +261,21 @@ struct idxd_desc {
 	struct list_head list;
 	int id;
 	int cpu;
+	unsigned int vector;
 	struct idxd_wq *wq;
 };
 
+<<<<<<< HEAD
+=======
+/*
+ * This is software defined error for the completion status. We overload the error code
+ * that will never appear in completion status and only SWERR register.
+ */
+enum idxd_completion_status {
+	IDXD_COMP_DESC_ABORT = 0xff,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define confdev_to_idxd(dev) container_of(dev, struct idxd_device, conf_dev)
 #define confdev_to_wq(dev) container_of(dev, struct idxd_wq, conf_dev)
 
@@ -242,6 +283,47 @@ extern struct bus_type dsa_bus_type;
 extern struct bus_type iax_bus_type;
 
 extern bool support_enqcmd;
+<<<<<<< HEAD
+=======
+extern struct ida idxd_ida;
+extern struct device_type dsa_device_type;
+extern struct device_type iax_device_type;
+extern struct device_type idxd_wq_device_type;
+extern struct device_type idxd_engine_device_type;
+extern struct device_type idxd_group_device_type;
+
+static inline bool is_dsa_dev(struct device *dev)
+{
+	return dev->type == &dsa_device_type;
+}
+
+static inline bool is_iax_dev(struct device *dev)
+{
+	return dev->type == &iax_device_type;
+}
+
+static inline bool is_idxd_dev(struct device *dev)
+{
+	return is_dsa_dev(dev) || is_iax_dev(dev);
+}
+
+static inline bool is_idxd_wq_dev(struct device *dev)
+{
+	return dev->type == &idxd_wq_device_type;
+}
+
+static inline bool is_idxd_wq_dmaengine(struct idxd_wq *wq)
+{
+	if (wq->type == IDXD_WQT_KERNEL && strcmp(wq->name, "dmaengine") == 0)
+		return true;
+	return false;
+}
+
+static inline bool is_idxd_wq_cdev(struct idxd_wq *wq)
+{
+	return wq->type == IDXD_WQT_USER;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline bool wq_dedicated(struct idxd_wq *wq)
 {
@@ -279,6 +361,7 @@ static inline int idxd_get_wq_portal_full_offset(int wq_id,
 	return ((wq_id * 4) << PAGE_SHIFT) + idxd_get_wq_portal_offset(prot);
 }
 
+<<<<<<< HEAD
 static inline void idxd_set_type(struct idxd_device *idxd)
 {
 	struct pci_dev *pdev = idxd->pdev;
@@ -291,6 +374,8 @@ static inline void idxd_set_type(struct idxd_device *idxd)
 		idxd->type = IDXD_TYPE_UNKNOWN;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline void idxd_wq_get(struct idxd_wq *wq)
 {
 	wq->client_count++;
@@ -306,7 +391,10 @@ static inline int idxd_wq_refcount(struct idxd_wq *wq)
 	return wq->client_count;
 };
 
+<<<<<<< HEAD
 const char *idxd_get_dev_name(struct idxd_device *idxd);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int idxd_register_bus_type(void);
 void idxd_unregister_bus_type(void);
 int idxd_setup_sysfs(struct idxd_device *idxd);

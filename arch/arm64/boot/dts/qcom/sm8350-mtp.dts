@@ -239,6 +239,24 @@
 
 &qupv3_id_1 {
 	status = "okay";
+<<<<<<< HEAD
+=======
+	firmware-name = "qcom/sm8350/cdsp.mbn";
+};
+
+&mpss {
+	status = "okay";
+	firmware-name = "qcom/sm8350/modem.mbn";
+};
+
+&qupv3_id_1 {
+	status = "okay";
+};
+
+&slpi {
+	status = "okay";
+	firmware-name = "qcom/sm8350/slpi.mbn";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 &tlmm {

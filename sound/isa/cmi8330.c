@@ -623,7 +623,12 @@ static int snd_cmi8330_isa_probe(struct device *pdev,
 	err = snd_cmi8330_card_new(pdev, dev, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_cmi8330_probe(card, dev)) < 0) {
+=======
+	err = snd_cmi8330_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -689,7 +694,12 @@ static int snd_cmi8330_pnp_detect(struct pnp_card_link *pcard,
 		snd_card_free(card);
 		return res;
 	}
+<<<<<<< HEAD
 	if ((res = snd_cmi8330_probe(card, dev)) < 0) {
+=======
+	res = snd_cmi8330_probe(card, dev);
+	if (res < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return res;
 	}

@@ -19,6 +19,10 @@
 #include <linux/dma-direction.h>
 #include <linux/scatterlist.h>
 #include <linux/hashtable.h>
+<<<<<<< HEAD
+=======
+#include <linux/debugfs.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/bitfield.h>
 #include <linux/genalloc.h>
 #include <linux/sched/signal.h>
@@ -61,7 +65,11 @@
 
 #define HL_SIM_MAX_TIMEOUT_US		10000000 /* 10s */
 
+<<<<<<< HEAD
 #define HL_IDLE_BUSY_TS_ARR_SIZE	4096
+=======
+#define HL_COMMON_USER_INTERRUPT_ID	0xFFF
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Memory */
 #define MEM_HASH_TABLE_BITS		7 /* 1 << 7 buckets */
@@ -102,6 +110,34 @@ enum hl_mmu_page_table_location {
 
 #define HL_MAX_DCORES			4
 
+<<<<<<< HEAD
+=======
+/*
+ * Reset Flags
+ *
+ * - HL_RESET_HARD
+ *       If set do hard reset to all engines. If not set reset just
+ *       compute/DMA engines.
+ *
+ * - HL_RESET_FROM_RESET_THREAD
+ *       Set if the caller is the hard-reset thread
+ *
+ * - HL_RESET_HEARTBEAT
+ *       Set if reset is due to heartbeat
+ *
+ * - HL_RESET_TDR
+ *       Set if reset is due to TDR
+ *
+ * - HL_RESET_DEVICE_RELEASE
+ *       Set if reset is due to device release
+ */
+#define HL_RESET_HARD			(1 << 0)
+#define HL_RESET_FROM_RESET_THREAD	(1 << 1)
+#define HL_RESET_HEARTBEAT		(1 << 2)
+#define HL_RESET_TDR			(1 << 3)
+#define HL_RESET_DEVICE_RELEASE		(1 << 4)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define HL_MAX_SOBS_PER_MONITOR	8
 
 /**
@@ -412,6 +448,10 @@ struct hl_mmu_properties {
  * @first_available_user_msix_interrupt: first available msix interrupt
  *                                       reserved for the user
  * @first_available_cq: first available CQ for the user.
+<<<<<<< HEAD
+=======
+ * @user_interrupt_count: number of user interrupts.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @tpc_enabled_mask: which TPCs are enabled.
  * @completion_queues_count: number of completion queues.
  * @fw_security_disabled: true if security measures are disabled in firmware,
@@ -421,6 +461,13 @@ struct hl_mmu_properties {
  * @dram_supports_virtual_memory: is there an MMU towards the DRAM
  * @hard_reset_done_by_fw: true if firmware is handling hard reset flow
  * @num_functional_hbms: number of functional HBMs in each DCORE.
+<<<<<<< HEAD
+=======
+ * @iatu_done_by_fw: true if iATU configuration is being done by FW.
+ * @dynamic_fw_load: is dynamic FW load is supported.
+ * @gic_interrupts_enable: true if FW is not blocking GIC controller,
+ *                         false otherwise.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct asic_fixed_properties {
 	struct hw_queue_properties	*hw_queues_props;
@@ -475,6 +522,10 @@ struct asic_fixed_properties {
 	u16				first_available_user_mon[HL_MAX_DCORES];
 	u16				first_available_user_msix_interrupt;
 	u16				first_available_cq[HL_MAX_DCORES];
+<<<<<<< HEAD
+=======
+	u16				user_interrupt_count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8				tpc_enabled_mask;
 	u8				completion_queues_count;
 	u8				fw_security_disabled;
@@ -482,6 +533,12 @@ struct asic_fixed_properties {
 	u8				dram_supports_virtual_memory;
 	u8				hard_reset_done_by_fw;
 	u8				num_functional_hbms;
+<<<<<<< HEAD
+=======
+	u8				iatu_done_by_fw;
+	u8				dynamic_fw_load;
+	u8				gic_interrupts_enable;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**
@@ -503,6 +560,7 @@ struct hl_fence {
 
 /**
  * struct hl_cs_compl - command submission completion object.
+ * @sob_reset_work: workqueue object to run SOB reset flow.
  * @base_fence: hl fence object.
  * @lock: spinlock to protect fence.
  * @hdev: habanalabs device structure.
@@ -513,6 +571,7 @@ struct hl_fence {
  * @sob_group: the SOB group that is used in this collective wait CS.
  */
 struct hl_cs_compl {
+	struct work_struct	sob_reset_work;
 	struct hl_fence		base_fence;
 	spinlock_t		lock;
 	struct hl_device	*hdev;
@@ -755,6 +814,135 @@ enum div_select_defs {
 	DIV_SEL_DIVIDED_PLL = 3,
 };
 
+<<<<<<< HEAD
+=======
+enum pci_region {
+	PCI_REGION_CFG,
+	PCI_REGION_SRAM,
+	PCI_REGION_DRAM,
+	PCI_REGION_SP_SRAM,
+	PCI_REGION_NUMBER,
+};
+
+/**
+ * struct pci_mem_region - describe memory region in a PCI bar
+ * @region_base: region base address
+ * @region_size: region size
+ * @bar_size: size of the BAR
+ * @offset_in_bar: region offset into the bar
+ * @bar_id: bar ID of the region
+ * @used: if used 1, otherwise 0
+ */
+struct pci_mem_region {
+	u64 region_base;
+	u64 region_size;
+	u64 bar_size;
+	u32 offset_in_bar;
+	u8 bar_id;
+	u8 used;
+};
+
+/**
+ * struct static_fw_load_mgr - static FW load manager
+ * @preboot_version_max_off: max offset to preboot version
+ * @boot_fit_version_max_off: max offset to boot fit version
+ * @kmd_msg_to_cpu_reg: register address for KDM->CPU messages
+ * @cpu_cmd_status_to_host_reg: register address for CPU command status response
+ * @cpu_boot_status_reg: boot status register
+ * @cpu_boot_dev_status0_reg: boot device status register 0
+ * @cpu_boot_dev_status1_reg: boot device status register 1
+ * @boot_err0_reg: boot error register 0
+ * @boot_err1_reg: boot error register 1
+ * @preboot_version_offset_reg: SRAM offset to preboot version register
+ * @boot_fit_version_offset_reg: SRAM offset to boot fit version register
+ * @sram_offset_mask: mask for getting offset into the SRAM
+ * @cpu_reset_wait_msec: used when setting WFE via kmd_msg_to_cpu_reg
+ */
+struct static_fw_load_mgr {
+	u64 preboot_version_max_off;
+	u64 boot_fit_version_max_off;
+	u32 kmd_msg_to_cpu_reg;
+	u32 cpu_cmd_status_to_host_reg;
+	u32 cpu_boot_status_reg;
+	u32 cpu_boot_dev_status0_reg;
+	u32 cpu_boot_dev_status1_reg;
+	u32 boot_err0_reg;
+	u32 boot_err1_reg;
+	u32 preboot_version_offset_reg;
+	u32 boot_fit_version_offset_reg;
+	u32 sram_offset_mask;
+	u32 cpu_reset_wait_msec;
+};
+
+/**
+ * struct fw_response - FW response to LKD command
+ * @ram_offset: descriptor offset into the RAM
+ * @ram_type: RAM type containing the descriptor (SRAM/DRAM)
+ * @status: command status
+ */
+struct fw_response {
+	u32 ram_offset;
+	u8 ram_type;
+	u8 status;
+};
+
+/**
+ * struct dynamic_fw_load_mgr - dynamic FW load manager
+ * @response: FW to LKD response
+ * @comm_desc: the communication descriptor with FW
+ * @image_region: region to copy the FW image to
+ * @fw_image_size: size of FW image to load
+ * @wait_for_bl_timeout: timeout for waiting for boot loader to respond
+ */
+struct dynamic_fw_load_mgr {
+	struct fw_response response;
+	struct lkd_fw_comms_desc comm_desc;
+	struct pci_mem_region *image_region;
+	size_t fw_image_size;
+	u32 wait_for_bl_timeout;
+};
+
+/**
+ * struct fw_image_props - properties of FW image
+ * @image_name: name of the image
+ * @src_off: offset in src FW to copy from
+ * @copy_size: amount of bytes to copy (0 to copy the whole binary)
+ */
+struct fw_image_props {
+	char *image_name;
+	u32 src_off;
+	u32 copy_size;
+};
+
+/**
+ * struct fw_load_mgr - manager FW loading process
+ * @dynamic_loader: specific structure for dynamic load
+ * @static_loader: specific structure for static load
+ * @boot_fit_img: boot fit image properties
+ * @linux_img: linux image properties
+ * @cpu_timeout: CPU response timeout in usec
+ * @boot_fit_timeout: Boot fit load timeout in usec
+ * @skip_bmc: should BMC be skipped
+ * @sram_bar_id: SRAM bar ID
+ * @dram_bar_id: DRAM bar ID
+ * @linux_loaded: true if linux was loaded so far
+ */
+struct fw_load_mgr {
+	union {
+		struct dynamic_fw_load_mgr dynamic_loader;
+		struct static_fw_load_mgr static_loader;
+	};
+	struct fw_image_props boot_fit_img;
+	struct fw_image_props linux_img;
+	u32 cpu_timeout;
+	u32 boot_fit_timeout;
+	u8 skip_bmc;
+	u8 sram_bar_id;
+	u8 dram_bar_id;
+	u8 linux_loaded;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /**
  * struct hl_asic_funcs - ASIC specific functions that are can be called from
  *                        common code.
@@ -869,6 +1057,14 @@ enum div_select_defs {
  *                         driver is ready to receive asynchronous events. This
  *                         function should be called during the first init and
  *                         after every hard-reset of the device
+<<<<<<< HEAD
+=======
+ * @get_msi_info: Retrieve asic-specific MSI ID of the f/w async event
+ * @map_pll_idx_to_fw_idx: convert driver specific per asic PLL index to
+ *                         generic f/w compatible PLL Indexes
+ * @init_firmware_loader: initialize data for FW loader.
+ * @init_cpu_scrambler_dram: Enable CPU specific DRAM scrambling
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct hl_asic_funcs {
 	int (*early_init)(struct hl_device *hdev);
@@ -986,6 +1182,13 @@ struct hl_asic_funcs {
 	int (*hw_block_mmap)(struct hl_device *hdev, struct vm_area_struct *vma,
 			u32 block_id, u32 block_size);
 	void (*enable_events_from_fw)(struct hl_device *hdev);
+<<<<<<< HEAD
+=======
+	void (*get_msi_info)(__le32 *table);
+	int (*map_pll_idx_to_fw_idx)(u32 pll_idx);
+	void (*init_firmware_loader)(struct hl_device *hdev);
+	void (*init_cpu_scrambler_dram)(struct hl_device *hdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 
@@ -1073,6 +1276,10 @@ struct hl_pending_cb {
  * @debugfs_list: node in debugfs list of contexts.
  * pending_cb_list: list of pending command buffers waiting to be sent upon
  *                  next user command submission context.
+<<<<<<< HEAD
+=======
+ * @hw_block_mem_list: list of HW block virtual mapped addresses.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @cs_counters: context command submission counters.
  * @cb_va_pool: device VA pool for command buffers which are mapped to the
  *              device's MMU.
@@ -1111,6 +1318,10 @@ struct hl_ctx {
 	struct mutex			mmu_lock;
 	struct list_head		debugfs_list;
 	struct list_head		pending_cb_list;
+<<<<<<< HEAD
+=======
+	struct list_head		hw_block_mem_list;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct hl_cs_counters_atomic	cs_counters;
 	struct gen_pool			*cb_va_pool;
 	u64				cs_sequence;
@@ -1197,6 +1408,11 @@ struct hl_userptr {
  * @staged_first: true if this is the first staged CS and we need to receive
  *                timeout for this CS.
  * @staged_cs: true if this CS is part of a staged submission.
+<<<<<<< HEAD
+=======
+ * @skip_reset_on_timeout: true if we shall not reset the device in case
+ *                         timeout occurs (debug scenario).
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct hl_cs {
 	u16			*jobs_in_queue_cnt;
@@ -1223,6 +1439,10 @@ struct hl_cs {
 	u8			staged_last;
 	u8			staged_first;
 	u8			staged_cs;
+<<<<<<< HEAD
+=======
+	u8			skip_reset_on_timeout;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**
@@ -1492,6 +1712,10 @@ struct hl_debugfs_entry {
  * @userptr_spinlock: protects userptr_list.
  * @ctx_mem_hash_list: list of available contexts with MMU mappings.
  * @ctx_mem_hash_spinlock: protects cb_list.
+<<<<<<< HEAD
+=======
+ * @blob_desc: descriptor of blob
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @addr: next address to read/write from/to in read/write32.
  * @mmu_addr: next virtual address to translate to physical address in mmu_show.
  * @mmu_asid: ASID to use while translating in mmu_show.
@@ -1515,6 +1739,10 @@ struct hl_dbg_device_entry {
 	spinlock_t			userptr_spinlock;
 	struct list_head		ctx_mem_hash_list;
 	spinlock_t			ctx_mem_hash_spinlock;
+<<<<<<< HEAD
+=======
+	struct debugfs_blob_wrapper	blob_desc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u64				addr;
 	u64				mmu_addr;
 	u32				mmu_asid;
@@ -1683,6 +1911,7 @@ struct hl_device_reset_work {
 	struct workqueue_struct		*wq;
 	struct delayed_work		reset_work;
 	struct hl_device		*hdev;
+<<<<<<< HEAD
 };
 
 /**
@@ -1693,6 +1922,8 @@ struct hl_device_reset_work {
 struct hl_device_idle_busy_ts {
 	ktime_t				idle_to_busy_ts;
 	ktime_t				busy_to_idle_ts;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**
@@ -1864,6 +2095,11 @@ struct hl_mmu_funcs {
  * @aggregated_cs_counters: aggregated cs counters among all contexts
  * @mmu_priv: device-specific MMU data.
  * @mmu_func: device-related MMU functions.
+<<<<<<< HEAD
+=======
+ * @fw_loader: FW loader manager.
+ * @pci_mem_region: array of memory regions in the PCI
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @dram_used_mem: current DRAM memory consumption.
  * @timeout_jiffies: device CS timeout value.
  * @max_power: the max power of the device, as configured by the sysadmin. This
@@ -1922,6 +2158,17 @@ struct hl_mmu_funcs {
  * @device_fini_pending: true if device_fini was called and might be
  *                       waiting for the reset thread to finish
  * @supports_staged_submission: true if staged submissions are supported
+<<<<<<< HEAD
+=======
+ * @curr_reset_cause: saves an enumerated reset cause when a hard reset is
+ *                    triggered, and cleared after it is shared with preboot.
+ * @skip_reset_on_timeout: Skip device reset if CS has timed out, wait for it to
+ *                         complete instead.
+ * @device_cpu_is_halted: Flag to indicate whether the device CPU was already
+ *                        halted. We can't halt it again because the COMMS
+ *                        protocol will throw an error. Relevant only for
+ *                        cases where Linux was not loaded to device CPU
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 struct hl_device {
 	struct pci_dev			*pdev;
@@ -1985,6 +2232,13 @@ struct hl_device {
 	struct hl_mmu_priv		mmu_priv;
 	struct hl_mmu_funcs		mmu_func[MMU_NUM_PGT_LOCATIONS];
 
+<<<<<<< HEAD
+=======
+	struct fw_load_mgr		fw_loader;
+
+	struct pci_mem_region		pci_mem_region[PCI_REGION_NUMBER];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	atomic64_t			dram_used_mem;
 	u64				timeout_jiffies;
 	u64				max_power;
@@ -2028,6 +2282,12 @@ struct hl_device {
 	u8				process_kill_trial_cnt;
 	u8				device_fini_pending;
 	u8				supports_staged_submission;
+<<<<<<< HEAD
+=======
+	u8				curr_reset_cause;
+	u8				skip_reset_on_timeout;
+	u8				device_cpu_is_halted;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* Parameters for bring-up */
 	u64				nic_ports_mask;
@@ -2336,6 +2596,12 @@ int hl_set_voltage(struct hl_device *hdev,
 			int sensor_index, u32 attr, long value);
 int hl_set_current(struct hl_device *hdev,
 			int sensor_index, u32 attr, long value);
+<<<<<<< HEAD
+=======
+void hl_release_pending_user_interrupts(struct hl_device *hdev);
+int hl_cs_signal_sob_wraparound_handler(struct hl_device *hdev, u32 q_idx,
+			struct hl_hw_sob **hw_sob, u32 count);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #ifdef CONFIG_DEBUG_FS
 

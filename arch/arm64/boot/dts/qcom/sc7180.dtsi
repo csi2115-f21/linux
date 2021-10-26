@@ -110,7 +110,11 @@
 			no-map;
 		};
 
+<<<<<<< HEAD
 		rmtfs_mem: memory@84400000 {
+=======
+		rmtfs_mem: memory@94600000 {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			compatible = "qcom,rmtfs-mem";
 			reg = <0x0 0x84400000 0x0 0x200000>;
 			no-map;
@@ -3575,7 +3579,12 @@
 			reg = <0 0x62f00000 0 0x29000>;
 			reg-names = "lpass-lpaif";
 
+<<<<<<< HEAD
 			iommus = <&apps_smmu 0x1020 0>;
+=======
+			iommus = <&apps_smmu 0x1020 0>,
+				<&apps_smmu 0x1021 0>;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			power-domains = <&lpass_hm LPASS_CORE_HM_GDSCR>;
 

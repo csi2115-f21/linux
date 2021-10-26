@@ -42,7 +42,14 @@
 #include "inc/hw/dmcu.h"
 #include "dml/display_mode_lib.h"
 
+<<<<<<< HEAD
 #define DC_VER "3.2.122"
+=======
+/* forward declaration */
+struct aux_payload;
+
+#define DC_VER "3.2.141"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define MAX_SURFACES 3
 #define MAX_PLANES 6
@@ -552,6 +559,12 @@ struct dc_phy_addr_space_config {
 		uint64_t page_table_start_addr;
 		uint64_t page_table_end_addr;
 		uint64_t page_table_base_addr;
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+		bool base_addr_is_mc_addr;
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} gart_config;
 
 	bool valid;
@@ -581,7 +594,10 @@ struct dc_bounding_box_overrides {
 	int min_dcfclk_mhz;
 };
 
+<<<<<<< HEAD
 struct dc_state;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct resource_pool;
 struct dce_hwseq;
 struct gpu_info_soc_bounding_box_v1_0;
@@ -1290,6 +1306,18 @@ void dc_hardware_release(struct dc *dc);
 #endif
 
 bool dc_set_psr_allow_active(struct dc *dc, bool enable);
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_DRM_AMD_DC_DCN)
+void dc_z10_restore(struct dc *dc);
+#endif
+
+bool dc_enable_dmub_notifications(struct dc *dc);
+
+bool dc_process_dmub_aux_transfer_async(struct dc *dc,
+				uint32_t link_index,
+				struct aux_payload *payload);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*******************************************************************************
  * DSC Interfaces

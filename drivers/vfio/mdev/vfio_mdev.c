@@ -17,11 +17,15 @@
 
 #include "mdev_private.h"
 
+<<<<<<< HEAD
 #define DRIVER_VERSION  "0.1"
 #define DRIVER_AUTHOR   "NVIDIA Corporation"
 #define DRIVER_DESC     "VFIO based driver for Mediated device"
 
 static int vfio_mdev_open(void *device_data)
+=======
+static int vfio_mdev_open(struct vfio_device *core_vdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mdev_device *mdev = device_data;
 	struct mdev_parent *parent = mdev->parent;
@@ -33,6 +37,7 @@ static int vfio_mdev_open(void *device_data)
 	if (!try_module_get(THIS_MODULE))
 		return -ENODEV;
 
+<<<<<<< HEAD
 	ret = parent->ops->open(mdev);
 	if (ret)
 		module_put(THIS_MODULE);
@@ -41,6 +46,15 @@ static int vfio_mdev_open(void *device_data)
 }
 
 static void vfio_mdev_release(void *device_data)
+=======
+	if (unlikely(!parent->ops->open))
+		return -EINVAL;
+
+	return parent->ops->open(mdev);
+}
+
+static void vfio_mdev_release(struct vfio_device *core_vdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mdev_device *mdev = device_data;
 	struct mdev_parent *parent = mdev->parent;
@@ -48,7 +62,12 @@ static void vfio_mdev_release(void *device_data)
 	if (likely(parent->ops->release))
 		parent->ops->release(mdev);
 
+<<<<<<< HEAD
 	module_put(THIS_MODULE);
+=======
+	if (likely(parent->ops->release))
+		parent->ops->release(mdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static long vfio_mdev_unlocked_ioctl(void *device_data,
@@ -123,14 +142,39 @@ static const struct vfio_device_ops vfio_mdev_dev_ops = {
 
 static int vfio_mdev_probe(struct device *dev)
 {
+<<<<<<< HEAD
 	struct mdev_device *mdev = to_mdev_device(dev);
 
 	return vfio_add_group_dev(dev, &vfio_mdev_dev_ops, mdev);
+=======
+	struct vfio_device *vdev;
+	int ret;
+
+	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+	if (!vdev)
+		return -ENOMEM;
+
+	vfio_init_group_dev(vdev, &mdev->dev, &vfio_mdev_dev_ops);
+	ret = vfio_register_group_dev(vdev);
+	if (ret) {
+		kfree(vdev);
+		return ret;
+	}
+	dev_set_drvdata(&mdev->dev, vdev);
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void vfio_mdev_remove(struct device *dev)
 {
+<<<<<<< HEAD
 	vfio_del_group_dev(dev);
+=======
+	struct vfio_device *vdev = dev_get_drvdata(&mdev->dev);
+
+	vfio_unregister_group_dev(vdev);
+	kfree(vdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static struct mdev_driver vfio_mdev_driver = {

@@ -638,13 +638,28 @@ static void ghl_magic_poke(struct timer_list *t)
 {
 	struct sony_sc *sc = from_timer(sc, t, ghl_poke_timer);
 
+<<<<<<< HEAD
 	int ret;
 	unsigned int pipe;
 	struct urb *urb;
 	struct usb_device *usbdev = to_usb_device(sc->hdev->dev.parent->parent);
 	const u16 poke_size =
 		ARRAY_SIZE(ghl_ps3wiiu_magic_data);
+=======
+	ret = usb_submit_urb(sc->ghl_urb, GFP_ATOMIC);
+	if (ret < 0)
+		hid_err(sc->hdev, "usb_submit_urb failed: %d", ret);
+}
 
+static int ghl_init_urb(struct sony_sc *sc, struct usb_device *usbdev)
+{
+	struct usb_ctrlrequest *cr;
+	u16 poke_size;
+	u8 *databuf;
+	unsigned int pipe;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+	poke_size = ARRAY_SIZE(ghl_ps3wiiu_magic_data);
 	pipe = usb_sndctrlpipe(usbdev, 0);
 
 	if (!sc->ghl_cr) {
@@ -665,12 +680,20 @@ static void ghl_magic_poke(struct timer_list *t)
 
 	sc->ghl_cr->bRequestType =
 		USB_RECIP_INTERFACE | USB_TYPE_CLASS | USB_DIR_OUT;
+<<<<<<< HEAD
 	sc->ghl_cr->bRequest = USB_REQ_SET_CONFIGURATION;
 	sc->ghl_cr->wValue = cpu_to_le16(ghl_ps3wiiu_magic_value);
 	sc->ghl_cr->wIndex = 0;
 	sc->ghl_cr->wLength = cpu_to_le16(poke_size);
 	memcpy(sc->ghl_databuf, ghl_ps3wiiu_magic_data, poke_size);
 
+=======
+	cr->bRequest = USB_REQ_SET_CONFIGURATION;
+	cr->wValue = cpu_to_le16(ghl_ps3wiiu_magic_value);
+	cr->wIndex = 0;
+	cr->wLength = cpu_to_le16(poke_size);
+	memcpy(databuf, ghl_ps3wiiu_magic_data, poke_size);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	usb_fill_control_urb(
 		urb, usbdev, pipe,
 		(unsigned char *) sc->ghl_cr, sc->ghl_databuf,
@@ -3042,6 +3065,18 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	}
 
 	if (sc->quirks & GHL_GUITAR_PS3WIIU) {
+<<<<<<< HEAD
+=======
+		sc->ghl_urb = usb_alloc_urb(0, GFP_ATOMIC);
+		if (!sc->ghl_urb)
+			return -ENOMEM;
+		ret = ghl_init_urb(sc, usbdev);
+		if (ret) {
+			hid_err(hdev, "error preparing URB\n");
+			return ret;
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		timer_setup(&sc->ghl_poke_timer, ghl_magic_poke, 0);
 		mod_timer(&sc->ghl_poke_timer,
 			  jiffies + GHL_GUITAR_POKE_INTERVAL*HZ);
@@ -3054,7 +3089,11 @@ static void sony_remove(struct hid_device *hdev)
 {
 	struct sony_sc *sc = hid_get_drvdata(hdev);
 
+<<<<<<< HEAD
 	if (sc->quirks & GHL_GUITAR_PS3WIIU)
+=======
+	if (sc->quirks & GHL_GUITAR_PS3WIIU) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		del_timer_sync(&sc->ghl_poke_timer);
 
 	hid_hw_close(hdev);

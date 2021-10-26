@@ -122,11 +122,18 @@ static void amd_sfh_work_buffer(struct work_struct *work)
 	int i;
 
 	for (i = 0; i < cli_data->num_hid_devices; i++) {
+<<<<<<< HEAD
 		report_size = get_input_report(cli_data->sensor_idx[i], cli_data->report_id[i],
 					       cli_data->input_report[i],
 					       cli_data->sensor_virt_addr[i]);
 		hid_input_report(cli_data->hid_sensor_hubs[i], HID_INPUT_REPORT,
 				 cli_data->input_report[i], report_size, 0);
+=======
+		report_size = get_input_report(i, cli_data->sensor_idx[i], cli_data->report_id[i],
+					       in_data);
+		hid_input_report(cli_data->hid_sensor_hubs[i], HID_INPUT_REPORT,
+				 in_data->input_report[i], report_size, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	schedule_delayed_work(&cli_data->work_buffer, msecs_to_jiffies(AMD_SFH_IDLE_LOOP));
 }
@@ -200,7 +207,11 @@ int amd_sfh_hid_client_init(struct amd_mp2_dev *privdata)
 		rc = amdtp_hid_probe(cl_data->cur_hid_dev, cl_data);
 		if (rc)
 			return rc;
+<<<<<<< HEAD
 		amd_start_sensor(privdata, info);
+=======
+		privdata->mp2_ops->start(privdata, info);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		cl_data->sensor_sts[i] = 1;
 	}
 	privdata->cl_data = cl_data;
@@ -225,10 +236,18 @@ cleanup:
 int amd_sfh_hid_client_deinit(struct amd_mp2_dev *privdata)
 {
 	struct amdtp_cl_data *cl_data = privdata->cl_data;
+<<<<<<< HEAD
 	int i;
 
 	for (i = 0; i < cl_data->num_hid_devices; i++)
 		amd_stop_sensor(privdata, i);
+=======
+	struct amd_input_data *in_data = cl_data->in_data;
+	int i;
+
+	for (i = 0; i < cl_data->num_hid_devices; i++)
+		privdata->mp2_ops->stop(privdata, i);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	cancel_delayed_work_sync(&cl_data->work);
 	cancel_delayed_work_sync(&cl_data->work_buffer);

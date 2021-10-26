@@ -252,8 +252,13 @@ static int rvin_try_format(struct rvin_dev *vin, u32 which,
 	u32 width, height;
 	int ret;
 
+<<<<<<< HEAD
 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
 	if (pad_cfg == NULL)
+=======
+	sd_state = v4l2_subdev_alloc_state(sd);
+	if (sd_state == NULL)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 
 	if (!rvin_format_from_pixel(vin, pix->pixelformat))

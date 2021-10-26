@@ -841,13 +841,22 @@ TRACE_EVENT(xprtrdma_post_recvs,
 		__entry->r_xprt = r_xprt;
 		__entry->count = count;
 		__entry->status = status;
+<<<<<<< HEAD
 		__entry->posted = r_xprt->rx_ep->re_receive_count;
+=======
+		__entry->posted = ep->re_receive_count;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__assign_str(addr, rpcrdma_addrstr(r_xprt));
 		__assign_str(port, rpcrdma_portstr(r_xprt));
 	),
 
+<<<<<<< HEAD
 	TP_printk("peer=[%s]:%s r_xprt=%p: %u new recvs, %d active (rc %d)",
 		__get_str(addr), __get_str(port), __entry->r_xprt,
+=======
+	TP_printk("peer=[%s]:%s cq.id=%d %u new recvs, %d active (rc %d)",
+		__get_str(addr), __get_str(port), __entry->cq_id,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__entry->count, __entry->posted, __entry->status
 	)
 );

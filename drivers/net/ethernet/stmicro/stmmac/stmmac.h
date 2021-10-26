@@ -272,6 +272,33 @@ void stmmac_disable_eee_mode(struct stmmac_priv *priv);
 bool stmmac_eee_init(struct stmmac_priv *priv);
 int stmmac_reinit_queues(struct net_device *dev, u32 rx_cnt, u32 tx_cnt);
 int stmmac_reinit_ringparam(struct net_device *dev, u32 rx_size, u32 tx_size);
+<<<<<<< HEAD
+=======
+int stmmac_bus_clks_config(struct stmmac_priv *priv, bool enabled);
+void stmmac_fpe_handshake(struct stmmac_priv *priv, bool enable);
+
+static inline bool stmmac_xdp_is_enabled(struct stmmac_priv *priv)
+{
+	return !!priv->xdp_prog;
+}
+
+static inline unsigned int stmmac_rx_offset(struct stmmac_priv *priv)
+{
+	if (stmmac_xdp_is_enabled(priv))
+		return XDP_PACKET_HEADROOM + NET_IP_ALIGN;
+
+	return NET_SKB_PAD + NET_IP_ALIGN;
+}
+
+void stmmac_disable_rx_queue(struct stmmac_priv *priv, u32 queue);
+void stmmac_enable_rx_queue(struct stmmac_priv *priv, u32 queue);
+void stmmac_disable_tx_queue(struct stmmac_priv *priv, u32 queue);
+void stmmac_enable_tx_queue(struct stmmac_priv *priv, u32 queue);
+int stmmac_xsk_wakeup(struct net_device *dev, u32 queue, u32 flags);
+struct timespec64 stmmac_calc_tas_basetime(ktime_t old_base_time,
+					   ktime_t current_time,
+					   u64 cycle_time);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #if IS_ENABLED(CONFIG_STMMAC_SELFTESTS)
 void stmmac_selftest_run(struct net_device *dev,

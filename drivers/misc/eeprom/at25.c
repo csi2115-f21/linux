@@ -303,6 +303,16 @@ static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static const struct of_device_id at25_of_match[] = {
+	{ .compatible = "atmel,at25",},
+	{ .compatible = "cypress,fm25",},
+	{ }
+};
+MODULE_DEVICE_TABLE(of, at25_of_match);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int at25_probe(struct spi_device *spi)
 {
 	struct at25_data	*at25 = NULL;

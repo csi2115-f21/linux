@@ -89,6 +89,11 @@ struct amdgpu_nbio_funcs {
 	void (*enable_aspm)(struct amdgpu_device *adev,
 			    bool enable);
 	void (*program_aspm)(struct amdgpu_device *adev);
+<<<<<<< HEAD
+=======
+	void (*apply_lc_spc_mode_wa)(struct amdgpu_device *adev);
+	void (*apply_l1_link_width_reconfig_wa)(struct amdgpu_device *adev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct amdgpu_nbio {

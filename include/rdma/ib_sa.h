@@ -431,7 +431,11 @@ int ib_sa_path_rec_get(struct ib_sa_client *client, struct ib_device *device,
 		       void *context, struct ib_sa_query **query);
 
 int ib_sa_service_rec_query(struct ib_sa_client *client,
+<<<<<<< HEAD
 			    struct ib_device *device, u8 port_num, u8 method,
+=======
+			    struct ib_device *device, u32 port_num, u8 method,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			    struct ib_sa_service_rec *rec,
 			    ib_sa_comp_mask comp_mask, unsigned long timeout_ms,
 			    gfp_t gfp_mask,

@@ -22,11 +22,30 @@ static struct idxd_desc *__get_desc(struct idxd_wq *wq, int idx, int cpu)
 		desc->hw->pasid = idxd->pasid;
 
 	/*
+<<<<<<< HEAD
 	 * Descriptor completion vectors are 1-8 for MSIX. We will round
 	 * robin through the 8 vectors.
 	 */
 	wq->vec_ptr = (wq->vec_ptr % idxd->num_wq_irqs) + 1;
 	desc->hw->int_handle = wq->vec_ptr;
+=======
+	 * Descriptor completion vectors are 1...N for MSIX. We will round
+	 * robin through the N vectors.
+	 */
+	wq->vec_ptr = desc->vector = (wq->vec_ptr % idxd->num_wq_irqs) + 1;
+	if (!idxd->int_handles) {
+		desc->hw->int_handle = wq->vec_ptr;
+	} else {
+		/*
+		 * int_handles are only for descriptor completion. However for device
+		 * MSIX enumeration, vec 0 is used for misc interrupts. Therefore even
+		 * though we are rotating through 1...N for descriptor interrupts, we
+		 * need to acqurie the int_handles from 0..N-1.
+		 */
+		desc->hw->int_handle = idxd->int_handles[desc->vector - 1];
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return desc;
 }
 
@@ -76,6 +95,63 @@ void idxd_free_desc(struct idxd_wq *wq, struct idxd_desc *desc)
 	sbitmap_queue_clear(&wq->sbq, desc->id, cpu);
 }
 
+<<<<<<< HEAD
+=======
+static struct idxd_desc *list_abort_desc(struct idxd_wq *wq, struct idxd_irq_entry *ie,
+					 struct idxd_desc *desc)
+{
+	struct idxd_desc *d, *n;
+
+	lockdep_assert_held(&ie->list_lock);
+	list_for_each_entry_safe(d, n, &ie->work_list, list) {
+		if (d == desc) {
+			list_del(&d->list);
+			return d;
+		}
+	}
+
+	/*
+	 * At this point, the desc needs to be aborted is held by the completion
+	 * handler where it has taken it off the pending list but has not added to the
+	 * work list. It will be cleaned up by the interrupt handler when it sees the
+	 * IDXD_COMP_DESC_ABORT for completion status.
+	 */
+	return NULL;
+}
+
+static void llist_abort_desc(struct idxd_wq *wq, struct idxd_irq_entry *ie,
+			     struct idxd_desc *desc)
+{
+	struct idxd_desc *d, *t, *found = NULL;
+	struct llist_node *head;
+	unsigned long flags;
+
+	desc->completion->status = IDXD_COMP_DESC_ABORT;
+	/*
+	 * Grab the list lock so it will block the irq thread handler. This allows the
+	 * abort code to locate the descriptor need to be aborted.
+	 */
+	spin_lock_irqsave(&ie->list_lock, flags);
+	head = llist_del_all(&ie->pending_llist);
+	if (head) {
+		llist_for_each_entry_safe(d, t, head, llnode) {
+			if (d == desc) {
+				found = desc;
+				continue;
+			}
+			list_add_tail(&desc->list, &ie->work_list);
+		}
+	}
+
+	if (!found)
+		found = list_abort_desc(wq, ie, desc);
+	spin_unlock_irqrestore(&ie->list_lock, flags);
+
+	if (found)
+		complete_desc(found, IDXD_COMPLETE_ABORT);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int idxd_submit_desc(struct idxd_wq *wq, struct idxd_desc *desc)
 {
 	struct idxd_device *idxd = wq->idxd;
@@ -85,6 +161,12 @@ int idxd_submit_desc(struct idxd_wq *wq, struct idxd_desc *desc)
 
 	if (idxd->state != IDXD_DEV_ENABLED)
 		return -EIO;
+<<<<<<< HEAD
+=======
+
+	if (!percpu_ref_tryget_live(&wq->wq_active))
+		return -ENXIO;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	portal = wq->portal;
 
@@ -94,6 +176,19 @@ int idxd_submit_desc(struct idxd_wq *wq, struct idxd_desc *desc)
 	 * even on UP because the recipient is a device.
 	 */
 	wmb();
+<<<<<<< HEAD
+=======
+
+	/*
+	 * Pending the descriptor to the lockless list for the irq_entry
+	 * that we designated the descriptor to.
+	 */
+	if (desc->hw->flags & IDXD_OP_FLAG_RCI) {
+		ie = &idxd->irq_entries[desc->vector];
+		llist_add(&desc->llnode, &ie->pending_llist);
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (wq_dedicated(wq)) {
 		iosubmit_cmds512(portal, desc->hw, 1);
 	} else {
@@ -104,7 +199,13 @@ int idxd_submit_desc(struct idxd_wq *wq, struct idxd_desc *desc)
 		 * device is not accepting descriptor at all.
 		 */
 		rc = enqcmds(portal, desc->hw);
+<<<<<<< HEAD
 		if (rc < 0)
+=======
+		if (rc < 0) {
+			if (ie)
+				llist_abort_desc(wq, ie, desc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return rc;
 	}
 

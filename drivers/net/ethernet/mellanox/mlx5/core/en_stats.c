@@ -1876,7 +1876,12 @@ static MLX5E_DECLARE_STATS_GRP_OP_FILL_STRS(ptp)
 	for (tc = 0; tc < priv->max_opened_tc; tc++)
 		for (i = 0; i < NUM_PTP_CQ_STATS; i++)
 			sprintf(data + (idx++) * ETH_GSTRING_LEN,
+<<<<<<< HEAD
 				ptp_cq_stats_desc[i].format, tc);
+=======
+				ptp_rq_stats_desc[i].format);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return idx;
 }
 

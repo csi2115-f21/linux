@@ -158,6 +158,21 @@ struct urb_listitem {
 	struct urb *urb;
 };
 
+<<<<<<< HEAD
+=======
+static const u32 isp1763_hc_portsc1_fields[] = {
+	[PORT_OWNER]		= BIT(13),
+	[PORT_POWER]		= BIT(12),
+	[PORT_LSTATUS]		= BIT(10),
+	[PORT_RESET]		= BIT(8),
+	[PORT_SUSPEND]		= BIT(7),
+	[PORT_RESUME]		= BIT(6),
+	[PORT_PE]		= BIT(2),
+	[PORT_CSC]		= BIT(1),
+	[PORT_CONNECT]		= BIT(0),
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Access functions for isp176x registers (addresses 0..0x03FF).
  */
@@ -166,9 +181,108 @@ static u32 reg_read32(void __iomem *base, u32 reg)
 	return isp1760_read32(base, reg);
 }
 
+<<<<<<< HEAD
 static void reg_write32(void __iomem *base, u32 reg, u32 val)
 {
 	isp1760_write32(base, reg, val);
+=======
+/*
+ * We need, in isp1763, to write directly the values to the portsc1
+ * register so it will make the other values to trigger.
+ */
+static void isp1760_hcd_portsc1_set_clear(struct isp1760_hcd *priv, u32 field,
+					  u32 val)
+{
+	u32 bit = isp1763_hc_portsc1_fields[field];
+	u32 port_status = readl(priv->base + ISP1763_HC_PORTSC1);
+
+	if (val)
+		writel(port_status | bit, priv->base + ISP1763_HC_PORTSC1);
+	else
+		writel(port_status & ~bit, priv->base + ISP1763_HC_PORTSC1);
+}
+
+static void isp1760_hcd_write(struct usb_hcd *hcd, u32 field, u32 val)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	if (unlikely(priv->is_isp1763 &&
+		     (field >= PORT_OWNER && field <= PORT_CONNECT)))
+		return isp1760_hcd_portsc1_set_clear(priv, field, val);
+
+	isp1760_field_write(priv->fields, field, val);
+}
+
+static void isp1760_hcd_set(struct usb_hcd *hcd, u32 field)
+{
+	isp1760_hcd_write(hcd, field, 0xFFFFFFFF);
+}
+
+static void isp1760_hcd_clear(struct usb_hcd *hcd, u32 field)
+{
+	isp1760_hcd_write(hcd, field, 0);
+}
+
+static int isp1760_hcd_set_and_wait(struct usb_hcd *hcd, u32 field,
+				    u32 timeout_us)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+	u32 val;
+
+	isp1760_hcd_set(hcd, field);
+
+	return regmap_field_read_poll_timeout(priv->fields[field], val,
+					      val, 10, timeout_us);
+}
+
+static int isp1760_hcd_set_and_wait_swap(struct usb_hcd *hcd, u32 field,
+					 u32 timeout_us)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+	u32 val;
+
+	isp1760_hcd_set(hcd, field);
+
+	return regmap_field_read_poll_timeout(priv->fields[field], val,
+					      !val, 10, timeout_us);
+}
+
+static int isp1760_hcd_clear_and_wait(struct usb_hcd *hcd, u32 field,
+				      u32 timeout_us)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+	u32 val;
+
+	isp1760_hcd_clear(hcd, field);
+
+	return regmap_field_read_poll_timeout(priv->fields[field], val,
+					      !val, 10, timeout_us);
+}
+
+static bool isp1760_hcd_is_set(struct usb_hcd *hcd, u32 field)
+{
+	return !!isp1760_hcd_read(hcd, field);
+}
+
+static bool isp1760_hcd_ppc_is_set(struct usb_hcd *hcd)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	if (priv->is_isp1763)
+		return true;
+
+	return isp1760_hcd_is_set(hcd, HCS_PPC);
+}
+
+static u32 isp1760_hcd_n_ports(struct usb_hcd *hcd)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	if (priv->is_isp1763)
+		return 1;
+
+	return isp1760_hcd_read(hcd, HCS_N_PORTS);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -231,8 +345,53 @@ static void bank_reads8(void __iomem *src_base, u32 src_offset, u32 bank_addr,
 	}
 }
 
+<<<<<<< HEAD
 static void mem_reads8(void __iomem *src_base, u32 src_offset, void *dst,
 								u32 bytes)
+=======
+static void isp1760_mem_read(struct usb_hcd *hcd, u32 src_offset, void *dst,
+			     u32 bytes)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	isp1760_hcd_write(hcd, MEM_BANK_SEL, ISP_BANK_0);
+	isp1760_hcd_write(hcd, MEM_START_ADDR, src_offset);
+	ndelay(100);
+
+	bank_reads8(priv->base, src_offset, ISP_BANK_0, dst, bytes);
+}
+
+/*
+ * ISP1763 does not have the banks direct host controller memory access,
+ * needs to use the HC_DATA register. Add data read/write according to this,
+ * and also adjust 16bit access.
+ */
+static void isp1763_mem_read(struct usb_hcd *hcd, u16 srcaddr,
+			     u16 *dstptr, u32 bytes)
+{
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	/* Write the starting device address to the hcd memory register */
+	isp1760_reg_write(priv->regs, ISP1763_HC_MEMORY, srcaddr);
+	ndelay(100); /* Delay between consecutive access */
+
+	/* As long there are at least 16-bit to read ... */
+	while (bytes >= 2) {
+		*dstptr = __raw_readw(priv->base + ISP1763_HC_DATA);
+		bytes -= 2;
+		dstptr++;
+	}
+
+	/* If there are no more bytes to read, return */
+	if (bytes <= 0)
+		return;
+
+	*((u8 *)dstptr) = (u8)(readw(priv->base + ISP1763_HC_DATA) & 0xFF);
+}
+
+static void mem_read(struct usb_hcd *hcd, u32 src_offset, __u32 *dst,
+		     u32 bytes)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	reg_write32(src_base, HC_MEMORY_REG, src_offset + ISP_BANK(0));
 	ndelay(90);
@@ -281,8 +440,16 @@ static void mem_writes8(void __iomem *dst_base, u32 dst_offset,
 static void ptd_read(void __iomem *base, u32 ptd_offset, u32 slot,
 								struct ptd *ptd)
 {
+<<<<<<< HEAD
 	reg_write32(base, HC_MEMORY_REG,
 				ISP_BANK(0) + ptd_offset + slot*sizeof(*ptd));
+=======
+	u16 src_offset = ptd_offset + slot * sizeof(*ptd);
+	struct isp1760_hcd *priv = hcd_to_priv(hcd);
+
+	isp1760_hcd_write(hcd, MEM_BANK_SEL, ISP_BANK_0);
+	isp1760_hcd_write(hcd, MEM_START_ADDR, src_offset);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ndelay(90);
 	bank_reads8(base, ptd_offset + slot*sizeof(*ptd), ISP_BANK(0),
 						(void *) ptd, sizeof(*ptd));
@@ -315,6 +482,7 @@ static void init_memory(struct isp1760_hcd *priv)
 		payload_addr += priv->memory_pool[i].size;
 	}
 
+<<<<<<< HEAD
 	curr = i;
 	for (i = 0; i < BLOCK_2_NUM; i++) {
 		priv->memory_pool[curr + i].start = payload_addr;
@@ -329,6 +497,15 @@ static void init_memory(struct isp1760_hcd *priv)
 		priv->memory_pool[curr + i].size = BLOCK_3_SIZE;
 		priv->memory_pool[curr + i].free = 1;
 		payload_addr += priv->memory_pool[curr + i].size;
+=======
+	for (i = 0, curr = 0; i < ARRAY_SIZE(mem->blocks); i++) {
+		for (j = 0; j < mem->blocks[i]; j++, curr++) {
+			priv->memory_pool[curr + j].start = payload_addr;
+			priv->memory_pool[curr + j].size = mem->blocks_size[i];
+			priv->memory_pool[curr + j].free = 1;
+			payload_addr += priv->memory_pool[curr + j].size;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	WARN_ON(payload_addr - priv->memory_pool[0].start > PAYLOAD_AREA_SIZE);
@@ -462,6 +639,7 @@ static int isp1760_hc_setup(struct usb_hcd *hcd)
 {
 	struct isp1760_hcd *priv = hcd_to_priv(hcd);
 	int result;
+<<<<<<< HEAD
 	u32 scratch, hwmode;
 
 	reg_write32(hcd->regs, HC_SCRATCH_REG, 0xdeadbabe);
@@ -470,6 +648,24 @@ static int isp1760_hc_setup(struct usb_hcd *hcd)
 	scratch = reg_read32(hcd->regs, HC_SCRATCH_REG);
 	if (scratch != 0xdeadbabe) {
 		dev_err(hcd->self.controller, "Scratch test failed.\n");
+=======
+	u32 scratch;
+	u32 pattern;
+
+	if (priv->is_isp1763)
+		pattern = 0xcafe;
+	else
+		pattern = 0xdeadcafe;
+
+	isp1760_hcd_write(hcd, HC_SCRATCH, pattern);
+
+	/* Change bus pattern */
+	scratch = isp1760_hcd_read(hcd, HC_CHIP_ID_HIGH);
+	dev_err(hcd->self.controller, "Scratch test 0x%08x\n", scratch);
+	scratch = isp1760_hcd_read(hcd, HC_SCRATCH);
+	if (scratch != pattern) {
+		dev_err(hcd->self.controller, "Scratch test failed. 0x%08x\n", scratch);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENODEV;
 	}
 
@@ -1440,6 +1636,13 @@ static void packetize_urb(struct usb_hcd *hcd,
 		qtd = qtd_alloc(flags, urb, packet_type);
 		if (!qtd)
 			goto cleanup;
+<<<<<<< HEAD
+=======
+
+		if (len > mem->blocks_size[ISP176x_BLOCK_NUM - 1])
+			len = mem->blocks_size[ISP176x_BLOCK_NUM - 1];
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		this_qtd_len = qtd_fill(qtd, buf, len);
 		list_add_tail(&qtd->qtd_list, head);
 
@@ -1584,6 +1787,7 @@ static void kill_transfer(struct usb_hcd *hcd, struct urb *urb,
 	/* We need to forcefully reclaim the slot since some transfers never
 	   return, e.g. interrupt transfers and NAKed bulk transfers. */
 	if (usb_pipecontrol(urb->pipe) || usb_pipebulk(urb->pipe)) {
+<<<<<<< HEAD
 		skip_map = reg_read32(hcd->regs, HC_ATL_PTD_SKIPMAP_REG);
 		skip_map |= (1 << qh->slot);
 		reg_write32(hcd->regs, HC_ATL_PTD_SKIPMAP_REG, skip_map);
@@ -1593,6 +1797,18 @@ static void kill_transfer(struct usb_hcd *hcd, struct urb *urb,
 		skip_map = reg_read32(hcd->regs, HC_INT_PTD_SKIPMAP_REG);
 		skip_map |= (1 << qh->slot);
 		reg_write32(hcd->regs, HC_INT_PTD_SKIPMAP_REG, skip_map);
+=======
+		skip_map = isp1760_hcd_read(hcd, HC_ATL_PTD_SKIPMAP);
+		skip_map |= (1 << qh->slot);
+		isp1760_hcd_write(hcd, HC_ATL_PTD_SKIPMAP, skip_map);
+		ndelay(100);
+		priv->atl_slots[qh->slot].qh = NULL;
+		priv->atl_slots[qh->slot].qtd = NULL;
+	} else {
+		skip_map = isp1760_hcd_read(hcd, HC_INT_PTD_SKIPMAP);
+		skip_map |= (1 << qh->slot);
+		isp1760_hcd_write(hcd, HC_INT_PTD_SKIPMAP, skip_map);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		priv->int_slots[qh->slot].qh = NULL;
 		priv->int_slots[qh->slot].qtd = NULL;
 	}

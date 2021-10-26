@@ -3,6 +3,10 @@
 #define __LINUX_ENTRYKVM_H
 
 #include <linux/entry-common.h>
+<<<<<<< HEAD
+=======
+#include <linux/tick.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Transfer to guest mode work */
 #ifdef CONFIG_KVM_XFER_TO_GUEST_WORK

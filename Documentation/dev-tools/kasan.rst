@@ -161,6 +161,7 @@ particular KASAN features.
 
 - ``kasan=off`` or ``=on`` controls whether KASAN is enabled (default: ``on``).
 
+<<<<<<< HEAD
 - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
   traces collection (default: ``on``).
 
@@ -170,6 +171,11 @@ particular KASAN features.
 
 For developers
 ~~~~~~~~~~~~~~
+=======
+Hardware tag-based KASAN mode (see the section about various modes below) is
+intended for use in production as a security mitigation. Therefore, it supports
+boot parameters that allow disabling KASAN or controlling its features.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 Software KASAN modes use compiler instrumentation to insert validity checks.
 Such instrumentation might be incompatible with some part of the kernel, and
@@ -185,6 +191,10 @@ Makefile:
 
     KASAN_SANITIZE := n
 
+
+- ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+  report or also panic the kernel (default: ``report``). The panic happens even
+  if ``kasan_multi_shot`` is enabled.
 
 Implementation details
 ----------------------

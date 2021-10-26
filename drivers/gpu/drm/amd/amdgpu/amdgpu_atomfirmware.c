@@ -368,6 +368,7 @@ union firmware_info {
  */
 bool amdgpu_atomfirmware_sram_ecc_supported(struct amdgpu_device *adev)
 {
+<<<<<<< HEAD
 	struct amdgpu_mode_info *mode_info = &adev->mode_info;
 	int index;
 	u16 data_offset, size;
@@ -391,6 +392,29 @@ bool amdgpu_atomfirmware_sram_ecc_supported(struct amdgpu_device *adev)
 	}
 
 	return sram_ecc_supported;
+=======
+	u32 fw_cap;
+
+	fw_cap = adev->mode_info.firmware_flags;
+
+	return (fw_cap & ATOM_FIRMWARE_CAP_SRAM_ECC) ? true : false;
+}
+
+/*
+ * Helper function to query dynamic boot config capability
+ *
+ * @adev: amdgpu_device pointer
+ *
+ * Return true if vbios supports dynamic boot config or false if not
+ */
+bool amdgpu_atomfirmware_dynamic_boot_config_supported(struct amdgpu_device *adev)
+{
+	u32 fw_cap;
+
+	fw_cap = adev->mode_info.firmware_flags;
+
+	return (fw_cap & ATOM_FIRMWARE_CAP_DYNAMIC_BOOT_CFG_ENABLE) ? true : false;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 union smu_info {

@@ -445,7 +445,17 @@ static int device_va_to_pa(struct hl_device *hdev, u64 virt_addr,
 				u64 *phys_addr)
 {
 	struct hl_ctx *ctx = hdev->compute_ctx;
+<<<<<<< HEAD
 	int rc = 0;
+=======
+	struct hl_vm_hash_node *hnode;
+	struct hl_userptr *userptr;
+	enum vm_type_t *vm_type;
+	bool valid = false;
+	u64 end_address;
+	u32 range_size;
+	int i, rc = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!ctx) {
 		dev_err(hdev->dev, "no ctx available\n");
@@ -1104,6 +1114,25 @@ void hl_debugfs_add_device(struct hl_device *hdev)
 				dev_entry,
 				&hl_security_violations_fops);
 
+<<<<<<< HEAD
+=======
+	debugfs_create_file("dma_size",
+				0200,
+				dev_entry->root,
+				dev_entry,
+				&hl_dma_size_fops);
+
+	debugfs_create_blob("data_dma",
+				0400,
+				dev_entry->root,
+				&dev_entry->blob_desc);
+
+	debugfs_create_x8("skip_reset_on_timeout",
+				0644,
+				dev_entry->root,
+				&hdev->skip_reset_on_timeout);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	for (i = 0, entry = dev_entry->entry_arr ; i < count ; i++, entry++) {
 
 		ent = debugfs_create_file(hl_debugfs_list[i].name,
@@ -1124,6 +1153,12 @@ void hl_debugfs_remove_device(struct hl_device *hdev)
 	debugfs_remove_recursive(entry->root);
 
 	mutex_destroy(&entry->file_mutex);
+<<<<<<< HEAD
+=======
+
+	vfree(entry->blob_desc.data);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	kfree(entry->entry_arr);
 }
 

@@ -517,6 +517,7 @@ static inline int qdio_inbound_q_done(struct qdio_q *q, unsigned int start)
 	return 1;
 }
 
+<<<<<<< HEAD
 static inline unsigned long qdio_aob_for_buffer(struct qdio_output_q *q,
 					int bufnr)
 {
@@ -535,6 +536,8 @@ static inline unsigned long qdio_aob_for_buffer(struct qdio_output_q *q,
 	return phys_aob;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline int qdio_tasklet_schedule(struct qdio_q *q)
 {
 	if (likely(q->irq_ptr->state == QDIO_IRQ_STATE_ACTIVE)) {
@@ -1299,7 +1302,12 @@ static int handle_inbound(struct qdio_q *q, unsigned int callflags,
  * @count: how many buffers are filled
  */
 static int handle_outbound(struct qdio_q *q, unsigned int callflags,
+<<<<<<< HEAD
 			   unsigned int bufnr, unsigned int count)
+=======
+			   unsigned int bufnr, unsigned int count,
+			   struct qaob *aob)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	const unsigned int scan_threshold = q->irq_ptr->scan_threshold;
 	unsigned char state = 0;
@@ -1383,7 +1391,11 @@ int do_QDIO(struct ccw_device *cdev, unsigned int callflags,
 				      callflags, bufnr, count);
 	else if (callflags & QDIO_FLAG_SYNC_OUTPUT)
 		return handle_outbound(irq_ptr->output_qs[q_nr],
+<<<<<<< HEAD
 				       callflags, bufnr, count);
+=======
+				       callflags, bufnr, count, aob);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return -EINVAL;
 }
 EXPORT_SYMBOL_GPL(do_QDIO);

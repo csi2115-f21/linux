@@ -312,6 +312,7 @@ cs_etm_decoder__do_hard_timestamp(struct cs_etm_queue *etmq,
 		return OCSD_RESP_CONT;
 	}
 
+<<<<<<< HEAD
 	/*
 	 * This is the first timestamp we've seen since the beginning of traces
 	 * or a discontinuity.  Since timestamps packets are generated *after*
@@ -321,6 +322,36 @@ cs_etm_decoder__do_hard_timestamp(struct cs_etm_queue *etmq,
 	 */
 	packet_queue->timestamp = elem->timestamp - packet_queue->instr_count;
 	packet_queue->next_timestamp = elem->timestamp;
+=======
+
+	if (!elem->timestamp) {
+		/*
+		 * Zero timestamps can be seen due to misconfiguration or hardware bugs.
+		 * Warn once, and don't try to subtract instr_count as it would result in an
+		 * underflow.
+		 */
+		packet_queue->cs_timestamp = 0;
+		WARN_ONCE(true, "Zero Coresight timestamp found at Idx:%" OCSD_TRC_IDX_STR
+				". Decoding may be improved with --itrace=Z...\n", indx);
+	} else if (packet_queue->instr_count > elem->timestamp) {
+		/*
+		 * Sanity check that the elem->timestamp - packet_queue->instr_count would not
+		 * result in an underflow. Warn and clamp at 0 if it would.
+		 */
+		packet_queue->cs_timestamp = 0;
+		pr_err("Timestamp calculation underflow at Idx:%" OCSD_TRC_IDX_STR "\n", indx);
+	} else {
+		/*
+		 * This is the first timestamp we've seen since the beginning of traces
+		 * or a discontinuity.  Since timestamps packets are generated *after*
+		 * range packets have been generated, we need to estimate the time at
+		 * which instructions started by subtracting the number of instructions
+		 * executed to the timestamp.
+		 */
+		packet_queue->cs_timestamp = elem->timestamp - packet_queue->instr_count;
+	}
+	packet_queue->next_cs_timestamp = elem->timestamp;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	packet_queue->instr_count = 0;
 
 	/* Tell the front end which traceid_queue needs attention */

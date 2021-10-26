@@ -527,7 +527,11 @@ xfs_stat_blksize(
 	 */
 	if (mp->m_flags & XFS_MOUNT_LARGEIO) {
 		if (mp->m_swidth)
+<<<<<<< HEAD
 			return mp->m_swidth << mp->m_sb.sb_blocklog;
+=======
+			return XFS_FSB_TO_B(mp, mp->m_swidth);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (mp->m_flags & XFS_MOUNT_ALLOCSIZE)
 			return 1U << mp->m_allocsize_log;
 	}

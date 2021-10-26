@@ -59,6 +59,13 @@
 			qcom,client-id = <1>;
 			qcom,vmid = <15>;
 		};
+<<<<<<< HEAD
+=======
+		rmtfs_upper_guard: memory@f5d01000 {
+			no-map;
+			reg = <0 0xf5d01000 0 0x2000>;
+		};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/*
 		 * It seems like reserving the old rmtfs_mem region is also needed to prevent
@@ -387,6 +394,15 @@
 	};
 };
 
+<<<<<<< HEAD
+=======
+&ipa {
+	status = "okay";
+
+	memory-region = <&ipa_fw_mem>;
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 &mdss {
 	status = "okay";
 };

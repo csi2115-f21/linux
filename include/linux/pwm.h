@@ -396,6 +396,12 @@ int pwmchip_add_with_polarity(struct pwm_chip *chip,
 			      enum pwm_polarity polarity);
 int pwmchip_add(struct pwm_chip *chip);
 int pwmchip_remove(struct pwm_chip *chip);
+<<<<<<< HEAD
+=======
+
+int devm_pwmchip_add(struct device *dev, struct pwm_chip *chip);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
 					 unsigned int index,
 					 const char *label);

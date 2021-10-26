@@ -616,7 +616,11 @@ individual CTIs and components, and can propagate these between all CTIs via
 channels on the CTM (Cross Trigger Matrix).
 
 A separate documentation file is provided to explain the use of these devices.
+<<<<<<< HEAD
 (:doc:`coresight-ect`) [#fourth]_.
+=======
+(Documentation/trace/coresight/coresight-ect.rst) [#fourth]_.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 .. [#first] Documentation/ABI/testing/sysfs-bus-coresight-devices-stm

@@ -499,7 +499,11 @@ void zero_fill_bio_iter(struct bio *bio, struct bvec_iter start)
 	struct bio_vec bv;
 	struct bvec_iter iter;
 
+<<<<<<< HEAD
 	__bio_for_each_segment(bv, bio, iter, start) {
+=======
+	bio_for_each_segment(bv, bio, iter) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		char *data = bvec_kmap_irq(&bv, &flags);
 		memset(data, 0, bv.bv_len);
 		flush_dcache_page(bv.bv_page);
@@ -964,6 +968,20 @@ static int bio_iov_bvec_set(struct bio *bio, struct iov_iter *iter)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static int bio_iov_bvec_set_append(struct bio *bio, struct iov_iter *iter)
+{
+	struct request_queue *q = bio->bi_bdev->bd_disk->queue;
+	struct iov_iter i = *iter;
+
+	iov_iter_truncate(&i, queue_max_zone_append_sectors(q) << 9);
+	__bio_iov_bvec_set(bio, &i);
+	iov_iter_advance(iter, i.count);
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define PAGE_PTRS_PER_BVEC     (sizeof(struct bio_vec) / sizeof(struct page *))
 
 /**
@@ -1192,10 +1210,17 @@ void bio_copy_data_iter(struct bio *dst, struct bvec_iter *dst_iter,
 		memcpy(dst_p + dst_bv.bv_offset,
 		       src_p + src_bv.bv_offset,
 		       bytes);
+<<<<<<< HEAD
 
 		kunmap_atomic(dst_p);
 		kunmap_atomic(src_p);
 
+=======
+
+		kunmap_atomic(dst_p);
+		kunmap_atomic(src_p);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		flush_dcache_page(dst_bv.bv_page);
 
 		bio_advance_iter_single(src, src_iter, bytes);

@@ -4,7 +4,12 @@
 #include <linux/of.h>
 #include <linux/mfd/abx500.h>
 #include <linux/mfd/abx500/ab8500.h>
+<<<<<<< HEAD
 #include <linux/mfd/abx500/ab8500-bm.h>
+=======
+
+#include "ab8500-bm.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * These are the defined batteries that uses a NTC and ID resistor placed

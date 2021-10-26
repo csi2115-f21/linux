@@ -25,6 +25,7 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 	do {
 		pwrcfgcmd = pwrseqcmd[aryidx];
 
+<<<<<<< HEAD
 		RT_TRACE(_module_hal_init_c_, _drv_info_,
 			 ("%s: offset(%#x) cut_msk(%#x)"
 			  " cmd(%#x)"
@@ -36,16 +37,23 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 			  GET_PWR_CFG_MASK(pwrcfgcmd),
 			  GET_PWR_CFG_VALUE(pwrcfgcmd)));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* Only Handle the command whose CUT is matched */
 		if (GET_PWR_CFG_CUT_MASK(pwrcfgcmd) & cut_vers) {
 			switch (GET_PWR_CFG_CMD(pwrcfgcmd)) {
 			case PWR_CMD_READ:
+<<<<<<< HEAD
 				RT_TRACE(_module_hal_init_c_, _drv_info_,
 					 ("%s: PWR_CMD_READ\n", __func__));
 				break;
 			case PWR_CMD_WRITE:
 				RT_TRACE(_module_hal_init_c_, _drv_info_,
 					 ("%s: PWR_CMD_WRITE\n", __func__));
+=======
+				break;
+			case PWR_CMD_WRITE:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				offset = GET_PWR_CFG_OFFSET(pwrcfgcmd);
 
 				/*  Read the value from system register */
@@ -59,9 +67,12 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 				usb_write8(padapter, offset, value);
 				break;
 			case PWR_CMD_POLLING:
+<<<<<<< HEAD
 				RT_TRACE(_module_hal_init_c_, _drv_info_,
 					 ("%s: PWR_CMD_POLLING\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				poll_bit = false;
 				offset = GET_PWR_CFG_OFFSET(pwrcfgcmd);
 				do {
@@ -74,6 +85,7 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 					else
 						udelay(10);
 
+<<<<<<< HEAD
 					if (poll_count++ > max_poll_count) {
 						DBG_88E("Fail to polling Offset[%#x]\n", offset);
 						return false;
@@ -83,6 +95,13 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 			case PWR_CMD_DELAY:
 				RT_TRACE(_module_hal_init_c_, _drv_info_,
 					 ("%s: PWR_CMD_DELAY\n", __func__));
+=======
+					if (poll_count++ > max_poll_count)
+						return false;
+				} while (!poll_bit);
+				break;
+			case PWR_CMD_DELAY:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				if (GET_PWR_CFG_VALUE(pwrcfgcmd) == PWRSEQ_DELAY_US)
 					udelay(GET_PWR_CFG_OFFSET(pwrcfgcmd));
 				else
@@ -90,12 +109,17 @@ u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
 				break;
 			case PWR_CMD_END:
 				/* When this command is parsed, end the process */
+<<<<<<< HEAD
 				RT_TRACE(_module_hal_init_c_, _drv_info_,
 					 ("%s: PWR_CMD_END\n", __func__));
 				return true;
 			default:
 				RT_TRACE(_module_hal_init_c_, _drv_err_,
 					 ("%s: Unknown CMD!!\n", __func__));
+=======
+				return true;
+			default:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				break;
 			}
 		}

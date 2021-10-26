@@ -801,14 +801,31 @@ static int vfio_iommu_group_notifier(struct notifier_block *nb,
 /**
  * VFIO driver API
  */
+<<<<<<< HEAD
 int vfio_add_group_dev(struct device *dev,
 		       const struct vfio_device_ops *ops, void *device_data)
+=======
+void vfio_init_group_dev(struct vfio_device *device, struct device *dev,
+			 const struct vfio_device_ops *ops)
+{
+	init_completion(&device->comp);
+	device->dev = dev;
+	device->ops = ops;
+}
+EXPORT_SYMBOL_GPL(vfio_init_group_dev);
+
+int vfio_register_group_dev(struct vfio_device *device)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct iommu_group *iommu_group;
 	struct vfio_group *group;
 	struct vfio_device *device;
 
+<<<<<<< HEAD
 	iommu_group = iommu_group_get(dev);
+=======
+	iommu_group = iommu_group_get(device->dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!iommu_group)
 		return -EINVAL;
 
@@ -1454,8 +1471,19 @@ static int vfio_group_get_device_fd(struct vfio_group *group, char *buf)
 	if (IS_ERR(device))
 		return PTR_ERR(device);
 
+<<<<<<< HEAD
 	ret = device->ops->open(device->device_data);
 	if (ret) {
+=======
+	if (!try_module_get(device->dev->driver->owner)) {
+		vfio_device_put(device);
+		return -ENODEV;
+	}
+
+	ret = device->ops->open(device);
+	if (ret) {
+		module_put(device->dev->driver->owner);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		vfio_device_put(device);
 		return ret;
 	}
@@ -1466,7 +1494,12 @@ static int vfio_group_get_device_fd(struct vfio_group *group, char *buf)
 	 */
 	ret = get_unused_fd_flags(O_CLOEXEC);
 	if (ret < 0) {
+<<<<<<< HEAD
 		device->ops->release(device->device_data);
+=======
+		device->ops->release(device);
+		module_put(device->dev->driver->owner);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		vfio_device_put(device);
 		return ret;
 	}
@@ -1476,7 +1509,12 @@ static int vfio_group_get_device_fd(struct vfio_group *group, char *buf)
 	if (IS_ERR(filep)) {
 		put_unused_fd(ret);
 		ret = PTR_ERR(filep);
+<<<<<<< HEAD
 		device->ops->release(device->device_data);
+=======
+		device->ops->release(device);
+		module_put(device->dev->driver->owner);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		vfio_device_put(device);
 		return ret;
 	}
@@ -1633,7 +1671,13 @@ static int vfio_device_fops_release(struct inode *inode, struct file *filep)
 {
 	struct vfio_device *device = filep->private_data;
 
+<<<<<<< HEAD
 	device->ops->release(device->device_data);
+=======
+	device->ops->release(device);
+
+	module_put(device->dev->driver->owner);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	vfio_group_try_dissolve_container(device->group);
 

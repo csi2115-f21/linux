@@ -628,6 +628,7 @@ hrtimer_force_reprogram(struct hrtimer_cpu_base *cpu_base, int skip_equal)
 {
 	ktime_t expires_next;
 
+<<<<<<< HEAD
 	/*
 	 * Find the current next expiration time.
 	 */
@@ -645,6 +646,9 @@ hrtimer_force_reprogram(struct hrtimer_cpu_base *cpu_base, int skip_equal)
 		else
 			cpu_base->softirq_expires_next = expires_next;
 	}
+=======
+	expires_next = hrtimer_update_next_event(cpu_base);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (skip_equal && expires_next == cpu_base->expires_next)
 		return;

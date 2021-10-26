@@ -38,15 +38,25 @@
 
 int mlx5e_create_tir(struct mlx5_core_dev *mdev, struct mlx5e_tir *tir, u32 *in)
 {
+<<<<<<< HEAD
+=======
+	struct mlx5e_hw_objs *res = &mdev->mlx5e_res.hw_objs;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int err;
 
 	err = mlx5_core_create_tir(mdev, in, &tir->tirn);
 	if (err)
 		return err;
 
+<<<<<<< HEAD
 	mutex_lock(&mdev->mlx5e_res.td.list_lock);
 	list_add(&tir->list, &mdev->mlx5e_res.td.tirs_list);
 	mutex_unlock(&mdev->mlx5e_res.td.list_lock);
+=======
+	mutex_lock(&res->td.list_lock);
+	list_add(&tir->list, &res->td.tirs_list);
+	mutex_unlock(&res->td.list_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -54,10 +64,19 @@ int mlx5e_create_tir(struct mlx5_core_dev *mdev, struct mlx5e_tir *tir, u32 *in)
 void mlx5e_destroy_tir(struct mlx5_core_dev *mdev,
 		       struct mlx5e_tir *tir)
 {
+<<<<<<< HEAD
 	mutex_lock(&mdev->mlx5e_res.td.list_lock);
 	mlx5_core_destroy_tir(mdev, tir->tirn);
 	list_del(&tir->list);
 	mutex_unlock(&mdev->mlx5e_res.td.list_lock);
+=======
+	struct mlx5e_hw_objs *res = &mdev->mlx5e_res.hw_objs;
+
+	mutex_lock(&res->td.list_lock);
+	mlx5_core_destroy_tir(mdev, tir->tirn);
+	list_del(&tir->list);
+	mutex_unlock(&res->td.list_lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void mlx5e_mkey_set_relaxed_ordering(struct mlx5_core_dev *mdev, void *mkc)

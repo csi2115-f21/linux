@@ -18,13 +18,24 @@
 #include "cadence_master.h"
 #include "intel.h"
 
+<<<<<<< HEAD
 #define SDW_LINK_TYPE		4 /* from Intel ACPI documentation */
 #define SDW_MAX_LINKS		4
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define SDW_SHIM_LCAP		0x0
 #define SDW_SHIM_BASE		0x2C000
 #define SDW_ALH_BASE		0x2C800
 #define SDW_LINK_BASE		0x30000
 #define SDW_LINK_SIZE		0x10000
+<<<<<<< HEAD
+=======
+
+static void intel_link_dev_release(struct device *dev)
+{
+	struct auxiliary_device *auxdev = to_auxiliary_dev(dev);
+	struct sdw_intel_link_dev *ldev = auxiliary_dev_to_sdw_intel_link_dev(auxdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static int ctrl_link_mask;
 module_param_named(sdw_link_mask, ctrl_link_mask, int, 0444);
@@ -40,9 +51,52 @@ static bool is_link_enabled(struct fwnode_handle *fw_node, int i)
 	snprintf(name, sizeof(name),
 		 "mipi-sdw-link-%d-subproperties", i);
 
+<<<<<<< HEAD
 	link = fwnode_get_named_child_node(fw_node, name);
 	if (!link)
 		return false;
+=======
+	auxdev = &ldev->auxdev;
+	auxdev->name = name;
+	auxdev->dev.parent = res->parent;
+	auxdev->dev.fwnode = fwnode;
+	auxdev->dev.release = intel_link_dev_release;
+
+	/* we don't use an IDA since we already have a link ID */
+	auxdev->id = link_id;
+
+	/*
+	 * keep a handle on the allocated memory, to be used in all other functions.
+	 * Since the same pattern is used to skip links that are not enabled, there is
+	 * no need to check if ctx->ldev[i] is NULL later on.
+	 */
+	ctx->ldev[link_id] = ldev;
+
+	/* Add link information used in the driver probe */
+	link = &ldev->link_res;
+	link->mmio_base = res->mmio_base;
+	link->registers = res->mmio_base + SDW_LINK_BASE
+		+ (SDW_LINK_SIZE * link_id);
+	link->shim = res->mmio_base + SDW_SHIM_BASE;
+	link->alh = res->mmio_base + SDW_ALH_BASE;
+
+	link->ops = res->ops;
+	link->dev = res->dev;
+
+	link->clock_stop_quirks = res->clock_stop_quirks;
+	link->shim_lock = &ctx->shim_lock;
+	link->shim_mask = &ctx->shim_mask;
+	link->link_mask = ctx->link_mask;
+
+	/* now follow the two-step init/add sequence */
+	ret = auxiliary_device_init(auxdev);
+	if (ret < 0) {
+		dev_err(res->parent, "failed to initialize link dev %s link_id %d\n",
+			name, link_id);
+		kfree(ldev);
+		return ERR_PTR(ret);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	fwnode_property_read_u32(link,
 				 "intel-quirk-mask",

@@ -402,6 +402,7 @@ typedef struct txdesc_8723b {
 #define DESC8723B_RATEMCS13		0x19
 #define DESC8723B_RATEMCS14		0x1a
 #define DESC8723B_RATEMCS15		0x1b
+<<<<<<< HEAD
 #define DESC8723B_RATEVHTSS1MCS0		0x2c
 #define DESC8723B_RATEVHTSS1MCS1		0x2d
 #define DESC8723B_RATEVHTSS1MCS2		0x2e
@@ -423,6 +424,8 @@ typedef struct txdesc_8723b {
 #define DESC8723B_RATEVHTSS2MCS8		0x3e
 #define DESC8723B_RATEVHTSS2MCS9		0x3f
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define		RX_HAL_IS_CCK_RATE_8723B(pDesc)\
 			(GET_RX_STATUS_DESC_RX_RATE_8723B(pDesc) == DESC8723B_RATE1M ||\

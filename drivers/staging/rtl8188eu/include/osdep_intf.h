@@ -23,7 +23,11 @@ void rtw_cancel_all_timer(struct adapter *padapter);
 
 int rtw_ioctl(struct net_device *dev, struct ifreq *rq, int cmd);
 
+<<<<<<< HEAD
 struct net_device *rtw_init_netdev(struct adapter *padapter);
+=======
+struct net_device *rtw_init_netdev(void);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 u16 rtw_recv_select_queue(struct sk_buff *skb);
 
 int netdev_open(struct net_device *pnetdev);

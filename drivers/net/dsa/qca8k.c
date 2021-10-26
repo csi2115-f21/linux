@@ -558,7 +558,37 @@ qca8k_port_to_phy(int port)
 static int
 qca8k_mdio_write(struct qca8k_priv *priv, int port, u32 regnum, u16 data)
 {
+<<<<<<< HEAD
 	u32 phy, val;
+=======
+	u16 r1, r2, page;
+	u32 val;
+	int ret, ret1;
+
+	qca8k_split_addr(reg, &r1, &r2, &page);
+
+	ret = read_poll_timeout(qca8k_mii_read32, ret1, !(val & mask), 0,
+				QCA8K_BUSY_WAIT_TIMEOUT * USEC_PER_MSEC, false,
+				bus, 0x10 | r2, r1, &val);
+
+	/* Check if qca8k_read has failed for a different reason
+	 * before returnting -ETIMEDOUT
+	 */
+	if (ret < 0 && ret1 < 0)
+		return ret1;
+
+	return ret;
+}
+
+static int
+qca8k_mdio_write(struct mii_bus *salve_bus, int phy, int regnum, u16 data)
+{
+	struct qca8k_priv *priv = salve_bus->priv;
+	struct mii_bus *bus = priv->bus;
+	u16 r1, r2, page;
+	u32 val;
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (regnum >= QCA8K_MDIO_MASTER_MAX_REG)
 		return -EINVAL;
@@ -579,9 +609,19 @@ qca8k_mdio_write(struct qca8k_priv *priv, int port, u32 regnum, u16 data)
 }
 
 static int
+<<<<<<< HEAD
 qca8k_mdio_read(struct qca8k_priv *priv, int port, u32 regnum)
 {
 	u32 phy, val;
+=======
+qca8k_mdio_read(struct mii_bus *salve_bus, int phy, int regnum)
+{
+	struct qca8k_priv *priv = salve_bus->priv;
+	struct mii_bus *bus = priv->bus;
+	u16 r1, r2, page;
+	u32 val;
+	int ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (regnum >= QCA8K_MDIO_MASTER_MAX_REG)
 		return -EINVAL;
@@ -603,7 +643,20 @@ qca8k_mdio_read(struct qca8k_priv *priv, int port, u32 regnum)
 	val = (qca8k_read(priv, QCA8K_MDIO_MASTER_CTRL) &
 		QCA8K_MDIO_MASTER_DATA_MASK);
 
+<<<<<<< HEAD
 	return val;
+=======
+exit:
+	/* even if the busy_wait timeouts try to clear the MASTER_EN */
+	qca8k_mii_write32(bus, 0x10 | r2, r1, 0);
+
+	mutex_unlock(&bus->mdio_lock);
+
+	if (ret >= 0)
+		ret = val & QCA8K_MDIO_MASTER_DATA_MASK;
+
+	return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int
@@ -629,6 +682,35 @@ qca8k_phy_read(struct dsa_switch *ds, int port, int regnum)
 }
 
 static int
+<<<<<<< HEAD
+=======
+qca8k_mdio_register(struct qca8k_priv *priv, struct device_node *mdio)
+{
+	struct dsa_switch *ds = priv->ds;
+	struct mii_bus *bus;
+
+	bus = devm_mdiobus_alloc(ds->dev);
+
+	if (!bus)
+		return -ENOMEM;
+
+	bus->priv = (void *)priv;
+	bus->name = "qca8k slave mii";
+	bus->read = qca8k_mdio_read;
+	bus->write = qca8k_mdio_write;
+	snprintf(bus->id, MII_BUS_ID_SIZE, "qca8k-%d",
+		 ds->index);
+
+	bus->parent = ds->dev;
+	bus->phy_mask = ~ds->phys_mii_mask;
+
+	ds->slave_mii_bus = bus;
+
+	return devm_of_mdiobus_register(priv->dev, bus, mdio);
+}
+
+static int
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 qca8k_setup_mdio_bus(struct qca8k_priv *priv)
 {
 	u32 internal_mdio_mask = 0, external_mdio_mask = 0, reg;

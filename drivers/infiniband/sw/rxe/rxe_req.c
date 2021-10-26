@@ -464,7 +464,11 @@ static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
 		} else {
 			err = copy_data(qp->pd, 0, &wqe->dma,
 					payload_addr(pkt), paylen,
+<<<<<<< HEAD
 					from_mem_obj,
+=======
+					RXE_FROM_MR_OBJ,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					&crc);
 			if (err)
 				return err;

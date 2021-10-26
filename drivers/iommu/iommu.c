@@ -146,7 +146,12 @@ static int __init iommu_subsys_init(void)
 
 	pr_info("Default domain type: %s %s\n",
 		iommu_domain_type_str(iommu_def_domain_type),
+<<<<<<< HEAD
 		cmd_line ? "(set via kernel command line)" : "");
+=======
+		(iommu_cmd_line & IOMMU_CMD_LINE_DMA_API) ?
+			"(set via kernel command line)" : "");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -333,6 +338,24 @@ static int __init iommu_dma_setup(char *str)
 }
 early_param("iommu.strict", iommu_dma_setup);
 
+<<<<<<< HEAD
+=======
+void iommu_set_dma_strict(bool strict)
+{
+	if (strict || !(iommu_cmd_line & IOMMU_CMD_LINE_STRICT))
+		iommu_dma_strict = strict;
+}
+
+bool iommu_get_dma_strict(struct iommu_domain *domain)
+{
+	/* only allow lazy flushing for DMA domains */
+	if (domain->type == IOMMU_DOMAIN_DMA)
+		return iommu_dma_strict;
+	return true;
+}
+EXPORT_SYMBOL_GPL(iommu_get_dma_strict);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static ssize_t iommu_group_attr_show(struct kobject *kobj,
 				     struct attribute *__attr, char *buf)
 {

@@ -22,7 +22,11 @@ extern void debug_mutex_free_waiter(struct mutex_waiter *waiter);
 extern void debug_mutex_add_waiter(struct mutex *lock,
 				   struct mutex_waiter *waiter,
 				   struct task_struct *task);
+<<<<<<< HEAD
 extern void mutex_remove_waiter(struct mutex *lock, struct mutex_waiter *waiter,
+=======
+extern void debug_mutex_remove_waiter(struct mutex *lock, struct mutex_waiter *waiter,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				struct task_struct *task);
 extern void debug_mutex_unlock(struct mutex *lock);
 extern void debug_mutex_init(struct mutex *lock, const char *name,

@@ -291,7 +291,11 @@ static void set_vesa_backlight_enable(struct intel_dp *intel_dp, bool enable)
 	if (drm_dp_dpcd_writeb(&intel_dp->aux, DP_EDP_DISPLAY_CONTROL_REGISTER,
 			       reg_val) != 1) {
 		drm_dbg_kms(&i915->drm, "Failed to %s aux backlight\n",
+<<<<<<< HEAD
 			    enable ? "enable" : "disable");
+=======
+			    enabledisable(enable));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 }
 
@@ -357,6 +361,7 @@ intel_dp_aux_vesa_set_backlight(const struct drm_connector_state *conn_state,
 	struct intel_dp *intel_dp = intel_attached_dp(connector);
 	struct drm_i915_private *i915 = dp_to_i915(intel_dp);
 	u8 vals[2] = { 0x0 };
+<<<<<<< HEAD
 
 	vals[0] = level;
 
@@ -408,6 +413,59 @@ static bool intel_dp_aux_vesa_set_pwm_freq(struct intel_connector *connector)
 		return false;
 	}
 
+=======
+
+	vals[0] = level;
+
+	/* Write the MSB and/or LSB */
+	if (intel_dp->edp_dpcd[2] & DP_EDP_BACKLIGHT_BRIGHTNESS_BYTE_COUNT) {
+		vals[0] = (level & 0xFF00) >> 8;
+		vals[1] = (level & 0xFF);
+	}
+	if (drm_dp_dpcd_write(&intel_dp->aux, DP_EDP_BACKLIGHT_BRIGHTNESS_MSB,
+			      vals, sizeof(vals)) < 0) {
+		drm_dbg_kms(&i915->drm,
+			    "Failed to write aux backlight level\n");
+		return;
+	}
+}
+
+/*
+ * Set PWM Frequency divider to match desired frequency in vbt.
+ * The PWM Frequency is calculated as 27Mhz / (F x P).
+ * - Where F = PWM Frequency Pre-Divider value programmed by field 7:0 of the
+ *             EDP_BACKLIGHT_FREQ_SET register (DPCD Address 00728h)
+ * - Where P = 2^Pn, where Pn is the value programmed by field 4:0 of the
+ *             EDP_PWMGEN_BIT_COUNT register (DPCD Address 00724h)
+ */
+static bool intel_dp_aux_vesa_set_pwm_freq(struct intel_connector *connector)
+{
+	struct drm_i915_private *dev_priv = to_i915(connector->base.dev);
+	struct intel_dp *intel_dp = intel_attached_dp(connector);
+	const u8 pn = connector->panel.backlight.edp.vesa.pwmgen_bit_count;
+	int freq, fxp, f, fxp_actual, fxp_min, fxp_max;
+
+	freq = dev_priv->vbt.backlight.pwm_freq_hz;
+	if (!freq) {
+		drm_dbg_kms(&dev_priv->drm,
+			    "Use panel default backlight frequency\n");
+		return false;
+	}
+
+	fxp = DIV_ROUND_CLOSEST(KHz(DP_EDP_BACKLIGHT_FREQ_BASE_KHZ), freq);
+	f = clamp(DIV_ROUND_CLOSEST(fxp, 1 << pn), 1, 255);
+	fxp_actual = f << pn;
+
+	/* Ensure frequency is within 25% of desired value */
+	fxp_min = DIV_ROUND_CLOSEST(fxp * 3, 4);
+	fxp_max = DIV_ROUND_CLOSEST(fxp * 5, 4);
+
+	if (fxp_min > fxp_actual || fxp_actual > fxp_max) {
+		drm_dbg_kms(&dev_priv->drm, "Actual frequency out of range\n");
+		return false;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (drm_dp_dpcd_writeb(&intel_dp->aux,
 			       DP_EDP_BACKLIGHT_FREQ_SET, (u8) f) < 0) {
 		drm_dbg_kms(&dev_priv->drm,
@@ -427,6 +485,7 @@ intel_dp_aux_vesa_enable_backlight(const struct intel_crtc_state *crtc_state,
 	struct intel_panel *panel = &connector->panel;
 	u8 dpcd_buf, new_dpcd_buf, edp_backlight_mode;
 	u8 pwmgen_bit_count = panel->backlight.edp.vesa.pwmgen_bit_count;
+<<<<<<< HEAD
 
 	if (drm_dp_dpcd_readb(&intel_dp->aux,
 			DP_EDP_BACKLIGHT_MODE_SET_REGISTER, &dpcd_buf) != 1) {
@@ -451,6 +510,32 @@ intel_dp_aux_vesa_enable_backlight(const struct intel_crtc_state *crtc_state,
 			drm_dbg_kms(&i915->drm,
 				    "Failed to write aux pwmgen bit count\n");
 
+=======
+
+	if (drm_dp_dpcd_readb(&intel_dp->aux,
+			DP_EDP_BACKLIGHT_MODE_SET_REGISTER, &dpcd_buf) != 1) {
+		drm_dbg_kms(&i915->drm, "Failed to read DPCD register 0x%x\n",
+			    DP_EDP_BACKLIGHT_MODE_SET_REGISTER);
+		return;
+	}
+
+	new_dpcd_buf = dpcd_buf;
+	edp_backlight_mode = dpcd_buf & DP_EDP_BACKLIGHT_CONTROL_MODE_MASK;
+
+	switch (edp_backlight_mode) {
+	case DP_EDP_BACKLIGHT_CONTROL_MODE_PWM:
+	case DP_EDP_BACKLIGHT_CONTROL_MODE_PRESET:
+	case DP_EDP_BACKLIGHT_CONTROL_MODE_PRODUCT:
+		new_dpcd_buf &= ~DP_EDP_BACKLIGHT_CONTROL_MODE_MASK;
+		new_dpcd_buf |= DP_EDP_BACKLIGHT_CONTROL_MODE_DPCD;
+
+		if (drm_dp_dpcd_writeb(&intel_dp->aux,
+				       DP_EDP_PWMGEN_BIT_COUNT,
+				       pwmgen_bit_count) < 0)
+			drm_dbg_kms(&i915->drm,
+				    "Failed to write aux pwmgen bit count\n");
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 
 	/* Do nothing when it is already DPCD mode */
@@ -540,6 +625,7 @@ static u32 intel_dp_aux_vesa_calc_max_backlight(struct intel_connector *connecto
 			    "VBT defined backlight frequency out of range\n");
 		return max_backlight;
 	}
+<<<<<<< HEAD
 
 	for (pn = pn_max; pn >= pn_min; pn--) {
 		f = clamp(DIV_ROUND_CLOSEST(fxp, 1 << pn), 1, 255);
@@ -557,6 +643,25 @@ static u32 intel_dp_aux_vesa_calc_max_backlight(struct intel_connector *connecto
 	}
 	panel->backlight.edp.vesa.pwmgen_bit_count = pn;
 
+=======
+
+	for (pn = pn_max; pn >= pn_min; pn--) {
+		f = clamp(DIV_ROUND_CLOSEST(fxp, 1 << pn), 1, 255);
+		fxp_actual = f << pn;
+		if (fxp_min <= fxp_actual && fxp_actual <= fxp_max)
+			break;
+	}
+
+	drm_dbg_kms(&i915->drm, "Using eDP pwmgen bit count of %d\n", pn);
+	if (drm_dp_dpcd_writeb(&intel_dp->aux,
+			       DP_EDP_PWMGEN_BIT_COUNT, pn) < 0) {
+		drm_dbg_kms(&i915->drm,
+			    "Failed to write aux pwmgen bit count\n");
+		return max_backlight;
+	}
+	panel->backlight.edp.vesa.pwmgen_bit_count = pn;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	max_backlight = (1 << pn) - 1;
 
 	return max_backlight;

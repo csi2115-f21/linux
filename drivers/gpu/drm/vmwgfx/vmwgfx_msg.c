@@ -33,7 +33,12 @@
 #include <asm/hypervisor.h>
 
 #include "vmwgfx_drv.h"
+<<<<<<< HEAD
 #include "vmwgfx_msg.h"
+=======
+#include "vmwgfx_msg_x86.h"
+#include "vmwgfx_msg_arm64.h"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define MESSAGE_STATUS_SUCCESS  0x0001
 #define MESSAGE_STATUS_DORECV   0x0002

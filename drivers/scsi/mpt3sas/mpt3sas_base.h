@@ -77,9 +77,15 @@
 #define MPT3SAS_DRIVER_NAME		"mpt3sas"
 #define MPT3SAS_AUTHOR "Avago Technologies <MPT-FusionLinux.pdl@avagotech.com>"
 #define MPT3SAS_DESCRIPTION	"LSI MPT Fusion SAS 3.0 Device Driver"
+<<<<<<< HEAD
 #define MPT3SAS_DRIVER_VERSION		"37.100.00.00"
 #define MPT3SAS_MAJOR_VERSION		37
 #define MPT3SAS_MINOR_VERSION		100
+=======
+#define MPT3SAS_DRIVER_VERSION		"37.101.00.00"
+#define MPT3SAS_MAJOR_VERSION		37
+#define MPT3SAS_MINOR_VERSION		101
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define MPT3SAS_BUILD_VERSION		0
 #define MPT3SAS_RELEASE_VERSION	00
 
@@ -1175,6 +1181,10 @@ typedef void (*MPT3SAS_FLUSH_RUNNING_CMDS)(struct MPT3SAS_ADAPTER *ioc);
  * @schedule_dead_ioc_flush_running_cmds: callback to flush pending commands
  * @thresh_hold: Max number of reply descriptors processed
  *				before updating Host Index
+<<<<<<< HEAD
+=======
+ * @drv_internal_flags: Bit map internal to driver
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @drv_support_bitmap: driver's supported feature bit map
  * @use_32bit_dma: Flag to use 32 bit consistent dma mask
  * @scsi_io_cb_idx: shost generated commands
@@ -1370,6 +1380,10 @@ struct MPT3SAS_ADAPTER {
 	bool            msix_load_balance;
 	u16		thresh_hold;
 	u8		high_iops_queues;
+<<<<<<< HEAD
+=======
+	u32             drv_internal_flags;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32		drv_support_bitmap;
 	bool		enable_sdev_max_qd;
 	bool		use_32bit_dma;
@@ -1721,6 +1735,13 @@ do {	ioc_err(ioc, "In func: %s\n", __func__); \
 	status, mpi_request, sz); } while (0)
 
 int mpt3sas_wait_for_ioc(struct MPT3SAS_ADAPTER *ioc, int wait_count);
+<<<<<<< HEAD
+=======
+int
+mpt3sas_base_make_ioc_ready(struct MPT3SAS_ADAPTER *ioc, enum reset_type type);
+void mpt3sas_base_free_irq(struct MPT3SAS_ADAPTER *ioc);
+void mpt3sas_base_disable_msix(struct MPT3SAS_ADAPTER *ioc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* scsih shared API */
 struct scsi_cmnd *mpt3sas_scsih_scsi_lookup_get(struct MPT3SAS_ADAPTER *ioc,

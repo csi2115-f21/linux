@@ -132,7 +132,11 @@ int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb
 		if ((mdst || BR_INPUT_SKB_CB_MROUTERS_ONLY(skb)) &&
 		    br_multicast_querier_exists(br, eth_hdr(skb), mdst)) {
 			if ((mdst && mdst->host_joined) ||
+<<<<<<< HEAD
 			    br_multicast_is_router(br)) {
+=======
+			    br_multicast_is_router(br, skb)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				local_rcv = true;
 				br->dev->stats.multicast++;
 			}

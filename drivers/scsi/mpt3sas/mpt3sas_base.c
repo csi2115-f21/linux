@@ -1548,6 +1548,56 @@ _base_get_cb_idx(struct MPT3SAS_ADAPTER *ioc, u16 smid)
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * mpt3sas_base_pause_mq_polling - pause polling on the mq poll queues
+ *				when driver is flushing out the IOs.
+ * @ioc: per adapter object
+ *
+ * Pause polling on the mq poll (io uring) queues when driver is flushing
+ * out the IOs. Otherwise we may see the race condition of completing the same
+ * IO from two paths.
+ *
+ * Returns nothing.
+ */
+void
+mpt3sas_base_pause_mq_polling(struct MPT3SAS_ADAPTER *ioc)
+{
+	int iopoll_q_count =
+	    ioc->reply_queue_count - ioc->iopoll_q_start_index;
+	int qid;
+
+	for (qid = 0; qid < iopoll_q_count; qid++)
+		atomic_set(&ioc->io_uring_poll_queues[qid].pause, 1);
+
+	/*
+	 * wait for current poll to complete.
+	 */
+	for (qid = 0; qid < iopoll_q_count; qid++) {
+		while (atomic_read(&ioc->io_uring_poll_queues[qid].busy))
+			udelay(500);
+	}
+}
+
+/**
+ * mpt3sas_base_resume_mq_polling - Resume polling on mq poll queues.
+ * @ioc: per adapter object
+ *
+ * Returns nothing.
+ */
+void
+mpt3sas_base_resume_mq_polling(struct MPT3SAS_ADAPTER *ioc)
+{
+	int iopoll_q_count =
+	    ioc->reply_queue_count - ioc->iopoll_q_start_index;
+	int qid;
+
+	for (qid = 0; qid < iopoll_q_count; qid++)
+		atomic_set(&ioc->io_uring_poll_queues[qid].pause, 0);
+}
+
+/**
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
  * mpt3sas_base_mask_interrupts - disable interrupts
  * @ioc: per adapter object
  *
@@ -5176,12 +5226,33 @@ _base_static_config_pages(struct MPT3SAS_ADAPTER *ioc)
 			ioc_warn(ioc,
 			    "TimeSync Interval in Manuf page-11 is not enabled. Periodic Time-Sync will be disabled\n");
 	}
+<<<<<<< HEAD
 	mpt3sas_config_get_bios_pg2(ioc, &mpi_reply, &ioc->bios_pg2);
 	mpt3sas_config_get_bios_pg3(ioc, &mpi_reply, &ioc->bios_pg3);
 	mpt3sas_config_get_ioc_pg8(ioc, &mpi_reply, &ioc->ioc_pg8);
 	mpt3sas_config_get_iounit_pg0(ioc, &mpi_reply, &ioc->iounit_pg0);
 	mpt3sas_config_get_iounit_pg1(ioc, &mpi_reply, &ioc->iounit_pg1);
 	mpt3sas_config_get_iounit_pg8(ioc, &mpi_reply, &ioc->iounit_pg8);
+=======
+	rc = mpt3sas_config_get_bios_pg2(ioc, &mpi_reply, &ioc->bios_pg2);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_bios_pg3(ioc, &mpi_reply, &ioc->bios_pg3);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_ioc_pg8(ioc, &mpi_reply, &ioc->ioc_pg8);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg0(ioc, &mpi_reply, &ioc->iounit_pg0);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg1(ioc, &mpi_reply, &ioc->iounit_pg1);
+	if (rc)
+		return rc;
+	rc = mpt3sas_config_get_iounit_pg8(ioc, &mpi_reply, &ioc->iounit_pg8);
+	if (rc)
+		return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	_base_display_ioc_capabilities(ioc);
 
 	/*
@@ -7589,7 +7660,14 @@ _base_make_ioc_operational(struct MPT3SAS_ADAPTER *ioc)
 			return r;
 	}
 
+<<<<<<< HEAD
 	_base_static_config_pages(ioc);
+=======
+	rc = _base_static_config_pages(ioc);
+	if (r)
+		return r;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	r = _base_event_notification(ioc);
 	if (r)
 		return r;
@@ -8200,7 +8278,11 @@ mpt3sas_base_hard_reset_handler(struct MPT3SAS_ADAPTER *ioc,
 	_base_pre_reset_handler(ioc);
 	mpt3sas_wait_for_commands_to_complete(ioc);
 	mpt3sas_base_mask_interrupts(ioc);
+<<<<<<< HEAD
 	r = _base_make_ioc_ready(ioc, type);
+=======
+	r = mpt3sas_base_make_ioc_ready(ioc, type);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (r)
 		goto out;
 	_base_clear_outstanding_commands(ioc);

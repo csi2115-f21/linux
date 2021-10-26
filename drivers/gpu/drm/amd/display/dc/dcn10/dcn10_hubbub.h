@@ -276,6 +276,33 @@ struct dcn_hubbub_registers {
 		type RIOMMU_ACTIVE; \
 		type HOSTVM_PREFETCH_DONE
 
+<<<<<<< HEAD
+=======
+#define HUBBUB_RET_REG_FIELD_LIST(type) \
+		type DET_DEPTH;\
+		type DET0_SIZE;\
+		type DET1_SIZE;\
+		type DET2_SIZE;\
+		type DET3_SIZE;\
+		type DET0_SIZE_CURRENT;\
+		type DET1_SIZE_CURRENT;\
+		type DET2_SIZE_CURRENT;\
+		type DET3_SIZE_CURRENT;\
+		type COMPBUF_SIZE;\
+		type COMPBUF_SIZE_CURRENT;\
+		type COMPBUF_RESERVED_SPACE_64B;\
+		type COMPBUF_RESERVED_SPACE_ZS;\
+		type DCHUBBUB_ARB_ALLOW_SR_ENTER_WATERMARK_Z8_A;\
+		type DCHUBBUB_ARB_ALLOW_SR_EXIT_WATERMARK_Z8_A;\
+		type DCHUBBUB_ARB_ALLOW_SR_ENTER_WATERMARK_Z8_B;\
+		type DCHUBBUB_ARB_ALLOW_SR_EXIT_WATERMARK_Z8_B;\
+		type DCHUBBUB_ARB_ALLOW_SR_ENTER_WATERMARK_Z8_C;\
+		type DCHUBBUB_ARB_ALLOW_SR_EXIT_WATERMARK_Z8_C;\
+		type DCHUBBUB_ARB_ALLOW_SR_ENTER_WATERMARK_Z8_D;\
+		type DCHUBBUB_ARB_ALLOW_SR_EXIT_WATERMARK_Z8_D
+
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct dcn_hubbub_shift {
 	DCN_HUBBUB_REG_FIELD_LIST(uint8_t);
 	HUBBUB_STUTTER_REG_FIELD_LIST(uint8_t);

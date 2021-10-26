@@ -187,6 +187,16 @@ static int ipq4019_mdio_probe(struct platform_device *pdev)
 	if (IS_ERR(priv->membase))
 		return PTR_ERR(priv->membase);
 
+<<<<<<< HEAD
+=======
+	priv->mdio_clk = devm_clk_get_optional(&pdev->dev, "gcc_mdio_ahb_clk");
+	if (IS_ERR(priv->mdio_clk))
+		return PTR_ERR(priv->mdio_clk);
+
+	/* The platform resource is provided on the chipset IPQ5018 */
+	priv->eth_ldo_rdy = devm_platform_ioremap_resource(pdev, 1);
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 	bus->name = "ipq4019_mdio";
 	bus->read = ipq4019_mdio_read;
 	bus->write = ipq4019_mdio_write;

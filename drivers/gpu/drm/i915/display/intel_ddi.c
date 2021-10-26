@@ -1470,8 +1470,13 @@ static int intel_ddi_hdmi_level(struct intel_encoder *encoder,
  * values in advance. This function programs the correct values for
  * DP/eDP/FDI use cases.
  */
+<<<<<<< HEAD
 static void intel_prepare_dp_ddi_buffers(struct intel_encoder *encoder,
 					 const struct intel_crtc_state *crtc_state)
+=======
+void intel_prepare_dp_ddi_buffers(struct intel_encoder *encoder,
+				  const struct intel_crtc_state *crtc_state)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
 	u32 iboost_bit = 0;
@@ -2480,6 +2485,7 @@ static void bxt_ddi_vswing_sequence(struct intel_encoder *encoder,
 	enum port port = encoder->port;
 	int n_entries;
 
+<<<<<<< HEAD
 	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI))
 		ddi_translations = bxt_get_buf_trans_hdmi(encoder, &n_entries);
 	else if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_EDP))
@@ -2487,6 +2493,9 @@ static void bxt_ddi_vswing_sequence(struct intel_encoder *encoder,
 	else
 		ddi_translations = bxt_get_buf_trans_dp(encoder, &n_entries);
 
+=======
+	ddi_translations = bxt_get_buf_trans(encoder, crtc_state, &n_entries);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (drm_WARN_ON_ONCE(&dev_priv->drm, !ddi_translations))
 		return;
 	if (drm_WARN_ON_ONCE(&dev_priv->drm, level >= n_entries))
@@ -2508,12 +2517,23 @@ static u8 intel_ddi_dp_voltage_max(struct intel_dp *intel_dp,
 	enum phy phy = intel_port_to_phy(dev_priv, port);
 	int n_entries;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 12) {
 		if (intel_phy_is_combo(dev_priv, phy))
 			tgl_get_combo_buf_trans(encoder, crtc_state, &n_entries);
 		else
 			tgl_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
 	} else if (INTEL_GEN(dev_priv) == 11) {
+=======
+	if (DISPLAY_VER(dev_priv) >= 12) {
+		if (intel_phy_is_combo(dev_priv, phy))
+			tgl_get_combo_buf_trans(encoder, crtc_state, &n_entries);
+		else if (IS_ALDERLAKE_P(dev_priv))
+			adlp_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
+		else
+			tgl_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
+	} else if (DISPLAY_VER(dev_priv) == 11) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (IS_PLATFORM(dev_priv, INTEL_JASPERLAKE))
 			jsl_get_combo_buf_trans(encoder, crtc_state, &n_entries);
 		else if (IS_PLATFORM(dev_priv, INTEL_ELKHARTLAKE))
@@ -2523,6 +2543,7 @@ static u8 intel_ddi_dp_voltage_max(struct intel_dp *intel_dp,
 		else
 			icl_get_mg_buf_trans(encoder, crtc_state, &n_entries);
 	} else if (IS_CANNONLAKE(dev_priv)) {
+<<<<<<< HEAD
 		if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_EDP))
 			cnl_get_buf_trans_edp(encoder, &n_entries);
 		else
@@ -2532,6 +2553,11 @@ static u8 intel_ddi_dp_voltage_max(struct intel_dp *intel_dp,
 			bxt_get_buf_trans_edp(encoder, &n_entries);
 		else
 			bxt_get_buf_trans_dp(encoder, &n_entries);
+=======
+		cnl_get_buf_trans(encoder, crtc_state, &n_entries);
+	} else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv)) {
+		bxt_get_buf_trans(encoder, crtc_state, &n_entries);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_EDP))
 			intel_ddi_get_buf_trans_edp(encoder, &n_entries);
@@ -2685,6 +2711,127 @@ static void cnl_ddi_vswing_sequence(struct intel_encoder *encoder,
 	intel_de_write(dev_priv, CNL_PORT_TX_DW5_GRP(port), val);
 }
 
+static void cnl_ddi_vswing_program(struct intel_encoder *encoder,
+				   const struct intel_crtc_state *crtc_state,
+				   int level)
+{
+	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
+	const struct cnl_ddi_buf_trans *ddi_translations;
+	enum port port = encoder->port;
+	int n_entries, ln;
+	u32 val;
+
+	ddi_translations = cnl_get_buf_trans(encoder, crtc_state, &n_entries);
+
+	if (drm_WARN_ON_ONCE(&dev_priv->drm, !ddi_translations))
+		return;
+	if (drm_WARN_ON_ONCE(&dev_priv->drm, level >= n_entries))
+		level = n_entries - 1;
+
+	/* Set PORT_TX_DW5 Scaling Mode Sel to 010b. */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW5_LN0(port));
+	val &= ~SCALING_MODE_SEL_MASK;
+	val |= SCALING_MODE_SEL(2);
+	intel_de_write(dev_priv, CNL_PORT_TX_DW5_GRP(port), val);
+
+	/* Program PORT_TX_DW2 */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW2_LN0(port));
+	val &= ~(SWING_SEL_LOWER_MASK | SWING_SEL_UPPER_MASK |
+		 RCOMP_SCALAR_MASK);
+	val |= SWING_SEL_UPPER(ddi_translations[level].dw2_swing_sel);
+	val |= SWING_SEL_LOWER(ddi_translations[level].dw2_swing_sel);
+	/* Rcomp scalar is fixed as 0x98 for every table entry */
+	val |= RCOMP_SCALAR(0x98);
+	intel_de_write(dev_priv, CNL_PORT_TX_DW2_GRP(port), val);
+
+	/* Program PORT_TX_DW4 */
+	/* We cannot write to GRP. It would overrite individual loadgen */
+	for (ln = 0; ln < 4; ln++) {
+		val = intel_de_read(dev_priv, CNL_PORT_TX_DW4_LN(ln, port));
+		val &= ~(POST_CURSOR_1_MASK | POST_CURSOR_2_MASK |
+			 CURSOR_COEFF_MASK);
+		val |= POST_CURSOR_1(ddi_translations[level].dw4_post_cursor_1);
+		val |= POST_CURSOR_2(ddi_translations[level].dw4_post_cursor_2);
+		val |= CURSOR_COEFF(ddi_translations[level].dw4_cursor_coeff);
+		intel_de_write(dev_priv, CNL_PORT_TX_DW4_LN(ln, port), val);
+	}
+
+	/* Program PORT_TX_DW5 */
+	/* All DW5 values are fixed for every table entry */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW5_LN0(port));
+	val &= ~RTERM_SELECT_MASK;
+	val |= RTERM_SELECT(6);
+	val |= TAP3_DISABLE;
+	intel_de_write(dev_priv, CNL_PORT_TX_DW5_GRP(port), val);
+
+	/* Program PORT_TX_DW7 */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW7_LN0(port));
+	val &= ~N_SCALAR_MASK;
+	val |= N_SCALAR(ddi_translations[level].dw7_n_scalar);
+	intel_de_write(dev_priv, CNL_PORT_TX_DW7_GRP(port), val);
+}
+
+static void cnl_ddi_vswing_sequence(struct intel_encoder *encoder,
+				    const struct intel_crtc_state *crtc_state,
+				    int level)
+{
+	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+	int width, rate, ln;
+	u32 val;
+
+	width = crtc_state->lane_count;
+	rate = crtc_state->port_clock;
+
+	/*
+	 * 1. If port type is eDP or DP,
+	 * set PORT_PCS_DW1 cmnkeeper_enable to 1b,
+	 * else clear to 0b.
+	 */
+	val = intel_de_read(dev_priv, CNL_PORT_PCS_DW1_LN0(port));
+	if (intel_crtc_has_type(crtc_state, INTEL_OUTPUT_HDMI))
+		val &= ~COMMON_KEEPER_EN;
+	else
+		val |= COMMON_KEEPER_EN;
+	intel_de_write(dev_priv, CNL_PORT_PCS_DW1_GRP(port), val);
+
+	/* 2. Program loadgen select */
+	/*
+	 * Program PORT_TX_DW4_LN depending on Bit rate and used lanes
+	 * <= 6 GHz and 4 lanes (LN0=0, LN1=1, LN2=1, LN3=1)
+	 * <= 6 GHz and 1,2 lanes (LN0=0, LN1=1, LN2=1, LN3=0)
+	 * > 6 GHz (LN0=0, LN1=0, LN2=0, LN3=0)
+	 */
+	for (ln = 0; ln <= 3; ln++) {
+		val = intel_de_read(dev_priv, CNL_PORT_TX_DW4_LN(ln, port));
+		val &= ~LOADGEN_SELECT;
+
+		if ((rate <= 600000 && width == 4 && ln >= 1)  ||
+		    (rate <= 600000 && width < 4 && (ln == 1 || ln == 2))) {
+			val |= LOADGEN_SELECT;
+		}
+		intel_de_write(dev_priv, CNL_PORT_TX_DW4_LN(ln, port), val);
+	}
+
+	/* 3. Set PORT_CL_DW5 SUS Clock Config to 11b */
+	val = intel_de_read(dev_priv, CNL_PORT_CL1CM_DW5);
+	val |= SUS_CLOCK_CONFIG;
+	intel_de_write(dev_priv, CNL_PORT_CL1CM_DW5, val);
+
+	/* 4. Clear training enable to change swing values */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW5_LN0(port));
+	val &= ~TX_TRAINING_EN;
+	intel_de_write(dev_priv, CNL_PORT_TX_DW5_GRP(port), val);
+
+	/* 5. Program swing and de-emphasis */
+	cnl_ddi_vswing_program(encoder, crtc_state, level);
+
+	/* 6. Set training enable to trigger update */
+	val = intel_de_read(dev_priv, CNL_PORT_TX_DW5_LN0(port));
+	val |= TX_TRAINING_EN;
+	intel_de_write(dev_priv, CNL_PORT_TX_DW5_GRP(port), val);
+}
+
 static void icl_ddi_combo_vswing_program(struct intel_encoder *encoder,
 					 const struct intel_crtc_state *crtc_state,
 					 int level)
@@ -2695,7 +2842,11 @@ static void icl_ddi_combo_vswing_program(struct intel_encoder *encoder,
 	int n_entries, ln;
 	u32 val;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 12)
+=======
+	if (DISPLAY_VER(dev_priv) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ddi_translations = tgl_get_combo_buf_trans(encoder, crtc_state, &n_entries);
 	else if (IS_PLATFORM(dev_priv, INTEL_JASPERLAKE))
 		ddi_translations = jsl_get_combo_buf_trans(encoder, crtc_state, &n_entries);
@@ -2968,7 +3119,14 @@ tgl_dkl_phy_ddi_vswing_sequence(struct intel_encoder *encoder,
 	if (enc_to_dig_port(encoder)->tc_mode == TC_PORT_TBT_ALT)
 		return;
 
+<<<<<<< HEAD
 	ddi_translations = tgl_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
+=======
+	if (IS_ALDERLAKE_P(dev_priv))
+		ddi_translations = adlp_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
+	else
+		ddi_translations = tgl_get_dkl_buf_trans(encoder, crtc_state, &n_entries);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (drm_WARN_ON_ONCE(&dev_priv->drm, !ddi_translations))
 		return;
@@ -3110,8 +3268,46 @@ hsw_set_signal_levels(struct intel_dp *intel_dp,
 	intel_de_posting_read(dev_priv, DDI_BUF_CTL(port));
 }
 
+<<<<<<< HEAD
 static u32 icl_dpclka_cfgcr0_clk_off(struct drm_i915_private *dev_priv,
 				     enum phy phy)
+=======
+static void _cnl_ddi_enable_clock(struct drm_i915_private *i915, i915_reg_t reg,
+				  u32 clk_sel_mask, u32 clk_sel, u32 clk_off)
+{
+	mutex_lock(&i915->dpll.lock);
+
+	intel_de_rmw(i915, reg, clk_sel_mask, clk_sel);
+
+	/*
+	 * "This step and the step before must be
+	 *  done with separate register writes."
+	 */
+	intel_de_rmw(i915, reg, clk_off, 0);
+
+	mutex_unlock(&i915->dpll.lock);
+}
+
+static void _cnl_ddi_disable_clock(struct drm_i915_private *i915, i915_reg_t reg,
+				   u32 clk_off)
+{
+	mutex_lock(&i915->dpll.lock);
+
+	intel_de_rmw(i915, reg, 0, clk_off);
+
+	mutex_unlock(&i915->dpll.lock);
+}
+
+static bool _cnl_ddi_is_clock_enabled(struct drm_i915_private *i915, i915_reg_t reg,
+				      u32 clk_off)
+{
+	return !(intel_de_read(i915, reg) & clk_off);
+}
+
+static struct intel_shared_dpll *
+_cnl_ddi_get_pll(struct drm_i915_private *i915, i915_reg_t reg,
+		 u32 clk_sel_mask, u32 clk_sel_shift)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (IS_ROCKETLAKE(dev_priv)) {
 		return RKL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy);
@@ -3130,10 +3326,107 @@ static u32 icl_dpclka_cfgcr0_clk_off(struct drm_i915_private *dev_priv,
 static void dg1_map_plls_to_ports(struct intel_encoder *encoder,
 				  const struct intel_crtc_state *crtc_state)
 {
+<<<<<<< HEAD
 	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
 	struct intel_shared_dpll *pll = crtc_state->shared_dpll;
 	enum phy phy = intel_port_to_phy(dev_priv, encoder->port);
 	u32 val;
+=======
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	_cnl_ddi_enable_clock(i915, ADLS_DPCLKA_CFGCR(phy),
+			      ADLS_DPCLKA_CFGCR_DDI_CLK_SEL_MASK(phy),
+			      pll->info->id << ADLS_DPCLKA_CFGCR_DDI_SHIFT(phy),
+			      ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static void adls_ddi_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	_cnl_ddi_disable_clock(i915, ADLS_DPCLKA_CFGCR(phy),
+			       ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static bool adls_ddi_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_is_clock_enabled(i915, ADLS_DPCLKA_CFGCR(phy),
+					 ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static struct intel_shared_dpll *adls_ddi_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_get_pll(i915, ADLS_DPCLKA_CFGCR(phy),
+				ADLS_DPCLKA_CFGCR_DDI_CLK_SEL_MASK(phy),
+				ADLS_DPCLKA_CFGCR_DDI_SHIFT(phy));
+}
+
+static void rkl_ddi_enable_clock(struct intel_encoder *encoder,
+				 const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	_cnl_ddi_enable_clock(i915, ICL_DPCLKA_CFGCR0,
+			      RKL_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy),
+			      RKL_DPCLKA_CFGCR0_DDI_CLK_SEL(pll->info->id, phy),
+			      RKL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static void rkl_ddi_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	_cnl_ddi_disable_clock(i915, ICL_DPCLKA_CFGCR0,
+			       RKL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static bool rkl_ddi_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_is_clock_enabled(i915, ICL_DPCLKA_CFGCR0,
+					 RKL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static struct intel_shared_dpll *rkl_ddi_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_get_pll(i915, ICL_DPCLKA_CFGCR0,
+				RKL_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy),
+				RKL_DPCLKA_CFGCR0_DDI_CLK_SEL_SHIFT(phy));
+}
+
+static void dg1_ddi_enable_clock(struct intel_encoder *encoder,
+				 const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * If we fail this, something went very wrong: first 2 PLLs should be
@@ -3143,6 +3436,295 @@ static void dg1_map_plls_to_ports(struct intel_encoder *encoder,
 			(pll->info->id < DPLL_ID_DG1_DPLL2 && phy >= PHY_C) ||
 			(pll->info->id >= DPLL_ID_DG1_DPLL2 && phy < PHY_C)))
 		return;
+<<<<<<< HEAD
+=======
+
+	_cnl_ddi_enable_clock(i915, DG1_DPCLKA_CFGCR0(phy),
+			      DG1_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy),
+			      DG1_DPCLKA_CFGCR0_DDI_CLK_SEL(pll->info->id, phy),
+			      DG1_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static void dg1_ddi_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	_cnl_ddi_disable_clock(i915, DG1_DPCLKA_CFGCR0(phy),
+			       DG1_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static bool dg1_ddi_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_is_clock_enabled(i915, DG1_DPCLKA_CFGCR0(phy),
+					 DG1_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static struct intel_shared_dpll *dg1_ddi_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+	enum intel_dpll_id id;
+	u32 val;
+
+	val = intel_de_read(i915, DG1_DPCLKA_CFGCR0(phy));
+	val &= DG1_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy);
+	val >>= DG1_DPCLKA_CFGCR0_DDI_CLK_SEL_SHIFT(phy);
+	id = val;
+
+	/*
+	 * _DG1_DPCLKA0_CFGCR0 maps between DPLL 0 and 1 with one bit for phy A
+	 * and B while _DG1_DPCLKA1_CFGCR0 maps between DPLL 2 and 3 with one
+	 * bit for phy C and D.
+	 */
+	if (phy >= PHY_C)
+		id += DPLL_ID_DG1_DPLL2;
+
+	return intel_get_shared_dpll_by_id(i915, id);
+}
+
+static void icl_ddi_combo_enable_clock(struct intel_encoder *encoder,
+				       const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	_cnl_ddi_enable_clock(i915, ICL_DPCLKA_CFGCR0,
+			      ICL_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy),
+			      ICL_DPCLKA_CFGCR0_DDI_CLK_SEL(pll->info->id, phy),
+			      ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static void icl_ddi_combo_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	_cnl_ddi_disable_clock(i915, ICL_DPCLKA_CFGCR0,
+			       ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+static bool icl_ddi_combo_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_is_clock_enabled(i915, ICL_DPCLKA_CFGCR0,
+					 ICL_DPCLKA_CFGCR0_DDI_CLK_OFF(phy));
+}
+
+struct intel_shared_dpll *icl_ddi_combo_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum phy phy = intel_port_to_phy(i915, encoder->port);
+
+	return _cnl_ddi_get_pll(i915, ICL_DPCLKA_CFGCR0,
+				ICL_DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(phy),
+				ICL_DPCLKA_CFGCR0_DDI_CLK_SEL_SHIFT(phy));
+}
+
+static void jsl_ddi_tc_enable_clock(struct intel_encoder *encoder,
+				    const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum port port = encoder->port;
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	/*
+	 * "For DDIC and DDID, program DDI_CLK_SEL to map the MG clock to the port.
+	 *  MG does not exist, but the programming is required to ungate DDIC and DDID."
+	 */
+	intel_de_write(i915, DDI_CLK_SEL(port), DDI_CLK_SEL_MG);
+
+	icl_ddi_combo_enable_clock(encoder, crtc_state);
+}
+
+static void jsl_ddi_tc_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+
+	icl_ddi_combo_disable_clock(encoder);
+
+	intel_de_write(i915, DDI_CLK_SEL(port), DDI_CLK_SEL_NONE);
+}
+
+static bool jsl_ddi_tc_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+	u32 tmp;
+
+	tmp = intel_de_read(i915, DDI_CLK_SEL(port));
+
+	if ((tmp & DDI_CLK_SEL_MASK) == DDI_CLK_SEL_NONE)
+		return false;
+
+	return icl_ddi_combo_is_clock_enabled(encoder);
+}
+
+static void icl_ddi_tc_enable_clock(struct intel_encoder *encoder,
+				    const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum tc_port tc_port = intel_port_to_tc(i915, encoder->port);
+	enum port port = encoder->port;
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	intel_de_write(i915, DDI_CLK_SEL(port),
+		       icl_pll_to_ddi_clk_sel(encoder, crtc_state));
+
+	mutex_lock(&i915->dpll.lock);
+
+	intel_de_rmw(i915, ICL_DPCLKA_CFGCR0,
+		     ICL_DPCLKA_CFGCR0_TC_CLK_OFF(tc_port), 0);
+
+	mutex_unlock(&i915->dpll.lock);
+}
+
+static void icl_ddi_tc_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum tc_port tc_port = intel_port_to_tc(i915, encoder->port);
+	enum port port = encoder->port;
+
+	mutex_lock(&i915->dpll.lock);
+
+	intel_de_rmw(i915, ICL_DPCLKA_CFGCR0,
+		     0, ICL_DPCLKA_CFGCR0_TC_CLK_OFF(tc_port));
+
+	mutex_unlock(&i915->dpll.lock);
+
+	intel_de_write(i915, DDI_CLK_SEL(port), DDI_CLK_SEL_NONE);
+}
+
+static bool icl_ddi_tc_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum tc_port tc_port = intel_port_to_tc(i915, encoder->port);
+	enum port port = encoder->port;
+	u32 tmp;
+
+	tmp = intel_de_read(i915, DDI_CLK_SEL(port));
+
+	if ((tmp & DDI_CLK_SEL_MASK) == DDI_CLK_SEL_NONE)
+		return false;
+
+	tmp = intel_de_read(i915, ICL_DPCLKA_CFGCR0);
+
+	return !(tmp & ICL_DPCLKA_CFGCR0_TC_CLK_OFF(tc_port));
+}
+
+static struct intel_shared_dpll *icl_ddi_tc_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum tc_port tc_port = intel_port_to_tc(i915, encoder->port);
+	enum port port = encoder->port;
+	enum intel_dpll_id id;
+	u32 tmp;
+
+	tmp = intel_de_read(i915, DDI_CLK_SEL(port));
+
+	switch (tmp & DDI_CLK_SEL_MASK) {
+	case DDI_CLK_SEL_TBT_162:
+	case DDI_CLK_SEL_TBT_270:
+	case DDI_CLK_SEL_TBT_540:
+	case DDI_CLK_SEL_TBT_810:
+		id = DPLL_ID_ICL_TBTPLL;
+		break;
+	case DDI_CLK_SEL_MG:
+		id = icl_tc_port_to_pll_id(tc_port);
+		break;
+	default:
+		MISSING_CASE(tmp);
+		fallthrough;
+	case DDI_CLK_SEL_NONE:
+		return NULL;
+	}
+
+	return intel_get_shared_dpll_by_id(i915, id);
+}
+
+static void cnl_ddi_enable_clock(struct intel_encoder *encoder,
+				 const struct intel_crtc_state *crtc_state)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
+	enum port port = encoder->port;
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	_cnl_ddi_enable_clock(i915, DPCLKA_CFGCR0,
+			      DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(port),
+			      DPCLKA_CFGCR0_DDI_CLK_SEL(pll->info->id, port),
+			      DPCLKA_CFGCR0_DDI_CLK_OFF(port));
+}
+
+static void cnl_ddi_disable_clock(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+
+	_cnl_ddi_disable_clock(i915, DPCLKA_CFGCR0,
+			       DPCLKA_CFGCR0_DDI_CLK_OFF(port));
+}
+
+static bool cnl_ddi_is_clock_enabled(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+
+	return _cnl_ddi_is_clock_enabled(i915, DPCLKA_CFGCR0,
+					 DPCLKA_CFGCR0_DDI_CLK_OFF(port));
+}
+
+static struct intel_shared_dpll *cnl_ddi_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum port port = encoder->port;
+
+	return _cnl_ddi_get_pll(i915, DPCLKA_CFGCR0,
+				DPCLKA_CFGCR0_DDI_CLK_SEL_MASK(port),
+				DPCLKA_CFGCR0_DDI_CLK_SEL_SHIFT(port));
+}
+
+static struct intel_shared_dpll *bxt_ddi_get_pll(struct intel_encoder *encoder)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum intel_dpll_id id;
+
+	switch (encoder->port) {
+	case PORT_A:
+		id = DPLL_ID_SKL_DPLL0;
+		break;
+	case PORT_B:
+		id = DPLL_ID_SKL_DPLL1;
+		break;
+	case PORT_C:
+		id = DPLL_ID_SKL_DPLL2;
+		break;
+	default:
+		MISSING_CASE(encoder->port);
+		return NULL;
+	}
+
+	return intel_get_shared_dpll_by_id(i915, id);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&dev_priv->dpll.lock);
 
@@ -3349,6 +3931,7 @@ void icl_sanitize_encoder_pll_mapping(struct intel_encoder *encoder)
 		ddi_clk_needed = false;
 	}
 
+<<<<<<< HEAD
 	if (IS_DG1(dev_priv))
 		dg1_sanitize_port_clk_off(dev_priv, port_mask, ddi_clk_needed);
 	else
@@ -3365,6 +3948,10 @@ static void intel_ddi_clk_select(struct intel_encoder *encoder,
 	const struct intel_shared_dpll *pll = crtc_state->shared_dpll;
 
 	if (drm_WARN_ON(&dev_priv->drm, !pll))
+=======
+	if (ddi_clk_needed || !encoder->disable_clock ||
+	    !encoder->is_clock_enabled(encoder))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 
 	mutex_lock(&dev_priv->dpll.lock);
@@ -3571,8 +4158,13 @@ static void intel_dp_sink_set_msa_timing_par_ignore_state(struct intel_dp *intel
 	if (drm_dp_dpcd_writeb(&intel_dp->aux, DP_DOWNSPREAD_CTRL,
 			       enable ? DP_MSA_TIMING_PAR_IGNORE_EN : 0) <= 0)
 		drm_dbg_kms(&i915->drm,
+<<<<<<< HEAD
 			    "Failed to set MSA_TIMING_PAR_IGNORE %s in the sink\n",
 			    enable ? "enable" : "disable");
+=======
+			    "Failed to %s MSA_TIMING_PAR_IGNORE in the sink\n",
+			    enabledisable(enable));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void intel_dp_sink_set_fec_ready(struct intel_dp *intel_dp,
@@ -3638,6 +4230,76 @@ static void intel_ddi_power_up_lanes(struct intel_encoder *encoder,
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void intel_ddi_mso_get_config(struct intel_encoder *encoder,
+				     struct intel_crtc_state *pipe_config)
+{
+	struct intel_crtc *crtc = to_intel_crtc(pipe_config->uapi.crtc);
+	struct drm_i915_private *i915 = to_i915(crtc->base.dev);
+	enum pipe pipe = crtc->pipe;
+	u32 dss1;
+
+	if (!HAS_MSO(i915))
+		return;
+
+	dss1 = intel_de_read(i915, ICL_PIPE_DSS_CTL1(pipe));
+
+	pipe_config->splitter.enable = dss1 & SPLITTER_ENABLE;
+	if (!pipe_config->splitter.enable)
+		return;
+
+	/* Splitter enable is supported for pipe A only. */
+	if (drm_WARN_ON(&i915->drm, pipe != PIPE_A)) {
+		pipe_config->splitter.enable = false;
+		return;
+	}
+
+	switch (dss1 & SPLITTER_CONFIGURATION_MASK) {
+	default:
+		drm_WARN(&i915->drm, true,
+			 "Invalid splitter configuration, dss1=0x%08x\n", dss1);
+		fallthrough;
+	case SPLITTER_CONFIGURATION_2_SEGMENT:
+		pipe_config->splitter.link_count = 2;
+		break;
+	case SPLITTER_CONFIGURATION_4_SEGMENT:
+		pipe_config->splitter.link_count = 4;
+		break;
+	}
+
+	pipe_config->splitter.pixel_overlap = REG_FIELD_GET(OVERLAP_PIXELS_MASK, dss1);
+}
+
+static void intel_ddi_mso_configure(const struct intel_crtc_state *crtc_state)
+{
+	struct intel_crtc *crtc = to_intel_crtc(crtc_state->uapi.crtc);
+	struct drm_i915_private *i915 = to_i915(crtc->base.dev);
+	enum pipe pipe = crtc->pipe;
+	u32 dss1 = 0;
+
+	if (!HAS_MSO(i915))
+		return;
+
+	if (crtc_state->splitter.enable) {
+		/* Splitter enable is supported for pipe A only. */
+		if (drm_WARN_ON(&i915->drm, pipe != PIPE_A))
+			return;
+
+		dss1 |= SPLITTER_ENABLE;
+		dss1 |= OVERLAP_PIXELS(crtc_state->splitter.pixel_overlap);
+		if (crtc_state->splitter.link_count == 2)
+			dss1 |= SPLITTER_CONFIGURATION_2_SEGMENT;
+		else
+			dss1 |= SPLITTER_CONFIGURATION_4_SEGMENT;
+	}
+
+	intel_de_rmw(i915, ICL_PIPE_DSS_CTL1(pipe),
+		     SPLITTER_ENABLE | SPLITTER_CONFIGURATION_MASK |
+		     OVERLAP_PIXELS_MASK, dss1);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void tgl_ddi_pre_enable_dp(struct intel_atomic_state *state,
 				  struct intel_encoder *encoder,
 				  const struct intel_crtc_state *crtc_state,
@@ -3815,7 +4477,11 @@ static void hsw_ddi_pre_enable_dp(struct intel_atomic_state *state,
 		icl_ddi_vswing_sequence(encoder, crtc_state, level);
 	else if (IS_CANNONLAKE(dev_priv))
 		cnl_ddi_vswing_sequence(encoder, crtc_state, level);
+<<<<<<< HEAD
 	else if (IS_GEN9_LP(dev_priv))
+=======
+	else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bxt_ddi_vswing_sequence(encoder, crtc_state, level);
 	else
 		intel_prepare_dp_ddi_buffers(encoder, crtc_state);
@@ -3850,7 +4516,11 @@ static void intel_ddi_pre_enable_dp(struct intel_atomic_state *state,
 {
 	struct drm_i915_private *dev_priv = to_i915(encoder->base.dev);
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 12)
+=======
+	if (DISPLAY_VER(dev_priv) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		tgl_ddi_pre_enable_dp(state, encoder, crtc_state, conn_state);
 	else
 		hsw_ddi_pre_enable_dp(state, encoder, crtc_state, conn_state);
@@ -3946,7 +4616,6 @@ static void intel_ddi_pre_enable(struct intel_atomic_state *state,
 					conn_state);
 
 		/* FIXME precompute everything properly */
-		/* FIXME how do we turn infoframes off again? */
 		if (dig_port->lspcon.active && dig_port->dp.has_hdmi_sink)
 			dig_port->set_infoframes(encoder,
 						 crtc_state->has_infoframe,
@@ -4282,6 +4951,23 @@ static void intel_enable_ddi_hdmi(struct intel_atomic_state *state,
 			    "[CONNECTOR:%d:%s] Failed to configure sink scrambling/TMDS bit clock ratio\n",
 			    connector->base.id, connector->name);
 
+<<<<<<< HEAD
+=======
+	if (DISPLAY_VER(dev_priv) >= 12)
+		tgl_ddi_vswing_sequence(encoder, crtc_state, level);
+	else if (DISPLAY_VER(dev_priv) == 11)
+		icl_ddi_vswing_sequence(encoder, crtc_state, level);
+	else if (IS_CANNONLAKE(dev_priv))
+		cnl_ddi_vswing_sequence(encoder, crtc_state, level);
+	else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+		bxt_ddi_vswing_sequence(encoder, crtc_state, level);
+	else
+		intel_prepare_hdmi_ddi_buffers(encoder, level);
+
+	if (DISPLAY_VER(dev_priv) == 9 && !IS_BROXTON(dev_priv))
+		skl_ddi_set_iboost(encoder, crtc_state, level);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Display WA #1143: skl,kbl,cfl */
 	if (IS_GEN9_BC(dev_priv)) {
 		/*
@@ -4881,6 +5567,128 @@ void intel_ddi_get_config(struct intel_encoder *encoder,
 
 	intel_read_dp_sdp(encoder, pipe_config, HDMI_PACKET_TYPE_GAMUT_METADATA);
 	intel_read_dp_sdp(encoder, pipe_config, DP_SDP_VSC);
+<<<<<<< HEAD
+=======
+
+	intel_psr_get_config(encoder, pipe_config);
+}
+
+void intel_ddi_get_clock(struct intel_encoder *encoder,
+			 struct intel_crtc_state *crtc_state,
+			 struct intel_shared_dpll *pll)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum icl_port_dpll_id port_dpll_id = ICL_PORT_DPLL_DEFAULT;
+	struct icl_port_dpll *port_dpll = &crtc_state->icl_port_dplls[port_dpll_id];
+	bool pll_active;
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	port_dpll->pll = pll;
+	pll_active = intel_dpll_get_hw_state(i915, pll, &port_dpll->hw_state);
+	drm_WARN_ON(&i915->drm, !pll_active);
+
+	icl_set_active_port_dpll(crtc_state, port_dpll_id);
+
+	crtc_state->port_clock = intel_dpll_get_freq(i915, crtc_state->shared_dpll,
+						     &crtc_state->dpll_hw_state);
+}
+
+static void adls_ddi_get_config(struct intel_encoder *encoder,
+				struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, adls_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void rkl_ddi_get_config(struct intel_encoder *encoder,
+			       struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, rkl_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void dg1_ddi_get_config(struct intel_encoder *encoder,
+			       struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, dg1_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void icl_ddi_combo_get_config(struct intel_encoder *encoder,
+				     struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, icl_ddi_combo_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void icl_ddi_tc_get_clock(struct intel_encoder *encoder,
+				 struct intel_crtc_state *crtc_state,
+				 struct intel_shared_dpll *pll)
+{
+	struct drm_i915_private *i915 = to_i915(encoder->base.dev);
+	enum icl_port_dpll_id port_dpll_id;
+	struct icl_port_dpll *port_dpll;
+	bool pll_active;
+
+	if (drm_WARN_ON(&i915->drm, !pll))
+		return;
+
+	if (intel_get_shared_dpll_id(i915, pll) == DPLL_ID_ICL_TBTPLL)
+		port_dpll_id = ICL_PORT_DPLL_DEFAULT;
+	else
+		port_dpll_id = ICL_PORT_DPLL_MG_PHY;
+
+	port_dpll = &crtc_state->icl_port_dplls[port_dpll_id];
+
+	port_dpll->pll = pll;
+	pll_active = intel_dpll_get_hw_state(i915, pll, &port_dpll->hw_state);
+	drm_WARN_ON(&i915->drm, !pll_active);
+
+	icl_set_active_port_dpll(crtc_state, port_dpll_id);
+
+	if (intel_get_shared_dpll_id(i915, crtc_state->shared_dpll) == DPLL_ID_ICL_TBTPLL)
+		crtc_state->port_clock = icl_calc_tbt_pll_link(i915, encoder->port);
+	else
+		crtc_state->port_clock = intel_dpll_get_freq(i915, crtc_state->shared_dpll,
+							     &crtc_state->dpll_hw_state);
+}
+
+static void icl_ddi_tc_get_config(struct intel_encoder *encoder,
+				  struct intel_crtc_state *crtc_state)
+{
+	icl_ddi_tc_get_clock(encoder, crtc_state, icl_ddi_tc_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void cnl_ddi_get_config(struct intel_encoder *encoder,
+			       struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, cnl_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void bxt_ddi_get_config(struct intel_encoder *encoder,
+			       struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, bxt_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+static void skl_ddi_get_config(struct intel_encoder *encoder,
+			       struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, skl_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+}
+
+void hsw_ddi_get_config(struct intel_encoder *encoder,
+			struct intel_crtc_state *crtc_state)
+{
+	intel_ddi_get_clock(encoder, crtc_state, hsw_ddi_get_pll(encoder));
+	intel_ddi_get_config(encoder, crtc_state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void intel_ddi_sync_state(struct intel_encoder *encoder,
@@ -5097,13 +5905,21 @@ intel_ddi_init_dp_connector(struct intel_digital_port *dig_port)
 	dig_port->dp.set_link_train = intel_ddi_set_link_train;
 	dig_port->dp.set_idle_link_train = intel_ddi_set_idle_link_train;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) >= 12)
+=======
+	if (DISPLAY_VER(dev_priv) >= 12)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dig_port->dp.set_signal_levels = tgl_set_signal_levels;
 	else if (INTEL_GEN(dev_priv) >= 11)
 		dig_port->dp.set_signal_levels = icl_set_signal_levels;
 	else if (IS_CANNONLAKE(dev_priv))
 		dig_port->dp.set_signal_levels = cnl_set_signal_levels;
+<<<<<<< HEAD
 	else if (IS_GEN9_LP(dev_priv))
+=======
+	else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		dig_port->dp.set_signal_levels = bxt_set_signal_levels;
 	else
 		dig_port->dp.set_signal_levels = hsw_set_signal_levels;
@@ -5358,6 +6174,15 @@ static bool intel_ddi_a_force_4_lanes(struct intel_digital_port *dig_port)
 	    !intel_bios_is_port_present(dev_priv, PORT_E))
 		return true;
 
+	/* Cannonlake: Most of SKUs don't support DDI_E, and the only
+	 *             one who does also have a full A/E split called
+	 *             DDI_F what makes DDI_E useless. However for this
+	 *             case let's trust VBT info.
+	 */
+	if (IS_CANNONLAKE(dev_priv) &&
+	    !intel_bios_is_port_present(dev_priv, PORT_E))
+		return true;
+
 	return false;
 }
 
@@ -5453,6 +6278,8 @@ static enum hpd_pin ehl_hpd_pin(struct drm_i915_private *dev_priv,
 
 static enum hpd_pin cnl_hpd_pin(struct drm_i915_private *dev_priv,
 				enum port port)
+<<<<<<< HEAD
+=======
 {
 	if (port == PORT_F)
 		return HPD_PORT_E;
@@ -5460,6 +6287,28 @@ static enum hpd_pin cnl_hpd_pin(struct drm_i915_private *dev_priv,
 	return HPD_PORT_A + port - PORT_A;
 }
 
+static enum hpd_pin skl_hpd_pin(struct drm_i915_private *dev_priv, enum port port)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+{
+	if (port == PORT_F)
+		return HPD_PORT_E;
+
+	return HPD_PORT_A + port - PORT_A;
+}
+
+<<<<<<< HEAD
+=======
+static bool intel_ddi_is_tc(struct drm_i915_private *i915, enum port port)
+{
+	if (DISPLAY_VER(i915) >= 12)
+		return port >= PORT_TC1;
+	else if (DISPLAY_VER(i915) >= 11)
+		return port >= PORT_C;
+	else
+		return false;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define port_tc_name(port) ((port) - PORT_TC1 + '1')
 #define tc_port_name(tc_port) ((tc_port) - TC_PORT_1 + '1')
 
@@ -5564,7 +6413,72 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 	encoder->cloneable = 0;
 	encoder->pipe_mask = ~0;
 
+<<<<<<< HEAD
 	if (IS_DG1(dev_priv))
+=======
+	if (IS_ALDERLAKE_S(dev_priv)) {
+		encoder->enable_clock = adls_ddi_enable_clock;
+		encoder->disable_clock = adls_ddi_disable_clock;
+		encoder->is_clock_enabled = adls_ddi_is_clock_enabled;
+		encoder->get_config = adls_ddi_get_config;
+	} else if (IS_ROCKETLAKE(dev_priv)) {
+		encoder->enable_clock = rkl_ddi_enable_clock;
+		encoder->disable_clock = rkl_ddi_disable_clock;
+		encoder->is_clock_enabled = rkl_ddi_is_clock_enabled;
+		encoder->get_config = rkl_ddi_get_config;
+	} else if (IS_DG1(dev_priv)) {
+		encoder->enable_clock = dg1_ddi_enable_clock;
+		encoder->disable_clock = dg1_ddi_disable_clock;
+		encoder->is_clock_enabled = dg1_ddi_is_clock_enabled;
+		encoder->get_config = dg1_ddi_get_config;
+	} else if (IS_JSL_EHL(dev_priv)) {
+		if (intel_ddi_is_tc(dev_priv, port)) {
+			encoder->enable_clock = jsl_ddi_tc_enable_clock;
+			encoder->disable_clock = jsl_ddi_tc_disable_clock;
+			encoder->is_clock_enabled = jsl_ddi_tc_is_clock_enabled;
+			encoder->get_config = icl_ddi_combo_get_config;
+		} else {
+			encoder->enable_clock = icl_ddi_combo_enable_clock;
+			encoder->disable_clock = icl_ddi_combo_disable_clock;
+			encoder->is_clock_enabled = icl_ddi_combo_is_clock_enabled;
+			encoder->get_config = icl_ddi_combo_get_config;
+		}
+	} else if (DISPLAY_VER(dev_priv) >= 11) {
+		if (intel_ddi_is_tc(dev_priv, port)) {
+			encoder->enable_clock = icl_ddi_tc_enable_clock;
+			encoder->disable_clock = icl_ddi_tc_disable_clock;
+			encoder->is_clock_enabled = icl_ddi_tc_is_clock_enabled;
+			encoder->get_config = icl_ddi_tc_get_config;
+		} else {
+			encoder->enable_clock = icl_ddi_combo_enable_clock;
+			encoder->disable_clock = icl_ddi_combo_disable_clock;
+			encoder->is_clock_enabled = icl_ddi_combo_is_clock_enabled;
+			encoder->get_config = icl_ddi_combo_get_config;
+		}
+	} else if (IS_CANNONLAKE(dev_priv)) {
+		encoder->enable_clock = cnl_ddi_enable_clock;
+		encoder->disable_clock = cnl_ddi_disable_clock;
+		encoder->is_clock_enabled = cnl_ddi_is_clock_enabled;
+		encoder->get_config = cnl_ddi_get_config;
+	} else if (IS_GEMINILAKE(dev_priv) || IS_BROXTON(dev_priv)) {
+		/* BXT/GLK have fixed PLL->port mapping */
+		encoder->get_config = bxt_ddi_get_config;
+	} else if (DISPLAY_VER(dev_priv) == 9) {
+		encoder->enable_clock = skl_ddi_enable_clock;
+		encoder->disable_clock = skl_ddi_disable_clock;
+		encoder->is_clock_enabled = skl_ddi_is_clock_enabled;
+		encoder->get_config = skl_ddi_get_config;
+	} else if (IS_BROADWELL(dev_priv) || IS_HASWELL(dev_priv)) {
+		encoder->enable_clock = hsw_ddi_enable_clock;
+		encoder->disable_clock = hsw_ddi_disable_clock;
+		encoder->is_clock_enabled = hsw_ddi_is_clock_enabled;
+		encoder->get_config = hsw_ddi_get_config;
+	}
+
+	if (DISPLAY_VER(dev_priv) >= 13)
+		encoder->hpd_pin = xelpd_hpd_pin(dev_priv, port);
+	else if (IS_DG1(dev_priv))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		encoder->hpd_pin = dg1_hpd_pin(dev_priv, port);
 	else if (IS_ROCKETLAKE(dev_priv))
 		encoder->hpd_pin = rkl_hpd_pin(dev_priv, port);
@@ -5574,8 +6488,15 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 		encoder->hpd_pin = ehl_hpd_pin(dev_priv, port);
 	else if (IS_GEN(dev_priv, 11))
 		encoder->hpd_pin = icl_hpd_pin(dev_priv, port);
+<<<<<<< HEAD
 	else if (IS_GEN(dev_priv, 10))
 		encoder->hpd_pin = cnl_hpd_pin(dev_priv, port);
+=======
+	else if (IS_CANNONLAKE(dev_priv))
+		encoder->hpd_pin = cnl_hpd_pin(dev_priv, port);
+	else if (DISPLAY_VER(dev_priv) == 9 && !IS_BROXTON(dev_priv))
+		encoder->hpd_pin = skl_hpd_pin(dev_priv, port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	else
 		encoder->hpd_pin = intel_hpd_pin_default(dev_priv, port);
 
@@ -5612,6 +6533,16 @@ void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port)
 			goto err;
 
 		dig_port->hpd_pulse = intel_dp_hpd_pulse;
+<<<<<<< HEAD
+=======
+
+		/* Splitter enable for eDP MSO is limited to certain pipes. */
+		if (dig_port->dp.mso_link_count) {
+			encoder->pipe_mask = BIT(PIPE_A);
+			if (IS_ALDERLAKE_P(dev_priv))
+				encoder->pipe_mask |= BIT(PIPE_B);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* In theory we don't need the encoder->type check, but leave it just in

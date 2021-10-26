@@ -417,7 +417,13 @@ static void ksz8795_r_vlan_entries(struct ksz_device *dev, u16 addr)
 	u64 data;
 	int i;
 
+<<<<<<< HEAD
 	ksz8795_r_table(dev, TABLE_VLAN, addr, &data);
+=======
+	shifts = ksz8->shifts;
+
+	ksz8_r_table(dev, TABLE_VLAN, addr, &data);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	addr *= dev->phy_port_cnt;
 	for (i = 0; i < dev->phy_port_cnt; i++) {
 		dev->vlan_cache[addr + i].table[0] = (u16)data;
@@ -788,20 +794,38 @@ static int ksz8795_port_vlan_filtering(struct dsa_switch *ds, int port,
 {
 	struct ksz_device *dev = ds->priv;
 
+<<<<<<< HEAD
+=======
+	if (ksz_is_ksz88x3(dev))
+		return -ENOTSUPP;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ksz_cfg(dev, S_MIRROR_CTRL, SW_VLAN_ENABLE, flag);
 
 	return 0;
 }
 
+<<<<<<< HEAD
 static int ksz8795_port_vlan_add(struct dsa_switch *ds, int port,
 				 const struct switchdev_obj_port_vlan *vlan,
 				 struct netlink_ext_ack *extack)
+=======
+static int ksz8_port_vlan_add(struct dsa_switch *ds, int port,
+			      const struct switchdev_obj_port_vlan *vlan,
+			      struct netlink_ext_ack *extack)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool untagged = vlan->flags & BRIDGE_VLAN_INFO_UNTAGGED;
 	struct ksz_device *dev = ds->priv;
 	u16 data, new_pvid = 0;
 	u8 fid, member, valid;
 
+<<<<<<< HEAD
+=======
+	if (ksz_is_ksz88x3(dev))
+		return -ENOTSUPP;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ksz_port_cfg(dev, port, P_TAG_CTRL, PORT_REMOVE_TAG, untagged);
 
 	ksz8795_r_vlan_table(dev, vlan->vid, &data);
@@ -847,8 +871,13 @@ static int ksz8795_port_vlan_del(struct dsa_switch *ds, int port,
 
 	ksz_port_cfg(dev, port, P_TAG_CTRL, PORT_REMOVE_TAG, untagged);
 
+<<<<<<< HEAD
 	ksz8795_r_vlan_table(dev, vlan->vid, &data);
 	ksz8795_from_vlan(data, &fid, &member, &valid);
+=======
+	ksz8_r_vlan_table(dev, vlan->vid, &data);
+	ksz8_from_vlan(dev, data, &fid, &member, &valid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	member &= ~BIT(port);
 
@@ -861,8 +890,13 @@ static int ksz8795_port_vlan_del(struct dsa_switch *ds, int port,
 	if (pvid == vlan->vid)
 		new_pvid = 1;
 
+<<<<<<< HEAD
 	ksz8795_to_vlan(fid, member, valid, &data);
 	ksz8795_w_vlan_table(dev, vlan->vid, data);
+=======
+	ksz8_to_vlan(dev, fid, member, valid, &data);
+	ksz8_w_vlan_table(dev, vlan->vid, data);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (new_pvid != pvid)
 		ksz_pwrite16(dev, port, REG_PORT_CTRL_VID, pvid);

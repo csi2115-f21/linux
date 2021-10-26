@@ -4,7 +4,30 @@
 
 #include <stdio.h>
 
+<<<<<<< HEAD
 int tests_failed;
+=======
+extern int tests_failed;
+extern int tests_verbose;
+
+static inline int get_verbose(char **argv, int argc)
+{
+	int c;
+	int verbose = 0;
+
+	while ((c = getopt(argc, argv, "v")) != -1) {
+		switch (c)
+		{
+		case 'v':
+			verbose = 1;
+			break;
+		default:
+			break;
+		}
+	}
+	return verbose;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define __T_START					\
 do {							\

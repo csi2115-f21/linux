@@ -349,6 +349,7 @@ struct trace_event_call {
 	struct event_filter	*filter;
 	void			*mod;
 	void			*data;
+<<<<<<< HEAD
 	/*
 	 *   bit 0:		filter_active
 	 *   bit 1:		allow trace by non root (cap any)
@@ -358,6 +359,10 @@ struct trace_event_call {
 	 *   bit 5:		use call filter rather than file filter
 	 *   bit 6:		Event is a tracepoint
 	 */
+=======
+
+	/* See the TRACE_EVENT_FL_* flags above */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int			flags; /* static flags of different events */
 
 #ifdef CONFIG_PERF_EVENTS

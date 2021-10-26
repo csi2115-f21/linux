@@ -853,7 +853,12 @@ snd_ad1889_create(struct snd_card *card,
 
 	*rchip = NULL;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	/* check PCI availability (32bit DMA) */
@@ -864,7 +869,12 @@ snd_ad1889_create(struct snd_card *card,
 	}
 
 	/* allocate chip specific data with zero-filled memory */
+<<<<<<< HEAD
 	if ((chip = kzalloc(sizeof(*chip), GFP_KERNEL)) == NULL) {
+=======
+	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+	if (!chip) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
@@ -875,7 +885,12 @@ snd_ad1889_create(struct snd_card *card,
 	chip->irq = -1;
 
 	/* (1) PCI resource allocation */
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, card->driver)) < 0)
+=======
+	err = pci_request_regions(pci, card->driver);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto free_and_ret;
 
 	chip->bar = pci_resource_start(pci, 0);
@@ -901,12 +916,22 @@ snd_ad1889_create(struct snd_card *card,
 	card->sync_irq = chip->irq;
 
 	/* (2) initialization of the chip hardware */
+<<<<<<< HEAD
 	if ((err = snd_ad1889_init(chip)) < 0) {
+=======
+	err = snd_ad1889_init(chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_ad1889_free(chip);
 		return err;
 	}
 
+<<<<<<< HEAD
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops)) < 0) {
+=======
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_ad1889_free(chip);
 		return err;
 	}

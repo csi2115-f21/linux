@@ -68,6 +68,15 @@
 #
 # If running from kselftests:
 #   sudo make colorconsole=1 run_tests
+<<<<<<< HEAD
+=======
+#
+# Run (full output without color-coding):
+#   sudo ./test_xsk.sh
+#
+# Run with verbose output:
+#   sudo ./test_xsk.sh -v
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #
 # Run (full output without color-coding):
 #   sudo ./test_xsk.sh
@@ -78,6 +87,11 @@ while getopts c flag
 do
 	case "${flag}" in
 		c) colorconsole=1;;
+<<<<<<< HEAD
+=======
+		v) verbose=1;;
+		D) dump_pkts=1;;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	esac
 done
 

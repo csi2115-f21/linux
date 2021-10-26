@@ -863,11 +863,21 @@ static void amdgpu_vm_bo_param(struct amdgpu_device *adev, struct amdgpu_vm *vm,
 {
 	memset(bp, 0, sizeof(*bp));
 
+<<<<<<< HEAD
 	bp->size = amdgpu_vm_bo_size(adev, level);
 	bp->byte_align = AMDGPU_GPU_PAGE_SIZE;
 	bp->domain = AMDGPU_GEM_DOMAIN_VRAM;
 	bp->domain = amdgpu_bo_get_preferred_pin_domain(adev, bp->domain);
 	bp->flags = AMDGPU_GEM_CREATE_VRAM_CONTIGUOUS |
+=======
+	memset(&bp, 0, sizeof(bp));
+
+	bp.size = amdgpu_vm_bo_size(adev, level);
+	bp.byte_align = AMDGPU_GPU_PAGE_SIZE;
+	bp.domain = AMDGPU_GEM_DOMAIN_VRAM;
+	bp.domain = amdgpu_bo_get_preferred_pin_domain(adev, bp.domain);
+	bp.flags = AMDGPU_GEM_CREATE_VRAM_CONTIGUOUS |
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		AMDGPU_GEM_CREATE_CPU_GTT_USWC;
 	if (vm->use_cpu_for_update)
 		bp->flags |= AMDGPU_GEM_CREATE_CPU_ACCESS_REQUIRED;
@@ -1709,7 +1719,12 @@ static int amdgpu_vm_bo_update_mapping(struct amdgpu_device *adev,
 
 	} while (unlikely(start != last + 1));
 
+<<<<<<< HEAD
 	r = vm->update_funcs->commit(&params, fence);
+=======
+	if (table_freed)
+		*table_freed = params.table_freed;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 error_unlock:
 	amdgpu_vm_eviction_unlock(vm);
@@ -1809,8 +1824,13 @@ int amdgpu_vm_bo_update(struct amdgpu_device *adev, struct amdgpu_bo_va *bo_va,
 		r = amdgpu_vm_bo_update_mapping(adev, bo_adev, vm, false, false,
 						resv, mapping->start,
 						mapping->last, update_flags,
+<<<<<<< HEAD
 						mapping->offset, nodes,
 						pages_addr, last_update);
+=======
+						mapping->offset, mem,
+						pages_addr, last_update, NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (r)
 			return r;
 	}
@@ -2772,7 +2792,10 @@ long amdgpu_vm_wait_idle(struct amdgpu_vm *vm, long timeout)
  *
  * @adev: amdgpu_device pointer
  * @vm: requested vm
+<<<<<<< HEAD
  * @vm_context: Indicates if it GFX or Compute context
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @pasid: Process address space identifier
  *
  * Init @vm fields.
@@ -2780,8 +2803,12 @@ long amdgpu_vm_wait_idle(struct amdgpu_vm *vm, long timeout)
  * Returns:
  * 0 for success, error for failure.
  */
+<<<<<<< HEAD
 int amdgpu_vm_init(struct amdgpu_device *adev, struct amdgpu_vm *vm,
 		   int vm_context, u32 pasid)
+=======
+int amdgpu_vm_init(struct amdgpu_device *adev, struct amdgpu_vm *vm, u32 pasid)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct amdgpu_bo_param bp;
 	struct amdgpu_bo *root;
@@ -2863,6 +2890,19 @@ int amdgpu_vm_init(struct amdgpu_device *adev, struct amdgpu_vm *vm,
 		goto error_unreserve;
 
 	amdgpu_bo_unreserve(vm->root.base.bo);
+
+	if (pasid) {
+		unsigned long flags;
+
+		spin_lock_irqsave(&adev->vm_manager.pasid_lock, flags);
+		r = idr_alloc(&adev->vm_manager.pasid_idr, vm, pasid, pasid + 1,
+			      GFP_ATOMIC);
+		spin_unlock_irqrestore(&adev->vm_manager.pasid_lock, flags);
+		if (r < 0)
+			goto error_free_root;
+
+		vm->pasid = pasid;
+	}
 
 	if (pasid) {
 		unsigned long flags;
@@ -3029,6 +3069,9 @@ int amdgpu_vm_make_compute(struct amdgpu_device *adev, struct amdgpu_vm *vm,
 
 	/* Free the shadow bo for compute VM */
 	amdgpu_bo_unref(&vm->root.base.bo->shadow);
+
+	if (pasid)
+		vm->pasid = pasid;
 
 	if (pasid)
 		vm->pasid = pasid;
@@ -3302,6 +3345,7 @@ bool amdgpu_vm_handle_fault(struct amdgpu_device *adev, u32 pasid,
 	struct amdgpu_vm *vm;
 	long r;
 
+<<<<<<< HEAD
 	spin_lock(&adev->vm_manager.pasid_lock);
 	vm = idr_find(&adev->vm_manager.pasid_idr, pasid);
 	if (vm)
@@ -3309,20 +3353,50 @@ bool amdgpu_vm_handle_fault(struct amdgpu_device *adev, u32 pasid,
 	else
 		root = NULL;
 	spin_unlock(&adev->vm_manager.pasid_lock);
+=======
+	spin_lock_irqsave(&adev->vm_manager.pasid_lock, irqflags);
+	vm = idr_find(&adev->vm_manager.pasid_idr, pasid);
+	if (vm) {
+		root = amdgpu_bo_ref(vm->root.bo);
+		is_compute_context = vm->is_compute_context;
+	} else {
+		root = NULL;
+	}
+	spin_unlock_irqrestore(&adev->vm_manager.pasid_lock, irqflags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!root)
 		return false;
 
+<<<<<<< HEAD
+=======
+	addr /= AMDGPU_GPU_PAGE_SIZE;
+
+	if (is_compute_context &&
+	    !svm_range_restore_pages(adev, pasid, addr)) {
+		amdgpu_bo_unref(&root);
+		return true;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	r = amdgpu_bo_reserve(root, true);
 	if (r)
 		goto error_unref;
 
 	/* Double check that the VM still exists */
+<<<<<<< HEAD
 	spin_lock(&adev->vm_manager.pasid_lock);
 	vm = idr_find(&adev->vm_manager.pasid_idr, pasid);
 	if (vm && vm->root.base.bo != root)
 		vm = NULL;
 	spin_unlock(&adev->vm_manager.pasid_lock);
+=======
+	spin_lock_irqsave(&adev->vm_manager.pasid_lock, irqflags);
+	vm = idr_find(&adev->vm_manager.pasid_idr, pasid);
+	if (vm && vm->root.bo != root)
+		vm = NULL;
+	spin_unlock_irqrestore(&adev->vm_manager.pasid_lock, irqflags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!vm)
 		goto error_unlock;
 

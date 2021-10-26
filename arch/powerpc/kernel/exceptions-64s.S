@@ -823,6 +823,7 @@ __start_interrupts:
  * syscall register convention is in Documentation/powerpc/syscall64-abi.rst
  */
 EXC_VIRT_BEGIN(system_call_vectored, 0x3000, 0x1000)
+1:
 	/* SCV 0 */
 	mr	r9,r13
 	GET_PACA(r13)
@@ -852,8 +853,14 @@ EXC_VIRT_BEGIN(system_call_vectored, 0x3000, 0x1000)
 	b	system_call_vectored_sigill
 #endif
 	.endr
+2:
 EXC_VIRT_END(system_call_vectored, 0x3000, 0x1000)
 
+<<<<<<< HEAD
+=======
+SOFT_MASK_TABLE(1b, 2b) // Treat scv vectors as soft-masked, see comment above.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_RELOCATABLE
 TRAMP_VIRT_BEGIN(system_call_vectored_tramp)
 	__LOAD_HANDLER(r10, system_call_vectored_common)
@@ -1254,9 +1261,13 @@ EXC_COMMON_BEGIN(machine_check_common)
 	mtmsrd 	r10,1
 	addi	r3,r1,STACK_FRAME_OVERHEAD
 	bl	machine_check_exception
+<<<<<<< HEAD
 	b	interrupt_return
 
 	GEN_KVM machine_check
+=======
+	b	interrupt_return_srr
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 #ifdef CONFIG_PPC_P7_NAP

@@ -55,6 +55,12 @@ enum {
 	CS_ETMV4_PRIV_MAX,
 };
 
+<<<<<<< HEAD
+=======
+/* define fixed version 0 length - allow new format reader to read old files. */
+#define CS_ETMV4_NR_TRC_PARAMS_V0 (CS_ETMV4_TRCAUTHSTATUS - CS_ETMV4_TRCCONFIGR + 1)
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * ETMv3 exception encoding number:
  * See Embedded Trace Macrocell spcification (ARM IHI 0014Q)

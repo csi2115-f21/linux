@@ -18,6 +18,12 @@ struct intel_plane_state;
 
 extern const struct drm_plane_helper_funcs intel_plane_helper_funcs;
 
+<<<<<<< HEAD
+=======
+unsigned int intel_adjusted_rate(const struct drm_rect *src,
+				 const struct drm_rect *dst,
+				 unsigned int rate);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 unsigned int intel_plane_pixel_rate(const struct intel_crtc_state *crtc_state,
 				    const struct intel_plane_state *plane_state);
 

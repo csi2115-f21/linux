@@ -166,7 +166,10 @@ int vt_get_kbd_mode_bit(int console, int bit);
 void vt_set_kbd_mode_bit(int console, int bit);
 void vt_clr_kbd_mode_bit(int console, int bit);
 void vt_set_led_state(int console, int leds);
+<<<<<<< HEAD
 void vt_set_led_state(int console, int leds);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void vt_kbd_con_start(int console);
 void vt_kbd_con_stop(int console);
 

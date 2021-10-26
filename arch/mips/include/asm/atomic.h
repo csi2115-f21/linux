@@ -203,7 +203,11 @@ ATOMIC_OPS(atomic64, xor, s64, ^=, xor, lld, scd)
  * The function returns the old value of @v minus @i.
  */
 #define ATOMIC_SIP_OP(pfx, type, op, ll, sc)				\
+<<<<<<< HEAD
 static __inline__ int pfx##_sub_if_positive(type i, pfx##_t * v)	\
+=======
+static __inline__ int arch_##pfx##_sub_if_positive(type i, pfx##_t * v)	\
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {									\
 	type temp, result;						\
 									\

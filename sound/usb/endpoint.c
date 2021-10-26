@@ -1375,7 +1375,12 @@ int snd_usb_endpoint_start(struct snd_usb_endpoint *ep)
 	if (!ep_state_update(ep, EP_STATE_STOPPED, EP_STATE_RUNNING))
 		goto __error;
 
+<<<<<<< HEAD
 	if (snd_usb_endpoint_implicit_feedback_sink(ep)) {
+=======
+	if (snd_usb_endpoint_implicit_feedback_sink(ep) &&
+	    !ep->chip->playback_first) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		for (i = 0; i < ep->nurbs; i++) {
 			struct snd_urb_ctx *ctx = ep->urb + i;
 			list_add_tail(&ctx->ready_list, &ep->ready_playback_urbs);

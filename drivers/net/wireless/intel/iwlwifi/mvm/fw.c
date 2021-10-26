@@ -1224,6 +1224,7 @@ static u8 iwl_mvm_eval_dsm_disable_srd(struct iwl_mvm *mvm)
 	/* default behaviour is active */
 	return DSM_VALUE_SRD_ACTIVE;
 }
+<<<<<<< HEAD
 
 static void iwl_mvm_lari_cfg(struct iwl_mvm *mvm)
 {
@@ -1265,6 +1266,8 @@ static void iwl_mvm_lari_cfg(struct iwl_mvm *mvm)
 					cmd_ret);
 	}
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else /* CONFIG_ACPI */
 
 inline int iwl_mvm_sar_select_profile(struct iwl_mvm *mvm,

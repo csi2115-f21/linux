@@ -19,6 +19,10 @@
 #include <linux/io.h>
 #include <linux/kernel.h>
 #include <linux/ktime.h>
+<<<<<<< HEAD
+=======
+#include <linux/list.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/module.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
@@ -66,6 +70,31 @@ struct scmi_xfers_info {
 	struct scmi_xfer *xfer_block;
 	unsigned long *xfer_alloc_table;
 	spinlock_t xfer_lock;
+<<<<<<< HEAD
+=======
+};
+
+/**
+ * struct scmi_protocol_instance  - Describe an initialized protocol instance.
+ * @handle: Reference to the SCMI handle associated to this protocol instance.
+ * @proto: A reference to the protocol descriptor.
+ * @gid: A reference for per-protocol devres management.
+ * @users: A refcount to track effective users of this protocol.
+ * @priv: Reference for optional protocol private data.
+ * @ph: An embedded protocol handle that will be passed down to protocol
+ *	initialization code to identify this instance.
+ *
+ * Each protocol is initialized independently once for each SCMI platform in
+ * which is defined by DT and implemented by the SCMI server fw.
+ */
+struct scmi_protocol_instance {
+	const struct scmi_handle	*handle;
+	const struct scmi_protocol	*proto;
+	void				*gid;
+	refcount_t			users;
+	void				*priv;
+	struct scmi_protocol_handle	ph;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 /**
@@ -123,6 +152,7 @@ static inline int scmi_to_linux_errno(int errno)
 	return -EIO;
 }
 
+<<<<<<< HEAD
 /**
  * scmi_dump_header_dbg() - Helper to dump a message header.
  *
@@ -137,6 +167,41 @@ static inline void scmi_dump_header_dbg(struct device *dev,
 }
 
 /**
+=======
+/**
+ * scmi_dump_header_dbg() - Helper to dump a message header.
+ *
+ * @dev: Device pointer corresponding to the SCMI entity
+ * @hdr: pointer to header.
+ */
+static inline void scmi_dump_header_dbg(struct device *dev,
+					struct scmi_msg_hdr *hdr)
+{
+	dev_dbg(dev, "Message ID: %x Sequence ID: %x Protocol: %x\n",
+		hdr->id, hdr->seq, hdr->protocol_id);
+}
+
+void scmi_notification_instance_data_set(const struct scmi_handle *handle,
+					 void *priv)
+{
+	struct scmi_info *info = handle_to_scmi_info(handle);
+
+	info->notify_priv = priv;
+	/* Ensure updated protocol private date are visible */
+	smp_wmb();
+}
+
+void *scmi_notification_instance_data_get(const struct scmi_handle *handle)
+{
+	struct scmi_info *info = handle_to_scmi_info(handle);
+
+	/* Ensure protocols_private_data has been updated */
+	smp_rmb();
+	return info->notify_priv;
+}
+
+/**
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * scmi_xfer_get() - Allocate one message
  *
  * @handle: Pointer to SCMI entity handle
@@ -174,7 +239,10 @@ static struct scmi_xfer *scmi_xfer_get(const struct scmi_handle *handle,
 
 	xfer = &minfo->xfer_block[xfer_id];
 	xfer->hdr.seq = xfer_id;
+<<<<<<< HEAD
 	reinit_completion(&xfer->done);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	xfer->transfer_id = atomic_inc_return(&transfer_last_id);
 
 	return xfer;
@@ -248,6 +316,7 @@ static void scmi_handle_response(struct scmi_chan_info *cinfo,
 	if (!test_bit(xfer_id, minfo->xfer_alloc_table)) {
 		dev_err(dev, "message for %d is not expected!\n", xfer_id);
 		info->desc->ops->clear_channel(cinfo);
+<<<<<<< HEAD
 		return;
 	}
 
@@ -270,6 +339,34 @@ static void scmi_handle_response(struct scmi_chan_info *cinfo,
 
 	scmi_dump_header_dbg(dev, &xfer->hdr);
 
+=======
+		return;
+	}
+
+	xfer = &minfo->xfer_block[xfer_id];
+	/*
+	 * Even if a response was indeed expected on this slot at this point,
+	 * a buggy platform could wrongly reply feeding us an unexpected
+	 * delayed response we're not prepared to handle: bail-out safely
+	 * blaming firmware.
+	 */
+	if (unlikely(msg_type == MSG_TYPE_DELAYED_RESP && !xfer->async_done)) {
+		dev_err(dev,
+			"Delayed Response for %d not expected! Buggy F/W ?\n",
+			xfer_id);
+		info->desc->ops->clear_channel(cinfo);
+		/* It was unexpected, so nobody will clear the xfer if not us */
+		__scmi_xfer_put(minfo, xfer);
+		return;
+	}
+
+	/* rx.len could be shrunk in the sync do_xfer, so reset to maxsz */
+	if (msg_type == MSG_TYPE_DELAYED_RESP)
+		xfer->rx.len = info->desc->max_msg_size;
+
+	scmi_dump_header_dbg(dev, &xfer->hdr);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	info->desc->ops->fetch_response(cinfo, xfer);
 
 	trace_scmi_rx_done(xfer->transfer_id, xfer->hdr.id,
@@ -318,7 +415,11 @@ void scmi_rx_callback(struct scmi_chan_info *cinfo, u32 msg_hdr)
 /**
  * scmi_xfer_put() - Release a transmit message
  *
+<<<<<<< HEAD
  * @handle: Pointer to SCMI entity handle
+=======
+ * @ph: Pointer to SCMI protocol handle
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @xfer: message that was reserved by scmi_xfer_get
  */
 void scmi_xfer_put(const struct scmi_handle *handle, struct scmi_xfer *xfer)
@@ -357,6 +458,17 @@ int scmi_do_xfer(const struct scmi_handle *handle, struct scmi_xfer *xfer)
 	struct device *dev = info->dev;
 	struct scmi_chan_info *cinfo;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * Initialise protocol id now from protocol handle to avoid it being
+	 * overridden by mistake (or malice) by the protocol code mangling with
+	 * the scmi_xfer structure prior to this.
+	 */
+	xfer->hdr.protocol_id = pi->proto->id;
+	reinit_completion(&xfer->done);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	cinfo = idr_find(&info->tx_idr, xfer->hdr.protocol_id);
 	if (unlikely(!cinfo))
 		return -EINVAL;
@@ -467,6 +579,216 @@ int scmi_xfer_get_init(const struct scmi_handle *handle, u8 msg_id, u8 prot_id,
 	if (rx_size > info->desc->max_msg_size ||
 	    tx_size > info->desc->max_msg_size)
 		return -ERANGE;
+<<<<<<< HEAD
+=======
+
+	xfer = scmi_xfer_get(pi->handle, minfo);
+	if (IS_ERR(xfer)) {
+		ret = PTR_ERR(xfer);
+		dev_err(dev, "failed to get free message slot(%d)\n", ret);
+		return ret;
+	}
+
+	xfer->tx.len = tx_size;
+	xfer->rx.len = rx_size ? : info->desc->max_msg_size;
+	xfer->hdr.id = msg_id;
+	xfer->hdr.poll_completion = false;
+
+	*p = xfer;
+
+	return 0;
+}
+
+/**
+ * version_get() - command to get the revision of the SCMI entity
+ *
+ * @ph: Pointer to SCMI protocol handle
+ * @version: Holds returned version of protocol.
+ *
+ * Updates the SCMI information in the internal data structure.
+ *
+ * Return: 0 if all went fine, else return appropriate error.
+ */
+static int version_get(const struct scmi_protocol_handle *ph, u32 *version)
+{
+	int ret;
+	__le32 *rev_info;
+	struct scmi_xfer *t;
+
+	ret = xfer_get_init(ph, PROTOCOL_VERSION, 0, sizeof(*version), &t);
+	if (ret)
+		return ret;
+
+	ret = do_xfer(ph, t);
+	if (!ret) {
+		rev_info = t->rx.buf;
+		*version = le32_to_cpu(*rev_info);
+	}
+
+	xfer_put(ph, t);
+	return ret;
+}
+
+/**
+ * scmi_set_protocol_priv  - Set protocol specific data at init time
+ *
+ * @ph: A reference to the protocol handle.
+ * @priv: The private data to set.
+ *
+ * Return: 0 on Success
+ */
+static int scmi_set_protocol_priv(const struct scmi_protocol_handle *ph,
+				  void *priv)
+{
+	struct scmi_protocol_instance *pi = ph_to_pi(ph);
+
+	pi->priv = priv;
+
+	return 0;
+}
+
+/**
+ * scmi_get_protocol_priv  - Set protocol specific data at init time
+ *
+ * @ph: A reference to the protocol handle.
+ *
+ * Return: Protocol private data if any was set.
+ */
+static void *scmi_get_protocol_priv(const struct scmi_protocol_handle *ph)
+{
+	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+
+	return pi->priv;
+}
+
+static const struct scmi_xfer_ops xfer_ops = {
+	.version_get = version_get,
+	.xfer_get_init = xfer_get_init,
+	.reset_rx_to_maxsz = reset_rx_to_maxsz,
+	.do_xfer = do_xfer,
+	.do_xfer_with_response = do_xfer_with_response,
+	.xfer_put = xfer_put,
+};
+
+/**
+ * scmi_revision_area_get  - Retrieve version memory area.
+ *
+ * @ph: A reference to the protocol handle.
+ *
+ * A helper to grab the version memory area reference during SCMI Base protocol
+ * initialization.
+ *
+ * Return: A reference to the version memory area associated to the SCMI
+ *	   instance underlying this protocol handle.
+ */
+struct scmi_revision_info *
+scmi_revision_area_get(const struct scmi_protocol_handle *ph)
+{
+	const struct scmi_protocol_instance *pi = ph_to_pi(ph);
+
+	return pi->handle->version;
+}
+
+/**
+ * scmi_alloc_init_protocol_instance  - Allocate and initialize a protocol
+ * instance descriptor.
+ * @info: The reference to the related SCMI instance.
+ * @proto: The protocol descriptor.
+ *
+ * Allocate a new protocol instance descriptor, using the provided @proto
+ * description, against the specified SCMI instance @info, and initialize it;
+ * all resources management is handled via a dedicated per-protocol devres
+ * group.
+ *
+ * Context: Assumes to be called with @protocols_mtx already acquired.
+ * Return: A reference to a freshly allocated and initialized protocol instance
+ *	   or ERR_PTR on failure. On failure the @proto reference is at first
+ *	   put using @scmi_protocol_put() before releasing all the devres group.
+ */
+static struct scmi_protocol_instance *
+scmi_alloc_init_protocol_instance(struct scmi_info *info,
+				  const struct scmi_protocol *proto)
+{
+	int ret = -ENOMEM;
+	void *gid;
+	struct scmi_protocol_instance *pi;
+	const struct scmi_handle *handle = &info->handle;
+
+	/* Protocol specific devres group */
+	gid = devres_open_group(handle->dev, NULL, GFP_KERNEL);
+	if (!gid) {
+		scmi_protocol_put(proto->id);
+		goto out;
+	}
+
+	pi = devm_kzalloc(handle->dev, sizeof(*pi), GFP_KERNEL);
+	if (!pi)
+		goto clean;
+
+	pi->gid = gid;
+	pi->proto = proto;
+	pi->handle = handle;
+	pi->ph.dev = handle->dev;
+	pi->ph.xops = &xfer_ops;
+	pi->ph.set_priv = scmi_set_protocol_priv;
+	pi->ph.get_priv = scmi_get_protocol_priv;
+	refcount_set(&pi->users, 1);
+	/* proto->init is assured NON NULL by scmi_protocol_register */
+	ret = pi->proto->instance_init(&pi->ph);
+	if (ret)
+		goto clean;
+
+	ret = idr_alloc(&info->protocols, pi, proto->id, proto->id + 1,
+			GFP_KERNEL);
+	if (ret != proto->id)
+		goto clean;
+
+	/*
+	 * Warn but ignore events registration errors since we do not want
+	 * to skip whole protocols if their notifications are messed up.
+	 */
+	if (pi->proto->events) {
+		ret = scmi_register_protocol_events(handle, pi->proto->id,
+						    &pi->ph,
+						    pi->proto->events);
+		if (ret)
+			dev_warn(handle->dev,
+				 "Protocol:%X - Events Registration Failed - err:%d\n",
+				 pi->proto->id, ret);
+	}
+
+	devres_close_group(handle->dev, pi->gid);
+	dev_dbg(handle->dev, "Initialized protocol: 0x%X\n", pi->proto->id);
+
+	return pi;
+
+clean:
+	/* Take care to put the protocol module's owner before releasing all */
+	scmi_protocol_put(proto->id);
+	devres_release_group(handle->dev, gid);
+out:
+	return ERR_PTR(ret);
+}
+
+/**
+ * scmi_get_protocol_instance  - Protocol initialization helper.
+ * @handle: A reference to the SCMI platform instance.
+ * @protocol_id: The protocol being requested.
+ *
+ * In case the required protocol has never been requested before for this
+ * instance, allocate and initialize all the needed structures while handling
+ * resource allocation with a dedicated per-protocol devres subgroup.
+ *
+ * Return: A reference to an initialized protocol instance or error on failure:
+ *	   in particular returns -EPROBE_DEFER when the desired protocol could
+ *	   NOT be found.
+ */
+static struct scmi_protocol_instance * __must_check
+scmi_get_protocol_instance(const struct scmi_handle *handle, u8 protocol_id)
+{
+	struct scmi_protocol_instance *pi;
+	struct scmi_info *info = handle_to_scmi_info(handle);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	xfer = scmi_xfer_get(handle, minfo);
 	if (IS_ERR(xfer)) {
@@ -610,8 +932,14 @@ static int __scmi_xfer_info_init(struct scmi_info *sinfo,
 	const struct scmi_desc *desc = sinfo->desc;
 
 	/* Pre-allocated messages, no more than what hdr.seq can support */
+<<<<<<< HEAD
 	if (WARN_ON(desc->max_msg >= MSG_TOKEN_MAX)) {
 		dev_err(dev, "Maximum message of %d exceeds supported %ld\n",
+=======
+	if (WARN_ON(!desc->max_msg || desc->max_msg > MSG_TOKEN_MAX)) {
+		dev_err(dev,
+			"Invalid maximum messages %d, not in range [1 - %lu]\n",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			desc->max_msg, MSG_TOKEN_MAX);
 		return -EINVAL;
 	}
@@ -764,6 +1092,10 @@ scmi_create_protocol_devices(struct device_node *np, struct scmi_info *info,
 							    name);
 		}
 	}
+<<<<<<< HEAD
+=======
+	mutex_unlock(&scmi_requested_devices_mtx);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int scmi_probe(struct platform_device *pdev)
@@ -794,6 +1126,11 @@ static int scmi_probe(struct platform_device *pdev)
 	handle = &info->handle;
 	handle->dev = info->dev;
 	handle->version = &info->version;
+<<<<<<< HEAD
+=======
+	handle->devm_protocol_get = scmi_devm_protocol_get;
+	handle->devm_protocol_put = scmi_devm_protocol_put;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = scmi_txrx_setup(info, dev, SCMI_PROTOCOL_BASE);
 	if (ret)
@@ -808,7 +1145,11 @@ static int scmi_probe(struct platform_device *pdev)
 
 	ret = scmi_base_protocol_init(handle);
 	if (ret) {
+<<<<<<< HEAD
 		dev_err(dev, "unable to communicate with SCMI(%d)\n", ret);
+=======
+		dev_err(dev, "unable to communicate with SCMI\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return ret;
 	}
 
@@ -847,6 +1188,10 @@ static int scmi_remove(struct platform_device *pdev)
 	int ret = 0;
 	struct scmi_info *info = platform_get_drvdata(pdev);
 	struct idr *idr = &info->tx_idr;
+<<<<<<< HEAD
+=======
+	struct device_node *child;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&scmi_list_mutex);
 	if (info->users)
@@ -868,6 +1213,17 @@ static int scmi_remove(struct platform_device *pdev)
 	ret = idr_for_each(idr, info->desc->ops->chan_free, idr);
 	idr_destroy(&info->rx_idr);
 
+<<<<<<< HEAD
+=======
+	/* Safe to free channels since no more users */
+	ret = idr_for_each(idr, info->desc->ops->chan_free, idr);
+	idr_destroy(&info->tx_idr);
+
+	idr = &info->rx_idr;
+	ret = idr_for_each(idr, info->desc->ops->chan_free, idr);
+	idr_destroy(&info->rx_idr);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -919,7 +1275,13 @@ ATTRIBUTE_GROUPS(versions);
 
 /* Each compatible listed below must have descriptor associated with it */
 static const struct of_device_id scmi_of_match[] = {
+<<<<<<< HEAD
 	{ .compatible = "arm,scmi", .data = &scmi_mailbox_desc },
+=======
+#ifdef CONFIG_MAILBOX
+	{ .compatible = "arm,scmi", .data = &scmi_mailbox_desc },
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_HAVE_ARM_SMCCC_DISCOVERY
 	{ .compatible = "arm,scmi-smc", .data = &scmi_smc_desc},
 #endif
@@ -942,6 +1304,11 @@ static int __init scmi_driver_init(void)
 {
 	scmi_bus_init();
 
+<<<<<<< HEAD
+=======
+	scmi_base_register();
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	scmi_clock_register();
 	scmi_perf_register();
 	scmi_power_register();
@@ -966,6 +1333,11 @@ static void __exit scmi_driver_exit(void)
 	scmi_voltage_unregister();
 	scmi_system_unregister();
 
+<<<<<<< HEAD
+=======
+	scmi_bus_exit();
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	platform_driver_unregister(&scmi_driver);
 }
 module_exit(scmi_driver_exit);

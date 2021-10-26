@@ -163,10 +163,26 @@ static int add_roland_implicit_fb(struct snd_usb_audio *chip,
 	alts = snd_usb_get_host_interface(chip, ifnum, altsetting);
 	if (!alts)
 		return 0;
+<<<<<<< HEAD
 	if (alts->desc.bInterfaceClass != USB_CLASS_VENDOR_SPEC ||
 	    (alts->desc.bInterfaceSubClass != 2 &&
 	     alts->desc.bInterfaceProtocol != 2) ||
 	    alts->desc.bNumEndpoints < 1)
+=======
+	chip->playback_first = 1;
+	return add_implicit_fb_sync_ep(chip, fmt, epd->bEndpointAddress, 0,
+				       alts->desc.bInterfaceNumber, alts);
+}
+
+/* capture quirk for Roland device; always full-duplex */
+static int add_roland_capture_quirk(struct snd_usb_audio *chip,
+				    struct audioformat *fmt,
+				    struct usb_host_interface *alts)
+{
+	struct usb_endpoint_descriptor *epd;
+
+	if (!roland_sanity_check_iface(alts))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return 0;
 	epd = get_endpoint(alts, 0);
 	if (!usb_endpoint_is_isoc_in(epd) ||
@@ -278,6 +294,21 @@ static int audioformat_implicit_fb_quirk(struct snd_usb_audio *chip,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	/* Special handling for devices with capture quirks */
+	p = find_implicit_fb_entry(chip, capture_implicit_fb_quirks, alts);
+	if (p) {
+		switch (p->type) {
+		case IMPLICIT_FB_FIXED:
+			return 0; /* no quirk */
+		case IMPLICIT_FB_BOTH:
+			chip->playback_first = 1;
+			return add_generic_implicit_fb(chip, fmt, alts);
+		}
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* Generic UAC2 implicit feedback */
 	if (attr == USB_ENDPOINT_SYNC_ASYNC &&
 	    alts->desc.bInterfaceClass == USB_CLASS_AUDIO &&
@@ -302,12 +333,21 @@ static int audioformat_implicit_fb_quirk(struct snd_usb_audio *chip,
 	}
 
 	/* Pioneer devices with vendor spec class */
+<<<<<<< HEAD
 	if (attr == USB_ENDPOINT_SYNC_ASYNC &&
 	    alts->desc.bInterfaceClass == USB_CLASS_VENDOR_SPEC &&
 	    (USB_ID_VENDOR(chip->usb_id) == 0x2b73 || /* Pioneer */
 	     USB_ID_VENDOR(chip->usb_id) == 0x08e4    /* Pioneer */)) {
 		if (skip_pioneer_sync_ep(chip, fmt, alts))
 			return 1;
+=======
+	if (is_pioneer_implicit_fb(chip, alts)) {
+		chip->playback_first = 1;
+		return add_implicit_fb_sync_ep(chip, fmt,
+					       get_endpoint(alts, 1)->bEndpointAddress,
+					       1, alts->desc.bInterfaceNumber,
+					       alts);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	/* Try the generic implicit fb if available */

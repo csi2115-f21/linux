@@ -71,12 +71,34 @@ struct hl_eq_sm_sei_data {
 	__u8 pad[3];
 };
 
+<<<<<<< HEAD
+=======
+enum hl_fw_alive_severity {
+	FW_ALIVE_SEVERITY_MINOR,
+	FW_ALIVE_SEVERITY_CRITICAL
+};
+
+struct hl_eq_fw_alive {
+	__le64 uptime_seconds;
+	__le32 process_id;
+	__le32 thread_id;
+	/* enum hl_fw_alive_severity */
+	__u8 severity;
+	__u8 pad[7];
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct hl_eq_entry {
 	struct hl_eq_header hdr;
 	union {
 		struct hl_eq_ecc_data ecc_data;
 		struct hl_eq_hbm_ecc_data hbm_ecc_data;
 		struct hl_eq_sm_sei_data sm_sei_data;
+<<<<<<< HEAD
+=======
+		struct cpucp_pkt_sync_err pkt_sync_err;
+		struct hl_eq_fw_alive fw_alive;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		__le64 data[7];
 	};
 };
@@ -88,6 +110,12 @@ struct hl_eq_entry {
 
 #define EQ_CTL_EVENT_TYPE_SHIFT		16
 #define EQ_CTL_EVENT_TYPE_MASK		0x03FF0000
+<<<<<<< HEAD
+=======
+
+#define EQ_CTL_INDEX_SHIFT		0
+#define EQ_CTL_INDEX_MASK		0x0000FFFF
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 enum pq_init_status {
 	PQ_INIT_STATUS_NA = 0,
@@ -287,6 +315,33 @@ enum pq_init_status {
  *       The result is composed of 4 outputs, each is 16-bit
  *       frequency in MHz.
  *
+<<<<<<< HEAD
+=======
+ * CPUCP_PACKET_POWER_GET
+ *       Fetch the present power consumption of the device (Current * Voltage).
+ *
+ * CPUCP_PACKET_NIC_PFC_SET -
+ *       Enable/Disable the NIC PFC feature. The packet's arguments specify the
+ *       NIC port, relevant lanes to configure and one bit indication for
+ *       enable/disable.
+ *
+ * CPUCP_PACKET_NIC_FAULT_GET -
+ *       Fetch the current indication for local/remote faults from the NIC MAC.
+ *       The result is 32-bit value of the relevant register.
+ *
+ * CPUCP_PACKET_NIC_LPBK_SET -
+ *       Enable/Disable the MAC loopback feature. The packet's arguments specify
+ *       the NIC port, relevant lanes to configure and one bit indication for
+ *       enable/disable.
+ *
+ * CPUCP_PACKET_NIC_MAC_INIT -
+ *       Configure the NIC MAC channels. The packet's arguments specify the
+ *       NIC port and the speed.
+ *
+ * CPUCP_PACKET_MSI_INFO_SET -
+ *       set the index number for each supported msi type going from
+ *       host to device
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  */
 
 enum cpucp_packet_id {
@@ -320,6 +375,16 @@ enum cpucp_packet_id {
 	CPUCP_PACKET_PCIE_REPLAY_CNT_GET,	/* internal */
 	CPUCP_PACKET_TOTAL_ENERGY_GET,		/* internal */
 	CPUCP_PACKET_PLL_INFO_GET,		/* internal */
+<<<<<<< HEAD
+=======
+	CPUCP_PACKET_NIC_STATUS,		/* internal */
+	CPUCP_PACKET_POWER_GET,			/* internal */
+	CPUCP_PACKET_NIC_PFC_SET,		/* internal */
+	CPUCP_PACKET_NIC_FAULT_GET,		/* internal */
+	CPUCP_PACKET_NIC_LPBK_SET,		/* internal */
+	CPUCP_PACKET_NIC_MAC_CFG,		/* internal */
+	CPUCP_PACKET_MSI_INFO_SET,		/* internal */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 #define CPUCP_PACKET_FENCE_VAL	0xFE8CE7A5
@@ -339,6 +404,23 @@ enum cpucp_packet_id {
 #define CPUCP_PKT_RES_PLL_OUT3_SHIFT	48
 #define CPUCP_PKT_RES_PLL_OUT3_MASK	0xFFFF000000000000ull
 
+<<<<<<< HEAD
+=======
+#define CPUCP_PKT_VAL_PFC_IN1_SHIFT	0
+#define CPUCP_PKT_VAL_PFC_IN1_MASK	0x0000000000000001ull
+#define CPUCP_PKT_VAL_PFC_IN2_SHIFT	1
+#define CPUCP_PKT_VAL_PFC_IN2_MASK	0x000000000000001Eull
+
+#define CPUCP_PKT_VAL_LPBK_IN1_SHIFT	0
+#define CPUCP_PKT_VAL_LPBK_IN1_MASK	0x0000000000000001ull
+#define CPUCP_PKT_VAL_LPBK_IN2_SHIFT	1
+#define CPUCP_PKT_VAL_LPBK_IN2_MASK	0x000000000000001Eull
+
+/* heartbeat status bits */
+#define CPUCP_PKT_HB_STATUS_EQ_FAULT_SHIFT		0
+#define CPUCP_PKT_HB_STATUS_EQ_FAULT_MASK		0x00000001
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct cpucp_packet {
 	union {
 		__le64 value;	/* For SET packets */
@@ -391,6 +473,15 @@ struct cpucp_unmask_irq_arr_packet {
 	__le32 irqs[0];
 };
 
+<<<<<<< HEAD
+=======
+struct cpucp_array_data_packet {
+	struct cpucp_packet cpucp_pkt;
+	__le32 length;
+	__le32 data[0];
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 enum cpucp_packet_rc {
 	cpucp_packet_success,
 	cpucp_packet_invalid,
@@ -459,6 +550,54 @@ enum cpucp_pll_type_attributes {
 	cpucp_pll_pci,
 };
 
+<<<<<<< HEAD
+=======
+/*
+ * MSI type enumeration table for all ASICs and future SW versions.
+ * For future ASIC-LKD compatibility, we can only add new enumerations.
+ * at the end of the table (before CPUCP_NUM_OF_MSI_TYPES).
+ * Changing the order of entries or removing entries is not allowed.
+ */
+enum cpucp_msi_type {
+	CPUCP_EVENT_QUEUE_MSI_TYPE,
+	CPUCP_NIC_PORT1_MSI_TYPE,
+	CPUCP_NIC_PORT3_MSI_TYPE,
+	CPUCP_NIC_PORT5_MSI_TYPE,
+	CPUCP_NIC_PORT7_MSI_TYPE,
+	CPUCP_NIC_PORT9_MSI_TYPE,
+	CPUCP_NUM_OF_MSI_TYPES
+};
+
+/*
+ * PLL enumeration table used for all ASICs and future SW versions.
+ * For future ASIC-LKD compatibility, we can only add new enumerations.
+ * at the end of the table.
+ * Changing the order of entries or removing entries is not allowed.
+ */
+enum pll_index {
+	CPU_PLL = 0,
+	PCI_PLL = 1,
+	NIC_PLL = 2,
+	DMA_PLL = 3,
+	MESH_PLL = 4,
+	MME_PLL = 5,
+	TPC_PLL = 6,
+	IF_PLL = 7,
+	SRAM_PLL = 8,
+	NS_PLL = 9,
+	HBM_PLL = 10,
+	MSS_PLL = 11,
+	DDR_PLL = 12,
+	VID_PLL = 13,
+	BANK_PLL = 14,
+	MMU_PLL = 15,
+	IC_PLL = 16,
+	MC_PLL = 17,
+	EMMC_PLL = 18,
+	PLL_MAX
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Event Queue Packets */
 
 struct eq_generic_event {

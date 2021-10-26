@@ -10,7 +10,11 @@
 void odm_ConfigRFReg_8723B(PDM_ODM_T pDM_Odm,
 			   u32 Addr,
 			   u32 Data,
+<<<<<<< HEAD
 			   ODM_RF_RADIO_PATH_E RF_PATH,
+=======
+			   enum odm_rf_radio_path_e RF_PATH,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			   u32 RegAddr
 );
 
@@ -24,8 +28,12 @@ void odm_ConfigBB_AGC_8723B(PDM_ODM_T pDM_Odm,
 			    u32 Data
 );
 
+<<<<<<< HEAD
 void odm_ConfigBB_PHY_REG_PG_8723B(PDM_ODM_T pDM_Odm,
 				   u32 Band,
+=======
+void odm_ConfigBB_PHY_REG_PG_8723B(struct dm_odm_t *pDM_Odm,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				   u32 RfPath,
 				   u32 TxNum,
 				   u32 Addr,

@@ -204,6 +204,12 @@ static void __init init_resources(void)
 			goto error;
 	}
 
+<<<<<<< HEAD
+=======
+	/* Clean-up any unused pre-allocated resources */
+	mem_res_sz = (num_resources - res_idx + 1) * sizeof(*mem_res);
+	memblock_free(__pa(mem_res), mem_res_sz);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return;
 
  error:

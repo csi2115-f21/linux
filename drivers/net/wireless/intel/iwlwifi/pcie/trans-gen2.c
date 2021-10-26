@@ -108,8 +108,13 @@ static void iwl_trans_pcie_fw_reset_handshake(struct iwl_trans *trans)
 	ret = wait_event_timeout(trans_pcie->fw_reset_waitq,
 				 trans_pcie->fw_reset_done, FW_RESET_TIMEOUT);
 	if (!ret)
+<<<<<<< HEAD
 		IWL_ERR(trans,
 			"firmware didn't ACK the reset - continue anyway\n");
+=======
+		IWL_INFO(trans,
+			 "firmware didn't ACK the reset - continue anyway\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void _iwl_trans_pcie_gen2_stop_device(struct iwl_trans *trans)
@@ -332,6 +337,16 @@ int iwl_trans_pcie_gen2_start_fw(struct iwl_trans *trans,
 	if (ret)
 		goto out;
 
+<<<<<<< HEAD
+=======
+	iwl_pcie_set_ltr(trans);
+
+	if (trans->trans_cfg->device_family >= IWL_DEVICE_FAMILY_AX210)
+		iwl_write_umac_prph(trans, UREG_CPU_INIT_RUN, 1);
+	else
+		iwl_write_prph(trans, UREG_CPU_INIT_RUN, 1);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* re-check RF-Kill state since we may have missed the interrupt */
 	hw_rfkill = iwl_pcie_check_hw_rf_kill(trans);
 	if (hw_rfkill && !run_in_rfkill)

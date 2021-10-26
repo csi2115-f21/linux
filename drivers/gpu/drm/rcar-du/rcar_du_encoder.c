@@ -62,7 +62,6 @@ int rcar_du_encoder_init(struct rcar_du_device *rcdu,
 {
 	struct rcar_du_encoder *renc;
 	struct drm_bridge *bridge;
-	int ret;
 
 	/*
 	 * Locate the DRM bridge from the DT node. For the DPAD outputs, if the
@@ -107,6 +106,7 @@ int rcar_du_encoder_init(struct rcar_du_device *rcdu,
 
 	renc->output = output;
 
+<<<<<<< HEAD
 	dev_dbg(rcdu->dev, "initializing encoder %pOF for output %u\n",
 		enc_node, output);
 
@@ -122,6 +122,8 @@ int rcar_du_encoder_init(struct rcar_du_device *rcdu,
 	if (ret)
 		return ret;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*
 	 * Attach the bridge to the encoder. The bridge will create the
 	 * connector.

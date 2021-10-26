@@ -103,6 +103,28 @@ properties:
       Only eMMC HS400 mode need to take care of this property.
     default: 0
 
+<<<<<<< HEAD
+=======
+  clocks:
+    maxItems: 3
+    description:
+      Handle clocks for the sdhc controller.
+
+  clock-names:
+    items:
+      - const: ipg
+      - const: ahb
+      - const: per
+
+  pinctrl-names:
+    minItems: 1
+    items:
+      - const: default
+      - const: state_100mhz
+      - const: state_200mhz
+      - const: sleep
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 required:
   - compatible
   - reg

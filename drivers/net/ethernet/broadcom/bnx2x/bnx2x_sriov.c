@@ -1224,7 +1224,12 @@ int bnx2x_iov_init_one(struct bnx2x *bp, int int_mode_param,
 		goto failed;
 
 	/* SR-IOV capability was enabled but there are no VFs*/
+<<<<<<< HEAD
 	if (iov->total == 0)
+=======
+	if (iov->total == 0) {
+		err = -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto failed;
 
 	iov->nr_virtfn = min_t(u16, iov->total, num_vfs_param);

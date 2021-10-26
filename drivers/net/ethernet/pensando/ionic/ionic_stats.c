@@ -250,9 +250,77 @@ static void ionic_sw_stats_get_strings(struct ionic_lif *lif, u8 **buf)
 {
 	int i, q_num;
 
+<<<<<<< HEAD
 	for (i = 0; i < IONIC_NUM_LIF_STATS; i++) {
 		snprintf(*buf, ETH_GSTRING_LEN, ionic_lif_stats_desc[i].name);
 		*buf += ETH_GSTRING_LEN;
+=======
+	for (i = 0; i < IONIC_NUM_LIF_STATS; i++)
+		ethtool_sprintf(buf, ionic_lif_stats_desc[i].name);
+
+	for (i = 0; i < IONIC_NUM_PORT_STATS; i++)
+		ethtool_sprintf(buf, ionic_port_stats_desc[i].name);
+
+	for (q_num = 0; q_num < MAX_Q(lif); q_num++)
+		ionic_sw_stats_get_tx_strings(lif, buf, q_num);
+
+	if (lif->hwstamp_txq)
+		ionic_sw_stats_get_tx_strings(lif, buf, lif->hwstamp_txq->q.index);
+
+	for (q_num = 0; q_num < MAX_Q(lif); q_num++)
+		ionic_sw_stats_get_rx_strings(lif, buf, q_num);
+
+	if (lif->hwstamp_rxq)
+		ionic_sw_stats_get_rx_strings(lif, buf, lif->hwstamp_rxq->q.index);
+}
+
+static void ionic_sw_stats_get_txq_values(struct ionic_lif *lif, u64 **buf,
+					  int q_num)
+{
+	struct ionic_tx_stats *txstats;
+	struct ionic_qcq *txqcq;
+	int i;
+
+	txstats = &lif->txqstats[q_num];
+
+	for (i = 0; i < IONIC_NUM_TX_STATS; i++) {
+		**buf = IONIC_READ_STAT64(txstats, &ionic_tx_stats_desc[i]);
+		(*buf)++;
+	}
+
+	if (!test_bit(IONIC_LIF_F_UP, lif->state) ||
+	    !test_bit(IONIC_LIF_F_SW_DEBUG_STATS, lif->state))
+		return;
+
+	txqcq = lif->txqcqs[q_num];
+	for (i = 0; i < IONIC_NUM_TX_Q_STATS; i++) {
+		**buf = IONIC_READ_STAT64(&txqcq->q,
+					  &ionic_txq_stats_desc[i]);
+		(*buf)++;
+	}
+	for (i = 0; i < IONIC_NUM_DBG_CQ_STATS; i++) {
+		**buf = IONIC_READ_STAT64(&txqcq->cq,
+					  &ionic_dbg_cq_stats_desc[i]);
+		(*buf)++;
+	}
+	for (i = 0; i < IONIC_NUM_DBG_INTR_STATS; i++) {
+		**buf = IONIC_READ_STAT64(&txqcq->intr,
+					  &ionic_dbg_intr_stats_desc[i]);
+		(*buf)++;
+	}
+	for (i = 0; i < IONIC_NUM_DBG_NAPI_STATS; i++) {
+		**buf = IONIC_READ_STAT64(&txqcq->napi_stats,
+					  &ionic_dbg_napi_stats_desc[i]);
+		(*buf)++;
+	}
+	for (i = 0; i < IONIC_MAX_NUM_NAPI_CNTR; i++) {
+		**buf = txqcq->napi_stats.work_done_cntr[i];
+		(*buf)++;
+	}
+	for (i = 0; i < IONIC_MAX_NUM_SG_CNTR; i++) {
+		**buf = txstats->sg_cntr[i];
+		(*buf)++;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	for (i = 0; i < IONIC_NUM_PORT_STATS; i++) {

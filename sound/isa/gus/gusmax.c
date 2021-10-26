@@ -261,13 +261,23 @@ static int snd_gusmax_probe(struct device *pdev, unsigned int dev)
 	if (err < 0)
 		goto _err;
 
+<<<<<<< HEAD
 	if ((err = snd_gusmax_detect(gus)) < 0)
+=======
+	err = snd_gusmax_detect(gus);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _err;
 
 	maxcard->gus_status_reg = gus->gf1.reg_irqstat;
 	maxcard->pcm_status_reg = gus->gf1.port + 0x10c + 2;
 	snd_gusmax_init(dev, card, gus);
+<<<<<<< HEAD
 	if ((err = snd_gus_initialize(gus)) < 0)
+=======
+	err = snd_gus_initialize(gus);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto _err;
 
 	if (!gus->max_flag) {
@@ -308,7 +318,12 @@ static int snd_gusmax_probe(struct device *pdev, unsigned int dev)
 		goto _err;
 
 	if (pcm_channels[dev] > 0) {
+<<<<<<< HEAD
 		if ((err = snd_gf1_pcm_new(gus, 1, 1)) < 0)
+=======
+		err = snd_gf1_pcm_new(gus, 1, 1);
+		if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto _err;
 	}
 	err = snd_gusmax_mixer(wss);

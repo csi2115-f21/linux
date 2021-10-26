@@ -222,7 +222,12 @@ static bool __vmw_piter_sg_next(struct vmw_piter *viter)
 
 
 /**
+<<<<<<< HEAD
  * Helper functions to return a pointer to the current page.
+=======
+ * __vmw_piter_non_sg_page: Helper functions to return a pointer
+ * to the current page.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * @viter: Pointer to the iterator
  *
@@ -236,7 +241,12 @@ static struct page *__vmw_piter_non_sg_page(struct vmw_piter *viter)
 }
 
 /**
+<<<<<<< HEAD
  * Helper functions to return the DMA address of the current page.
+=======
+ * __vmw_piter_phys_addr: Helper functions to return the DMA
+ * address of the current page.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  *
  * @viter: Pointer to the iterator
  *

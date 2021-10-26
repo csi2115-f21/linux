@@ -58,8 +58,11 @@ struct pg_state {
 	const struct addr_marker *marker;
 	unsigned long start_address;
 	unsigned long start_pa;
+<<<<<<< HEAD
 	unsigned long last_pa;
 	unsigned long page_size;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int level;
 	u64 current_flags;
 	bool check_wx;
@@ -220,7 +223,10 @@ static void note_page(struct pg_state *st, unsigned long addr,
 	       unsigned int level, u64 val, unsigned long page_size)
 {
 	u64 flag = val & pg_level[level].mask;
+<<<<<<< HEAD
 	u64 pa = val & PTE_RPN_MASK;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* At first no level is set */
 	if (!st->level) {
@@ -259,7 +265,10 @@ static void note_page(struct pg_state *st, unsigned long addr,
 		 */
 		note_page_update_state(st, addr, level, val, page_size);
 	}
+<<<<<<< HEAD
 	st->last_pa = pa;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void walk_pte(struct pg_state *st, pmd_t *pmd, unsigned long start)

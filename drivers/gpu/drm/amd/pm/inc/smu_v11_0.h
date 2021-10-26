@@ -27,13 +27,23 @@
 
 #define SMU11_DRIVER_IF_VERSION_INV 0xFFFFFFFF
 #define SMU11_DRIVER_IF_VERSION_ARCT 0x17
+<<<<<<< HEAD
 #define SMU11_DRIVER_IF_VERSION_NV10 0x36
 #define SMU11_DRIVER_IF_VERSION_NV12 0x36
 #define SMU11_DRIVER_IF_VERSION_NV14 0x36
+=======
+#define SMU11_DRIVER_IF_VERSION_NV10 0x37
+#define SMU11_DRIVER_IF_VERSION_NV12 0x38
+#define SMU11_DRIVER_IF_VERSION_NV14 0x38
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define SMU11_DRIVER_IF_VERSION_Sienna_Cichlid 0x3D
 #define SMU11_DRIVER_IF_VERSION_Navy_Flounder 0xE
 #define SMU11_DRIVER_IF_VERSION_VANGOGH 0x02
 #define SMU11_DRIVER_IF_VERSION_Dimgrey_Cavefish 0xF
+<<<<<<< HEAD
+=======
+#define SMU11_DRIVER_IF_VERSION_Beige_Goby 0xD
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* MP Apertures */
 #define MP0_Public			0x03800000
@@ -289,5 +299,10 @@ int smu_v11_0_deep_sleep_control(struct smu_context *smu,
 
 void smu_v11_0_interrupt_work(struct smu_context *smu);
 
+<<<<<<< HEAD
+=======
+int smu_v11_0_set_light_sbr(struct smu_context *smu, bool enable);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif
 #endif

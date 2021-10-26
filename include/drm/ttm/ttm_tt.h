@@ -30,6 +30,10 @@
 #include <linux/types.h>
 #include <drm/ttm/ttm_caching.h>
 
+<<<<<<< HEAD
+=======
+struct ttm_bo_device;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct ttm_tt;
 struct ttm_resource;
 struct ttm_buffer_object;

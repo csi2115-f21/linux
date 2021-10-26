@@ -17,10 +17,16 @@
 /* Never flag non-existent other CPUs! */
 static inline bool rcu_eqs_special_set(int cpu) { return false; }
 
+<<<<<<< HEAD
 static inline unsigned long get_state_synchronize_rcu(void)
 {
 	return 0;
 }
+=======
+unsigned long get_state_synchronize_rcu(void);
+unsigned long start_poll_synchronize_rcu(void);
+bool poll_state_synchronize_rcu(unsigned long oldstate);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline void cond_synchronize_rcu(unsigned long oldstate)
 {

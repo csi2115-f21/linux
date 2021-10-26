@@ -96,6 +96,13 @@ struct intel_context {
 #define CONTEXT_BANNED			6
 #define CONTEXT_FORCE_SINGLE_SUBMISSION	7
 #define CONTEXT_NOPREEMPT		8
+<<<<<<< HEAD
+=======
+
+	struct {
+		u64 timeout_us;
+	} watchdog;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	u32 *lrc_reg_state;
 	union {

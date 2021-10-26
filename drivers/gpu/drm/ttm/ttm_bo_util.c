@@ -175,6 +175,7 @@ int ttm_bo_move_memcpy(struct ttm_buffer_object *bo,
 	struct ttm_bo_device *bdev = bo->bdev;
 	struct ttm_resource_manager *man = ttm_manager_type(bdev, new_mem->mem_type);
 	struct ttm_tt *ttm = bo->ttm;
+<<<<<<< HEAD
 	struct ttm_resource *old_mem = &bo->mem;
 	struct ttm_resource old_copy = *old_mem;
 	void *old_iomap;
@@ -198,6 +199,18 @@ int ttm_bo_move_memcpy(struct ttm_buffer_object *bo,
 	 */
 	if (old_iomap == NULL && new_iomap == NULL)
 		goto out2;
+=======
+	struct ttm_resource *src_mem = bo->resource;
+	struct ttm_resource_manager *src_man =
+		ttm_manager_type(bdev, src_mem->mem_type);
+	struct ttm_resource src_copy = *src_mem;
+	union {
+		struct ttm_kmap_iter_tt tt;
+		struct ttm_kmap_iter_linear_io io;
+	} _dst_iter, _src_iter;
+	struct ttm_kmap_iter *dst_iter, *src_iter;
+	int ret = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * Don't move nonexistent data. Clear destination instead.
@@ -237,6 +250,7 @@ int ttm_bo_move_memcpy(struct ttm_buffer_object *bo,
 out2:
 	old_copy = *old_mem;
 
+<<<<<<< HEAD
 	ttm_bo_assign_mem(bo, new_mem);
 
 	if (!man->use_tt)
@@ -246,6 +260,17 @@ out1:
 	ttm_resource_iounmap(bdev, old_mem, new_iomap);
 out:
 	ttm_resource_iounmap(bdev, &old_copy, old_iomap);
+=======
+	ttm_move_memcpy(bo, dst_mem->num_pages, dst_iter, src_iter);
+	src_copy = *src_mem;
+	ttm_bo_move_sync_cleanup(bo, dst_mem);
+
+	if (!src_iter->ops->maps_tt)
+		ttm_kmap_iter_linear_io_fini(&_src_iter.io, bdev, &src_copy);
+out_src_iter:
+	if (!dst_iter->ops->maps_tt)
+		ttm_kmap_iter_linear_io_fini(&_dst_iter.io, bdev, dst_mem);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/*
 	 * On error, keep the mm node!

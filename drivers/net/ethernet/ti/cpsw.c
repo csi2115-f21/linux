@@ -430,8 +430,13 @@ static void cpsw_rx_handler(void *token, int len, int status)
 		cpts_rx_timestamp(cpsw->cpts, skb);
 	skb->protocol = eth_type_trans(skb, ndev);
 
+<<<<<<< HEAD
 	/* unmap page as no netstack skb page recycling */
 	page_pool_release_page(pool, page);
+=======
+	/* mark skb for recycling */
+	skb_mark_for_recycle(skb, page, pool);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	netif_receive_skb(skb);
 
 	ndev->stats.rx_bytes += len;

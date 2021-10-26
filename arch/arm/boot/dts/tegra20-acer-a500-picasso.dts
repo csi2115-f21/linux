@@ -450,6 +450,11 @@
 
 			avdd-supply = <&vdd_3v3_sys>;
 			vdd-supply  = <&vdd_3v3_sys>;
+<<<<<<< HEAD
+=======
+
+			atmel,wakeup-method = <1>;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		};
 
 		gyroscope@68 {
@@ -1053,15 +1058,26 @@
 
 			trips {
 				trip0: cpu-alert0 {
+<<<<<<< HEAD
 					/* start throttling at 50C */
 					temperature = <50000>;
 					hysteresis = <3000>;
+=======
+					/* start throttling at 60C */
+					temperature = <60000>;
+					hysteresis = <200>;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					type = "passive";
 				};
 
 				trip1: cpu-crit {
+<<<<<<< HEAD
 					/* shut down at 60C */
 					temperature = <60000>;
+=======
+					/* shut down at 70C */
+					temperature = <70000>;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					hysteresis = <2000>;
 					type = "critical";
 				};
@@ -1070,7 +1086,12 @@
 			cooling-maps {
 				map0 {
 					trip = <&trip0>;
+<<<<<<< HEAD
 					cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+=======
+					cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+							 <&cpu1 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				};
 			};
 		};

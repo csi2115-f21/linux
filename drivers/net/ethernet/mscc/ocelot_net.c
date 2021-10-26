@@ -446,6 +446,7 @@ static int ocelot_port_open(struct net_device *dev)
 	struct ocelot *ocelot = ocelot_port->ocelot;
 	int port = priv->chip_port;
 	int err;
+<<<<<<< HEAD
 
 	if (priv->serdes) {
 		err = phy_set_mode_ext(priv->serdes, PHY_MODE_ETHERNET,
@@ -463,6 +464,25 @@ static int ocelot_port_open(struct net_device *dev)
 		return err;
 	}
 
+=======
+
+	if (priv->serdes) {
+		err = phy_set_mode_ext(priv->serdes, PHY_MODE_ETHERNET,
+				       ocelot_port->phy_mode);
+		if (err) {
+			netdev_err(dev, "Could not set mode of SerDes\n");
+			return err;
+		}
+	}
+
+	err = phy_connect_direct(dev, priv->phy, &ocelot_port_adjust_link,
+				 ocelot_port->phy_mode);
+	if (err) {
+		netdev_err(dev, "Could not attach to PHY\n");
+		return err;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dev->phydev = priv->phy;
 
 	phy_attached_info(priv->phy);
@@ -480,9 +500,15 @@ static int ocelot_port_stop(struct net_device *dev)
 	int port = priv->chip_port;
 
 	phy_disconnect(priv->phy);
+<<<<<<< HEAD
 
 	dev->phydev = NULL;
 
+=======
+
+	dev->phydev = NULL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ocelot_port_disable(ocelot, port);
 
 	return 0;
@@ -1118,6 +1144,7 @@ static int ocelot_netdevice_bridge_join(struct ocelot *ocelot, int port,
 	int err;
 
 	flags.mask = BR_LEARNING | BR_FLOOD | BR_MCAST_FLOOD | BR_BCAST_FLOOD;
+<<<<<<< HEAD
 	flags.val = flags.mask;
 
 	err = ocelot_port_bridge_join(ocelot, port, bridge);
@@ -1130,6 +1157,93 @@ static int ocelot_netdevice_bridge_join(struct ocelot *ocelot, int port,
 }
 
 static int ocelot_netdevice_bridge_leave(struct ocelot *ocelot, int port,
+=======
+	flags.val = flags.mask & ~BR_LEARNING;
+
+	ocelot_port_bridge_flags(ocelot, port, flags);
+}
+
+static int ocelot_switchdev_sync(struct ocelot *ocelot, int port,
+				 struct net_device *brport_dev,
+				 struct net_device *bridge_dev,
+				 struct netlink_ext_ack *extack)
+{
+	struct ocelot_port *ocelot_port = ocelot->ports[port];
+	struct ocelot_port_private *priv;
+	clock_t ageing_time;
+	u8 stp_state;
+	int err;
+
+	priv = container_of(ocelot_port, struct ocelot_port_private, port);
+
+	ocelot_inherit_brport_flags(ocelot, port, brport_dev);
+
+	stp_state = br_port_get_stp_state(brport_dev);
+	ocelot_bridge_stp_state_set(ocelot, port, stp_state);
+
+	err = ocelot_port_vlan_filtering(ocelot, port,
+					 br_vlan_enabled(bridge_dev));
+	if (err)
+		return err;
+
+	ageing_time = br_get_ageing_time(bridge_dev);
+	ocelot_port_attr_ageing_set(ocelot, port, ageing_time);
+
+	err = br_mdb_replay(bridge_dev, brport_dev, priv, true,
+			    &ocelot_switchdev_blocking_nb, extack);
+	if (err && err != -EOPNOTSUPP)
+		return err;
+
+	err = br_vlan_replay(bridge_dev, brport_dev, priv, true,
+			     &ocelot_switchdev_blocking_nb, extack);
+	if (err && err != -EOPNOTSUPP)
+		return err;
+
+	return 0;
+}
+
+static int ocelot_switchdev_unsync(struct ocelot *ocelot, int port)
+{
+	int err;
+
+	err = ocelot_port_vlan_filtering(ocelot, port, false);
+	if (err)
+		return err;
+
+	ocelot_clear_brport_flags(ocelot, port);
+
+	ocelot_bridge_stp_state_set(ocelot, port, BR_STATE_FORWARDING);
+
+	return 0;
+}
+
+static int ocelot_netdevice_bridge_join(struct net_device *dev,
+					struct net_device *brport_dev,
+					struct net_device *bridge,
+					struct netlink_ext_ack *extack)
+{
+	struct ocelot_port_private *priv = netdev_priv(dev);
+	struct ocelot_port *ocelot_port = &priv->port;
+	struct ocelot *ocelot = ocelot_port->ocelot;
+	int port = priv->chip_port;
+	int err;
+
+	ocelot_port_bridge_join(ocelot, port, bridge);
+
+	err = ocelot_switchdev_sync(ocelot, port, brport_dev, bridge, extack);
+	if (err)
+		goto err_switchdev_sync;
+
+	return 0;
+
+err_switchdev_sync:
+	ocelot_port_bridge_leave(ocelot, port, bridge);
+	return err;
+}
+
+static int ocelot_netdevice_bridge_leave(struct net_device *dev,
+					 struct net_device *brport_dev,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					 struct net_device *bridge)
 {
 	struct switchdev_brport_flags flags;
@@ -1145,8 +1259,13 @@ static int ocelot_netdevice_bridge_leave(struct ocelot *ocelot, int port,
 	return err;
 }
 
+<<<<<<< HEAD
 static int ocelot_netdevice_changeupper(struct net_device *dev,
 					struct netdev_notifier_changeupper_info *info)
+=======
+static int ocelot_netdevice_lag_leave(struct net_device *dev,
+				      struct net_device *bond)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct ocelot_port_private *priv = netdev_priv(dev);
 	struct ocelot_port *ocelot_port = &priv->port;

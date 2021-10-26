@@ -29,7 +29,11 @@ void __init reserve_real_mode(void)
 
 	/* Has to be under 1M so we can execute real-mode AP code. */
 	mem = memblock_find_in_range(0, 1<<20, size, PAGE_SIZE);
+<<<<<<< HEAD
 	if (!mem) {
+=======
+	if (!mem)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pr_info("No sub-1M memory is available for the trampoline\n");
 		return;
 	}

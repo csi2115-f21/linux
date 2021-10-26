@@ -396,6 +396,10 @@ typedef union {
 	} b;
 } port_id_t;
 #define INVALID_PORT_ID	0xFFFFFF
+<<<<<<< HEAD
+=======
+#define ISP_REG16_DISCONNECT 0xFFFF
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline le_id_t be_id_to_le(be_id_t id)
 {
@@ -4607,6 +4611,11 @@ struct qla_hw_data {
 #define DEFAULT_ZIO_THRESHOLD 5
 
 	struct qla_hw_data_stat stat;
+<<<<<<< HEAD
+=======
+	pci_error_state_t pci_error_state;
+	u64 prev_cmd_cnt;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 struct active_regions {

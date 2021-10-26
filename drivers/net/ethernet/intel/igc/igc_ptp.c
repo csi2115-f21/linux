@@ -488,6 +488,15 @@ void igc_ptp_init(struct igc_adapter *adapter)
 		adapter->ptp_caps.gettimex64 = igc_ptp_gettimex64_i225;
 		adapter->ptp_caps.settime64 = igc_ptp_settime_i225;
 		adapter->ptp_caps.enable = igc_ptp_feature_enable_i225;
+<<<<<<< HEAD
+=======
+		adapter->ptp_caps.pps = 1;
+		adapter->ptp_caps.pin_config = adapter->sdp_config;
+		adapter->ptp_caps.n_ext_ts = IGC_N_EXTTS;
+		adapter->ptp_caps.n_per_out = IGC_N_PEROUT;
+		adapter->ptp_caps.n_pins = IGC_N_SDP;
+		adapter->ptp_caps.verify = igc_ptp_verify_pin;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		adapter->ptp_clock = NULL;

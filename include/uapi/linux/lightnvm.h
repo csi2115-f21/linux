@@ -22,7 +22,10 @@
 
 #ifdef __KERNEL__
 #include <linux/const.h>
+<<<<<<< HEAD
 #include <linux/ioctl.h>
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #else /* __KERNEL__ */
 #include <stdio.h>
 #include <sys/ioctl.h>

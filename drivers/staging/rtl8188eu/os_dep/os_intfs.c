@@ -18,7 +18,11 @@
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Realtek Wireless Lan Driver");
 MODULE_AUTHOR("Realtek Semiconductor Corp.");
+<<<<<<< HEAD
 MODULE_VERSION(DRIVERVERSION);
+=======
+MODULE_VERSION("v4.1.4_6773.20130222");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 MODULE_FIRMWARE("rtlwifi/rtl8188eufw.bin");
 
 #define RTW_NOTCH_FILTER 0 /* 0:Disable, 1:Enable, */
@@ -136,12 +140,19 @@ MODULE_PARM_DESC(monitor_enable, "Enable monitor interface (default: false)");
 
 static int netdev_close(struct net_device *pnetdev);
 
+<<<<<<< HEAD
 static void loadparam(struct adapter *padapter, struct net_device *pnetdev)
 {
 	struct registry_priv *registry_par = &padapter->registrypriv;
 
 	GlobalDebugLevel = rtw_debug;
 
+=======
+static void loadparam(struct adapter *padapter)
+{
+	struct registry_priv *registry_par = &padapter->registrypriv;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	memcpy(registry_par->ssid.ssid, "ANY", 3);
 	registry_par->ssid.ssid_length = 3;
 
@@ -187,7 +198,11 @@ static void loadparam(struct adapter *padapter, struct net_device *pnetdev)
 
 static int rtw_net_set_mac_address(struct net_device *pnetdev, void *p)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(pnetdev);
+=======
+	struct adapter *padapter = netdev_priv(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct sockaddr *addr = p;
 
 	if (!padapter->bup)
@@ -198,7 +213,11 @@ static int rtw_net_set_mac_address(struct net_device *pnetdev, void *p)
 
 static struct net_device_stats *rtw_net_get_stats(struct net_device *pnetdev)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(pnetdev);
+=======
+	struct adapter *padapter = netdev_priv(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct xmit_priv *pxmitpriv = &padapter->xmitpriv;
 	struct recv_priv *precvpriv = &padapter->recvpriv;
 
@@ -248,7 +267,11 @@ static unsigned int rtw_classify8021d(struct sk_buff *skb)
 static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb,
 			    struct net_device *sb_dev)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(dev);
+=======
+	struct adapter *padapter = netdev_priv(dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 
 	skb->priority = rtw_classify8021d(skb);
@@ -296,6 +319,7 @@ static const struct device_type wlan_type = {
 	.name = "wlan",
 };
 
+<<<<<<< HEAD
 struct net_device *rtw_init_netdev(struct adapter *old_padapter)
 {
 	struct adapter *padapter;
@@ -306,18 +330,36 @@ struct net_device *rtw_init_netdev(struct adapter *old_padapter)
 	if (old_padapter)
 		pnetdev = rtw_alloc_etherdev_with_old_priv((void *)old_padapter);
 
+=======
+struct net_device *rtw_init_netdev(void)
+{
+	struct adapter *padapter;
+	struct net_device *pnetdev;
+
+	pnetdev = alloc_etherdev_mq(sizeof(struct adapter), 4);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!pnetdev)
 		return NULL;
 
 	pnetdev->dev.type = &wlan_type;
+<<<<<<< HEAD
 	padapter = rtw_netdev_priv(pnetdev);
 	padapter->pnetdev = pnetdev;
 	DBG_88E("register rtw_netdev_ops to netdev_ops\n");
+=======
+	padapter = netdev_priv(pnetdev);
+	padapter->pnetdev = pnetdev;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pnetdev->netdev_ops = &rtw_netdev_ops;
 	pnetdev->watchdog_timeo = HZ * 3; /* 3 second timeout */
 	pnetdev->wireless_handlers = (struct iw_handler_def *)&rtw_handlers_def;
 
+<<<<<<< HEAD
 	loadparam(padapter, pnetdev);
+=======
+	loadparam(padapter);
+	padapter->cmdThread = NULL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return pnetdev;
 }
@@ -326,6 +368,7 @@ static int rtw_start_drv_threads(struct adapter *padapter)
 {
 	int err = 0;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+%s\n", __func__));
 
 	padapter->cmdThread = kthread_run(rtw_cmd_thread, padapter,
@@ -335,18 +378,33 @@ static int rtw_start_drv_threads(struct adapter *padapter)
 	else
 		/* wait for cmd_thread to run */
 		wait_for_completion_interruptible(&padapter->cmdpriv.terminate_cmdthread_comp);
+=======
+	padapter->cmdThread = kthread_run(rtw_cmd_thread, padapter, "RTW_CMD_THREAD");
+	if (IS_ERR(padapter->cmdThread)) {
+		err = PTR_ERR(padapter->cmdThread);
+		padapter->cmdThread = NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return err;
 }
 
 void rtw_stop_drv_threads(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+%s\n", __func__));
 
 	/* Below is to terminate rtw_cmd_thread & event_thread... */
 	complete(&padapter->cmdpriv.cmd_queue_comp);
 	if (padapter->cmdThread)
 		wait_for_completion_interruptible(&padapter->cmdpriv.terminate_cmdthread_comp);
+=======
+	if (!padapter->cmdThread)
+		return;
+
+	complete(&padapter->cmdpriv.cmd_queue_comp);
+	kthread_stop(padapter->cmdThread);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static u8 rtw_init_default_value(struct adapter *padapter)
@@ -424,6 +482,7 @@ u8 rtw_init_drv_sw(struct adapter *padapter)
 {
 	u8 ret8 = _SUCCESS;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+%s\n", __func__));
 
 	if ((rtw_init_cmd_priv(&padapter->cmdpriv)) == _FAIL) {
@@ -436,30 +495,47 @@ u8 rtw_init_drv_sw(struct adapter *padapter)
 
 	if (rtw_init_mlme_priv(padapter) == _FAIL) {
 		RT_TRACE(_module_os_intfs_c_, _drv_err_, ("\n Can't init mlme_priv\n"));
+=======
+	rtw_init_cmd_priv(&padapter->cmdpriv);
+
+	if (rtw_init_mlme_priv(padapter) == _FAIL) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret8 = _FAIL;
 		goto exit;
 	}
 
 	if (init_mlme_ext_priv(padapter) == _FAIL) {
+<<<<<<< HEAD
 		RT_TRACE(_module_os_intfs_c_, _drv_err_, ("\n Can't init mlme_ext_priv\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret8 = _FAIL;
 		goto exit;
 	}
 
 	if (_rtw_init_xmit_priv(&padapter->xmitpriv, padapter) == _FAIL) {
+<<<<<<< HEAD
 		DBG_88E("Can't _rtw_init_xmit_priv\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret8 = _FAIL;
 		goto exit;
 	}
 
 	if (_rtw_init_recv_priv(&padapter->recvpriv, padapter) == _FAIL) {
+<<<<<<< HEAD
 		DBG_88E("Can't _rtw_init_recv_priv\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret8 = _FAIL;
 		goto exit;
 	}
 
 	if (_rtw_init_sta_priv(&padapter->stapriv) == _FAIL) {
+<<<<<<< HEAD
 		DBG_88E("Can't _rtw_init_sta_priv\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		ret8 = _FAIL;
 		goto exit;
 	}
@@ -478,13 +554,17 @@ u8 rtw_init_drv_sw(struct adapter *padapter)
 	rtw_hal_sreset_init(padapter);
 
 exit:
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("-%s\n", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret8;
 }
 
 void rtw_cancel_all_timer(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+%s\n", __func__));
 
 	del_timer_sync(&padapter->mlmepriv.assoc_timer);
@@ -499,6 +579,16 @@ void rtw_cancel_all_timer(struct adapter *padapter)
 	/*  cancel sw led timer */
 	rtw_hal_sw_led_deinit(padapter);
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("%s:cancel DeInitSwLeds!\n", __func__));
+=======
+	del_timer_sync(&padapter->mlmepriv.assoc_timer);
+
+	del_timer_sync(&padapter->mlmepriv.scan_to_timer);
+
+	del_timer_sync(&padapter->mlmepriv.dynamic_chk_timer);
+
+	/*  cancel sw led timer */
+	rtw_hal_sw_led_deinit(padapter);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	del_timer_sync(&padapter->pwrctrlpriv.pwr_state_check_timer);
 
@@ -507,8 +597,11 @@ void rtw_cancel_all_timer(struct adapter *padapter)
 
 u8 rtw_free_drv_sw(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("==>%s", __func__));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	free_mlme_ext_priv(&padapter->mlmeextpriv);
 
 	rtw_free_mlme_priv(&padapter->mlmepriv);
@@ -521,12 +614,17 @@ u8 rtw_free_drv_sw(struct adapter *padapter)
 
 	rtw_hal_free_data(padapter);
 
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("<== %s\n", __func__));
 
 	mutex_destroy(&padapter->hw_init_mutex);
 
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("-%s\n", __func__));
 
+=======
+	mutex_destroy(&padapter->hw_init_mutex);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _SUCCESS;
 }
 
@@ -534,12 +632,18 @@ static int _netdev_open(struct net_device *pnetdev)
 {
 	uint status;
 	int err;
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(pnetdev);
 	struct pwrctrl_priv *pwrctrlpriv = &padapter->pwrctrlpriv;
 
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+88eu_drv - dev_open\n"));
 	DBG_88E("+88eu_drv - drv_open, bup =%d\n", padapter->bup);
 
+=======
+	struct adapter *padapter = netdev_priv(pnetdev);
+	struct pwrctrl_priv *pwrctrlpriv = &padapter->pwrctrlpriv;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (pwrctrlpriv->ps_flag) {
 		padapter->net_closed = false;
 		goto netdev_open_normal_process;
@@ -550,10 +654,15 @@ static int _netdev_open(struct net_device *pnetdev)
 		padapter->bSurpriseRemoved = false;
 
 		status = rtw_hal_init(padapter);
+<<<<<<< HEAD
 		if (status == _FAIL) {
 			RT_TRACE(_module_os_intfs_c_, _drv_err_, ("rtl88eu_hal_init(): Can't init h/w!\n"));
 			goto netdev_open_error;
 		}
+=======
+		if (status == _FAIL)
+			goto netdev_open_error;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		pr_info("MAC Address = %pM\n", pnetdev->dev_addr);
 
@@ -587,23 +696,33 @@ static int _netdev_open(struct net_device *pnetdev)
 		netif_tx_wake_all_queues(pnetdev);
 
 netdev_open_normal_process:
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("-88eu_drv - dev_open\n"));
 	DBG_88E("-88eu_drv - drv_open, bup =%d\n", padapter->bup);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 
 netdev_open_error:
 	padapter->bup = false;
 	netif_carrier_off(pnetdev);
 	netif_tx_stop_all_queues(pnetdev);
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_err_, ("-88eu_drv - dev_open, fail!\n"));
 	DBG_88E("-88eu_drv - drv_open fail, bup =%d\n", padapter->bup);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return -1;
 }
 
 int netdev_open(struct net_device *pnetdev)
 {
 	int ret;
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(pnetdev);
+=======
+	struct adapter *padapter = netdev_priv(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (mutex_lock_interruptible(&padapter->hw_init_mutex))
 		return -ERESTARTSYS;
@@ -617,16 +736,24 @@ int  ips_netdrv_open(struct adapter *padapter)
 	int status = _SUCCESS;
 
 	padapter->net_closed = false;
+<<<<<<< HEAD
 	DBG_88E("===> %s.........\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	padapter->bDriverStopped = false;
 	padapter->bSurpriseRemoved = false;
 
 	status = rtw_hal_init(padapter);
+<<<<<<< HEAD
 	if (status == _FAIL) {
 		RT_TRACE(_module_os_intfs_c_, _drv_err_, ("%s(): Can't init h/w!\n", __func__));
 		goto netdev_open_error;
 	}
+=======
+	if (status == _FAIL)
+		goto netdev_open_error;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rtw_hal_inirp_init(padapter);
 
@@ -637,47 +764,66 @@ int  ips_netdrv_open(struct adapter *padapter)
 	return _SUCCESS;
 
 netdev_open_error:
+<<<<<<< HEAD
 	DBG_88E("-%s - drv_open failure, bup =%d\n", __func__, padapter->bup);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _FAIL;
 }
 
 int rtw_ips_pwr_up(struct adapter *padapter)
 {
 	int result;
+<<<<<<< HEAD
 	unsigned long start_time = jiffies;
 
 	DBG_88E("===>  %s..............\n", __func__);
+=======
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_reset_drv_sw(padapter);
 
 	result = ips_netdrv_open(padapter);
 
 	led_control_8188eu(padapter, LED_CTL_NO_LINK);
 
+<<<<<<< HEAD
 	DBG_88E("<===  %s.............. in %dms\n", __func__,
 		jiffies_to_msecs(jiffies - start_time));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return result;
 }
 
 void rtw_ips_pwr_down(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	unsigned long start_time = jiffies;
 
 	DBG_88E("===> %s...................\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	padapter->net_closed = true;
 
 	led_control_8188eu(padapter, LED_CTL_POWER_OFF);
 
 	rtw_ips_dev_unload(padapter);
+<<<<<<< HEAD
 	DBG_88E("<=== %s..................... in %dms\n", __func__,
 		jiffies_to_msecs(jiffies - start_time));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void rtw_ips_dev_unload(struct adapter *padapter)
 {
+<<<<<<< HEAD
 	DBG_88E("====> %s...\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_hal_set_hwreg(padapter, HW_VAR_FIFO_CLEARN_UP, NULL);
 
 	usb_intf_stop(padapter);
@@ -689,9 +835,13 @@ void rtw_ips_dev_unload(struct adapter *padapter)
 
 static int netdev_close(struct net_device *pnetdev)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = rtw_netdev_priv(pnetdev);
 
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("+88eu_drv - drv_close\n"));
+=======
+	struct adapter *padapter = netdev_priv(pnetdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (padapter->pwrctrlpriv.bInternalAutoSuspend) {
 		if (padapter->pwrctrlpriv.rf_pwrstate == rf_off)
@@ -700,9 +850,12 @@ static int netdev_close(struct net_device *pnetdev)
 	padapter->net_closed = true;
 
 	if (padapter->pwrctrlpriv.rf_pwrstate == rf_on) {
+<<<<<<< HEAD
 		DBG_88E("(2)88eu_drv - drv_close, bup =%d, hw_init_completed =%d\n",
 			padapter->bup, padapter->hw_init_completed);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* s1. */
 		if (pnetdev) {
 			if (!rtw_netif_queue_stopped(pnetdev))
@@ -722,7 +875,10 @@ static int netdev_close(struct net_device *pnetdev)
 		led_control_8188eu(padapter, LED_CTL_POWER_OFF);
 	}
 
+<<<<<<< HEAD
 	RT_TRACE(_module_os_intfs_c_, _drv_info_, ("-88eu_drv - drv_close\n"));
 	DBG_88E("-88eu_drv - drv_close, bup =%d\n", padapter->bup);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }

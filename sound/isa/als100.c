@@ -188,7 +188,12 @@ static int snd_card_als100_probe(int dev,
 		return error;
 	acard = card->private_data;
 
+<<<<<<< HEAD
 	if ((error = snd_card_als100_pnp(dev, acard, pcard, pid))) {
+=======
+	error = snd_card_als100_pnp(dev, acard, pcard, pid);
+	if (error) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -222,12 +227,22 @@ static int snd_card_als100_probe(int dev,
 			 dma16[dev]);
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_sb16dsp_pcm(chip, 0)) < 0) {
+=======
+	error = snd_sb16dsp_pcm(chip, 0);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_sbmixer_new(chip)) < 0) {
+=======
+	error = snd_sbmixer_new(chip);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}
@@ -256,18 +271,33 @@ static int snd_card_als100_probe(int dev,
 			snd_printk(KERN_ERR PFX "no OPL device at 0x%lx-0x%lx\n",
 				   fm_port[dev], fm_port[dev] + 2);
 		} else {
+<<<<<<< HEAD
 			if ((error = snd_opl3_timer_new(opl3, 0, 1)) < 0) {
 				snd_card_free(card);
 				return error;
 			}
 			if ((error = snd_opl3_hwdep_new(opl3, 0, 1, NULL)) < 0) {
+=======
+			error = snd_opl3_timer_new(opl3, 0, 1);
+			if (error < 0) {
+				snd_card_free(card);
+				return error;
+			}
+			error = snd_opl3_hwdep_new(opl3, 0, 1, NULL);
+			if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				snd_card_free(card);
 				return error;
 			}
 		}
 	}
 
+<<<<<<< HEAD
 	if ((error = snd_card_register(card)) < 0) {
+=======
+	error = snd_card_register(card);
+	if (error < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return error;
 	}

@@ -130,6 +130,12 @@ static struct page **get_pages(struct drm_gem_object *obj)
 		 */
 		if (msm_obj->flags & (MSM_BO_WC|MSM_BO_UNCACHED))
 			sync_for_device(msm_obj);
+<<<<<<< HEAD
+=======
+
+		GEM_WARN_ON(msm_obj->active_count);
+		update_inactive(msm_obj);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return msm_obj->pages;
@@ -218,6 +224,31 @@ int msm_gem_mmap_obj(struct drm_gem_object *obj,
 
 		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
 	}
+
+	return 0;
+}
+
+int msm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
+{
+	int ret;
+
+	ret = drm_gem_mmap(filp, vma);
+	if (ret) {
+		DBG("mmap failed: %d", ret);
+		return ret;
+	}
+
+	return msm_gem_mmap_obj(vma->vm_private_data, vma);
+}
+
+int msm_gem_mmap_obj(struct drm_gem_object *obj,
+		struct vm_area_struct *vma)
+{
+	struct msm_gem_object *msm_obj = to_msm_bo(obj);
+
+	vma->vm_flags &= ~VM_PFNMAP;
+	vma->vm_flags |= VM_MIXEDMAP;
+	vma->vm_page_prot = msm_gem_pgprot(msm_obj, vm_get_page_prot(vma->vm_flags));
 
 	return 0;
 }
@@ -782,18 +813,66 @@ int msm_gem_sync_object(struct drm_gem_object *obj,
 	return 0;
 }
 
+/* must be called before _move_to_active().. */
+int msm_gem_sync_object(struct drm_gem_object *obj,
+		struct msm_fence_context *fctx, bool exclusive)
+{
+	struct dma_resv_list *fobj;
+	struct dma_fence *fence;
+	int i, ret;
+
+	fobj = dma_resv_shared_list(obj->resv);
+	if (!fobj || (fobj->shared_count == 0)) {
+		fence = dma_resv_excl_fence(obj->resv);
+		/* don't need to wait on our own fences, since ring is fifo */
+		if (fence && (fence->context != fctx->context)) {
+			ret = dma_fence_wait(fence, true);
+			if (ret)
+				return ret;
+		}
+	}
+
+	if (!exclusive || !fobj)
+		return 0;
+
+	for (i = 0; i < fobj->shared_count; i++) {
+		fence = rcu_dereference_protected(fobj->shared[i],
+						dma_resv_held(obj->resv));
+		if (fence->context != fctx->context) {
+			ret = dma_fence_wait(fence, true);
+			if (ret)
+				return ret;
+		}
+	}
+
+	return 0;
+}
+
 void msm_gem_active_get(struct drm_gem_object *obj, struct msm_gpu *gpu)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	struct msm_drm_private *priv = obj->dev->dev_private;
 
 	might_sleep();
+<<<<<<< HEAD
 	WARN_ON(!msm_gem_is_locked(obj));
 	WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED);
 
 	if (msm_obj->active_count++ == 0) {
 		mutex_lock(&priv->mm_lock);
 		list_del_init(&msm_obj->mm_list);
+=======
+	GEM_WARN_ON(!msm_gem_is_locked(obj));
+	GEM_WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED);
+	GEM_WARN_ON(msm_obj->dontneed);
+	GEM_WARN_ON(!msm_obj->sgt);
+
+	if (msm_obj->active_count++ == 0) {
+		mutex_lock(&priv->mm_lock);
+		if (msm_obj->evictable)
+			mark_unevictable(msm_obj);
+		list_del(&msm_obj->mm_list);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		list_add_tail(&msm_obj->mm_list, &gpu->active_list);
 		mutex_unlock(&priv->mm_lock);
 	}

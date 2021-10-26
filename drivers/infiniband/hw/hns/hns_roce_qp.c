@@ -815,7 +815,11 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
 
 	if (udata) {
 		if (user_qp_has_sdb(hr_dev, init_attr, udata, resp, ucmd)) {
+<<<<<<< HEAD
 			ret = hns_roce_db_map_user(uctx, udata, ucmd->sdb_addr,
+=======
+			ret = hns_roce_db_map_user(uctx, ucmd->sdb_addr,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						   &hr_qp->sdb);
 			if (ret) {
 				ibdev_err(ibdev,
@@ -828,7 +832,11 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
 		}
 
 		if (user_qp_has_rdb(hr_dev, init_attr, udata, resp)) {
+<<<<<<< HEAD
 			ret = hns_roce_db_map_user(uctx, udata, ucmd->db_addr,
+=======
+			ret = hns_roce_db_map_user(uctx, ucmd->db_addr,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						   &hr_qp->rdb);
 			if (ret) {
 				ibdev_err(ibdev,
@@ -840,11 +848,24 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
 			resp->cap_flags |= HNS_ROCE_QP_CAP_RQ_RECORD_DB;
 		}
 	} else {
+<<<<<<< HEAD
 		/* QP doorbell register address */
 		hr_qp->sq.db_reg_l = hr_dev->reg_base + hr_dev->sdb_offset +
 				     DB_REG_OFFSET * hr_dev->priv_uar.index;
 		hr_qp->rq.db_reg_l = hr_dev->reg_base + hr_dev->odb_offset +
 				     DB_REG_OFFSET * hr_dev->priv_uar.index;
+=======
+		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
+			hr_qp->sq.db_reg = hr_dev->mem_base +
+					   HNS_ROCE_DWQE_SIZE * hr_qp->qpn;
+		else
+			hr_qp->sq.db_reg =
+				hr_dev->reg_base + hr_dev->sdb_offset +
+				DB_REG_OFFSET * hr_dev->priv_uar.index;
+
+		hr_qp->rq.db_reg = hr_dev->reg_base + hr_dev->odb_offset +
+				   DB_REG_OFFSET * hr_dev->priv_uar.index;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		if (kernel_qp_has_rdb(hr_dev, init_attr)) {
 			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
@@ -1124,18 +1145,39 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
 				 struct ib_qp_init_attr *init_attr,
 				 struct ib_udata *udata)
 {
+<<<<<<< HEAD
 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
 	struct ib_device *ibdev = &hr_dev->ib_dev;
+=======
+	struct ib_device *ibdev = pd ? pd->device : init_attr->xrcd->device;
+	struct hns_roce_dev *hr_dev = to_hr_dev(ibdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct hns_roce_qp *hr_qp;
 	int ret;
 
 	ret = check_qp_type(hr_dev, init_attr->qp_type, !!udata);
 	if (ret)
 		return ERR_PTR(ret);
+<<<<<<< HEAD
 
 	hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
 	if (!hr_qp)
 		return ERR_PTR(-ENOMEM);
+=======
+
+	hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
+	if (!hr_qp)
+		return ERR_PTR(-ENOMEM);
+
+	if (init_attr->qp_type == IB_QPT_XRC_INI)
+		init_attr->recv_cq = NULL;
+
+	if (init_attr->qp_type == IB_QPT_XRC_TGT) {
+		hr_qp->xrcdn = to_hr_xrcd(init_attr->xrcd)->xrcdn;
+		init_attr->recv_cq = NULL;
+		init_attr->send_cq = NULL;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (init_attr->qp_type == IB_QPT_GSI) {
 		hr_qp->port = init_attr->port_num - 1;
@@ -1388,7 +1430,7 @@ bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, u32 nreq,
 	return cur + nreq >= hr_wq->wqe_cnt;
 }
 
-int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
+void hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
 {
 	struct hns_roce_qp_table *qp_table = &hr_dev->qp_table;
 	unsigned int reserved_from_bot;
@@ -1411,8 +1453,6 @@ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
 					       HNS_ROCE_QP_BANK_NUM - 1;
 		hr_dev->qp_table.bank[i].next = hr_dev->qp_table.bank[i].min;
 	}
-
-	return 0;
 }
 
 void hns_roce_cleanup_qp_table(struct hns_roce_dev *hr_dev)

@@ -99,7 +99,18 @@ struct page {
 			 * @dma_addr: might require a 64-bit value even on
 			 * 32-bit architectures.
 			 */
+<<<<<<< HEAD
 			dma_addr_t dma_addr;
+=======
+			unsigned long pp_magic;
+			struct page_pool *pp;
+			unsigned long _pp_mapping_pad;
+			/**
+			 * @dma_addr: might require a 64-bit value on
+			 * 32-bit architectures.
+			 */
+			unsigned long dma_addr[2];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		};
 		struct {	/* slab, slob and slub */
 			union {

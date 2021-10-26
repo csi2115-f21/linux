@@ -33,12 +33,15 @@
  * Context tracking and irqflag tracing need to instrument transitions between
  * user and kernel mode.
  */
+<<<<<<< HEAD
 	.macro user_exit_irqoff
 #if defined(CONFIG_CONTEXT_TRACKING) || defined(CONFIG_TRACE_IRQFLAGS)
 	bl	enter_from_user_mode
 #endif
 	.endm
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.macro user_enter_irqoff
 #if defined(CONFIG_CONTEXT_TRACKING) || defined(CONFIG_TRACE_IRQFLAGS)
 	bl	exit_to_user_mode
@@ -148,7 +151,11 @@ alternative_cb_end
 	.endm
 
 	/* Check for MTE asynchronous tag check faults */
+<<<<<<< HEAD
 	.macro check_mte_async_tcf, flgs, tmp
+=======
+	.macro check_mte_async_tcf, tmp, ti_flags
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_ARM64_MTE
 alternative_if_not ARM64_MTE
 	b	1f
@@ -156,8 +163,14 @@ alternative_else_nop_endif
 	mrs_s	\tmp, SYS_TFSRE0_EL1
 	tbz	\tmp, #SYS_TFSR_EL1_TF0_SHIFT, 1f
 	/* Asynchronous TCF occurred for TTBR0 access, set the TI flag */
+<<<<<<< HEAD
 	orr	\flgs, \flgs, #_TIF_MTE_ASYNC_FAULT
 	str	\flgs, [tsk, #TSK_TI_FLAGS]
+=======
+	mov	\tmp, #_TIF_MTE_ASYNC_FAULT
+	add	\ti_flags, tsk, #TSK_TI_FLAGS
+	stset	\tmp, [\ti_flags]
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	msr_s	SYS_TFSRE0_EL1, xzr
 1:
 #endif
@@ -244,6 +257,7 @@ alternative_else_nop_endif
 	disable_step_tsk x19, x20
 
 	/* Check for asynchronous tag check faults in user space */
+<<<<<<< HEAD
 	check_mte_async_tcf x19, x22
 	apply_ssbd 1, x22, x23
 
@@ -252,6 +266,38 @@ alternative_else_nop_endif
 	mte_set_kernel_gcr x22, x23
 
 	scs_load tsk, x20
+=======
+	check_mte_async_tcf x22, x23
+	apply_ssbd 1, x22, x23
+
+#ifdef CONFIG_ARM64_PTR_AUTH
+alternative_if ARM64_HAS_ADDRESS_AUTH
+	/*
+	 * Enable IA for in-kernel PAC if the task had it disabled. Although
+	 * this could be implemented with an unconditional MRS which would avoid
+	 * a load, this was measured to be slower on Cortex-A75 and Cortex-A76.
+	 *
+	 * Install the kernel IA key only if IA was enabled in the task. If IA
+	 * was disabled on kernel exit then we would have left the kernel IA
+	 * installed so there is no need to install it again.
+	 */
+	ldr	x0, [tsk, THREAD_SCTLR_USER]
+	tbz	x0, SCTLR_ELx_ENIA_SHIFT, 1f
+	__ptrauth_keys_install_kernel_nosync tsk, x20, x22, x23
+	b	2f
+1:
+	mrs	x0, sctlr_el1
+	orr	x0, x0, SCTLR_ELx_ENIA
+	msr	sctlr_el1, x0
+2:
+	isb
+alternative_else_nop_endif
+#endif
+
+	mte_set_kernel_gcr x22, x23
+
+	scs_load tsk
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.else
 	add	x21, sp, #PT_REGS_SIZE
 	get_current_task tsk
@@ -349,10 +395,35 @@ alternative_if ARM64_WORKAROUND_845719
 alternative_else_nop_endif
 #endif
 3:
+<<<<<<< HEAD
 	scs_save tsk, x0
 
 	/* No kernel C function calls after this as user keys are set. */
 	ptrauth_keys_install_user tsk, x0, x1, x2
+=======
+	scs_save tsk
+
+#ifdef CONFIG_ARM64_PTR_AUTH
+alternative_if ARM64_HAS_ADDRESS_AUTH
+	/*
+	 * IA was enabled for in-kernel PAC. Disable it now if needed, or
+	 * alternatively install the user's IA. All other per-task keys and
+	 * SCTLR bits were updated on task switch.
+	 *
+	 * No kernel C function calls after this.
+	 */
+	ldr	x0, [tsk, THREAD_SCTLR_USER]
+	tbz	x0, SCTLR_ELx_ENIA_SHIFT, 1f
+	__ptrauth_keys_install_user tsk, x0, x1, x2
+	b	2f
+1:
+	mrs	x0, sctlr_el1
+	bic	x0, x0, SCTLR_ELx_ENIA
+	msr	sctlr_el1, x0
+2:
+alternative_else_nop_endif
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mte_set_user_gcr tsk, x0, x1
 
@@ -491,6 +562,7 @@ tsk	.req	x28		// current thread_info
 /*
  * Interrupt handling.
  */
+<<<<<<< HEAD
 	.macro	irq_handler
 	ldr_l	x1, handle_arch_irq
 	mov	x0, sp
@@ -513,6 +585,8 @@ alternative_endif
 	.endm
 #endif
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.macro	gic_prio_kentry_setup, tmp:req
 #ifdef CONFIG_ARM64_PSEUDO_NMI
 	alternative_if ARM64_HAS_IRQ_PRIO_MASKING
@@ -522,6 +596,7 @@ alternative_endif
 #endif
 	.endm
 
+<<<<<<< HEAD
 	.macro	gic_prio_irq_setup, pmr:req, tmp:req
 #ifdef CONFIG_ARM64_PSEUDO_NMI
 	alternative_if ARM64_HAS_IRQ_PRIO_MASKING
@@ -531,6 +606,8 @@ alternative_endif
 #endif
 	.endm
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	.text
 
 /*
@@ -700,6 +777,7 @@ SYM_CODE_START_LOCAL_NOALIGN(el0_sync)
 	b	ret_to_user
 SYM_CODE_END(el0_sync)
 
+<<<<<<< HEAD
 #ifdef CONFIG_COMPAT
 	.align	6
 SYM_CODE_START_LOCAL_NOALIGN(el0_sync_compat)
@@ -761,6 +839,8 @@ el0_error_naked:
 	b	ret_to_user
 SYM_CODE_END(el0_error)
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * "slow" syscall return path.
  */

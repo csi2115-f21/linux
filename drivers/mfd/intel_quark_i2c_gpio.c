@@ -16,8 +16,14 @@
 #include <linux/clkdev.h>
 #include <linux/clk-provider.h>
 #include <linux/dmi.h>
+<<<<<<< HEAD
 #include <linux/platform_data/gpio-dwapb.h>
 #include <linux/platform_data/i2c-designware.h>
+=======
+#include <linux/i2c.h>
+#include <linux/platform_data/gpio-dwapb.h>
+#include <linux/property.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* PCI BAR for register base address */
 #define MFD_I2C_BAR		0
@@ -189,8 +195,14 @@ static int intel_quark_i2c_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 
 static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 {
+<<<<<<< HEAD
 	struct dwapb_platform_data *pdata;
 	struct resource *res = (struct resource *)cell->resources;
+=======
+	struct mfd_cell *cell = &intel_quark_mfd_cells[MFD_GPIO_BAR];
+	struct resource *res = intel_quark_gpio_res;
+	struct dwapb_platform_data *pdata;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct device *dev = &pdev->dev;
 
 	res[INTEL_QUARK_IORES_MEM].start =
@@ -215,7 +227,11 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 	pdata->properties->idx		= 0;
 	pdata->properties->ngpio	= INTEL_QUARK_MFD_NGPIO;
 	pdata->properties->gpio_base	= INTEL_QUARK_MFD_GPIO_BASE;
+<<<<<<< HEAD
 	pdata->properties->irq[0]	= pdev->irq;
+=======
+	pdata->properties->irq[0]	= pci_irq_vector(pdev, 0);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pdata->properties->irq_shared	= true;
 
 	cell->platform_data = pdata;
@@ -257,10 +273,19 @@ static int intel_quark_mfd_probe(struct pci_dev *pdev,
 			      ARRAY_SIZE(intel_quark_mfd_cells), NULL, 0,
 			      NULL);
 	if (ret)
+<<<<<<< HEAD
 		goto err_unregister_i2c_clk;
 
 	return 0;
 
+=======
+		goto err_free_irq_vectors;
+
+	return 0;
+
+err_free_irq_vectors:
+	pci_free_irq_vectors(pdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_unregister_i2c_clk:
 	intel_quark_unregister_i2c_clk(&pdev->dev);
 	return ret;
@@ -268,6 +293,11 @@ err_unregister_i2c_clk:
 
 static void intel_quark_mfd_remove(struct pci_dev *pdev)
 {
+<<<<<<< HEAD
+=======
+	mfd_remove_devices(&pdev->dev);
+	pci_free_irq_vectors(pdev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	intel_quark_unregister_i2c_clk(&pdev->dev);
 	mfd_remove_devices(&pdev->dev);
 }

@@ -629,10 +629,13 @@ static ssize_t reload_store(struct device *dev,
 	if (val != 1)
 		return size;
 
+<<<<<<< HEAD
 	tmp_ret = microcode_ops->request_microcode_fw(bsp, &microcode_pdev->dev, true);
 	if (tmp_ret != UCODE_NEW)
 		return size;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	get_online_cpus();
 
 	ret = check_online_cpus();

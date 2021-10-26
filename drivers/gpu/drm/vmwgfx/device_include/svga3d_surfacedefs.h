@@ -1467,6 +1467,10 @@ struct svga3dsurface_cache {
 
 /**
  * struct svga3dsurface_loc - Surface location
+<<<<<<< HEAD
+=======
+ * @sheet: The multisample sheet.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * @sub_resource: Surface subresource. Defined as layer * num_mip_levels +
  * mip_level.
  * @x: X coordinate.
@@ -1474,6 +1478,10 @@ struct svga3dsurface_cache {
  * @z: Z coordinate.
  */
 struct svga3dsurface_loc {
+<<<<<<< HEAD
+=======
+	u32 sheet;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 sub_resource;
 	u32 x, y, z;
 };
@@ -1566,8 +1574,13 @@ svga3dsurface_get_loc(const struct svga3dsurface_cache *cache,
 	u32 layer;
 	int i;
 
+<<<<<<< HEAD
 	if (offset >= cache->sheet_bytes)
 		offset %= cache->sheet_bytes;
+=======
+	loc->sheet = offset / cache->sheet_bytes;
+	offset -= loc->sheet * cache->sheet_bytes;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	layer = offset / cache->mip_chain_bytes;
 	offset -= layer * cache->mip_chain_bytes;
@@ -1631,6 +1644,10 @@ svga3dsurface_min_loc(const struct svga3dsurface_cache *cache,
 		      u32 sub_resource,
 		      struct svga3dsurface_loc *loc)
 {
+<<<<<<< HEAD
+=======
+	loc->sheet = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	loc->sub_resource = sub_resource;
 	loc->x = loc->y = loc->z = 0;
 }
@@ -1652,6 +1669,10 @@ svga3dsurface_max_loc(const struct svga3dsurface_cache *cache,
 	const struct drm_vmw_size *size;
 	u32 mip;
 
+<<<<<<< HEAD
+=======
+	loc->sheet = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	loc->sub_resource = sub_resource + 1;
 	mip = sub_resource % cache->num_mip_levels;
 	size = &cache->mip[mip].size;

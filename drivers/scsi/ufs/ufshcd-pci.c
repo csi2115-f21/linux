@@ -206,6 +206,34 @@ static int ufs_intel_ehl_init(struct ufs_hba *hba)
 	return ufs_intel_common_init(hba);
 }
 
+<<<<<<< HEAD
+=======
+static void ufs_intel_lkf_late_init(struct ufs_hba *hba)
+{
+	/* LKF always needs a full reset, so set PM accordingly */
+	if (hba->caps & UFSHCD_CAP_DEEPSLEEP) {
+		hba->spm_lvl = UFS_PM_LVL_6;
+		hba->rpm_lvl = UFS_PM_LVL_6;
+	} else {
+		hba->spm_lvl = UFS_PM_LVL_5;
+		hba->rpm_lvl = UFS_PM_LVL_5;
+	}
+}
+
+static int ufs_intel_lkf_init(struct ufs_hba *hba)
+{
+	struct ufs_host *ufs_host;
+	int err;
+
+	hba->quirks |= UFSHCD_QUIRK_BROKEN_AUTO_HIBERN8;
+	hba->caps |= UFSHCD_CAP_CRYPTO;
+	err = ufs_intel_common_init(hba);
+	ufs_host = ufshcd_get_variant(hba);
+	ufs_host->late_init = ufs_intel_lkf_late_init;
+	return err;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct ufs_hba_variant_ops ufs_intel_cnl_hba_vops = {
 	.name                   = "intel-pci",
 	.init			= ufs_intel_common_init,
@@ -222,6 +250,7 @@ static struct ufs_hba_variant_ops ufs_intel_ehl_hba_vops = {
 	.resume			= ufs_intel_resume,
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_PM_SLEEP
 /**
  * ufshcd_pci_suspend - suspend power management function
@@ -268,6 +297,59 @@ static int ufshcd_pci_poweroff(struct device *dev)
 	ret = ufshcd_system_suspend(hba);
 	hba->spm_lvl = spm_lvl;
 	return ret;
+}
+
+#endif /* !CONFIG_PM_SLEEP */
+
+#ifdef CONFIG_PM
+static int ufshcd_pci_runtime_suspend(struct device *dev)
+{
+	return ufshcd_runtime_suspend(dev_get_drvdata(dev));
+}
+static int ufshcd_pci_runtime_resume(struct device *dev)
+{
+	return ufshcd_runtime_resume(dev_get_drvdata(dev));
+}
+static int ufshcd_pci_runtime_idle(struct device *dev)
+{
+	return ufshcd_runtime_idle(dev_get_drvdata(dev));
+}
+#endif /* !CONFIG_PM */
+=======
+static struct ufs_hba_variant_ops ufs_intel_lkf_hba_vops = {
+	.name                   = "intel-pci",
+	.init			= ufs_intel_lkf_init,
+	.exit			= ufs_intel_common_exit,
+	.hce_enable_notify	= ufs_intel_hce_enable_notify,
+	.link_startup_notify	= ufs_intel_link_startup_notify,
+	.resume			= ufs_intel_resume,
+	.device_reset		= ufs_intel_device_reset,
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+
+#ifdef CONFIG_PM_SLEEP
+/**
+ * ufshcd_pci_suspend - suspend power management function
+ * @dev: pointer to PCI device handle
+ *
+ * Returns 0 if successful
+ * Returns non-zero otherwise
+ */
+static int ufshcd_pci_suspend(struct device *dev)
+{
+	return ufshcd_system_suspend(dev_get_drvdata(dev));
+}
+
+/**
+ * ufshcd_pci_resume - resume power management function
+ * @dev: pointer to PCI device handle
+ *
+ * Returns 0 if successful
+ * Returns non-zero otherwise
+ */
+static int ufshcd_pci_resume(struct device *dev)
+{
+	return ufshcd_system_resume(dev_get_drvdata(dev));
 }
 
 #endif /* !CONFIG_PM_SLEEP */
@@ -365,6 +447,13 @@ ufshcd_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 }
 
 static const struct dev_pm_ops ufshcd_pci_pm_ops = {
+<<<<<<< HEAD
+=======
+	SET_RUNTIME_PM_OPS(ufshcd_pci_runtime_suspend,
+			   ufshcd_pci_runtime_resume,
+			   ufshcd_pci_runtime_idle)
+	SET_SYSTEM_SLEEP_PM_OPS(ufshcd_pci_suspend, ufshcd_pci_resume)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_PM_SLEEP
 	.suspend	= ufshcd_pci_suspend,
 	.resume		= ufshcd_pci_resume,

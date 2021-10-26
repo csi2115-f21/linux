@@ -36,7 +36,10 @@ static struct sk_buff *mtk_tag_xmit(struct sk_buff *skb,
 	if (!skb_vlan_tagged(skb)) {
 		skb_push(skb, MTK_HDR_LEN);
 		memmove(skb->data, skb->data + MTK_HDR_LEN, 2 * ETH_ALEN);
+<<<<<<< HEAD
 		is_vlan_skb = false;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	mtk_tag = skb->data + 2 * ETH_ALEN;
@@ -95,9 +98,13 @@ static struct sk_buff *mtk_tag_rcv(struct sk_buff *skb, struct net_device *dev,
 	if (!skb->dev)
 		return NULL;
 
+<<<<<<< HEAD
 	/* Only unicast or broadcast frames are offloaded */
 	if (likely(!is_multicast_skb))
 		skb->offload_fwd_mark = 1;
+=======
+	skb->offload_fwd_mark = 1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return skb;
 }

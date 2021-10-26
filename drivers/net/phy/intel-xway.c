@@ -11,6 +11,21 @@
 
 #define XWAY_MDIO_IMASK			0x19	/* interrupt mask */
 #define XWAY_MDIO_ISTAT			0x1A	/* interrupt status */
+<<<<<<< HEAD
+=======
+#define XWAY_MDIO_LED			0x1B	/* led control */
+
+/* bit 15:12 are reserved */
+#define XWAY_MDIO_LED_LED3_EN		BIT(11)	/* Enable the integrated function of LED3 */
+#define XWAY_MDIO_LED_LED2_EN		BIT(10)	/* Enable the integrated function of LED2 */
+#define XWAY_MDIO_LED_LED1_EN		BIT(9)	/* Enable the integrated function of LED1 */
+#define XWAY_MDIO_LED_LED0_EN		BIT(8)	/* Enable the integrated function of LED0 */
+/* bit 7:4 are reserved */
+#define XWAY_MDIO_LED_LED3_DA		BIT(3)	/* Direct Access to LED3 */
+#define XWAY_MDIO_LED_LED2_DA		BIT(2)	/* Direct Access to LED2 */
+#define XWAY_MDIO_LED_LED1_DA		BIT(1)	/* Direct Access to LED1 */
+#define XWAY_MDIO_LED_LED0_DA		BIT(0)	/* Direct Access to LED0 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #define XWAY_MDIO_INIT_WOL		BIT(15)	/* Wake-On-LAN */
 #define XWAY_MDIO_INIT_MSRE		BIT(14)

@@ -1276,7 +1276,25 @@ static int vio_bus_remove(struct device *dev)
 		vio_cmo_bus_remove(viodev);
 
 	put_device(devptr);
+<<<<<<< HEAD
 	return ret;
+=======
+	return 0;
+}
+
+static void vio_bus_shutdown(struct device *dev)
+{
+	struct vio_dev *viodev = to_vio_dev(dev);
+	struct vio_driver *viodrv;
+
+	if (dev->driver) {
+		viodrv = to_vio_driver(dev->driver);
+		if (viodrv->shutdown)
+			viodrv->shutdown(viodev);
+		else if (kexec_in_progress)
+			vio_bus_remove(dev);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**

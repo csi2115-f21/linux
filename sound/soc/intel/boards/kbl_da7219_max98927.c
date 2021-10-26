@@ -300,6 +300,26 @@ static int kabylake_ssp_fixup(struct snd_soc_pcm_runtime *rtd,
 		rate->min = rate->max = 48000;
 		chan->min = chan->max = DUAL_CHANNEL;
 
+<<<<<<< HEAD
+=======
+	/*
+	 * The above 2 loops are mutually exclusive based on the stream direction,
+	 * thus rtd_dpcm variable will never be overwritten
+	 */
+	/*
+	 * Topology for kblda7219m98373 & kblmax98373 supports only S24_LE,
+	 * where as kblda7219m98927 & kblmax98927 supports S16_LE by default.
+	 * Skipping the port wise FE and BE configuration for kblda7219m98373 &
+	 * kblmax98373 as the topology (FE & BE) supports S24_LE only.
+	 */
+
+	if (!strcmp(rtd->card->name, "kblda7219m98373") ||
+		!strcmp(rtd->card->name, "kblmax98373")) {
+		/* The ADSP will convert the FE rate to 48k, stereo */
+		rate->min = rate->max = 48000;
+		chan->min = chan->max = DUAL_CHANNEL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/* set SSP to 24 bit */
 		snd_mask_none(fmt);
 		snd_mask_set_format(fmt, SNDRV_PCM_FORMAT_S24_LE);

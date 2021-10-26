@@ -706,13 +706,20 @@ static int mga_g200eh_set_plls(struct mga_device *mdev, long clock)
 
 static int mga_g200er_set_plls(struct mga_device *mdev, long clock)
 {
+<<<<<<< HEAD
+=======
+	static const unsigned int m_div_val[] = { 1, 2, 4, 8 };
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned int vcomax, vcomin, pllreffreq;
 	unsigned int delta, tmpdelta;
 	int testr, testn, testm, testo;
 	unsigned int p, m, n;
 	unsigned int computed, vco;
 	int tmp;
+<<<<<<< HEAD
 	const unsigned int m_div_val[] = { 1, 2, 4, 8 };
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	m = n = p = 0;
 	vcomax = 1488000;
@@ -1608,7 +1615,11 @@ mgag200_simple_display_pipe_enable(struct drm_simple_display_pipe *pipe,
 	mga_crtc_load_lut(crtc);
 	mgag200_enable_display(mdev);
 
+<<<<<<< HEAD
 	mgag200_handle_damage(mdev, fb, &fullscreen);
+=======
+	mgag200_handle_damage(mdev, fb, &fullscreen, &shadow_plane_state->map[0]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void
@@ -1656,7 +1667,11 @@ mgag200_simple_display_pipe_update(struct drm_simple_display_pipe *pipe,
 		return;
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &damage))
+<<<<<<< HEAD
 		mgag200_handle_damage(mdev, fb, &damage);
+=======
+		mgag200_handle_damage(mdev, fb, &damage, &shadow_plane_state->map[0]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct drm_simple_display_pipe_funcs
@@ -1666,7 +1681,11 @@ mgag200_simple_display_pipe_funcs = {
 	.disable    = mgag200_simple_display_pipe_disable,
 	.check	    = mgag200_simple_display_pipe_check,
 	.update	    = mgag200_simple_display_pipe_update,
+<<<<<<< HEAD
 	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
+=======
+	DRM_GEM_SIMPLE_DISPLAY_PIPE_SHADOW_PLANE_FUNCS,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const uint32_t mgag200_simple_display_pipe_formats[] = {

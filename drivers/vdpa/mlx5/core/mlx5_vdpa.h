@@ -4,6 +4,11 @@
 #ifndef __MLX5_VDPA_H__
 #define __MLX5_VDPA_H__
 
+<<<<<<< HEAD
+=======
+#include <linux/etherdevice.h>
+#include <linux/if_vlan.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <linux/vdpa.h>
 #include <linux/mlx5/driver.h>
 

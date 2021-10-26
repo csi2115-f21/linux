@@ -434,6 +434,7 @@ static void init_signal_cs(struct hl_device *hdev,
 	hdev->asic_funcs->gen_signal_cb(hdev, job->patched_cb,
 				cs_cmpl->hw_sob->sob_id, 0, true);
 
+<<<<<<< HEAD
 	kref_get(&hw_sob->kref);
 
 	/* check for wraparound */
@@ -454,6 +455,13 @@ static void init_signal_cs(struct hl_device *hdev,
 	}
 }
 
+=======
+	rc = hl_cs_signal_sob_wraparound_handler(hdev, q_idx, &hw_sob, 1);
+
+	return rc;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void init_wait_cs(struct hl_device *hdev, struct hl_cs *cs,
 		struct hl_cs_job *job, struct hl_cs_compl *cs_cmpl)
 {
@@ -520,6 +528,11 @@ static void init_signal_wait_cs(struct hl_cs *cs)
 		init_signal_cs(hdev, job, cs_cmpl);
 	else if (cs->type & CS_TYPE_WAIT)
 		init_wait_cs(hdev, cs, job, cs_cmpl);
+<<<<<<< HEAD
+=======
+
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -590,11 +603,24 @@ int hl_hw_queue_schedule_cs(struct hl_cs *cs)
 		}
 	}
 
+<<<<<<< HEAD
 	if ((cs->type == CS_TYPE_SIGNAL) || (cs->type == CS_TYPE_WAIT))
 		init_signal_wait_cs(cs);
 	else if (cs->type == CS_TYPE_COLLECTIVE_WAIT)
 		hdev->asic_funcs->collective_wait_init_cs(cs);
 
+=======
+	if ((cs->type == CS_TYPE_SIGNAL) || (cs->type == CS_TYPE_WAIT)) {
+		rc = init_signal_wait_cs(cs);
+		if (rc) {
+			dev_err(hdev->dev, "Failed to submit signal cs\n");
+			goto unroll_cq_resv;
+		}
+	} else if (cs->type == CS_TYPE_COLLECTIVE_WAIT)
+		hdev->asic_funcs->collective_wait_init_cs(cs);
+
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock(&hdev->cs_mirror_lock);
 
 	/* Verify staged CS exists and add to the staged list */

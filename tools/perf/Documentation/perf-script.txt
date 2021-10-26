@@ -98,6 +98,21 @@ OPTIONS
         Generate perf-script.[ext] starter script for given language,
         using current perf.data.
 
+<<<<<<< HEAD
+=======
+--dlfilter=<file>::
+	Filter sample events using the given shared object file.
+	Refer linkperf:perf-dlfilter[1]
+
+--dlarg=<arg>::
+	Pass 'arg' as an argument to the dlfilter. --dlarg may be repeated
+	to add more arguments.
+
+--list-dlfilters=::
+        Display a list of available dlfilters. Use with option -v (must come
+        before option --list-dlfilters) to show long descriptions.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 -a::
         Force system-wide collection.  Scripts run without a <command>
         normally use -a by default, while scripts run with a <command>

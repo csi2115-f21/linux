@@ -7,6 +7,10 @@
 #define _RTW_MLME_EXT_C_
 
 #include <linux/ieee80211.h>
+<<<<<<< HEAD
+=======
+#include <linux/etherdevice.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <asm/unaligned.h>
 
 #include <osdep_service.h>
@@ -148,6 +152,7 @@ struct xmit_frame *alloc_mgtxmitframe(struct xmit_priv *pxmitpriv)
 	struct xmit_buf *pxmitbuf;
 
 	pmgntframe = rtw_alloc_xmitframe(pxmitpriv);
+<<<<<<< HEAD
 	if (!pmgntframe) {
 		DBG_88E("%s, alloc xmitframe fail\n", __func__);
 		return NULL;
@@ -156,6 +161,13 @@ struct xmit_frame *alloc_mgtxmitframe(struct xmit_priv *pxmitpriv)
 	pxmitbuf = rtw_alloc_xmitbuf_ext(pxmitpriv);
 	if (!pxmitbuf) {
 		DBG_88E("%s, alloc xmitbuf fail\n", __func__);
+=======
+	if (!pmgntframe)
+		return NULL;
+
+	pxmitbuf = rtw_alloc_xmitbuf_ext(pxmitpriv);
+	if (!pxmitbuf) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rtw_free_xmitframe(pxmitpriv, pmgntframe);
 		return NULL;
 	}
@@ -177,7 +189,10 @@ void update_mgnt_tx_rate(struct adapter *padapter, u8 rate)
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 
 	pmlmeext->tx_rate = rate;
+<<<<<<< HEAD
 	DBG_88E("%s(): rate = %x\n", __func__, rate);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void update_mgntframe_attrib(struct adapter *padapter, struct pkt_attrib *pattrib)
@@ -314,6 +329,7 @@ static void issue_beacon(struct adapter *padapter, int timeout_ms)
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	struct wlan_bssid_ex *cur_network = &pmlmeinfo->network;
+<<<<<<< HEAD
 	u8 bc_addr[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
@@ -321,6 +337,12 @@ static void issue_beacon(struct adapter *padapter, int timeout_ms)
 		DBG_88E("%s, alloc mgnt frame fail\n", __func__);
 		return;
 	}
+=======
+
+	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
+	if (!pmgntframe)
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #if defined(CONFIG_88EU_AP_MODE)
 	spin_lock_bh(&pmlmepriv->bcn_update_lock);
 #endif
@@ -338,13 +360,21 @@ static void issue_beacon(struct adapter *padapter, int timeout_ms)
 	fctrl = &pwlanhdr->frame_control;
 	*(fctrl) = 0;
 
+<<<<<<< HEAD
 	ether_addr_copy(pwlanhdr->addr1, bc_addr);
+=======
+	eth_broadcast_addr(pwlanhdr->addr1);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ether_addr_copy(pwlanhdr->addr2, myid(&padapter->eeprompriv));
 	ether_addr_copy(pwlanhdr->addr3, cur_network->MacAddress);
 
 	SetSeqNum(pwlanhdr, 0/*pmlmeext->mgnt_seq*/);
 	/* pmlmeext->mgnt_seq++; */
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_BEACON);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_BEACON);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -428,6 +458,7 @@ _issue_bcn:
 	spin_unlock_bh(&pmlmepriv->bcn_update_lock);
 #endif
 
+<<<<<<< HEAD
 	if ((pattrib->pktlen + TXDESC_SIZE) > 512) {
 		DBG_88E("beacon frame too large\n");
 		return;
@@ -436,6 +467,13 @@ _issue_bcn:
 	pattrib->last_txcmdsz = pattrib->pktlen;
 
 	/* DBG_88E("issue bcn_sz=%d\n", pattrib->last_txcmdsz); */
+=======
+	if ((pattrib->pktlen + TXDESC_SIZE) > 512)
+		return;
+
+	pattrib->last_txcmdsz = pattrib->pktlen;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (timeout_ms > 0)
 		dump_mgntframe_and_wait(padapter, pmgntframe, timeout_ms);
 	else
@@ -462,10 +500,15 @@ static void issue_probersp(struct adapter *padapter, unsigned char *da)
 	unsigned int rate_len;
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
+<<<<<<< HEAD
 	if (!pmgntframe) {
 		DBG_88E("%s, alloc mgnt frame fail\n", __func__);
 		return;
 	}
+=======
+	if (!pmgntframe)
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* update attribute */
 	pattrib = &pmgntframe->attrib;
@@ -487,7 +530,11 @@ static void issue_probersp(struct adapter *padapter, unsigned char *da)
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(fctrl, WIFI_PROBERSP);
+=======
+	SetFrameSubType(fctrl, IEEE80211_STYPE_PROBE_RESP);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pattrib->hdrlen = sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = pattrib->hdrlen;
@@ -604,9 +651,12 @@ static int issue_probereq(struct adapter *padapter,
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 	int bssrate_len = 0;
+<<<<<<< HEAD
 	u8 bc_addr[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_notice_, ("+%s\n", __func__));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (!pmgntframe)
@@ -632,15 +682,24 @@ static int issue_probereq(struct adapter *padapter,
 		ether_addr_copy(pwlanhdr->addr3, da);
 	} else {
 		/*	broadcast probe request frame */
+<<<<<<< HEAD
 		ether_addr_copy(pwlanhdr->addr1, bc_addr);
 		ether_addr_copy(pwlanhdr->addr3, bc_addr);
+=======
+		eth_broadcast_addr(pwlanhdr->addr1);
+		eth_broadcast_addr(pwlanhdr->addr3);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ether_addr_copy(pwlanhdr->addr2, mac);
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_PROBEREQ);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_PROBE_REQ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -668,9 +727,12 @@ static int issue_probereq(struct adapter *padapter,
 
 	pattrib->last_txcmdsz = pattrib->pktlen;
 
+<<<<<<< HEAD
 	RT_TRACE(_module_rtl871x_mlme_c_, _drv_notice_,
 		 ("issuing probe_req, tx_len=%d\n", pattrib->last_txcmdsz));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (wait_ack) {
 		ret = dump_mgntframe_and_wait_ack(padapter, pmgntframe);
 	} else {
@@ -688,7 +750,10 @@ static int issue_probereq_ex(struct adapter *padapter,
 {
 	int ret;
 	int i = 0;
+<<<<<<< HEAD
 	unsigned long start = jiffies;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	do {
 		ret = issue_probereq(padapter, pssid, da, wait_ms > 0);
@@ -707,6 +772,7 @@ static int issue_probereq_ex(struct adapter *padapter,
 		ret = _SUCCESS;
 		goto exit;
 	}
+<<<<<<< HEAD
 
 	if (try_cnt && wait_ms) {
 		if (da)
@@ -720,6 +786,8 @@ static int issue_probereq_ex(struct adapter *padapter,
 				ret == _SUCCESS ? ", acked" : "", i, try_cnt,
 				jiffies_to_msecs(jiffies - start));
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 exit:
 	return ret;
 }
@@ -762,7 +830,11 @@ static void issue_auth(struct adapter *padapter, struct sta_info *psta,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_AUTH);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_AUTH);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -865,7 +937,10 @@ static void issue_auth(struct adapter *padapter, struct sta_info *psta,
 	pattrib->last_txcmdsz = pattrib->pktlen;
 
 	rtw_wep_encrypt(padapter, pmgntframe);
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dump_mgntframe(padapter, pmgntframe);
 }
 
@@ -887,8 +962,11 @@ static void issue_asocrsp(struct adapter *padapter, unsigned short status,
 	u8 *ie = pnetwork->ies;
 	__le16 lestatus, leval;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (!pmgntframe)
 		return;
@@ -912,7 +990,11 @@ static void issue_asocrsp(struct adapter *padapter, unsigned short status,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	if ((pkt_type == WIFI_ASSOCRSP) || (pkt_type == WIFI_REASSOCRSP))
+=======
+	if ((pkt_type == IEEE80211_STYPE_ASSOC_RESP) || (pkt_type == IEEE80211_STYPE_REASSOC_RESP))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		SetFrameSubType(pwlanhdr, pkt_type);
 	else
 		return;
@@ -1034,7 +1116,11 @@ static void issue_assocreq(struct adapter *padapter)
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_ASSOCREQ);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_ASSOC_REQ);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -1066,7 +1152,10 @@ static void issue_assocreq(struct adapter *padapter)
 	for (i = 0; i < NDIS_802_11_LENGTH_RATES_EX; i++) {
 		if (pmlmeinfo->network.SupportedRates[i] == 0)
 			break;
+<<<<<<< HEAD
 		DBG_88E("network.SupportedRates[%d]=%02X\n", i, pmlmeinfo->network.SupportedRates[i]);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	for (i = 0; i < NDIS_802_11_LENGTH_RATES_EX; i++) {
@@ -1081,6 +1170,7 @@ static void issue_assocreq(struct adapter *padapter)
 				break;
 		}
 
+<<<<<<< HEAD
 		if (j == sta_bssrate_len) {
 			/*  the rate is not supported by STA */
 			DBG_88E("%s(): the rate[%d]=%02X is not supported by STA!\n", __func__, i, pmlmeinfo->network.SupportedRates[i]);
@@ -1092,6 +1182,14 @@ static void issue_assocreq(struct adapter *padapter)
 
 	bssrate_len = index;
 	DBG_88E("bssrate_len=%d\n", bssrate_len);
+=======
+		if (j != sta_bssrate_len)
+			/*  the rate is supported by STA */
+			bssrate[index++] = pmlmeinfo->network.SupportedRates[i];
+	}
+
+	bssrate_len = index;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (bssrate_len == 0) {
 		rtw_free_xmitbuf(pxmitpriv, pmgntframe->pxmitbuf);
@@ -1226,7 +1324,11 @@ static int _issue_nulldata(struct adapter *padapter, unsigned char *da,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_DATA_NULL);
+=======
+	SetFrameSubType(pframe, IEEE80211_FTYPE_DATA | IEEE80211_STYPE_NULLFUNC);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -1251,7 +1353,10 @@ int issue_nulldata(struct adapter *padapter, unsigned char *da,
 {
 	int ret;
 	int i = 0;
+<<<<<<< HEAD
 	unsigned long start = jiffies;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	struct wlan_bssid_ex *pnetwork = &pmlmeinfo->network;
@@ -1276,6 +1381,7 @@ int issue_nulldata(struct adapter *padapter, unsigned char *da,
 		ret = _SUCCESS;
 		goto exit;
 	}
+<<<<<<< HEAD
 
 	if (try_cnt && wait_ms) {
 		if (da)
@@ -1289,6 +1395,8 @@ int issue_nulldata(struct adapter *padapter, unsigned char *da,
 				ret == _SUCCESS ? ", acked" : "", i, try_cnt,
 				jiffies_to_msecs(jiffies - start));
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 exit:
 	return ret;
 }
@@ -1309,8 +1417,11 @@ static int _issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	struct wlan_bssid_ex *pnetwork = &pmlmeinfo->network;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (!pmgntframe)
 		goto exit;
@@ -1355,7 +1466,11 @@ static int _issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_QOS_DATA_NULL);
+=======
+	SetFrameSubType(pframe, IEEE80211_FTYPE_DATA | IEEE80211_STYPE_QOS_NULLFUNC);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_qos_hdr);
 	pattrib->pktlen = sizeof(struct ieee80211_qos_hdr);
@@ -1380,7 +1495,10 @@ int issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
 {
 	int ret;
 	int i = 0;
+<<<<<<< HEAD
 	unsigned long start = jiffies;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	struct wlan_bssid_ex *pnetwork = &pmlmeinfo->network;
@@ -1405,6 +1523,7 @@ int issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
 		ret = _SUCCESS;
 		goto exit;
 	}
+<<<<<<< HEAD
 
 	if (try_cnt && wait_ms) {
 		if (da)
@@ -1418,6 +1537,8 @@ int issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
 				ret == _SUCCESS ? ", acked" : "", i, try_cnt,
 				jiffies_to_msecs(jiffies - start));
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 exit:
 	return ret;
 }
@@ -1460,7 +1581,11 @@ static int _issue_deauth(struct adapter *padapter, unsigned char *da,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_DEAUTH);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_DEAUTH);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -1485,7 +1610,10 @@ exit:
 int issue_deauth(struct adapter *padapter, unsigned char *da,
 		 unsigned short reason)
 {
+<<<<<<< HEAD
 	DBG_88E("%s to %pM\n", __func__, da);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _issue_deauth(padapter, da, reason, false);
 }
 
@@ -1495,7 +1623,10 @@ static int issue_deauth_ex(struct adapter *padapter, u8 *da,
 {
 	int ret;
 	int i = 0;
+<<<<<<< HEAD
 	unsigned long start = jiffies;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	do {
 		ret = _issue_deauth(padapter, da, reason, wait_ms > 0);
@@ -1513,6 +1644,7 @@ static int issue_deauth_ex(struct adapter *padapter, u8 *da,
 		ret = _SUCCESS;
 		goto exit;
 	}
+<<<<<<< HEAD
 
 	if (try_cnt && wait_ms) {
 		if (da)
@@ -1526,6 +1658,8 @@ static int issue_deauth_ex(struct adapter *padapter, u8 *da,
 				ret == _SUCCESS ? ", acked" : "", i, try_cnt,
 				jiffies_to_msecs(jiffies - start));
 	}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 exit:
 	return ret;
 }
@@ -1554,8 +1688,11 @@ static void issue_action_BA(struct adapter *padapter, unsigned char *raddr,
 	struct registry_priv *pregpriv = &padapter->registrypriv;
 	struct wlan_bssid_ex *pnetwork = &pmlmeinfo->network;
 
+<<<<<<< HEAD
 	DBG_88E("%s, category=%d, action=%d, status=%d\n", __func__, category, action, status);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmgntframe = alloc_mgtxmitframe(pxmitpriv);
 	if (!pmgntframe)
 		return;
@@ -1578,7 +1715,11 @@ static void issue_action_BA(struct adapter *padapter, unsigned char *raddr,
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_ACTION);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_ACTION);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -1608,8 +1749,11 @@ static void issue_action_BA(struct adapter *padapter, unsigned char *raddr,
 			if (psta) {
 				start_seq = (psta->sta_xmitpriv.txseq_tid[status & 0x07] & 0xfff) + 1;
 
+<<<<<<< HEAD
 				DBG_88E("BA_starting_seqctrl=%d for TID=%d\n", start_seq, status & 0x07);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				psta->BA_starting_seqctrl[status & 0x07] = start_seq;
 
 				BA_starting_seqctrl = start_seq << 4;
@@ -1708,8 +1852,11 @@ static void issue_action_BSSCoexistPacket(struct adapter *padapter)
 	if (pmlmeinfo->bwmode_updated)
 		return;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	category = RTW_WLAN_CATEGORY_PUBLIC;
 	action = ACT_PUBLIC_BSSCOEXIST;
 
@@ -1735,7 +1882,11 @@ static void issue_action_BSSCoexistPacket(struct adapter *padapter)
 
 	SetSeqNum(pwlanhdr, pmlmeext->mgnt_seq);
 	pmlmeext->mgnt_seq++;
+<<<<<<< HEAD
 	SetFrameSubType(pframe, WIFI_ACTION);
+=======
+	SetFrameSubType(pframe, IEEE80211_STYPE_ACTION);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pframe += sizeof(struct ieee80211_hdr_3addr);
 	pattrib->pktlen = sizeof(struct ieee80211_hdr_3addr);
@@ -1760,16 +1911,25 @@ static void issue_action_BSSCoexistPacket(struct adapter *padapter)
 		spin_lock_bh(&pmlmepriv->scanned_queue.lock);
 
 		phead = get_list_head(queue);
+<<<<<<< HEAD
 		plist = phead->next;
 
 		while (phead != plist) {
+=======
+		list_for_each(plist, phead) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			uint len;
 			u8 *p;
 			struct wlan_bssid_ex *pbss_network;
 
+<<<<<<< HEAD
 			pnetwork = container_of(plist, struct wlan_network, list);
 
 			plist = plist->next;
+=======
+			pnetwork = list_entry(plist, struct wlan_network,
+					      list);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			pbss_network = &pnetwork->network;
 
@@ -1833,8 +1993,12 @@ unsigned int send_delba(struct adapter *padapter, u8 initiator, u8 *addr)
 	if (initiator == 0) { /*  recipient */
 		for (tid = 0; tid < MAXTID; tid++) {
 			if (psta->recvreorder_ctrl[tid].enable) {
+<<<<<<< HEAD
 				DBG_88E("rx agg disable tid(%d)\n", tid);
 				issue_action_BA(padapter, addr, RTW_WLAN_ACTION_DELBA, (((tid << 1) | initiator) & 0x1F));
+=======
+				issue_action_BA(padapter, addr, WLAN_ACTION_DELBA, (((tid << 1) | initiator) & 0x1F));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				psta->recvreorder_ctrl[tid].enable = false;
 				psta->recvreorder_ctrl[tid].indicate_seq = 0xffff;
 			}
@@ -1842,8 +2006,12 @@ unsigned int send_delba(struct adapter *padapter, u8 initiator, u8 *addr)
 	} else if (initiator == 1) { /*  originator */
 		for (tid = 0; tid < MAXTID; tid++) {
 			if (psta->htpriv.agg_enable_bitmap & BIT(tid)) {
+<<<<<<< HEAD
 				DBG_88E("tx agg disable tid(%d)\n", tid);
 				issue_action_BA(padapter, addr, RTW_WLAN_ACTION_DELBA, (((tid << 1) | initiator) & 0x1F));
+=======
+				issue_action_BA(padapter, addr, WLAN_ACTION_DELBA, (((tid << 1) | initiator) & 0x1F));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				psta->htpriv.agg_enable_bitmap &= ~BIT(tid);
 				psta->htpriv.candidate_tid_bitmap &= ~BIT(tid);
 			}
@@ -1858,8 +2026,11 @@ unsigned int send_beacon(struct adapter *padapter)
 	u8 bxmitok = false;
 	int issue = 0;
 	int poll = 0;
+<<<<<<< HEAD
 	unsigned long start = jiffies;
 	u32 passing_time;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	rtw_hal_set_hwreg(padapter, HW_VAR_BCN_VALID, NULL);
 	do {
@@ -1874,6 +2045,7 @@ unsigned int send_beacon(struct adapter *padapter)
 
 	if (padapter->bSurpriseRemoved || padapter->bDriverStopped)
 		return _FAIL;
+<<<<<<< HEAD
 	if (!bxmitok) {
 		DBG_88E("%s fail! %u ms\n", __func__,
 			jiffies_to_msecs(jiffies - start));
@@ -1885,6 +2057,11 @@ unsigned int send_beacon(struct adapter *padapter)
 		DBG_88E("%s success, issue:%d, poll:%d, %u ms\n",
 			__func__, issue, poll,
 			jiffies_to_msecs(jiffies - start));
+=======
+	if (!bxmitok)
+		return _FAIL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _SUCCESS;
 }
 
@@ -2024,15 +2201,26 @@ static u8 collect_bss_info(struct adapter *padapter,
 
 	subtype = GetFrameSubType(pframe);
 
+<<<<<<< HEAD
 	if (subtype == WIFI_BEACON) {
+=======
+	if (subtype == IEEE80211_STYPE_BEACON) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		bssid->Reserved[0] = 1;
 		ie_offset = _BEACON_IE_OFFSET_;
 	} else {
 		/*  FIXME : more type */
+<<<<<<< HEAD
 		if (subtype == WIFI_PROBEREQ) {
 			ie_offset = _PROBEREQ_IE_OFFSET_;
 			bssid->Reserved[0] = 2;
 		} else if (subtype == WIFI_PROBERSP) {
+=======
+		if (subtype == IEEE80211_STYPE_PROBE_REQ) {
+			ie_offset = _PROBEREQ_IE_OFFSET_;
+			bssid->Reserved[0] = 2;
+		} else if (subtype == IEEE80211_STYPE_PROBE_RESP) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			ie_offset = _PROBERSP_IE_OFFSET_;
 			bssid->Reserved[0] = 3;
 		} else {
@@ -2055,6 +2243,7 @@ static u8 collect_bss_info(struct adapter *padapter,
 
 	/*  checking SSID */
 	p = rtw_get_ie(bssid->ies + ie_offset, WLAN_EID_SSID, &len, bssid->ie_length - ie_offset);
+<<<<<<< HEAD
 	if (!p) {
 		DBG_88E("marc: cannot find SSID for survey event\n");
 		return _FAIL;
@@ -2065,6 +2254,14 @@ static u8 collect_bss_info(struct adapter *padapter,
 			DBG_88E("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
 		}
+=======
+	if (!p)
+		return _FAIL;
+
+	if (len) {
+		if (len > NDIS_802_11_LENGTH_SSID)
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->ssid.ssid, (p + 2), len);
 		bssid->ssid.ssid_length = len;
 	} else {
@@ -2077,20 +2274,30 @@ static u8 collect_bss_info(struct adapter *padapter,
 	i = 0;
 	p = rtw_get_ie(bssid->ies + ie_offset, WLAN_EID_SUPP_RATES, &len, bssid->ie_length - ie_offset);
 	if (p) {
+<<<<<<< HEAD
 		if (len > NDIS_802_11_LENGTH_RATES_EX) {
 			DBG_88E("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
 		}
+=======
+		if (len > NDIS_802_11_LENGTH_RATES_EX)
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->SupportedRates, (p + 2), len);
 		i = len;
 	}
 
 	p = rtw_get_ie(bssid->ies + ie_offset, WLAN_EID_EXT_SUPP_RATES, &len, bssid->ie_length - ie_offset);
 	if (p) {
+<<<<<<< HEAD
 		if (len > (NDIS_802_11_LENGTH_RATES_EX - i)) {
 			DBG_88E("%s()-%d: IE too long (%d) for survey event\n", __func__, __LINE__, len);
 			return _FAIL;
 		}
+=======
+		if (len > (NDIS_802_11_LENGTH_RATES_EX - i))
+			return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		memcpy(bssid->SupportedRates + i, (p + 2), len);
 	}
 
@@ -2120,7 +2327,11 @@ static u8 collect_bss_info(struct adapter *padapter,
 		}
 	}
 
+<<<<<<< HEAD
 	if (subtype == WIFI_PROBEREQ) {
+=======
+	if (subtype == IEEE80211_STYPE_PROBE_REQ) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/*  FIXME */
 		bssid->InfrastructureMode = Ndis802_11Infrastructure;
 		ether_addr_copy(bssid->MacAddress, GetAddr2Ptr(pframe));
@@ -2188,7 +2399,11 @@ static void start_create_ibss(struct adapter *padapter)
 	/* update capability */
 	caps = rtw_get_capability(pnetwork);
 	update_capinfo(padapter, caps);
+<<<<<<< HEAD
 	if (caps & cap_IBSS) {/* adhoc master */
+=======
+	if (caps & WLAN_CAPABILITY_IBSS) {/* adhoc master */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		val8 = 0xcf;
 		rtw_hal_set_hwreg(padapter, HW_VAR_SEC_CFG, (u8 *)(&val8));
 
@@ -2204,8 +2419,11 @@ static void start_create_ibss(struct adapter *padapter)
 
 		/* issue beacon */
 		if (send_beacon(padapter) == _FAIL) {
+<<<<<<< HEAD
 			RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("issuing beacon frame fail....\n"));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			report_join_res(padapter, -1);
 			pmlmeinfo->state = WIFI_FW_NULL_STATE;
 		} else {
@@ -2217,7 +2435,10 @@ static void start_create_ibss(struct adapter *padapter)
 			pmlmeinfo->state |= WIFI_FW_ASSOC_SUCCESS;
 		}
 	} else {
+<<<<<<< HEAD
 		DBG_88E("%s, invalid cap:%x\n", __func__, caps);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 	}
 }
@@ -2240,7 +2461,11 @@ static void start_clnt_join(struct adapter *padapter)
 	/* update capability */
 	caps = rtw_get_capability(pnetwork);
 	update_capinfo(padapter, caps);
+<<<<<<< HEAD
 	if (caps & cap_ESS) {
+=======
+	if (caps & WLAN_CAPABILITY_ESS) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		Set_MSR(padapter, WIFI_FW_STATION_STATE);
 
 		val8 = (pmlmeinfo->auth_algo == dot11AuthAlgrthm_8021X) ? 0xcc : 0xcf;
@@ -2258,7 +2483,11 @@ static void start_clnt_join(struct adapter *padapter)
 			  msecs_to_jiffies((REAUTH_TO * REAUTH_LIMIT) + (REASSOC_TO * REASSOC_LIMIT) + beacon_timeout));
 
 		pmlmeinfo->state = WIFI_FW_AUTH_NULL | WIFI_FW_STATION_STATE;
+<<<<<<< HEAD
 	} else if (caps & cap_IBSS) { /* adhoc client */
+=======
+	} else if (caps & WLAN_CAPABILITY_IBSS) { /* adhoc client */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		Set_MSR(padapter, WIFI_FW_ADHOC_STATE);
 
 		val8 = 0xcf;
@@ -2300,7 +2529,10 @@ static void start_clnt_auth(struct adapter *padapter)
 	/*	For the Win8 P2P connection, it will be hard to have a successful connection if this Wi-Fi doesn't connect to it. */
 	issue_deauth(padapter, (&pmlmeinfo->network)->MacAddress, WLAN_REASON_DEAUTH_LEAVING);
 
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_info_, "start auth\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	issue_auth(padapter, NULL, 0);
 
 	set_link_timer(pmlmeext, REAUTH_TO);
@@ -2333,8 +2565,11 @@ static unsigned int receive_disconnect(struct adapter *padapter,
 	if (memcmp(MacAddr, pnetwork->MacAddress, ETH_ALEN))
 		return _SUCCESS;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((pmlmeinfo->state & 0x03) == WIFI_FW_STATION_STATE) {
 		if (pmlmeinfo->state & WIFI_FW_ASSOC_SUCCESS) {
 			pmlmeinfo->state = WIFI_FW_NULL_STATE;
@@ -2382,9 +2617,12 @@ static void process_80211d(struct adapter *padapter, struct wlan_bssid_ex *bssid
 		memset(country, 0, 4);
 		memcpy(country, p, 3);
 		p += 3;
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_notice_,
 			 ("%s: 802.11d country =%s\n", __func__, country));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		i = 0;
 		while ((ie - p) >= 3) {
 			fcn = *(p++);
@@ -2478,12 +2716,17 @@ static void process_80211d(struct adapter *padapter, struct wlan_bssid_ex *bssid
 	i = 0;
 	while ((i < MAX_CHANNEL_NUM) && (chplan_new[i].ChannelNum != 0)) {
 		if (chplan_new[i].ChannelNum == channel) {
+<<<<<<< HEAD
 			if (chplan_new[i].ScanType == SCAN_PASSIVE) {
 				chplan_new[i].ScanType = SCAN_ACTIVE;
 				RT_TRACE(_module_rtl871x_mlme_c_, _drv_notice_,
 					 ("%s: change channel %d scan type from passive to active\n",
 					 __func__, channel));
 			}
+=======
+			if (chplan_new[i].ScanType == SCAN_PASSIVE)
+				chplan_new[i].ScanType = SCAN_ACTIVE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		}
 		i++;
@@ -2526,7 +2769,11 @@ static unsigned int OnProbeReq(struct adapter *padapter,
 
 		if (check_fwstate(pmlmepriv, _FW_LINKED) &&
 		    pmlmepriv->cur_network.join_res)
+<<<<<<< HEAD
 			issue_probersp(padapter, get_sa(pframe));
+=======
+			issue_probersp(padapter, ieee80211_get_SA((struct ieee80211_hdr *)pframe));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	return _SUCCESS;
 }
@@ -2593,7 +2840,10 @@ static unsigned int OnBeacon(struct adapter *padapter,
 			if (psta) {
 				ret = rtw_check_bcn_info(padapter, pframe, len);
 				if (!ret) {
+<<<<<<< HEAD
 					DBG_88E_LEVEL(_drv_info_, "ap has changed, disconnect now\n ");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					receive_disconnect(padapter, pmlmeinfo->network.MacAddress, 65535);
 					return _SUCCESS;
 				}
@@ -2656,25 +2906,34 @@ static unsigned int OnAuth(struct adapter *padapter,
 	if ((pmlmeinfo->state & 0x03) != WIFI_FW_AP_STATE)
 		return _FAIL;
 
+<<<<<<< HEAD
 	DBG_88E("+%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	sa = GetAddr2Ptr(pframe);
 
 	auth_mode = psecuritypriv->dot11AuthAlgrthm;
 	seq = le16_to_cpu(*(__le16 *)((size_t)pframe + WLAN_HDR_A3_LEN + 2));
 	algorithm = le16_to_cpu(*(__le16 *)((size_t)pframe + WLAN_HDR_A3_LEN));
 
+<<<<<<< HEAD
 	DBG_88E("auth alg=%x, seq=%X\n", algorithm, seq);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (auth_mode == 2 && psecuritypriv->dot11PrivacyAlgrthm != _WEP40_ &&
 	    psecuritypriv->dot11PrivacyAlgrthm != _WEP104_)
 		auth_mode = 0;
 
 	if ((algorithm > 0 && auth_mode == 0) ||	/*  rx a shared-key auth but shared not enabled */
 	    (algorithm == 0 && auth_mode == 1)) {	/*  rx a open-system auth but shared-key is enabled */
+<<<<<<< HEAD
 		DBG_88E("auth rejected due to bad alg [alg=%d, auth_mib=%d] %02X%02X%02X%02X%02X%02X\n",
 			algorithm, auth_mode, sa[0], sa[1], sa[2], sa[3], sa[4], sa[5]);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = WLAN_STATUS_NOT_SUPPORTED_AUTH_ALG;
 
 		goto auth_fail;
@@ -2688,10 +2947,15 @@ static unsigned int OnAuth(struct adapter *padapter,
 	pstat = rtw_get_stainfo(pstapriv, sa);
 	if (!pstat) {
 		/*  allocate a new one */
+<<<<<<< HEAD
 		DBG_88E("going to alloc stainfo for sa=%pM\n", sa);
 		pstat = rtw_alloc_stainfo(pstapriv, sa);
 		if (!pstat) {
 			DBG_88E(" Exceed the upper limit of supported clients...\n");
+=======
+		pstat = rtw_alloc_stainfo(pstapriv, sa);
+		if (!pstat) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			status = WLAN_STATUS_AP_UNABLE_TO_HANDLE_NEW_STA;
 			goto auth_fail;
 		}
@@ -2722,8 +2986,11 @@ static unsigned int OnAuth(struct adapter *padapter,
 		pstat->expire_to = pstapriv->auth_to;
 
 	if ((pstat->auth_seq + 1) != seq) {
+<<<<<<< HEAD
 		DBG_88E("(1)auth rejected because out of seq [rx_seq=%d, exp_seq=%d]!\n",
 			seq, pstat->auth_seq + 1);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = WLAN_STATUS_UNKNOWN_AUTH_TRANSACTION;
 		goto auth_fail;
 	}
@@ -2735,8 +3002,11 @@ static unsigned int OnAuth(struct adapter *padapter,
 			pstat->expire_to = pstapriv->assoc_to;
 			pstat->authalg = algorithm;
 		} else {
+<<<<<<< HEAD
 			DBG_88E("(2)auth rejected because out of seq [rx_seq=%d, exp_seq=%d]!\n",
 				seq, pstat->auth_seq + 1);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			status = WLAN_STATUS_UNKNOWN_AUTH_TRANSACTION;
 			goto auth_fail;
 		}
@@ -2750,13 +3020,19 @@ static unsigned int OnAuth(struct adapter *padapter,
 			pstat->auth_seq = 2;
 		} else if (seq == 3) {
 			/* checking for challenging txt... */
+<<<<<<< HEAD
 			DBG_88E("checking for challenging txt...\n");
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			p = rtw_get_ie(pframe + WLAN_HDR_A3_LEN + 4 + _AUTH_IE_OFFSET_, WLAN_EID_CHALLENGE, &ie_len,
 				       len - WLAN_HDR_A3_LEN - _AUTH_IE_OFFSET_ - 4);
 
 			if (!p || ie_len <= 0) {
+<<<<<<< HEAD
 				DBG_88E("auth rejected because challenge failure!(1)\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				status = WLAN_STATUS_CHALLENGE_FAIL;
 				goto auth_fail;
 			}
@@ -2767,13 +3043,19 @@ static unsigned int OnAuth(struct adapter *padapter,
 				/*  challenging txt is correct... */
 				pstat->expire_to =  pstapriv->assoc_to;
 			} else {
+<<<<<<< HEAD
 				DBG_88E("auth rejected because challenge failure!\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				status = WLAN_STATUS_CHALLENGE_FAIL;
 				goto auth_fail;
 			}
 		} else {
+<<<<<<< HEAD
 			DBG_88E("(3)auth rejected because out of seq [rx_seq=%d, exp_seq=%d]!\n",
 				seq, pstat->auth_seq + 1);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			status = WLAN_STATUS_UNKNOWN_AUTH_TRANSACTION;
 			goto auth_fail;
 		}
@@ -2816,10 +3098,15 @@ static unsigned int OnAuthClient(struct adapter *padapter,
 	u8 *pframe = precv_frame->pkt->data;
 	uint pkt_len = precv_frame->pkt->len;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
 	/* check A1 matches or not */
 	if (memcmp(myid(&padapter->eeprompriv), get_da(pframe), ETH_ALEN))
+=======
+	/* check A1 matches or not */
+	if (memcmp(myid(&padapter->eeprompriv), ieee80211_get_DA((struct ieee80211_hdr *)pframe), ETH_ALEN))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _SUCCESS;
 
 	if (!(pmlmeinfo->state & WIFI_FW_AUTH_STATE))
@@ -2831,7 +3118,10 @@ static unsigned int OnAuthClient(struct adapter *padapter,
 	status	= le16_to_cpu(*(__le16 *)((size_t)pframe + WLAN_HDR_A3_LEN + offset + 4));
 
 	if (status != 0) {
+<<<<<<< HEAD
 		DBG_88E("clnt auth fail, status: %d\n", status);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (status == 13) { /*  pmlmeinfo->auth_algo == dot11AuthAlgrthm_Auto) */
 			if (pmlmeinfo->auth_algo == dot11AuthAlgrthm_Shared)
 				pmlmeinfo->auth_algo = dot11AuthAlgrthm_Open;
@@ -2872,7 +3162,10 @@ static unsigned int OnAuthClient(struct adapter *padapter,
 	}
 
 	if (go2asoc) {
+<<<<<<< HEAD
 		DBG_88E_LEVEL(_drv_info_, "auth success, start assoc\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		start_clnt_assoc(padapter);
 		return _SUCCESS;
 	}
@@ -2887,7 +3180,11 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	u16 capab_info;
 	struct rtw_ieee802_11_elems elems;
 	struct sta_info *pstat;
+<<<<<<< HEAD
 	unsigned char reassoc, *p, *pos, *wpa_ie;
+=======
+	unsigned char *p, *pos, *wpa_ie;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned char WMM_IE[] = {0x00, 0x50, 0xf2, 0x02, 0x00, 0x01};
 	int i, wpa_ie_len, left;
 	unsigned char supportRate[16];
@@ -2907,6 +3204,7 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		return _FAIL;
 
 	frame_type = GetFrameSubType(pframe);
+<<<<<<< HEAD
 	if (frame_type == WIFI_ASSOCREQ) {
 		reassoc = 0;
 		ie_offset = _ASOCREQ_IE_OFFSET_;
@@ -2920,6 +3218,15 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		       "\n", reassoc, (unsigned long)pkt_len);
 		return _FAIL;
 	}
+=======
+	if (frame_type == IEEE80211_STYPE_ASSOC_REQ)
+		ie_offset = _ASOCREQ_IE_OFFSET_;
+	else /*  IEEE80211_STYPE_REASSOC_REQ */
+		ie_offset = _REASOCREQ_IE_OFFSET_;
+
+	if (pkt_len < IEEE80211_3ADDR_LEN + ie_offset)
+		return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pstat = rtw_get_stainfo(pstapriv, GetAddr2Ptr(pframe));
 	if (!pstat) {
@@ -2932,8 +3239,11 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	left = pkt_len - (IEEE80211_3ADDR_LEN + ie_offset);
 	pos = pframe + (IEEE80211_3ADDR_LEN + ie_offset);
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/*  check if this stat has been successfully authenticated/assocated */
 	if (!((pstat->state) & WIFI_FW_AUTH_SUCCESS)) {
 		if (!((pstat->state) & WIFI_FW_ASSOC_SUCCESS)) {
@@ -2951,8 +3261,11 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	/* now parse all ieee802_11 ie to point to elems */
 	if (rtw_ieee802_11_parse_elems(pos, left, &elems, 1) == ParseFailed ||
 	    !elems.ssid) {
+<<<<<<< HEAD
 		DBG_88E("STA %pM sent invalid association request\n",
 			pstat->hwaddr);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		status = WLAN_STATUS_UNSPECIFIED_FAILURE;
 		goto OnAssocReqFail;
 	}
@@ -2981,7 +3294,10 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	/*  check if the supported rate is ok */
 	p = rtw_get_ie(pframe + WLAN_HDR_A3_LEN + ie_offset, WLAN_EID_SUPP_RATES, &ie_len, pkt_len - WLAN_HDR_A3_LEN - ie_offset);
 	if (!p) {
+<<<<<<< HEAD
 		DBG_88E("Rx a sta assoc-req which supported rate is empty!\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		/*  use our own rate set as statoin used */
 		/* memcpy(supportRate, AP_BSSRATE, AP_BSSRATE_LEN); */
 		/* supportRateNum = AP_BSSRATE_LEN; */
@@ -3072,17 +3388,23 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	pstat->flags &= ~(WLAN_STA_WPS | WLAN_STA_MAYBE_WPS);
 	if (!wpa_ie) {
 		if (elems.wps_ie) {
+<<<<<<< HEAD
 			DBG_88E("STA included WPS IE in "
 				   "(Re)Association Request - assume WPS is "
 				   "used\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pstat->flags |= WLAN_STA_WPS;
 			/* wpabuf_free(sta->wps_ie); */
 			/* sta->wps_ie = wpabuf_alloc_copy(elems.wps_ie + 4, */
 			/*				elems.wps_ie_len - 4); */
 		} else {
+<<<<<<< HEAD
 			DBG_88E("STA did not include WPA/RSN IE "
 				   "in (Re)Association Request - possible WPS "
 				   "use\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pstat->flags |= WLAN_STA_MAYBE_WPS;
 		}
 
@@ -3095,8 +3417,11 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 				rtw_get_wps_attr_content(pmlmepriv->wps_beacon_ie, pmlmepriv->wps_beacon_ie_len, WPS_ATTR_SELECTED_REGISTRAR, &selected_registrar, NULL);
 
 				if (!selected_registrar) {
+<<<<<<< HEAD
 					DBG_88E("selected_registrar is false , or AP is not ready to do WPS\n");
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					status = WLAN_STATUS_AP_UNABLE_TO_HANDLE_NEW_STA;
 
 					goto OnAssocReqFail;
@@ -3107,18 +3432,24 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		int copy_len;
 
 		if (psecuritypriv->wpa_psk == 0) {
+<<<<<<< HEAD
 			DBG_88E("STA %pM: WPA/RSN IE in association "
 			"request, but AP don't support WPA/RSN\n", pstat->hwaddr);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			status = WLAN_STATUS_INVALID_IE;
 
 			goto OnAssocReqFail;
 		}
 
 		if (elems.wps_ie) {
+<<<<<<< HEAD
 			DBG_88E("STA included WPS IE in "
 				   "(Re)Association Request - WPS is "
 				   "used\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			pstat->flags |= WLAN_STA_WPS;
 			copy_len = 0;
 		} else {
@@ -3202,6 +3533,7 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		goto OnAssocReqFail;
 	}
 
+<<<<<<< HEAD
 	if ((pstat->flags & WLAN_STA_HT) &&
 	    ((pstat->wpa2_pairwise_cipher & WPA_CIPHER_TKIP) ||
 	    (pstat->wpa_pairwise_cipher & WPA_CIPHER_TKIP))) {
@@ -3212,6 +3544,8 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		/* goto OnAssocReqFail; */
 	}
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pstat->flags |= WLAN_STA_NONERP;
 	for (i = 0; i < pstat->bssratelen; i++) {
 		if ((pstat->bssrateset[i] & 0x7f) > 22) {
@@ -3235,9 +3569,13 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 	/*  Customer proprietary IE */
 
 	/* get a unique AID */
+<<<<<<< HEAD
 	if (pstat->aid > 0) {
 		DBG_88E("  old AID %d\n", pstat->aid);
 	} else {
+=======
+	if (pstat->aid <= 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		for (pstat->aid = 1; pstat->aid <= NUM_STA; pstat->aid++)
 			if (!pstapriv->sta_aid[pstat->aid - 1])
 				break;
@@ -3246,14 +3584,20 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		if (pstat->aid > pstapriv->max_num_sta) {
 			pstat->aid = 0;
 
+<<<<<<< HEAD
 			DBG_88E("  no room for more AIDs\n");
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			status = WLAN_STATUS_AP_UNABLE_TO_HANDLE_NEW_STA;
 
 			goto OnAssocReqFail;
 		} else {
 			pstapriv->sta_aid[pstat->aid - 1] = pstat;
+<<<<<<< HEAD
 			DBG_88E("allocate new AID=(%d)\n", pstat->aid);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -3282,6 +3626,7 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 		sta_info_update(padapter, pstat);
 
 		/* issue assoc rsp before notify station join event. */
+<<<<<<< HEAD
 		if (frame_type == WIFI_ASSOCREQ)
 			issue_asocrsp(padapter, status, pstat, WIFI_ASSOCRSP);
 		else
@@ -3289,6 +3634,14 @@ static unsigned int OnAssocReq(struct adapter *padapter,
 
 		/* 2 - report to upper layer */
 		DBG_88E("indicate_sta_join_event to upper layer - hostapd\n");
+=======
+		if (frame_type == IEEE80211_STYPE_ASSOC_REQ)
+			issue_asocrsp(padapter, status, pstat, IEEE80211_STYPE_ASSOC_RESP);
+		else
+			issue_asocrsp(padapter, status, pstat, IEEE80211_STYPE_REASSOC_RESP);
+
+		/* 2 - report to upper layer */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rtw_indicate_sta_assoc_event(padapter, pstat);
 
 		/* 3-(1) report sta add event */
@@ -3306,10 +3659,17 @@ asoc_class2_error:
 OnAssocReqFail:
 
 	pstat->aid = 0;
+<<<<<<< HEAD
 	if (frame_type == WIFI_ASSOCREQ)
 		issue_asocrsp(padapter, status, pstat, WIFI_ASSOCRSP);
 	else
 		issue_asocrsp(padapter, status, pstat, WIFI_REASSOCRSP);
+=======
+	if (frame_type == IEEE80211_STYPE_ASSOC_REQ)
+		issue_asocrsp(padapter, status, pstat, IEEE80211_STYPE_ASSOC_RESP);
+	else
+		issue_asocrsp(padapter, status, pstat, IEEE80211_STYPE_REASSOC_RESP);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* CONFIG_88EU_AP_MODE */
 
@@ -3329,10 +3689,15 @@ static unsigned int OnAssocRsp(struct adapter *padapter,
 	u8 *pframe = precv_frame->pkt->data;
 	uint pkt_len = precv_frame->pkt->len;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
 	/* check A1 matches or not */
 	if (memcmp(myid(&padapter->eeprompriv), get_da(pframe), ETH_ALEN))
+=======
+	/* check A1 matches or not */
+	if (memcmp(myid(&padapter->eeprompriv), ieee80211_get_DA((struct ieee80211_hdr *)pframe), ETH_ALEN))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return _SUCCESS;
 
 	if (!(pmlmeinfo->state & (WIFI_FW_AUTH_SUCCESS | WIFI_FW_ASSOC_STATE)))
@@ -3346,7 +3711,10 @@ static unsigned int OnAssocRsp(struct adapter *padapter,
 	/* status */
 	status = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN + 2));
 	if (status > 0) {
+<<<<<<< HEAD
 		DBG_88E("assoc reject, status code: %d\n", status);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pmlmeinfo->state = WIFI_FW_NULL_STATE;
 		res = -4;
 		goto report_assoc_result;
@@ -3381,6 +3749,10 @@ static unsigned int OnAssocRsp(struct adapter *padapter,
 			break;
 		case WLAN_EID_ERP_INFO:
 			ERP_IE_handler(padapter, pIE);
+<<<<<<< HEAD
+=======
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		default:
 			break;
 		}
@@ -3420,16 +3792,22 @@ static unsigned int OnDeAuth(struct adapter *padapter,
 
 	reason = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN));
 
+<<<<<<< HEAD
 	DBG_88E("%s Reason code(%d)\n", __func__, reason);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_88EU_AP_MODE
 	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
 		struct sta_info *psta;
 		struct sta_priv *pstapriv = &padapter->stapriv;
 
+<<<<<<< HEAD
 		DBG_88E_LEVEL(_drv_always_, "ap recv deauth reason code(%d) sta:%pM\n",
 			      reason, GetAddr2Ptr(pframe));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		psta = rtw_get_stainfo(pstapriv, GetAddr2Ptr(pframe));
 		if (psta) {
 			u8 updated = 0;
@@ -3448,9 +3826,12 @@ static unsigned int OnDeAuth(struct adapter *padapter,
 		return _SUCCESS;
 	}
 #endif
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_always_, "sta recv deauth reason code(%d) sta:%pM\n",
 		      reason, GetAddr3Ptr(pframe));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	receive_disconnect(padapter, GetAddr3Ptr(pframe), reason);
 
 	pmlmepriv->LinkDetectInfo.bBusyTraffic = false;
@@ -3473,16 +3854,22 @@ static unsigned int OnDisassoc(struct adapter *padapter,
 
 	reason = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN));
 
+<<<<<<< HEAD
 	DBG_88E("%s Reason code(%d)\n", __func__, reason);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #ifdef CONFIG_88EU_AP_MODE
 	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
 		struct sta_info *psta;
 		struct sta_priv *pstapriv = &padapter->stapriv;
 
+<<<<<<< HEAD
 		DBG_88E_LEVEL(_drv_always_, "ap recv disassoc reason code(%d) sta:%pM\n",
 			      reason, GetAddr2Ptr(pframe));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		psta = rtw_get_stainfo(pstapriv, GetAddr2Ptr(pframe));
 		if (psta) {
 			u8 updated = 0;
@@ -3501,9 +3888,12 @@ static unsigned int OnDisassoc(struct adapter *padapter,
 		return _SUCCESS;
 	}
 #endif
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_always_, "ap recv disassoc reason code(%d) sta:%pM\n",
 		      reason, GetAddr3Ptr(pframe));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	receive_disconnect(padapter, GetAddr3Ptr(pframe), reason);
 
 	pmlmepriv->LinkDetectInfo.bBusyTraffic = false;
@@ -3513,7 +3903,10 @@ static unsigned int OnDisassoc(struct adapter *padapter,
 static unsigned int OnAtim(struct adapter *padapter,
 			   struct recv_frame *precv_frame)
 {
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return _SUCCESS;
 }
 
@@ -3527,8 +3920,11 @@ static unsigned int on_action_spct(struct adapter *padapter,
 	u8 category;
 	u8 action;
 
+<<<<<<< HEAD
 	DBG_88E(FUNC_NDEV_FMT"\n", FUNC_NDEV_ARG(padapter->pnetdev));
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	psta = rtw_get_stainfo(pstapriv, GetAddr2Ptr(pframe));
 
 	if (!psta)
@@ -3575,7 +3971,11 @@ static unsigned int OnAction_back(struct adapter *padapter,
 	struct recv_reorder_ctrl *preorder_ctrl;
 	unsigned char *frame_body;
 	unsigned char category, action;
+<<<<<<< HEAD
 	unsigned short tid, status, reason_code = 0;
+=======
+	unsigned short tid, status;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	u8 *pframe = precv_frame->pkt->data;
@@ -3586,8 +3986,11 @@ static unsigned int OnAction_back(struct adapter *padapter,
 		   ETH_ALEN))/* for if1, sta/ap mode */
 		return _SUCCESS;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((pmlmeinfo->state & 0x03) != WIFI_FW_AP_STATE)
 		if (!(pmlmeinfo->state & WIFI_FW_ASSOC_SUCCESS))
 			return _SUCCESS;
@@ -3605,14 +4008,20 @@ static unsigned int OnAction_back(struct adapter *padapter,
 		if (!pmlmeinfo->HT_enable)
 			return _SUCCESS;
 		action = frame_body[1];
+<<<<<<< HEAD
 		DBG_88E("%s, action=%d\n", __func__, action);
 		switch (action) {
 		case RTW_WLAN_ACTION_ADDBA_REQ: /* ADDBA request */
+=======
+		switch (action) {
+		case WLAN_ACTION_ADDBA_REQ:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			memcpy(&pmlmeinfo->ADDBA_req, &frame_body[2], sizeof(struct ADDBA_request));
 			process_addba_req(padapter, (u8 *)&pmlmeinfo->ADDBA_req, addr);
 
 			/* 37 = reject ADDBA Req */
 			issue_action_BA(padapter, addr,
+<<<<<<< HEAD
 					RTW_WLAN_ACTION_ADDBA_RESP,
 					pmlmeinfo->accept_addba_req ? 0 : 37);
 			break;
@@ -3621,24 +4030,43 @@ static unsigned int OnAction_back(struct adapter *padapter,
 			tid = (frame_body[5] >> 2) & 0x7;
 			if (status == 0) {	/* successful */
 				DBG_88E("agg_enable for TID=%d\n", tid);
+=======
+					WLAN_ACTION_ADDBA_RESP,
+					pmlmeinfo->accept_addba_req ? 0 : 37);
+			break;
+		case WLAN_ACTION_ADDBA_RESP:
+			status = get_unaligned_le16(&frame_body[3]);
+			tid = (frame_body[5] >> 2) & 0x7;
+			if (status == 0) {	/* successful */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				psta->htpriv.agg_enable_bitmap |= 1 << tid;
 				psta->htpriv.candidate_tid_bitmap &= ~BIT(tid);
 			} else {
 				psta->htpriv.agg_enable_bitmap &= ~BIT(tid);
 			}
 			break;
+<<<<<<< HEAD
 		case RTW_WLAN_ACTION_DELBA: /* DELBA */
 			if ((frame_body[3] & BIT(3)) == 0) {
 				psta->htpriv.agg_enable_bitmap &= ~(1 << ((frame_body[3] >> 4) & 0xf));
 				psta->htpriv.candidate_tid_bitmap &= ~(1 << ((frame_body[3] >> 4) & 0xf));
 				reason_code = get_unaligned_le16(&frame_body[4]);
+=======
+		case WLAN_ACTION_DELBA:
+			if ((frame_body[3] & BIT(3)) == 0) {
+				psta->htpriv.agg_enable_bitmap &= ~(1 << ((frame_body[3] >> 4) & 0xf));
+				psta->htpriv.candidate_tid_bitmap &= ~(1 << ((frame_body[3] >> 4) & 0xf));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			} else if ((frame_body[3] & BIT(3)) == BIT(3)) {
 				tid = (frame_body[3] >> 4) & 0x0F;
 				preorder_ctrl =  &psta->recvreorder_ctrl[tid];
 				preorder_ctrl->enable = false;
 				preorder_ctrl->indicate_seq = 0xffff;
 			}
+<<<<<<< HEAD
 			DBG_88E("%s(): DELBA: %x(%x)\n", __func__, pmlmeinfo->agg_enable_bitmap, reason_code);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/* todo: how to notify the host while receiving DELETE BA */
 			break;
 		default:
@@ -3658,6 +4086,7 @@ static s32 rtw_action_public_decache(struct recv_frame *recv_frame, s32 token)
 
 	if (GetRetry(frame)) {
 		if (token >= 0) {
+<<<<<<< HEAD
 			if ((seq_ctrl == mlmeext->action_public_rxseq) && (token == mlmeext->action_public_dialog_token)) {
 				DBG_88E(FUNC_ADPT_FMT" seq_ctrl = 0x%x, rxseq = 0x%x, token:%d\n",
 					FUNC_ADPT_ARG(adapter), seq_ctrl, mlmeext->action_public_rxseq, token);
@@ -3669,6 +4098,13 @@ static s32 rtw_action_public_decache(struct recv_frame *recv_frame, s32 token)
 					FUNC_ADPT_ARG(adapter), seq_ctrl, mlmeext->action_public_rxseq);
 				return _FAIL;
 			}
+=======
+			if ((seq_ctrl == mlmeext->action_public_rxseq) && (token == mlmeext->action_public_dialog_token))
+				return _FAIL;
+		} else {
+			if (seq_ctrl == mlmeext->action_public_rxseq)
+				return _FAIL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 	}
 
@@ -3822,6 +4258,7 @@ Following are the initialization functions for WiFi MLME
 *****************************************************************************/
 
 static struct mlme_handler mlme_sta_tbl[] = {
+<<<<<<< HEAD
 	{WIFI_ASSOCREQ,	  "OnAssocReq",	  &OnAssocReq},
 	{WIFI_ASSOCRSP,	  "OnAssocRsp",	  &OnAssocRsp},
 	{WIFI_REASSOCREQ, "OnReAssocReq", &OnAssocReq},
@@ -3836,6 +4273,22 @@ static struct mlme_handler mlme_sta_tbl[] = {
 	{WIFI_AUTH,	  "OnAuth",	  &OnAuthClient},
 	{WIFI_DEAUTH,	  "OnDeAuth",	  &OnDeAuth},
 	{WIFI_ACTION,	  "OnAction",	  &OnAction},
+=======
+	{IEEE80211_STYPE_ASSOC_REQ,	"OnAssocReq",	&OnAssocReq},
+	{IEEE80211_STYPE_ASSOC_RESP,	"OnAssocRsp",	&OnAssocRsp},
+	{IEEE80211_STYPE_REASSOC_REQ,	"OnReAssocReq",	&OnAssocReq},
+	{IEEE80211_STYPE_REASSOC_RESP,	"OnReAssocRsp",	&OnAssocRsp},
+	{IEEE80211_STYPE_PROBE_REQ,	"OnProbeReq",	&OnProbeReq},
+	{IEEE80211_STYPE_PROBE_RESP,	"OnProbeRsp",	&OnProbeRsp},
+	{0,				"DoReserved",	&DoReserved},
+	{0,				"DoReserved",	&DoReserved},
+	{IEEE80211_STYPE_BEACON,	"OnBeacon",	&OnBeacon},
+	{IEEE80211_STYPE_ATIM,		"OnATIM",	&OnAtim},
+	{IEEE80211_STYPE_DISASSOC,	"OnDisassoc",	&OnDisassoc},
+	{IEEE80211_STYPE_AUTH,		"OnAuth",	&OnAuthClient},
+	{IEEE80211_STYPE_DEAUTH,	"OnDeAuth",	&OnDeAuth},
+	{IEEE80211_STYPE_ACTION,	"OnAction",	&OnAction},
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 int init_hw_mlme_ext(struct adapter *padapter)
@@ -3971,10 +4424,15 @@ static u8 init_channel_set(struct adapter *padapter, u8 ChannelPlan,
 
 	memset(channel_set, 0, sizeof(struct rt_channel_info) * MAX_CHANNEL_NUM);
 
+<<<<<<< HEAD
 	if (ChannelPlan >= RT_CHANNEL_DOMAIN_MAX && ChannelPlan != RT_CHANNEL_DOMAIN_REALTEK_DEFINE) {
 		DBG_88E("ChannelPlan ID %x error !!!!!\n", ChannelPlan);
 		return chanset_size;
 	}
+=======
+	if (ChannelPlan >= RT_CHANNEL_DOMAIN_MAX && ChannelPlan != RT_CHANNEL_DOMAIN_REALTEK_DEFINE)
+		return chanset_size;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (padapter->registrypriv.wireless_mode & WIRELESS_11G) {
 		b2_4GBand = true;
@@ -4017,8 +4475,11 @@ int init_mlme_ext_priv(struct adapter *padapter)
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 
+<<<<<<< HEAD
 	pmlmeext->padapter = padapter;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	init_mlme_ext_priv_value(padapter);
 	pmlmeinfo->accept_addba_req = pregistrypriv->accept_addba_req;
 
@@ -4041,10 +4502,14 @@ int init_mlme_ext_priv(struct adapter *padapter)
 
 void free_mlme_ext_priv(struct mlme_ext_priv *pmlmeext)
 {
+<<<<<<< HEAD
 	struct adapter *padapter = pmlmeext->padapter;
 
 	if (!padapter)
 		return;
+=======
+	struct adapter *padapter = container_of(pmlmeext, struct adapter, mlmeextpriv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (padapter->bDriverStopped) {
 		del_timer_sync(&pmlmeext->survey_timer);
@@ -4056,13 +4521,20 @@ static void _mgt_dispatcher(struct adapter *padapter,
 			    struct mlme_handler *ptable,
 			    struct recv_frame *precv_frame)
 {
+<<<<<<< HEAD
 	u8 bc_addr[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 *pframe = precv_frame->pkt->data;
 
 	if (ptable->func) {
 		/* receive the frames that ra(a1) is my address or ra(a1) is bc address. */
 		if (memcmp(GetAddr1Ptr(pframe), myid(&padapter->eeprompriv), ETH_ALEN) &&
+<<<<<<< HEAD
 		    memcmp(GetAddr1Ptr(pframe), bc_addr, ETH_ALEN))
+=======
+		    !is_broadcast_ether_addr(GetAddr1Ptr(pframe)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			return;
 		ptable->func(padapter, precv_frame);
 	}
@@ -4075,6 +4547,7 @@ void mgt_dispatcher(struct adapter *padapter, struct recv_frame *precv_frame)
 #ifdef CONFIG_88EU_AP_MODE
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 #endif
+<<<<<<< HEAD
 	u8 bc_addr[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	u8 *pframe = precv_frame->pkt->data;
 	struct sta_info *psta = rtw_get_stainfo(&padapter->stapriv, GetAddr2Ptr(pframe));
@@ -4094,44 +4567,78 @@ void mgt_dispatcher(struct adapter *padapter, struct recv_frame *precv_frame)
 	/* receive the frames that ra(a1) is my address or ra(a1) is bc address. */
 	if (memcmp(GetAddr1Ptr(pframe), myid(&padapter->eeprompriv), ETH_ALEN) &&
 	    memcmp(GetAddr1Ptr(pframe), bc_addr, ETH_ALEN))
+=======
+	u8 *pframe = precv_frame->pkt->data;
+	struct sta_info *psta = rtw_get_stainfo(&padapter->stapriv, GetAddr2Ptr(pframe));
+
+	if (GetFrameType(pframe) != WIFI_MGT_TYPE)
+		return;
+
+	/* receive the frames that ra(a1) is my address or ra(a1) is bc address. */
+	if (memcmp(GetAddr1Ptr(pframe), myid(&padapter->eeprompriv), ETH_ALEN) &&
+	    !is_broadcast_ether_addr(GetAddr1Ptr(pframe)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return;
 
 	ptable = mlme_sta_tbl;
 
 	index = GetFrameSubType(pframe) >> 4;
 
+<<<<<<< HEAD
 	if (index > 13) {
 		RT_TRACE(_module_rtl871x_mlme_c_, _drv_err_, ("Currently we do not support reserved sub-fr-type=%d\n", index));
 		return;
 	}
+=======
+	if (index > 13)
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	ptable += index;
 
 	if (psta) {
 		if (GetRetry(pframe)) {
 			if (precv_frame->attrib.seq_num ==
+<<<<<<< HEAD
 			    psta->RxMgmtFrameSeqNum) {
 				/* drop the duplicate management frame */
 				DBG_88E("Drop duplicate management frame with seq_num=%d.\n",
 					precv_frame->attrib.seq_num);
 				return;
 			}
+=======
+			    psta->RxMgmtFrameSeqNum)
+				/* drop the duplicate management frame */
+				return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		psta->RxMgmtFrameSeqNum = precv_frame->attrib.seq_num;
 	}
 
 #ifdef CONFIG_88EU_AP_MODE
 	switch (GetFrameSubType(pframe)) {
+<<<<<<< HEAD
 	case WIFI_AUTH:
+=======
+	case IEEE80211_STYPE_AUTH:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (check_fwstate(pmlmepriv, WIFI_AP_STATE))
 			ptable->func = &OnAuth;
 		else
 			ptable->func = &OnAuthClient;
 		fallthrough;
+<<<<<<< HEAD
 	case WIFI_ASSOCREQ:
 	case WIFI_REASSOCREQ:
 	case WIFI_PROBEREQ:
 	case WIFI_BEACON:
 	case WIFI_ACTION:
+=======
+	case IEEE80211_STYPE_ASSOC_REQ:
+	case IEEE80211_STYPE_REASSOC_REQ:
+	case IEEE80211_STYPE_PROBE_REQ:
+	case IEEE80211_STYPE_BEACON:
+	case IEEE80211_STYPE_ACTION:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		_mgt_dispatcher(padapter, ptable, precv_frame);
 		break;
 	default:
@@ -4244,8 +4751,11 @@ void report_surveydone_event(struct adapter *padapter)
 	psurveydone_evt = (struct surveydone_event *)(pevtcmd + sizeof(struct C2HEvent_Header));
 	psurveydone_evt->bss_cnt = pmlmeext->sitesurvey_res.bss_cnt;
 
+<<<<<<< HEAD
 	DBG_88E("survey done event(%x)\n", psurveydone_evt->bss_cnt);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_enqueue_cmd(pcmdpriv, pcmd_obj);
 }
 
@@ -4290,8 +4800,11 @@ void report_join_res(struct adapter *padapter, int res)
 	pjoinbss_evt->network.join_res	= res;
 	pjoinbss_evt->network.aid = res;
 
+<<<<<<< HEAD
 	DBG_88E("%s(%d)\n", __func__, res);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_joinbss_event_prehandle(padapter, (u8 *)&pjoinbss_evt->network);
 
 	rtw_enqueue_cmd(pcmdpriv, pcmd_obj);
@@ -4347,8 +4860,11 @@ void report_del_sta_event(struct adapter *padapter, unsigned char *MacAddr,
 
 	pdel_sta_evt->mac_id = mac_id;
 
+<<<<<<< HEAD
 	DBG_88E("%s: delete STA, mac_id =%d\n", __func__, mac_id);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_enqueue_cmd(pcmdpriv, pcmd_obj);
 }
 
@@ -4392,8 +4908,11 @@ void report_add_sta_event(struct adapter *padapter, unsigned char *MacAddr,
 	ether_addr_copy((unsigned char *)(&padd_sta_evt->macaddr), MacAddr);
 	padd_sta_evt->cam_id = cam_idx;
 
+<<<<<<< HEAD
 	DBG_88E("%s: add STA\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	rtw_enqueue_cmd(pcmdpriv, pcmd_obj);
 }
 
@@ -4462,7 +4981,11 @@ void mlmeext_joinbss_event_callback(struct adapter *padapter, int join_res)
 		/* restore to initial setting. */
 		update_tx_basic_rate(padapter, padapter->registrypriv.wireless_mode);
 
+<<<<<<< HEAD
 		goto exit_mlmeext_joinbss_event_callback;
+=======
+		return;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if ((pmlmeinfo->state & 0x03) == WIFI_FW_ADHOC_STATE) {
@@ -4518,10 +5041,13 @@ void mlmeext_joinbss_event_callback(struct adapter *padapter, int join_res)
 		correct_TSF(padapter, pmlmeext);
 	}
 	rtw_lps_ctrl_wk_cmd(padapter, LPS_CTRL_CONNECT, 0);
+<<<<<<< HEAD
 
 exit_mlmeext_joinbss_event_callback:
 
 	DBG_88E("=>%s\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void mlmeext_sta_add_event_callback(struct adapter *padapter, struct sta_info *psta)
@@ -4530,8 +5056,11 @@ void mlmeext_sta_add_event_callback(struct adapter *padapter, struct sta_info *p
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	u8 join_type;
 
+<<<<<<< HEAD
 	DBG_88E("%s\n", __func__);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((pmlmeinfo->state & 0x03) == WIFI_FW_ADHOC_STATE) {
 		if (pmlmeinfo->state & WIFI_FW_ASSOC_SUCCESS) {/* adhoc master or sta_count>1 */
 			/* nothing to do */
@@ -4683,8 +5212,11 @@ void linked_status_chk(struct adapter *padapter)
 			if (rx_chk == _FAIL) {
 				pmlmeext->retry++;
 				if (pmlmeext->retry > rx_chk_limit) {
+<<<<<<< HEAD
 					DBG_88E_LEVEL(_drv_always_, FUNC_ADPT_FMT" disconnect or roaming\n",
 						      FUNC_ADPT_ARG(padapter));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 					receive_disconnect(padapter, pmlmeinfo->network.MacAddress,
 							   WLAN_REASON_EXPIRATION_CHK);
 					return;
@@ -4744,8 +5276,11 @@ void survey_timer_hdl(struct timer_list *t)
 
 		if (pmlmeext->scan_abort) {
 			pmlmeext->sitesurvey_res.channel_idx = pmlmeext->sitesurvey_res.ch_num;
+<<<<<<< HEAD
 			DBG_88E("%s idx:%d\n", __func__
 				, pmlmeext->sitesurvey_res.channel_idx);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			pmlmeext->scan_abort = false;/* reset */
 		}
@@ -4776,7 +5311,10 @@ void link_timer_hdl(struct timer_list *t)
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 
 	if (pmlmeinfo->state & WIFI_FW_AUTH_NULL) {
+<<<<<<< HEAD
 		DBG_88E("%s:no beacon while connecting\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pmlmeinfo->state = WIFI_FW_NULL_STATE;
 		report_join_res(padapter, -3);
 	} else if (pmlmeinfo->state & WIFI_FW_AUTH_STATE) {
@@ -4787,7 +5325,10 @@ void link_timer_hdl(struct timer_list *t)
 			return;
 		}
 
+<<<<<<< HEAD
 		DBG_88E("%s: auth timeout and try again\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		pmlmeinfo->auth_seq = 1;
 		issue_auth(padapter, NULL, 0);
 		set_link_timer(pmlmeext, REAUTH_TO);
@@ -4799,7 +5340,10 @@ void link_timer_hdl(struct timer_list *t)
 			return;
 		}
 
+<<<<<<< HEAD
 		DBG_88E("%s: assoc timeout and try again\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		issue_assocreq(padapter);
 		set_link_timer(pmlmeext, REASSOC_TO);
 	}
@@ -4991,9 +5535,14 @@ u8 join_cmd_hdl(struct adapter *padapter, u8 *pbuf)
 					default:
 						pmlmeext->cur_ch_offset = HAL_PRIME_CHNL_OFFSET_DONT_CARE;
 						break;
+<<<<<<< HEAD
 				}
 
 					DBG_88E("set ch/bw before connected\n");
+=======
+					}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				}
 			}
 			break;
@@ -5204,8 +5753,11 @@ u8 setkey_hdl(struct adapter *padapter, u8 *pbuf)
 	/* write cam */
 	ctrl = BIT(15) | ((pparm->algorithm) << 2) | pparm->keyid;
 
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_info_, "set group key to hw: alg:%d(WEP40-1 WEP104-5 TKIP-2 AES-4) "
 			"keyid:%d\n", pparm->algorithm, pparm->keyid);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	write_cam(padapter, pparm->keyid, ctrl, null_sta, pparm->key);
 
 	return H2C_SUCCESS;
@@ -5234,8 +5786,11 @@ u8 set_stakey_hdl(struct adapter *padapter, u8 *pbuf)
 
 	cam_id = 4;
 
+<<<<<<< HEAD
 	DBG_88E_LEVEL(_drv_info_, "set pairwise key to hw: alg:%d(WEP40-1 WEP104-5 TKIP-2 AES-4) camid:%d\n",
 		      pparm->algorithm, cam_id);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if ((pmlmeinfo->state & 0x03) == WIFI_FW_AP_STATE) {
 		struct sta_info *psta;
 		struct sta_priv *pstapriv = &padapter->stapriv;
@@ -5249,6 +5804,7 @@ u8 set_stakey_hdl(struct adapter *padapter, u8 *pbuf)
 		if (psta) {
 			ctrl = BIT(15) | ((pparm->algorithm) << 2);
 
+<<<<<<< HEAD
 			DBG_88E("r871x_set_stakey_hdl(): enc_algorithm=%d\n", pparm->algorithm);
 
 			if ((psta->mac_id < 1) || (psta->mac_id > (NUM_STA - 4))) {
@@ -5261,12 +5817,22 @@ u8 set_stakey_hdl(struct adapter *padapter, u8 *pbuf)
 			DBG_88E("Write CAM, mac_addr =%pM, cam_entry=%d\n",
 				pparm->addr, cam_id);
 
+=======
+			if ((psta->mac_id < 1) || (psta->mac_id > (NUM_STA - 4)))
+				return H2C_REJECTED;
+
+			cam_id = psta->mac_id + 3;/* 0~3 for default key, cmd_id = macid + 3, macid = aid+1; */
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			write_cam(padapter, cam_id, ctrl, pparm->addr, pparm->key);
 
 			return H2C_SUCCESS_RSP;
 		}
 
+<<<<<<< HEAD
 		DBG_88E("r871x_set_stakey_hdl(): sta has been free\n");
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return H2C_REJECTED;
 	}
 
@@ -5294,7 +5860,11 @@ u8 add_ba_hdl(struct adapter *padapter, unsigned char *pbuf)
 
 	if (((pmlmeinfo->state & WIFI_FW_ASSOC_SUCCESS) && (pmlmeinfo->HT_enable)) ||
 	    ((pmlmeinfo->state & 0x03) == WIFI_FW_AP_STATE)) {
+<<<<<<< HEAD
 		issue_action_BA(padapter, pparm->addr, RTW_WLAN_ACTION_ADDBA_REQ, (u16)pparm->tid);
+=======
+		issue_action_BA(padapter, pparm->addr, WLAN_ACTION_ADDBA_REQ, (u16)pparm->tid);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mod_timer(&psta->addba_retry_timer,
 			  jiffies + msecs_to_jiffies(ADDBA_TO));
 	} else {
@@ -5352,6 +5922,7 @@ u8 mlme_evt_hdl(struct adapter *padapter, unsigned char *pbuf)
 	evt_code = (u8)((*peventbuf >> 16) & 0xff);
 
 	/*  checking if event code is valid */
+<<<<<<< HEAD
 	if (evt_code >= MAX_C2HEVT) {
 		RT_TRACE(_module_rtl871x_cmd_c_, _drv_err_, ("\nEvent Code(%d) mismatch!\n", evt_code));
 		goto _abort_event_;
@@ -5365,6 +5936,15 @@ u8 mlme_evt_hdl(struct adapter *padapter, unsigned char *pbuf)
 			 evt_code, wlanevents[evt_code].parmsize, evt_sz));
 		goto _abort_event_;
 	}
+=======
+	if (evt_code >= MAX_C2HEVT)
+		goto _abort_event_;
+
+	/*  checking if event size match the event parm size */
+	if ((wlanevents[evt_code].parmsize != 0) &&
+	    (wlanevents[evt_code].parmsize != evt_sz))
+		goto _abort_event_;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	peventbuf += 2;
 
@@ -5379,6 +5959,7 @@ _abort_event_:
 
 u8 tx_beacon_hdl(struct adapter *padapter, unsigned char *pbuf)
 {
+<<<<<<< HEAD
 	if (send_beacon(padapter) == _FAIL) {
 		DBG_88E("issue_beacon, fail!\n");
 		return H2C_PARAMETERS_ERROR;
@@ -5388,6 +5969,15 @@ u8 tx_beacon_hdl(struct adapter *padapter, unsigned char *pbuf)
 		struct sta_info *psta_bmc;
 		struct list_head *xmitframe_plist, *xmitframe_phead;
 		struct xmit_frame *pxmitframe = NULL;
+=======
+	if (send_beacon(padapter) == _FAIL)
+		return H2C_PARAMETERS_ERROR;
+#ifdef CONFIG_88EU_AP_MODE
+	else { /* tx bc/mc frames after update TIM */
+		struct sta_info *psta_bmc;
+		struct list_head *xmitframe_phead;
+		struct xmit_frame *pxmitframe, *n;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		struct sta_priv *pstapriv = &padapter->stapriv;
 
 		/* for BC/MC Frames */
@@ -5400,6 +5990,7 @@ u8 tx_beacon_hdl(struct adapter *padapter, unsigned char *pbuf)
 			spin_lock_bh(&psta_bmc->sleep_q.lock);
 
 			xmitframe_phead = get_list_head(&psta_bmc->sleep_q);
+<<<<<<< HEAD
 			xmitframe_plist = xmitframe_phead->next;
 
 			while (xmitframe_phead != xmitframe_plist) {
@@ -5407,6 +5998,10 @@ u8 tx_beacon_hdl(struct adapter *padapter, unsigned char *pbuf)
 
 				xmitframe_plist = xmitframe_plist->next;
 
+=======
+			list_for_each_entry_safe(pxmitframe, n, xmitframe_phead,
+						 list) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 				list_del_init(&pxmitframe->list);
 
 				psta_bmc->sleepq_len--;
@@ -5441,10 +6036,13 @@ u8 set_ch_hdl(struct adapter *padapter, u8 *pbuf)
 
 	set_ch_parm = (struct set_ch_parm *)pbuf;
 
+<<<<<<< HEAD
 	DBG_88E(FUNC_NDEV_FMT" ch:%u, bw:%u, ch_offset:%u\n",
 		FUNC_NDEV_ARG(padapter->pnetdev),
 		set_ch_parm->ch, set_ch_parm->bw, set_ch_parm->ch_offset);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	pmlmeext->cur_channel = set_ch_parm->ch;
 	pmlmeext->cur_ch_offset = set_ch_parm->ch_offset;
 	pmlmeext->cur_bwmode = set_ch_parm->bw;

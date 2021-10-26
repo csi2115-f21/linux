@@ -1129,6 +1129,34 @@ struct lpfc_mbx_nembed_sge_virt {
 	void *addr[LPFC_SLI4_MBX_SGE_MAX_PAGES];
 };
 
+<<<<<<< HEAD
+=======
+#define LPFC_MBX_OBJECT_NAME_LEN_DW	26
+struct lpfc_mbx_read_object {  /* Version 0 */
+	struct mbox_header header;
+	union {
+		struct {
+			uint32_t word0;
+#define lpfc_mbx_rd_object_rlen_SHIFT	0
+#define lpfc_mbx_rd_object_rlen_MASK	0x00FFFFFF
+#define lpfc_mbx_rd_object_rlen_WORD	word0
+			uint32_t rd_object_offset;
+			uint32_t rd_object_name[LPFC_MBX_OBJECT_NAME_LEN_DW];
+#define LPFC_OBJ_NAME_SZ 104   /* 26 x sizeof(uint32_t) is 104. */
+			uint32_t rd_object_cnt;
+			struct lpfc_mbx_host_buf rd_object_hbuf[4];
+		} request;
+		struct {
+			uint32_t rd_object_actual_rlen;
+			uint32_t word1;
+#define lpfc_mbx_rd_object_eof_SHIFT	31
+#define lpfc_mbx_rd_object_eof_MASK	0x1
+#define lpfc_mbx_rd_object_eof_WORD	word1
+		} response;
+	} u;
+};
+
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 struct lpfc_mbx_eq_create {
 	struct mbox_header header;
 	union {

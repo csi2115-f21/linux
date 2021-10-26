@@ -678,6 +678,12 @@ static int kfd_fill_gpu_cache_info(struct kfd_dev *kdev,
 		break;
 	case CHIP_NAVI10:
 	case CHIP_NAVI12:
+<<<<<<< HEAD
+=======
+		pcache_info = navi10_cache_info;
+		num_of_cache_types = ARRAY_SIZE(navi10_cache_info);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case CHIP_NAVI14:
 	case CHIP_SIENNA_CICHLID:
 	case CHIP_NAVY_FLOUNDER:
@@ -1128,7 +1134,23 @@ static int kfd_fill_gpu_direct_io_link_to_cpu(int *avail_size,
 	/* Fill in IOLINK subtype.
 	 * TODO: Fill-in other fields of iolink subtype
 	 */
+<<<<<<< HEAD
 	sub_type_hdr->io_interface_type = CRAT_IOLINK_TYPE_PCIEXPRESS;
+=======
+	if (adev->gmc.xgmi.connected_to_cpu) {
+		/*
+		 * with host gpu xgmi link, host can access gpu memory whether
+		 * or not pcie bar type is large, so always create bidirectional
+		 * io link.
+		 */
+		sub_type_hdr->flags |= CRAT_IOLINK_FLAGS_BI_DIRECTIONAL;
+		sub_type_hdr->io_interface_type = CRAT_IOLINK_TYPE_XGMI;
+		sub_type_hdr->num_hops_xgmi = 1;
+	} else {
+		sub_type_hdr->io_interface_type = CRAT_IOLINK_TYPE_PCIEXPRESS;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	sub_type_hdr->proximity_domain_from = proximity_domain;
 #ifdef CONFIG_NUMA
 	if (kdev->pdev->dev.numa_node == NUMA_NO_NODE)

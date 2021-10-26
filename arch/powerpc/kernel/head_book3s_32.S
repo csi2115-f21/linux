@@ -309,6 +309,7 @@ ALT_MMU_FTR_SECTION_END_IFSET(MMU_FTR_HPTE_TABLE)
 #endif
 1:	EXCEPTION_PROLOG_0 handle_dar_dsisr=1
 	EXCEPTION_PROLOG_1
+<<<<<<< HEAD
 	b	handle_page_fault_tramp_1
 #else	/* CONFIG_VMAP_STACK */
 	EXCEPTION_PROLOG handle_dar_dsisr=1
@@ -327,6 +328,19 @@ MMU_FTR_SECTION_ELSE
 ALT_MMU_FTR_SECTION_END_IFSET(MMU_FTR_HPTE_TABLE)
 #endif
 #endif	/* CONFIG_VMAP_STACK */
+=======
+	EXCEPTION_PROLOG_2 INTERRUPT_DATA_STORAGE DataAccess handle_dar_dsisr=1
+	prepare_transfer_to_handler
+	lwz	r5, _DSISR(r11)
+	andis.	r0, r5, DSISR_DABRMATCH@h
+	bne-	1f
+	bl	do_page_fault
+	b	interrupt_return
+1:	bl	do_break
+	REST_NVGPRS(r1)
+	b	interrupt_return
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* Instruction access exception. */
 	. = 0x400

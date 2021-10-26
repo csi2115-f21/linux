@@ -281,6 +281,25 @@ static void set_cqe_size(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
 {
 	struct hns_roce_dev *hr_dev = to_hr_dev(hr_cq->ib_cq.device);
 
+<<<<<<< HEAD
+=======
+	cq_entries = max(cq_entries, hr_dev->caps.min_cqes);
+	cq_entries = roundup_pow_of_two(cq_entries);
+	hr_cq->ib_cq.cqe = cq_entries - 1; /* used as cqe index */
+	hr_cq->cq_depth = cq_entries;
+	hr_cq->vector = vector;
+
+	spin_lock_init(&hr_cq->lock);
+	INIT_LIST_HEAD(&hr_cq->sq_list);
+	INIT_LIST_HEAD(&hr_cq->rq_list);
+}
+
+static void set_cqe_size(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
+			 struct hns_roce_ib_create_cq *ucmd)
+{
+	struct hns_roce_dev *hr_dev = to_hr_dev(hr_cq->ib_cq.device);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (udata) {
 		if (udata->inlen >= offsetofend(typeof(*ucmd), cqe_size))
 			hr_cq->cqe_size = ucmd->cqe_size;
@@ -337,6 +356,11 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	set_cq_param(hr_cq, attr->cqe, attr->comp_vector, &ucmd);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	set_cqe_size(hr_cq, udata, &ucmd);
 
 	ret = alloc_cq_buf(hr_dev, hr_cq, udata, ucmd.buf_addr);

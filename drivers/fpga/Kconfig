@@ -118,7 +118,12 @@ config XILINX_PR_DECOUPLER
 	depends on FPGA_BRIDGE
 	depends on HAS_IOMEM
 	help
+<<<<<<< HEAD
 	  Say Y to enable drivers for Xilinx LogiCORE PR Decoupler.
+=======
+	  Say Y to enable drivers for Xilinx LogiCORE PR Decoupler
+	  or Xilinx Dynamic Function eXchnage AIX Shutdown Manager.
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	  The PR Decoupler exists in the FPGA fabric to isolate one
 	  region of the FPGA from the busses while that region is
 	  being reprogrammed during partial reconfig.

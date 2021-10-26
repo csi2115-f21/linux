@@ -211,6 +211,22 @@ void hclgevf_mbx_handler(struct hclgevf_dev *hdev)
 				resp->additional_info[i] = *temp;
 				temp++;
 			}
+<<<<<<< HEAD
+=======
+
+			/* If match_id is not zero, it means PF support
+			 * match_id. If the match_id is right, VF get the
+			 * right response, otherwise ignore the response.
+			 * Driver will clear hdev->mbx_resp when send
+			 * next message which need response.
+			 */
+			if (req->match_id) {
+				if (req->match_id == resp->match_id)
+					resp->received_resp = true;
+			} else {
+				resp->received_resp = true;
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 		case HCLGE_MBX_LINK_STAT_CHANGE:
 		case HCLGE_MBX_ASSERTING_RESET:
@@ -304,6 +320,13 @@ void hclgevf_mbx_async_handler(struct hclgevf_dev *hdev)
 			/* update upper layer with new link link status */
 			hclgevf_update_link_status(hdev, link_status);
 			hclgevf_update_speed_duplex(hdev, speed, duplex);
+<<<<<<< HEAD
+=======
+
+			if (flag & HCLGE_MBX_PUSH_LINK_STATUS_EN)
+				set_bit(HCLGEVF_STATE_PF_PUSH_LINK_STATUS,
+					&hdev->state);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			break;
 		case HCLGE_MBX_LINK_STAT_MODE:

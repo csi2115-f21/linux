@@ -622,7 +622,12 @@ static int snd_als300_create(struct snd_card *card,
 	};
 	*rchip = NULL;
 
+<<<<<<< HEAD
 	if ((err = pci_enable_device(pci)) < 0)
+=======
+	err = pci_enable_device(pci);
+	if (err < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return err;
 
 	if (dma_set_mask_and_coherent(&pci->dev, DMA_BIT_MASK(28))) {
@@ -644,7 +649,12 @@ static int snd_als300_create(struct snd_card *card,
 	chip->chip_type = chip_type;
 	spin_lock_init(&chip->reg_lock);
 
+<<<<<<< HEAD
 	if ((err = pci_request_regions(pci, "ALS300")) < 0) {
+=======
+	err = pci_request_regions(pci, "ALS300");
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -677,6 +687,7 @@ static int snd_als300_create(struct snd_card *card,
 	if ((err = snd_als300_new_pcm(chip)) < 0) {
 		dev_err(card->dev, "Could not create PCM\n");
 		snd_als300_free(chip);
+<<<<<<< HEAD
 		return err;
 	}
 
@@ -686,6 +697,17 @@ static int snd_als300_create(struct snd_card *card,
 		return err;
 	}
 
+=======
+		return err;
+	}
+
+	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+	if (err < 0) {
+		snd_als300_free(chip);
+		return err;
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	*rchip = chip;
 	return 0;
 }
@@ -742,7 +764,12 @@ static int snd_als300_probe(struct pci_dev *pci,
 
 	chip_type = pci_id->driver_data;
 
+<<<<<<< HEAD
 	if ((err = snd_als300_create(card, pci, chip_type, &chip)) < 0) {
+=======
+	err = snd_als300_create(card, pci, chip_type, &chip);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -759,7 +786,12 @@ static int snd_als300_probe(struct pci_dev *pci,
 	sprintf(card->longname, "%s at 0x%lx irq %i",
 				card->shortname, chip->port, chip->irq);
 
+<<<<<<< HEAD
 	if ((err = snd_card_register(card)) < 0) {
+=======
+	err = snd_card_register(card);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}

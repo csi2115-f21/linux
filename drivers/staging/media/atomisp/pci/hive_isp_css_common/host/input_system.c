@@ -1707,7 +1707,10 @@ static input_system_err_t input_system_configure_channel_sensor(
 		return INPUT_SYSTEM_ERR_PARAMETER_NOT_SUPPORTED;
 		break;
 	}
+<<<<<<< HEAD
 	return INPUT_SYSTEM_ERR_NO_ERROR;
+=======
+>>>>>>> parent of 9c0c4d24ac00... Merge tag 'block-5.15-2021-10-22' of git://git.kernel.dk/linux-block
 }
 
 // Test flags and set structure.

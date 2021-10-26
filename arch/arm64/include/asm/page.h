@@ -37,7 +37,11 @@ void copy_highpage(struct page *to, struct page *from);
 
 typedef struct page *pgtable_t;
 
+<<<<<<< HEAD
 extern int pfn_valid(unsigned long);
+=======
+int pfn_is_map_memory(unsigned long pfn);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include <asm/memory.h>
 

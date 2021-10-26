@@ -2,7 +2,10 @@
 r8188eu-y :=				\
 		core/rtw_ap.o		\
 		core/rtw_cmd.o		\
+<<<<<<< HEAD
 		core/rtw_debug.o	\
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		core/rtw_efuse.o	\
 		core/rtw_ieee80211.o	\
 		core/rtw_ioctl_set.o	\

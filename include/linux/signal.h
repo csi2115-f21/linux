@@ -43,6 +43,10 @@ enum siginfo_layout {
 	SIL_FAULT_MCEERR,
 	SIL_FAULT_BNDERR,
 	SIL_FAULT_PKUERR,
+<<<<<<< HEAD
+=======
+	SIL_PERF_EVENT,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	SIL_CHLD,
 	SIL_RT,
 	SIL_SYS,

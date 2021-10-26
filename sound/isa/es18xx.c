@@ -1573,7 +1573,12 @@ static int snd_es18xx_identify(struct snd_es18xx *chip)
 		udelay(10);
 		chip->ctrl_port += inb(chip->port + 0x05);
 
+<<<<<<< HEAD
 		if ((chip->res_ctrl_port = request_region(chip->ctrl_port, 8, "ES18xx - CTRL")) == NULL) {
+=======
+		chip->res_ctrl_port = request_region(chip->ctrl_port, 8, "ES18xx - CTRL");
+		if (!chip->res_ctrl_port) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			snd_printk(KERN_ERR PFX "unable go grab port 0x%lx\n", chip->ctrl_port);
 			return -EBUSY;
 		}
@@ -2162,7 +2167,12 @@ static int snd_es18xx_isa_probe1(int dev, struct device *devptr)
 	err = snd_es18xx_card_new(devptr, dev, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_audiodrive_probe(card, dev)) < 0) {
+=======
+	err = snd_audiodrive_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2265,11 +2275,21 @@ static int snd_audiodrive_pnp_detect(struct pnp_dev *pdev,
 	err = snd_es18xx_card_new(&pdev->dev, dev, &card);
 	if (err < 0)
 		return err;
+<<<<<<< HEAD
 	if ((err = snd_audiodrive_pnp(dev, card->private_data, pdev)) < 0) {
 		snd_card_free(card);
 		return err;
 	}
 	if ((err = snd_audiodrive_probe(card, dev)) < 0) {
+=======
+	err = snd_audiodrive_pnp(dev, card->private_data, pdev);
+	if (err < 0) {
+		snd_card_free(card);
+		return err;
+	}
+	err = snd_audiodrive_probe(card, dev);
+	if (err < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return err;
 	}
@@ -2323,11 +2343,21 @@ static int snd_audiodrive_pnpc_detect(struct pnp_card_link *pcard,
 	if (res < 0)
 		return res;
 
+<<<<<<< HEAD
 	if ((res = snd_audiodrive_pnpc(dev, card->private_data, pcard, pid)) < 0) {
 		snd_card_free(card);
 		return res;
 	}
 	if ((res = snd_audiodrive_probe(card, dev)) < 0) {
+=======
+	res = snd_audiodrive_pnpc(dev, card->private_data, pcard, pid);
+	if (res < 0) {
+		snd_card_free(card);
+		return res;
+	}
+	res = snd_audiodrive_probe(card, dev);
+	if (res < 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		snd_card_free(card);
 		return res;
 	}

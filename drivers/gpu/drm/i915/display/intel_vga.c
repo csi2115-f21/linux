@@ -136,7 +136,11 @@ intel_vga_set_decode(void *cookie, bool enable_decode)
 
 int intel_vga_register(struct drm_i915_private *i915)
 {
+<<<<<<< HEAD
 	struct pci_dev *pdev = i915->drm.pdev;
+=======
+	struct pci_dev *pdev = to_pci_dev(i915->drm.dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int ret;
 
 	/*

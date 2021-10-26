@@ -373,9 +373,13 @@ int kgdb_unregister_nmi_console(void)
 	if (ret)
 		return ret;
 
+<<<<<<< HEAD
 	ret = tty_unregister_driver(kgdb_nmi_tty_driver);
 	if (ret)
 		return ret;
+=======
+	tty_unregister_driver(kgdb_nmi_tty_driver);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	put_tty_driver(kgdb_nmi_tty_driver);
 
 	return 0;

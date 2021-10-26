@@ -94,9 +94,13 @@ static int armada_drm_bind(struct device *dev)
 	}
 
 	/* Remove early framebuffers */
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_framebuffers(NULL,
 							    "armada-drm-fb",
 							    false);
+=======
+	ret = drm_aperture_remove_framebuffers(false, "armada-drm-fb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret) {
 		dev_err(dev, "[" DRM_NAME ":%s] can't kick out simple-fb: %d\n",
 			__func__, ret);

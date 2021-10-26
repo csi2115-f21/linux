@@ -441,8 +441,13 @@ struct child_device_config {
 	u16 dp_gpio_pin_num;					/* 195 */
 	u8 dp_iboost_level:4;					/* 196 */
 	u8 hdmi_iboost_level:4;					/* 196 */
+<<<<<<< HEAD
 	u8 dp_max_link_rate:2;					/* 216 CNL+ */
 	u8 dp_max_link_rate_reserved:6;				/* 216 */
+=======
+	u8 dp_max_link_rate:3;					/* 216/230 CNL+ */
+	u8 dp_max_link_rate_reserved:5;				/* 216/230 */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 } __packed;
 
 struct bdb_general_definitions {

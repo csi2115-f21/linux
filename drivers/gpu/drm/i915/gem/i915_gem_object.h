@@ -16,6 +16,35 @@
 #include "i915_gem_gtt.h"
 #include "i915_vma_types.h"
 
+<<<<<<< HEAD
+=======
+/*
+ * XXX: There is a prevalence of the assumption that we fit the
+ * object's page count inside a 32bit _signed_ variable. Let's document
+ * this and catch if we ever need to fix it. In the meantime, if you do
+ * spot such a local variable, please consider fixing!
+ *
+ * Aside from our own locals (for which we have no excuse!):
+ * - sg_table embeds unsigned int for num_pages
+ * - get_user_pages*() mixed ints with longs
+ */
+#define GEM_CHECK_SIZE_OVERFLOW(sz) \
+	GEM_WARN_ON((sz) >> PAGE_SHIFT > INT_MAX)
+
+static inline bool i915_gem_object_size_2big(u64 size)
+{
+	struct drm_i915_gem_object *obj;
+
+	if (GEM_CHECK_SIZE_OVERFLOW(size))
+		return true;
+
+	if (overflows_type(size, obj->base.size))
+		return true;
+
+	return false;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void i915_gem_init__objects(struct drm_i915_private *i915);
 
 struct drm_i915_gem_object *i915_gem_object_alloc(void);
@@ -107,6 +136,23 @@ i915_gem_object_put(struct drm_i915_gem_object *obj)
 
 #define assert_object_held(obj) dma_resv_assert_held((obj)->base.resv)
 
+<<<<<<< HEAD
+=======
+/*
+ * If more than one potential simultaneous locker, assert held.
+ */
+static inline void assert_object_held_shared(struct drm_i915_gem_object *obj)
+{
+	/*
+	 * Note mm list lookup is protected by
+	 * kref_get_unless_zero().
+	 */
+	if (IS_ENABLED(CONFIG_LOCKDEP) &&
+	    kref_read(&obj->base.refcount) > 0)
+		assert_object_held(obj);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline int __i915_gem_object_lock(struct drm_i915_gem_object *obj,
 					 struct i915_gem_ww_ctx *ww,
 					 bool intr)
@@ -215,7 +261,11 @@ i915_gem_object_type_has(const struct drm_i915_gem_object *obj,
 static inline bool
 i915_gem_object_has_struct_page(const struct drm_i915_gem_object *obj)
 {
+<<<<<<< HEAD
 	return i915_gem_object_type_has(obj, I915_GEM_OBJECT_HAS_STRUCT_PAGE);
+=======
+	return obj->flags & I915_BO_ALLOC_STRUCT_PAGE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline bool
@@ -299,22 +349,34 @@ struct scatterlist *
 __i915_gem_object_get_sg(struct drm_i915_gem_object *obj,
 			 struct i915_gem_object_page_iter *iter,
 			 unsigned int n,
+<<<<<<< HEAD
 			 unsigned int *offset);
+=======
+			 unsigned int *offset, bool allow_alloc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static inline struct scatterlist *
 i915_gem_object_get_sg(struct drm_i915_gem_object *obj,
 		       unsigned int n,
-		       unsigned int *offset)
+		       unsigned int *offset, bool allow_alloc)
 {
+<<<<<<< HEAD
 	return __i915_gem_object_get_sg(obj, &obj->mm.get_page, n, offset);
+=======
+	return __i915_gem_object_get_sg(obj, &obj->mm.get_page, n, offset, allow_alloc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static inline struct scatterlist *
 i915_gem_object_get_sg_dma(struct drm_i915_gem_object *obj,
 			   unsigned int n,
-			   unsigned int *offset)
+			   unsigned int *offset, bool allow_alloc)
 {
+<<<<<<< HEAD
 	return __i915_gem_object_get_sg(obj, &obj->mm.get_dma_page, n, offset);
+=======
+	return __i915_gem_object_get_sg(obj, &obj->mm.get_dma_page, n, offset, allow_alloc);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 struct page *
@@ -558,4 +620,28 @@ int i915_gem_object_read_from_page(struct drm_i915_gem_object *obj, u64 offset, 
 
 bool i915_gem_object_is_shmem(const struct drm_i915_gem_object *obj);
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_MMU_NOTIFIER
+static inline bool
+i915_gem_object_is_userptr(struct drm_i915_gem_object *obj)
+{
+	return obj->userptr.notifier.mm;
+}
+
+int i915_gem_object_userptr_submit_init(struct drm_i915_gem_object *obj);
+int i915_gem_object_userptr_submit_done(struct drm_i915_gem_object *obj);
+void i915_gem_object_userptr_submit_fini(struct drm_i915_gem_object *obj);
+int i915_gem_object_userptr_validate(struct drm_i915_gem_object *obj);
+#else
+static inline bool i915_gem_object_is_userptr(struct drm_i915_gem_object *obj) { return false; }
+
+static inline int i915_gem_object_userptr_submit_init(struct drm_i915_gem_object *obj) { GEM_BUG_ON(1); return -ENODEV; }
+static inline int i915_gem_object_userptr_submit_done(struct drm_i915_gem_object *obj) { GEM_BUG_ON(1); return -ENODEV; }
+static inline void i915_gem_object_userptr_submit_fini(struct drm_i915_gem_object *obj) { GEM_BUG_ON(1); }
+static inline int i915_gem_object_userptr_validate(struct drm_i915_gem_object *obj) { GEM_BUG_ON(1); return -ENODEV; }
+
+#endif
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

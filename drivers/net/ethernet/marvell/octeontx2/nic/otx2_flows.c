@@ -20,6 +20,112 @@ struct otx2_flow {
 	int vf;
 };
 
+<<<<<<< HEAD
+=======
+static void otx2_clear_ntuple_flow_info(struct otx2_nic *pfvf, struct otx2_flow_config *flow_cfg)
+{
+	devm_kfree(pfvf->dev, flow_cfg->flow_ent);
+	flow_cfg->flow_ent = NULL;
+	flow_cfg->ntuple_max_flows = 0;
+	flow_cfg->tc_max_flows = 0;
+}
+
+static int otx2_free_ntuple_mcam_entries(struct otx2_nic *pfvf)
+{
+	struct otx2_flow_config *flow_cfg = pfvf->flow_cfg;
+	struct npc_mcam_free_entry_req *req;
+	int ent, err;
+
+	if (!flow_cfg->ntuple_max_flows)
+		return 0;
+
+	mutex_lock(&pfvf->mbox.lock);
+	for (ent = 0; ent < flow_cfg->ntuple_max_flows; ent++) {
+		req = otx2_mbox_alloc_msg_npc_mcam_free_entry(&pfvf->mbox);
+		if (!req)
+			break;
+
+		req->entry = flow_cfg->flow_ent[ent];
+
+		/* Send message to AF to free MCAM entries */
+		err = otx2_sync_mbox_msg(&pfvf->mbox);
+		if (err)
+			break;
+	}
+	mutex_unlock(&pfvf->mbox.lock);
+	otx2_clear_ntuple_flow_info(pfvf, flow_cfg);
+	return 0;
+}
+
+static int otx2_alloc_ntuple_mcam_entries(struct otx2_nic *pfvf, u16 count)
+{
+	struct otx2_flow_config *flow_cfg = pfvf->flow_cfg;
+	struct npc_mcam_alloc_entry_req *req;
+	struct npc_mcam_alloc_entry_rsp *rsp;
+	int ent, allocated = 0;
+
+	/* Free current ones and allocate new ones with requested count */
+	otx2_free_ntuple_mcam_entries(pfvf);
+
+	if (!count)
+		return 0;
+
+	flow_cfg->flow_ent = devm_kmalloc_array(pfvf->dev, count,
+						sizeof(u16), GFP_KERNEL);
+	if (!flow_cfg->flow_ent)
+		return -ENOMEM;
+
+	mutex_lock(&pfvf->mbox.lock);
+
+	/* In a single request a max of NPC_MAX_NONCONTIG_ENTRIES MCAM entries
+	 * can only be allocated.
+	 */
+	while (allocated < count) {
+		req = otx2_mbox_alloc_msg_npc_mcam_alloc_entry(&pfvf->mbox);
+		if (!req)
+			goto exit;
+
+		req->contig = false;
+		req->count = (count - allocated) > NPC_MAX_NONCONTIG_ENTRIES ?
+				NPC_MAX_NONCONTIG_ENTRIES : count - allocated;
+		req->priority = NPC_MCAM_HIGHER_PRIO;
+		req->ref_entry = flow_cfg->def_ent[0];
+
+		/* Send message to AF */
+		if (otx2_sync_mbox_msg(&pfvf->mbox))
+			goto exit;
+
+		rsp = (struct npc_mcam_alloc_entry_rsp *)otx2_mbox_get_rsp
+			(&pfvf->mbox.mbox, 0, &req->hdr);
+
+		for (ent = 0; ent < rsp->count; ent++)
+			flow_cfg->flow_ent[ent + allocated] = rsp->entry_list[ent];
+
+		allocated += rsp->count;
+
+		/* If this request is not fulfilled, no need to send
+		 * further requests.
+		 */
+		if (rsp->count != req->count)
+			break;
+	}
+
+exit:
+	mutex_unlock(&pfvf->mbox.lock);
+
+	flow_cfg->ntuple_offset = 0;
+	flow_cfg->ntuple_max_flows = allocated;
+	flow_cfg->tc_max_flows = allocated;
+
+	if (allocated != count)
+		netdev_info(pfvf->netdev,
+			    "Unable to allocate %d MCAM entries for ntuple, got %d\n",
+			    count, allocated);
+
+	return allocated;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int otx2_alloc_mcam_entries(struct otx2_nic *pfvf)
 {
 	struct otx2_flow_config *flow_cfg = pfvf->flow_cfg;
@@ -75,9 +181,24 @@ int otx2_alloc_mcam_entries(struct otx2_nic *pfvf)
 		flow_cfg->entry[i] = rsp->entry_list[i];
 
 	pfvf->flags |= OTX2_FLAG_MCAM_ENTRIES_ALLOC;
+<<<<<<< HEAD
 
 	mutex_unlock(&pfvf->mbox.lock);
 
+=======
+	mutex_unlock(&pfvf->mbox.lock);
+
+	/* Allocate entries for Ntuple filters */
+	count = otx2_alloc_ntuple_mcam_entries(pfvf, OTX2_DEFAULT_FLOWCOUNT);
+	if (count <= 0) {
+		otx2_clear_ntuple_flow_info(pfvf, flow_cfg);
+		return 0;
+	}
+
+	pfvf->flags |= OTX2_FLAG_NTUPLE_SUPPORT;
+	pfvf->flags |= OTX2_FLAG_TC_FLOWER_SUPPORT;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return 0;
 }
 
@@ -92,8 +213,11 @@ int otx2_mcam_flow_init(struct otx2_nic *pf)
 
 	INIT_LIST_HEAD(&pf->flow_cfg->flow_list);
 
+<<<<<<< HEAD
 	pf->flow_cfg->ntuple_max_flows = OTX2_MAX_NTUPLE_FLOWS;
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = otx2_alloc_mcam_entries(pf);
 	if (err)
 		return err;
@@ -235,6 +359,19 @@ static void otx2_add_flow_to_list(struct otx2_nic *pfvf, struct otx2_flow *flow)
 	list_add(&flow->list, head);
 }
 
+<<<<<<< HEAD
+=======
+static int otx2_get_maxflows(struct otx2_flow_config *flow_cfg)
+{
+	if (flow_cfg->nr_flows == flow_cfg->ntuple_max_flows ||
+	    bitmap_weight(&flow_cfg->dmacflt_bmap,
+			  flow_cfg->dmacflt_max_flows))
+		return flow_cfg->ntuple_max_flows + flow_cfg->dmacflt_max_flows;
+	else
+		return flow_cfg->ntuple_max_flows;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int otx2_get_flow(struct otx2_nic *pfvf, struct ethtool_rxnfc *nfc,
 		  u32 location)
 {
@@ -661,6 +798,40 @@ static int otx2_add_flow_msg(struct otx2_nic *pfvf, struct otx2_flow *flow)
 	return err;
 }
 
+<<<<<<< HEAD
+=======
+static int otx2_add_flow_with_pfmac(struct otx2_nic *pfvf,
+				    struct otx2_flow *flow)
+{
+	struct otx2_flow *pf_mac;
+	struct ethhdr *eth_hdr;
+
+	pf_mac = kzalloc(sizeof(*pf_mac), GFP_KERNEL);
+	if (!pf_mac)
+		return -ENOMEM;
+
+	pf_mac->entry = 0;
+	pf_mac->dmac_filter = true;
+	pf_mac->location = pfvf->flow_cfg->ntuple_max_flows;
+	memcpy(&pf_mac->flow_spec, &flow->flow_spec,
+	       sizeof(struct ethtool_rx_flow_spec));
+	pf_mac->flow_spec.location = pf_mac->location;
+
+	/* Copy PF mac address */
+	eth_hdr = &pf_mac->flow_spec.h_u.ether_spec;
+	ether_addr_copy(eth_hdr->h_dest, pfvf->netdev->dev_addr);
+
+	/* Install DMAC filter with PF mac address */
+	otx2_dmacflt_add(pfvf, eth_hdr->h_dest, 0);
+
+	otx2_add_flow_to_list(pfvf, pf_mac);
+	pfvf->flow_cfg->nr_flows++;
+	set_bit(0, &pfvf->flow_cfg->dmacflt_bmap);
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 int otx2_add_flow(struct otx2_nic *pfvf, struct ethtool_rxnfc *nfc)
 {
 	struct otx2_flow_config *flow_cfg = pfvf->flow_cfg;
@@ -668,7 +839,10 @@ int otx2_add_flow(struct otx2_nic *pfvf, struct ethtool_rxnfc *nfc)
 	struct otx2_flow *flow;
 	bool new = false;
 	u32 ring;
+<<<<<<< HEAD
 	int err;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ring = ethtool_get_flow_spec_ring(fsp->ring_cookie);
 	if (!(pfvf->flags & OTX2_FLAG_NTUPLE_SUPPORT))
@@ -686,8 +860,11 @@ int otx2_add_flow(struct otx2_nic *pfvf, struct ethtool_rxnfc *nfc)
 		if (!flow)
 			return -ENOMEM;
 		flow->location = fsp->location;
+<<<<<<< HEAD
 		flow->entry = flow_cfg->entry[flow_cfg->ntuple_offset +
 						flow->location];
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		new = true;
 	}
 	/* struct copy */
@@ -696,7 +873,58 @@ int otx2_add_flow(struct otx2_nic *pfvf, struct ethtool_rxnfc *nfc)
 	if (fsp->flow_type & FLOW_RSS)
 		flow->rss_ctx_id = nfc->rss_context;
 
+<<<<<<< HEAD
 	err = otx2_add_flow_msg(pfvf, flow);
+=======
+	if (otx2_is_flow_rule_dmacfilter(pfvf, &flow->flow_spec)) {
+		eth_hdr = &flow->flow_spec.h_u.ether_spec;
+
+		/* Sync dmac filter table with updated fields */
+		if (flow->dmac_filter)
+			return otx2_dmacflt_update(pfvf, eth_hdr->h_dest,
+						   flow->entry);
+
+		if (bitmap_full(&flow_cfg->dmacflt_bmap,
+				flow_cfg->dmacflt_max_flows)) {
+			netdev_warn(pfvf->netdev,
+				    "Can't insert the rule %d as max allowed dmac filters are %d\n",
+				    flow->location +
+				    flow_cfg->dmacflt_max_flows,
+				    flow_cfg->dmacflt_max_flows);
+			err = -EINVAL;
+			if (new)
+				kfree(flow);
+			return err;
+		}
+
+		/* Install PF mac address to DMAC filter list */
+		if (!test_bit(0, &flow_cfg->dmacflt_bmap))
+			otx2_add_flow_with_pfmac(pfvf, flow);
+
+		flow->dmac_filter = true;
+		flow->entry = find_first_zero_bit(&flow_cfg->dmacflt_bmap,
+						  flow_cfg->dmacflt_max_flows);
+		fsp->location = flow_cfg->ntuple_max_flows + flow->entry;
+		flow->flow_spec.location = fsp->location;
+		flow->location = fsp->location;
+
+		set_bit(flow->entry, &flow_cfg->dmacflt_bmap);
+		otx2_dmacflt_add(pfvf, eth_hdr->h_dest, flow->entry);
+
+	} else {
+		if (flow->location >= pfvf->flow_cfg->ntuple_max_flows) {
+			netdev_warn(pfvf->netdev,
+				    "Can't insert non dmac ntuple rule at %d, allowed range %d-0\n",
+				    flow->location,
+				    flow_cfg->ntuple_max_flows - 1);
+			err = -EINVAL;
+		} else {
+			flow->entry = flow_cfg->flow_ent[flow->location];
+			err = otx2_add_flow_msg(pfvf, flow);
+		}
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err) {
 		if (new)
 			kfree(flow);
@@ -791,9 +1019,14 @@ int otx2_destroy_ntuple_flows(struct otx2_nic *pfvf)
 		return -ENOMEM;
 	}
 
+<<<<<<< HEAD
 	req->start = flow_cfg->entry[flow_cfg->ntuple_offset];
 	req->end   = flow_cfg->entry[flow_cfg->ntuple_offset +
 				      flow_cfg->ntuple_max_flows - 1];
+=======
+	req->start = flow_cfg->flow_ent[0];
+	req->end   = flow_cfg->flow_ent[flow_cfg->ntuple_max_flows - 1];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	err = otx2_sync_mbox_msg(&pfvf->mbox);
 	mutex_unlock(&pfvf->mbox.lock);
 

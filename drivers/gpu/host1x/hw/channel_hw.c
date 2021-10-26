@@ -129,7 +129,11 @@ static int channel_submit(struct host1x_job *job)
 	sp = host->syncpt + job->syncpt_id;
 	trace_host1x_channel_submit(dev_name(ch->dev),
 				    job->num_gathers, job->num_relocs,
+<<<<<<< HEAD
 				    job->syncpt_id, job->syncpt_incrs);
+=======
+				    job->syncpt->id, job->syncpt_incrs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	/* before error checks, return current max */
 	prev_max = job->syncpt_end = host1x_syncpt_read_max(sp);

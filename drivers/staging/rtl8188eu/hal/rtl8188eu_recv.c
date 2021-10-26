@@ -31,14 +31,21 @@ int rtw_hal_init_recv_priv(struct adapter *padapter)
 		kcalloc(NR_RECVBUFF, sizeof(struct recv_buf), GFP_KERNEL);
 	if (!precvpriv->precv_buf) {
 		res = _FAIL;
+<<<<<<< HEAD
 		RT_TRACE(_module_rtl871x_recv_c_, _drv_err_,
 			 ("alloc recv_buf fail!\n"));
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		goto exit;
 	}
 	precvbuf = precvpriv->precv_buf;
 
 	for (i = 0; i < NR_RECVBUFF; i++) {
+<<<<<<< HEAD
 		res = rtw_os_recvbuf_resource_alloc(padapter, precvbuf);
+=======
+		res = rtw_os_recvbuf_resource_alloc(precvbuf);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		if (res == _FAIL)
 			break;
 		precvbuf->adapter = padapter;
@@ -80,6 +87,7 @@ void rtw_hal_free_recv_priv(struct adapter *padapter)
 	}
 
 	kfree(precvpriv->precv_buf);
+<<<<<<< HEAD
 
 	if (skb_queue_len(&precvpriv->rx_skb_queue))
 		DBG_88E(KERN_WARNING "rx_skb_queue not empty\n");
@@ -89,5 +97,8 @@ void rtw_hal_free_recv_priv(struct adapter *padapter)
 		DBG_88E(KERN_WARNING "free_recv_skb_queue not empty, %d\n",
 			skb_queue_len(&precvpriv->free_recv_skb_queue));
 
+=======
+	skb_queue_purge(&precvpriv->rx_skb_queue);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	skb_queue_purge(&precvpriv->free_recv_skb_queue);
 }

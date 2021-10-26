@@ -151,9 +151,13 @@ static int mtk_mipi_tx_probe(struct platform_device *pdev)
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mipi_tx->regs = devm_ioremap_resource(dev, mem);
 	if (IS_ERR(mipi_tx->regs)) {
+<<<<<<< HEAD
 		ret = PTR_ERR(mipi_tx->regs);
 		dev_err(dev, "Failed to get memory resource: %d\n", ret);
 		return ret;
+=======
+		return PTR_ERR(mipi_tx->regs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	ref_clk = devm_clk_get(dev, NULL);

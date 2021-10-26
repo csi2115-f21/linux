@@ -4026,7 +4026,15 @@ void netdev_run_todo(void);
  */
 static inline void dev_put(struct net_device *dev)
 {
+<<<<<<< HEAD
 	this_cpu_dec(*dev->pcpu_refcnt);
+=======
+#ifdef CONFIG_PCPU_DEV_REFCNT
+	this_cpu_dec(*dev->pcpu_refcnt);
+#else
+	refcount_dec(&dev->dev_refcnt);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /**
@@ -4037,7 +4045,15 @@ static inline void dev_put(struct net_device *dev)
  */
 static inline void dev_hold(struct net_device *dev)
 {
+<<<<<<< HEAD
 	this_cpu_inc(*dev->pcpu_refcnt);
+=======
+#ifdef CONFIG_PCPU_DEV_REFCNT
+	this_cpu_inc(*dev->pcpu_refcnt);
+#else
+	refcount_inc(&dev->dev_refcnt);
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* Carrier loss detection, dial on demand. The functions netif_carrier_on

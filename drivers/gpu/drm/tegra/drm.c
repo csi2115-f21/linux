@@ -1195,8 +1195,12 @@ static int host1x_drm_probe(struct host1x_device *dev)
 
 	drm_mode_config_reset(drm);
 
+<<<<<<< HEAD
 	err = drm_fb_helper_remove_conflicting_framebuffers(NULL, "tegradrmfb",
 							    false);
+=======
+	err = drm_aperture_remove_framebuffers(false, "tegradrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (err < 0)
 		goto hub;
 

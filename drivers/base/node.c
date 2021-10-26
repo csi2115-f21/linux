@@ -52,9 +52,15 @@ static inline ssize_t cpumap_show(struct device *dev,
 {
 	return node_read_cpumap(dev, false, buf);
 }
+<<<<<<< HEAD
 
 static DEVICE_ATTR_RO(cpumap);
 
+=======
+
+static DEVICE_ATTR_RO(cpumap);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static inline ssize_t cpulist_show(struct device *dev,
 				   struct device_attribute *attr,
 				   char *buf)

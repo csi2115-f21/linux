@@ -55,10 +55,17 @@
 
 
 #define VMWGFX_DRIVER_NAME "vmwgfx"
+<<<<<<< HEAD
 #define VMWGFX_DRIVER_DATE "20200114"
 #define VMWGFX_DRIVER_MAJOR 2
 #define VMWGFX_DRIVER_MINOR 18
 #define VMWGFX_DRIVER_PATCHLEVEL 0
+=======
+#define VMWGFX_DRIVER_DATE "20210218"
+#define VMWGFX_DRIVER_MAJOR 2
+#define VMWGFX_DRIVER_MINOR 18
+#define VMWGFX_DRIVER_PATCHLEVEL 1
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #define VMWGFX_FIFO_STATIC_SIZE (1024*1024)
 #define VMWGFX_MAX_RELOCATIONS 2048
 #define VMWGFX_MAX_VALIDATIONS 2048
@@ -489,11 +496,19 @@ struct vmw_private {
 	struct vmw_fifo_state fifo;
 
 	struct drm_vma_offset_manager vma_manager;
+<<<<<<< HEAD
+=======
+	unsigned long pci_id;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 vmw_chipset;
 	resource_size_t io_start;
 	resource_size_t vram_start;
 	resource_size_t vram_size;
 	resource_size_t prim_bb_mem;
+<<<<<<< HEAD
+=======
+	u32 __iomem *rmmio;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 *fifo_mem;
 	resource_size_t fifo_mem_size;
 	uint32_t fb_max_width;

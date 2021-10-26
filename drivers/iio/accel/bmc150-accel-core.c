@@ -1187,8 +1187,33 @@ static const struct bmc150_accel_chip_info bmc150_accel_chip_info_tbl[] = {
 				 {612915, BMC150_ACCEL_DEF_RANGE_8G},
 				 {1225831, BMC150_ACCEL_DEF_RANGE_16G} },
 	},
+<<<<<<< HEAD
 	[bma280] = {
 		.name = "BMA0280",
+=======
+	{
+		.name = "BMA250E",
+		.chip_id = 0xF9,
+		.channels = bma250e_accel_channels,
+		.num_channels = ARRAY_SIZE(bma250e_accel_channels),
+		.scale_table = { {38307, BMC150_ACCEL_DEF_RANGE_2G},
+				 {76614, BMC150_ACCEL_DEF_RANGE_4G},
+				 {153229, BMC150_ACCEL_DEF_RANGE_8G},
+				 {306458, BMC150_ACCEL_DEF_RANGE_16G} },
+	},
+	{
+		.name = "BMA253/BMA254/BMA255/BMC150/BMI055",
+		.chip_id = 0xFA,
+		.channels = bmc150_accel_channels,
+		.num_channels = ARRAY_SIZE(bmc150_accel_channels),
+		.scale_table = { {9577, BMC150_ACCEL_DEF_RANGE_2G},
+				 {19154, BMC150_ACCEL_DEF_RANGE_4G},
+				 {38307, BMC150_ACCEL_DEF_RANGE_8G},
+				 {76614, BMC150_ACCEL_DEF_RANGE_16G} },
+	},
+	{
+		.name = "BMA280",
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		.chip_id = 0xFB,
 		.channels = bma280_accel_channels,
 		.num_channels = ARRAY_SIZE(bma280_accel_channels),

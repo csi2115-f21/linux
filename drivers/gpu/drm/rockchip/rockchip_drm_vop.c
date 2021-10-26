@@ -1096,7 +1096,11 @@ static const struct drm_plane_helper_funcs plane_helper_funcs = {
 	.atomic_disable = vop_plane_atomic_disable,
 	.atomic_async_check = vop_plane_atomic_async_check,
 	.atomic_async_update = vop_plane_atomic_async_update,
+<<<<<<< HEAD
 	.prepare_fb = drm_gem_fb_prepare_fb,
+=======
+	.prepare_fb = drm_gem_plane_helper_prepare_fb,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct drm_plane_funcs vop_plane_funcs = {

@@ -8,6 +8,14 @@ CFLAGS_REMOVE_ftrace.o	= $(CC_FLAGS_FTRACE)
 CFLAGS_REMOVE_patch.o	= $(CC_FLAGS_FTRACE)
 CFLAGS_REMOVE_sbi.o	= $(CC_FLAGS_FTRACE)
 endif
+<<<<<<< HEAD
+=======
+CFLAGS_syscall_table.o	+= $(call cc-option,-Wno-override-init,)
+
+ifdef CONFIG_KEXEC
+AFLAGS_kexec_relocate.o := -mcmodel=medany -mno-relax
+endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 extra-y += head.o
 extra-y += vmlinux.lds

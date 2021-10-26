@@ -267,7 +267,11 @@ int intel_sseu_status(struct seq_file *m, struct intel_gt *gt)
 			bdw_sseu_device_status(gt, &sseu);
 		else if (IS_GEN(i915, 9))
 			gen9_sseu_device_status(gt, &sseu);
+<<<<<<< HEAD
 		else if (INTEL_GEN(i915) >= 10)
+=======
+		else if (GRAPHICS_VER(i915) >= 10)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			gen10_sseu_device_status(gt, &sseu);
 	}
 

@@ -13,6 +13,11 @@
 
 #include "i915_gem.h"
 
+<<<<<<< HEAD
+=======
+struct drm_mm_node;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /*
  * Optimised SGL iterator for GEM objects
  */
@@ -133,4 +138,9 @@ static inline unsigned int i915_sg_segment_size(void)
 
 bool i915_sg_trim(struct sg_table *orig_st);
 
+<<<<<<< HEAD
+=======
+struct sg_table *i915_sg_from_mm_node(const struct drm_mm_node *node,
+				      u64 region_start);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

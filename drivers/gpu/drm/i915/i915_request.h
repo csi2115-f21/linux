@@ -287,6 +287,15 @@ struct i915_request {
 	/** timeline->request entry for this request */
 	struct list_head link;
 
+<<<<<<< HEAD
+=======
+	/** Watchdog support fields. */
+	struct i915_request_watchdog {
+		struct llist_node link;
+		struct hrtimer timer;
+	} watchdog;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	I915_SELFTEST_DECLARE(struct {
 		struct list_head link;
 		unsigned long delay;
@@ -614,6 +623,36 @@ i915_request_active_timeline(const struct i915_request *rq)
 	 */
 	return rcu_dereference_protected(rq->timeline,
 					 lockdep_is_held(&rq->engine->active.lock));
+<<<<<<< HEAD
 }
 
+=======
+}
+
+static inline u32
+i915_request_active_seqno(const struct i915_request *rq)
+{
+	u32 hwsp_phys_base =
+		page_mask_bits(i915_request_active_timeline(rq)->hwsp_offset);
+	u32 hwsp_relative_offset = offset_in_page(rq->hwsp_seqno);
+
+	/*
+	 * Because of wraparound, we cannot simply take tl->hwsp_offset,
+	 * but instead use the fact that the relative for vaddr is the
+	 * offset as for hwsp_offset. Take the top bits from tl->hwsp_offset
+	 * and combine them with the relative offset in rq->hwsp_seqno.
+	 *
+	 * As rw->hwsp_seqno is rewritten when signaled, this only works
+	 * when the request isn't signaled yet, but at that point you
+	 * no longer need the offset.
+	 */
+
+	return hwsp_phys_base + hwsp_relative_offset;
+}
+
+bool
+i915_request_active_engine(struct i915_request *rq,
+			   struct intel_engine_cs **active);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* I915_REQUEST_H */

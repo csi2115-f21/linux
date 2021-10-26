@@ -4,7 +4,11 @@
 #
 
 menuconfig NVM
+<<<<<<< HEAD
 	bool "Open-Channel SSD target support"
+=======
+	bool "Open-Channel SSD target support (DEPRECATED)"
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	depends on BLOCK
 	help
 	  Say Y here to get to enable Open-channel SSDs.
@@ -15,6 +19,11 @@ menuconfig NVM
 	  If you say N, all options in this submenu will be skipped and disabled
 	  only do this if you know what you are doing.
 
+<<<<<<< HEAD
+=======
+	  This code is deprecated and will be removed in Linux 5.15.
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 if NVM
 
 config NVM_PBLK

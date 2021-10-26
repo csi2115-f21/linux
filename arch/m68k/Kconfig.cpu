@@ -456,9 +456,12 @@ config NODES_SHIFT
 	default "3"
 	depends on DISCONTIGMEM
 
+<<<<<<< HEAD
 config CPU_HAS_NO_BITFIELDS
 	bool
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 config CPU_HAS_NO_MULDIV64
 	bool
 

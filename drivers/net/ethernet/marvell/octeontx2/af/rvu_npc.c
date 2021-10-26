@@ -96,6 +96,13 @@ int npc_mcam_verify_channel(struct rvu *rvu, u16 pcifunc, u8 intf, u16 channel)
 	if (is_npc_intf_tx(intf))
 		return 0;
 
+<<<<<<< HEAD
+=======
+	/* return in case of AF installed rules */
+	if (is_pffunc_af(pcifunc))
+		return 0;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (is_afvf(pcifunc)) {
 		end = rvu_get_num_lbk_chans();
 		if (end < 0)
@@ -691,9 +698,44 @@ void rvu_npc_install_promisc_entry(struct rvu *rvu, u16 pcifunc,
 		action.pf_func = pcifunc;
 	}
 
+<<<<<<< HEAD
 	entry.action = *(u64 *)&action;
 	npc_config_mcam_entry(rvu, mcam, blkaddr, index,
 			      pfvf->nix_rx_intf, &entry, true);
+=======
+	/* RX_ACTION set to MCAST for CGX PF's */
+	if (hw->cap.nix_rx_multicast && pfvf->use_mce_list &&
+	    is_pf_cgxmapped(rvu, rvu_get_pf(pcifunc))) {
+		*(u64 *)&action = 0x00;
+		action.op = NIX_RX_ACTIONOP_MCAST;
+		pfvf = rvu_get_pfvf(rvu, pcifunc & ~RVU_PFVF_FUNC_MASK);
+		action.index = pfvf->promisc_mce_idx;
+	}
+
+	req.chan_mask = 0xFFFU;
+	if (chan_cnt > 1) {
+		if (!is_power_of_2(chan_cnt)) {
+			dev_err(rvu->dev,
+				"%s: channel count more than 1, must be power of 2\n", __func__);
+			return;
+		}
+		relaxed_mask = GENMASK_ULL(BITS_PER_LONG_LONG - 1,
+					   ilog2(chan_cnt));
+		req.chan_mask &= relaxed_mask;
+	}
+
+	req.channel = chan;
+	req.intf = pfvf->nix_rx_intf;
+	req.entry = index;
+	req.op = action.op;
+	req.hdr.pcifunc = 0; /* AF is requester */
+	req.vf = pcifunc;
+	req.index = action.index;
+	req.match_id = action.match_id;
+	req.flow_key_alg = action.flow_key_alg;
+
+	rvu_mbox_handler_npc_install_flow(rvu, &req, &rsp);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void npc_enadis_promisc_entry(struct rvu *rvu, u16 pcifunc,
@@ -771,6 +813,85 @@ void rvu_npc_install_bcast_match_entry(struct rvu *rvu, u16 pcifunc,
 		 * so install entry with UCAST action, so that PF
 		 * receives all broadcast packets.
 		 */
+<<<<<<< HEAD
+=======
+		req.op = NIX_RX_ACTIONOP_UCAST;
+	} else {
+		req.op = NIX_RX_ACTIONOP_MCAST;
+		req.index = pfvf->bcast_mce_idx;
+	}
+
+	eth_broadcast_addr((u8 *)&req.packet.dmac);
+	eth_broadcast_addr((u8 *)&req.mask.dmac);
+	req.features = BIT_ULL(NPC_DMAC);
+	req.channel = chan;
+	req.chan_mask = 0xFFFU;
+	req.intf = pfvf->nix_rx_intf;
+	req.entry = index;
+	req.hdr.pcifunc = 0; /* AF is requester */
+	req.vf = pcifunc;
+
+	rvu_mbox_handler_npc_install_flow(rvu, &req, &rsp);
+}
+
+void rvu_npc_enable_bcast_entry(struct rvu *rvu, u16 pcifunc, int nixlf,
+				bool enable)
+{
+	struct npc_mcam *mcam = &rvu->hw->mcam;
+	int blkaddr, index;
+
+	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
+	if (blkaddr < 0)
+		return;
+
+	/* Get 'pcifunc' of PF device */
+	pcifunc = pcifunc & ~RVU_PFVF_FUNC_MASK;
+
+	index = npc_get_nixlf_mcam_index(mcam, pcifunc, nixlf,
+					 NIXLF_BCAST_ENTRY);
+	npc_enable_mcam_entry(rvu, mcam, blkaddr, index, enable);
+}
+
+void rvu_npc_install_allmulti_entry(struct rvu *rvu, u16 pcifunc, int nixlf,
+				    u64 chan)
+{
+	struct npc_install_flow_req req = { 0 };
+	struct npc_install_flow_rsp rsp = { 0 };
+	struct npc_mcam *mcam = &rvu->hw->mcam;
+	struct rvu_hwinfo *hw = rvu->hw;
+	int blkaddr, ucast_idx, index;
+	u8 mac_addr[ETH_ALEN] = { 0 };
+	struct nix_rx_action action;
+	struct rvu_pfvf *pfvf;
+	u16 vf_func;
+
+	/* Only CGX PF/VF can add allmulticast entry */
+	if (is_afvf(pcifunc))
+		return;
+
+	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
+	if (blkaddr < 0)
+		return;
+
+	/* Get 'pcifunc' of PF device */
+	vf_func = pcifunc & RVU_PFVF_FUNC_MASK;
+	pcifunc = pcifunc & ~RVU_PFVF_FUNC_MASK;
+	pfvf = rvu_get_pfvf(rvu, pcifunc);
+	index = npc_get_nixlf_mcam_index(mcam, pcifunc,
+					 nixlf, NIXLF_ALLMULTI_ENTRY);
+
+	/* If the corresponding PF's ucast action is RSS,
+	 * use the same action for multicast entry also
+	 */
+	ucast_idx = npc_get_nixlf_mcam_index(mcam, pcifunc,
+					     nixlf, NIXLF_UCAST_ENTRY);
+	if (is_mcam_entry_enabled(rvu, mcam, blkaddr, ucast_idx))
+		*(u64 *)&action = npc_get_mcam_action(rvu, mcam,
+							blkaddr, ucast_idx);
+
+	if (action.op != NIX_RX_ACTIONOP_RSS) {
+		*(u64 *)&action = 0x00;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		action.op = NIX_RX_ACTIONOP_UCAST;
 		action.pf_func = pcifunc;
 	} else {
@@ -2257,7 +2378,18 @@ int rvu_mbox_handler_npc_mcam_write_entry(struct rvu *rvu,
 	else
 		nix_intf = pfvf->nix_rx_intf;
 
+<<<<<<< HEAD
 	if (npc_mcam_verify_channel(rvu, pcifunc, req->intf, channel)) {
+=======
+	if (!is_pffunc_af(pcifunc) &&
+	    npc_mcam_verify_channel(rvu, pcifunc, req->intf, channel)) {
+		rc = NPC_MCAM_INVALID_REQ;
+		goto exit;
+	}
+
+	if (!is_pffunc_af(pcifunc) &&
+	    npc_mcam_verify_pf_func(rvu, &req->entry_data, req->intf, pcifunc)) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		rc = NPC_MCAM_INVALID_REQ;
 		goto exit;
 	}
@@ -2799,3 +2931,45 @@ read_entry:
 out:
 	return rc;
 }
+<<<<<<< HEAD
+=======
+
+int rvu_mbox_handler_npc_mcam_entry_stats(struct rvu *rvu,
+					  struct npc_mcam_get_stats_req *req,
+					  struct npc_mcam_get_stats_rsp *rsp)
+{
+	struct npc_mcam *mcam = &rvu->hw->mcam;
+	u16 index, cntr;
+	int blkaddr;
+	u64 regval;
+	u32 bank;
+
+	blkaddr = rvu_get_blkaddr(rvu, BLKTYPE_NPC, 0);
+	if (blkaddr < 0)
+		return NPC_MCAM_INVALID_REQ;
+
+	mutex_lock(&mcam->lock);
+
+	index = req->entry & (mcam->banksize - 1);
+	bank = npc_get_bank(mcam, req->entry);
+
+	/* read MCAM entry STAT_ACT register */
+	regval = rvu_read64(rvu, blkaddr, NPC_AF_MCAMEX_BANKX_STAT_ACT(index, bank));
+
+	if (!(regval & BIT_ULL(9))) {
+		rsp->stat_ena = 0;
+		mutex_unlock(&mcam->lock);
+		return 0;
+	}
+
+	cntr = regval & 0x1FF;
+
+	rsp->stat_ena = 1;
+	rsp->stat = rvu_read64(rvu, blkaddr, NPC_AF_MATCH_STATX(cntr));
+	rsp->stat &= BIT_ULL(48) - 1;
+
+	mutex_unlock(&mcam->lock);
+
+	return 0;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

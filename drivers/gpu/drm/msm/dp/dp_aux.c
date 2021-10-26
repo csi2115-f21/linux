@@ -377,6 +377,7 @@ static ssize_t dp_aux_transfer(struct drm_dp_aux *dp_aux,
 	ret = dp_aux_cmd_fifo_tx(aux, msg);
 
 	if (ret < 0) {
+<<<<<<< HEAD
 		usleep_range(400, 500); /* at least 400us to next try */
 		goto unlock_exit;
 	}
@@ -387,6 +388,13 @@ static ssize_t dp_aux_transfer(struct drm_dp_aux *dp_aux,
 
 		msg->reply = aux->native ?
 			DP_AUX_NATIVE_REPLY_ACK : DP_AUX_I2C_REPLY_ACK;
+=======
+		if (aux->native) {
+			aux->retry_cnt++;
+			if (!(aux->retry_cnt % MAX_AUX_RETRIES))
+				dp_catalog_aux_update_cfg(aux->catalog);
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		/* Reply defer to retry */
 		msg->reply = aux->native ?

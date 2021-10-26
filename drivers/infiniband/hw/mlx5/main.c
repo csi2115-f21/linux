@@ -124,7 +124,11 @@ static int get_port_state(struct ib_device *ibdev,
 
 static struct mlx5_roce *mlx5_get_rep_roce(struct mlx5_ib_dev *dev,
 					   struct net_device *ndev,
+<<<<<<< HEAD
 					   u8 *port_num)
+=======
+					   u32 *port_num)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct mlx5_eswitch *esw = dev->mdev->priv.eswitch;
 	struct net_device *rep_ndev;
@@ -2991,11 +2995,19 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
 		return -EOPNOTSUPP;
 
 	mutex_init(&devr->mutex);
+<<<<<<< HEAD
 
 	devr->p0 = rdma_zalloc_drv_obj(ibdev, ib_pd);
 	if (!devr->p0)
 		return -ENOMEM;
 
+=======
+
+	devr->p0 = rdma_zalloc_drv_obj(ibdev, ib_pd);
+	if (!devr->p0)
+		return -ENOMEM;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	devr->p0->device  = ibdev;
 	devr->p0->uobject = NULL;
 	atomic_set(&devr->p0->usecnt, 0);
@@ -4174,7 +4186,11 @@ static int mlx5_ib_roce_init(struct mlx5_ib_dev *dev)
 
 		/* Register only for native ports */
 		err = mlx5_add_netdev_notifier(dev, port_num);
+<<<<<<< HEAD
 		if (err || dev->is_rep || !mlx5_is_roce_enabled(mdev))
+=======
+		if (err || dev->is_rep || !mlx5_is_roce_init_enabled(mdev))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/*
 			 * We don't enable ETH interface for
 			 * 1. IB representors
@@ -4261,7 +4277,10 @@ static int mlx5_ib_stage_ib_reg_init(struct mlx5_ib_dev *dev)
 {
 	const char *name;
 
+<<<<<<< HEAD
 	rdma_set_device_sysfs_group(&dev->ib_dev, &mlx5_attr_group);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!mlx5_lag_is_roce(dev->mdev))
 		name = "mlx5_%d";
 	else

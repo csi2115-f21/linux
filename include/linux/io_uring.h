@@ -32,6 +32,7 @@ struct io_uring_task {
 
 #if defined(CONFIG_IO_URING)
 struct sock *io_uring_get_socket(struct file *file);
+<<<<<<< HEAD
 void __io_uring_task_cancel(void);
 void __io_uring_files_cancel(struct files_struct *files);
 void __io_uring_free(struct task_struct *tsk);
@@ -40,11 +41,24 @@ static inline void io_uring_task_cancel(void)
 {
 	if (current->io_uring && !xa_empty(&current->io_uring->xa))
 		__io_uring_task_cancel();
-}
+=======
+void __io_uring_cancel(struct files_struct *files);
+void __io_uring_free(struct task_struct *tsk);
+
 static inline void io_uring_files_cancel(struct files_struct *files)
 {
 	if (current->io_uring)
+		__io_uring_cancel(files);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+}
+static inline void io_uring_files_cancel(struct files_struct *files)
+{
+<<<<<<< HEAD
+	if (current->io_uring)
 		__io_uring_files_cancel(files);
+=======
+	return io_uring_files_cancel(NULL);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 static inline void io_uring_free(struct task_struct *tsk)
 {

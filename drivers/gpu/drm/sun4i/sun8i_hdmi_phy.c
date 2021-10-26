@@ -704,7 +704,11 @@ int sun8i_hdmi_phy_probe(struct sun8i_dw_hdmi *hdmi, struct device_node *node)
 		clk_prepare_enable(phy->clk_phy);
 	}
 
+<<<<<<< HEAD
 	hdmi->phy = phy;
+=======
+	platform_set_drvdata(pdev, phy);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 
@@ -731,6 +735,12 @@ err_put_clk_bus:
 void sun8i_hdmi_phy_remove(struct sun8i_dw_hdmi *hdmi)
 {
 	struct sun8i_hdmi_phy *phy = hdmi->phy;
+
+	clk_disable_unprepare(phy->clk_mod);
+	clk_disable_unprepare(phy->clk_bus);
+	clk_disable_unprepare(phy->clk_phy);
+
+	reset_control_assert(phy->rst_phy);
 
 	clk_disable_unprepare(phy->clk_mod);
 	clk_disable_unprepare(phy->clk_bus);

@@ -49,11 +49,21 @@ struct rn5t618_power_info {
 };
 
 static enum power_supply_property rn5t618_usb_props[] = {
+<<<<<<< HEAD
+=======
+	/* input current limit is not very accurate */
+	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_ONLINE,
 };
 
 static enum power_supply_property rn5t618_adp_props[] = {
+<<<<<<< HEAD
+=======
+	/* input current limit is not very accurate */
+	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_ONLINE,
 };
@@ -365,6 +375,17 @@ static int rn5t618_adp_get_property(struct power_supply *psy,
 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
 
 		break;
+<<<<<<< HEAD
+=======
+	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT:
+		ret = regmap_read(info->rn5t618->regmap,
+				  RN5T618_REGISET1, &regval);
+		if (ret < 0)
+			return ret;
+
+		val->intval = FROM_CUR_REG(regval);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -EINVAL;
 	}
@@ -401,6 +422,31 @@ static int rn5t618_usb_get_property(struct power_supply *psy,
 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
 
 		break;
+<<<<<<< HEAD
+=======
+	case POWER_SUPPLY_PROP_USB_TYPE:
+		if (!online || (info->rn5t618->variant != RC5T619))
+			return -ENODATA;
+
+		return rc5t619_usb_get_type(info, val);
+	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT:
+		ret = regmap_read(info->rn5t618->regmap, RN5T618_CHGCTL1,
+				  &regval);
+		if (ret < 0)
+			return ret;
+
+		val->intval = 0;
+		if (regval & 2) {
+			ret = regmap_read(info->rn5t618->regmap,
+					  RN5T618_REGISET2,
+					  &regval);
+			if (ret < 0)
+				return ret;
+
+			val->intval = FROM_CUR_REG(regval);
+		}
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	default:
 		return -EINVAL;
 	}

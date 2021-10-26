@@ -56,9 +56,15 @@ void xfs_inode_set_reclaim_tag(struct xfs_inode *ip);
 
 int xfs_blockgc_free_dquots(struct xfs_mount *mp, struct xfs_dquot *udqp,
 		struct xfs_dquot *gdqp, struct xfs_dquot *pdqp,
+<<<<<<< HEAD
 		unsigned int eof_flags);
 int xfs_blockgc_free_quota(struct xfs_inode *ip, unsigned int eof_flags);
 int xfs_blockgc_free_space(struct xfs_mount *mp, struct xfs_eofblocks *eofb);
+=======
+		unsigned int iwalk_flags);
+int xfs_blockgc_free_quota(struct xfs_inode *ip, unsigned int iwalk_flags);
+int xfs_blockgc_free_space(struct xfs_mount *mp, struct xfs_icwalk *icm);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 void xfs_inode_set_eofblocks_tag(struct xfs_inode *ip);
 void xfs_inode_clear_eofblocks_tag(struct xfs_inode *ip);
@@ -68,9 +74,17 @@ void xfs_inode_clear_cowblocks_tag(struct xfs_inode *ip);
 
 void xfs_blockgc_worker(struct work_struct *work);
 
+<<<<<<< HEAD
 int xfs_inode_walk(struct xfs_mount *mp, int iter_flags,
 	int (*execute)(struct xfs_inode *ip, void *args),
 	void *args, int tag);
+=======
+#ifdef CONFIG_XFS_QUOTA
+int xfs_dqrele_all_inodes(struct xfs_mount *mp, unsigned int qflags);
+#else
+# define xfs_dqrele_all_inodes(mp, qflags)	(0)
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 int xfs_icache_inode_is_allocated(struct xfs_mount *mp, struct xfs_trans *tp,
 				  xfs_ino_t ino, bool *inuse);

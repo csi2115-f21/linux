@@ -788,6 +788,14 @@ static int release_lockspace(struct dlm_ls *ls, int force)
 
 	dlm_recoverd_stop(ls);
 
+<<<<<<< HEAD
+=======
+	if (ls_count == 1) {
+		dlm_scand_stop();
+		dlm_midcomms_shutdown();
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dlm_callback_stop(ls);
 
 	remove_lockspace(ls);

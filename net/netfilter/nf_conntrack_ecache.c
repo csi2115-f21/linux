@@ -309,6 +309,45 @@ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
 
 int nf_ct_expect_register_notifier(struct net *net,
 				   struct nf_exp_event_notifier *new)
+<<<<<<< HEAD
+=======
+{
+	int ret;
+	struct nf_exp_event_notifier *notify;
+
+	mutex_lock(&nf_ct_ecache_mutex);
+	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
+					   lockdep_is_held(&nf_ct_ecache_mutex));
+	if (notify != NULL) {
+		ret = -EBUSY;
+		goto out_unlock;
+	}
+	rcu_assign_pointer(net->ct.nf_expect_event_cb, new);
+	ret = 0;
+
+out_unlock:
+	mutex_unlock(&nf_ct_ecache_mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
+
+void nf_ct_expect_unregister_notifier(struct net *net,
+				      struct nf_exp_event_notifier *new)
+{
+	struct nf_exp_event_notifier *notify;
+
+	mutex_lock(&nf_ct_ecache_mutex);
+	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
+					   lockdep_is_held(&nf_ct_ecache_mutex));
+	BUG_ON(notify != new);
+	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
+	mutex_unlock(&nf_ct_ecache_mutex);
+	/* synchronize_rcu() is called from ctnetlink_exit. */
+}
+EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
+
+void nf_conntrack_ecache_work(struct net *net, enum nf_ct_ecache_state state)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 	struct nf_exp_event_notifier *notify;

@@ -6,6 +6,10 @@
 #include <linux/pci.h>
 
 #include <drm/drm_drv.h>
+<<<<<<< HEAD
+=======
+#include <drm/drm_aperture.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_managed.h>
 
@@ -109,7 +113,11 @@ static int bochs_pci_probe(struct pci_dev *pdev,
 		return -ENOMEM;
 	}
 
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "bochsdrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "bochsdrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

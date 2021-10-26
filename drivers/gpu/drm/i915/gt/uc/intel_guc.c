@@ -539,6 +539,7 @@ int intel_guc_suspend(struct intel_guc *guc)
 
 	intel_uncore_write(uncore, SOFT_SCRATCH(14),
 			   INTEL_GUC_SLEEP_STATE_INVALID_MASK);
+<<<<<<< HEAD
 
 	ret = intel_guc_send(guc, action, ARRAY_SIZE(action));
 	if (ret)
@@ -550,6 +551,19 @@ int intel_guc_suspend(struct intel_guc *guc)
 	if (ret)
 		return ret;
 
+=======
+
+	ret = intel_guc_send(guc, action, ARRAY_SIZE(action));
+	if (ret)
+		return ret;
+
+	ret = __intel_wait_for_register(uncore, SOFT_SCRATCH(14),
+					INTEL_GUC_SLEEP_STATE_INVALID_MASK,
+					0, 0, 10, &status);
+	if (ret)
+		return ret;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (status != INTEL_GUC_SLEEP_STATE_SUCCESS) {
 		DRM_ERROR("GuC failed to change sleep state. "
 			  "action=0x%x, err=%u\n",

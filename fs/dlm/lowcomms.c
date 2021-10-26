@@ -81,8 +81,15 @@ struct connection {
 #define CF_CONNECTED 10
 	struct list_head writequeue;  /* List of outgoing writequeue_entries */
 	spinlock_t writequeue_lock;
+<<<<<<< HEAD
 	void (*connect_action) (struct connection *);	/* What to do to connect */
 	void (*shutdown_action)(struct connection *con); /* What to do to shutdown */
+=======
+	atomic_t writequeue_cnt;
+	void (*connect_action) (struct connection *);	/* What to do to connect */
+	void (*shutdown_action)(struct connection *con); /* What to do to shutdown */
+	bool (*eof_condition)(struct connection *con); /* What to do to eof check */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int retries;
 #define MAX_CONNECT_RETRIES 3
 	struct hlist_node list;
@@ -150,6 +157,7 @@ static void process_send_sockets(struct work_struct *work);
 static void sctp_connect_to_sock(struct connection *con);
 static void tcp_connect_to_sock(struct connection *con);
 static void dlm_tcp_shutdown(struct connection *con);
+<<<<<<< HEAD
 
 /* This is deliberately very simple because most clusters have simple
    sequential nodeids, so we should be able to go straight to a connection
@@ -158,6 +166,8 @@ static inline int nodeid_hash(int nodeid)
 {
 	return nodeid & (CONN_HASH_SIZE-1);
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static struct connection *__find_con(int nodeid)
 {
@@ -193,11 +203,26 @@ static int dlm_con_init(struct connection *con, int nodeid)
 	INIT_WORK(&con->rwork, process_recv_sockets);
 	init_waitqueue_head(&con->shutdown_wait);
 
+<<<<<<< HEAD
 	if (dlm_config.ci_protocol == 0) {
 		con->connect_action = tcp_connect_to_sock;
 		con->shutdown_action = dlm_tcp_shutdown;
 	} else {
 		con->connect_action = sctp_connect_to_sock;
+=======
+	switch (dlm_config.ci_protocol) {
+	case DLM_PROTO_TCP:
+		con->connect_action = tcp_connect_to_sock;
+		con->shutdown_action = dlm_tcp_shutdown;
+		con->eof_condition = tcp_eof_condition;
+		break;
+	case DLM_PROTO_SCTP:
+		con->connect_action = sctp_connect_to_sock;
+		break;
+	default:
+		kfree(con->rx_buf);
+		return -EINVAL;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return 0;
@@ -226,8 +251,11 @@ static struct connection *nodeid2con(int nodeid, gfp_t alloc)
 		return NULL;
 	}
 
+<<<<<<< HEAD
 	r = nodeid_hash(nodeid);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_lock(&connections_lock);
 	/* Because multiple workqueues/threads calls this function it can
 	 * race on multiple cpu's. Instead of locking hot path __find_con()
@@ -817,6 +845,7 @@ out_resched:
 	return -EAGAIN;
 
 out_close:
+<<<<<<< HEAD
 	mutex_unlock(&con->sock_mutex);
 	if (ret != -EAGAIN) {
 		/* Reconnect when there is something to send */
@@ -824,6 +853,19 @@ out_close:
 		if (ret == 0) {
 			log_print("connection %p got EOF from %d",
 				  con, con->nodeid);
+=======
+	if (ret == 0) {
+		log_print("connection %p got EOF from %d",
+			  con, con->nodeid);
+
+		if (con->eof_condition && con->eof_condition(con)) {
+			set_bit(CF_EOF, &con->flags);
+			mutex_unlock(&con->sock_mutex);
+		} else {
+			mutex_unlock(&con->sock_mutex);
+			close_connection(con, false, true, false);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			/* handling for tcp shutdown */
 			clear_bit(CF_SHUTDOWN, &con->flags);
 			wake_up(&con->shutdown_wait);
@@ -1008,6 +1050,241 @@ static int sctp_bind_addrs(struct socket *sock, uint16_t port)
    and add the primary IP address of the remote node.
  */
 static void sctp_connect_to_sock(struct connection *con)
+<<<<<<< HEAD
+=======
+{
+	struct sockaddr_storage daddr;
+	int result;
+	int addr_len;
+	struct socket *sock;
+	unsigned int mark;
+
+	mutex_lock(&con->sock_mutex);
+
+	/* Some odd races can cause double-connects, ignore them */
+	if (con->retries++ > MAX_CONNECT_RETRIES)
+		goto out;
+
+	if (con->sock) {
+		log_print("node %d already connected.", con->nodeid);
+		goto out;
+	}
+
+	memset(&daddr, 0, sizeof(daddr));
+	result = nodeid_to_addr(con->nodeid, &daddr, NULL, true, &mark);
+	if (result < 0) {
+		log_print("no address for nodeid %d", con->nodeid);
+		goto out;
+	}
+
+	/* Create a socket to communicate with */
+	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
+				  SOCK_STREAM, IPPROTO_SCTP, &sock);
+	if (result < 0)
+		goto socket_err;
+
+	sock_set_mark(sock->sk, mark);
+
+	add_sock(sock, con);
+
+	/* Bind to all addresses. */
+	if (sctp_bind_addrs(con->sock, 0))
+		goto bind_err;
+
+	make_sockaddr(&daddr, dlm_config.ci_tcp_port, &addr_len);
+
+	log_print_ratelimited("connecting to %d", con->nodeid);
+
+	/* Turn off Nagle's algorithm */
+	sctp_sock_set_nodelay(sock->sk);
+
+	/*
+	 * Make sock->ops->connect() function return in specified time,
+	 * since O_NONBLOCK argument in connect() function does not work here,
+	 * then, we should restore the default value of this attribute.
+	 */
+	sock_set_sndtimeo(sock->sk, 5);
+	result = sock->ops->connect(sock, (struct sockaddr *)&daddr, addr_len,
+				   0);
+	sock_set_sndtimeo(sock->sk, 0);
+
+	if (result == -EINPROGRESS)
+		result = 0;
+	if (result == 0) {
+		if (!test_and_set_bit(CF_CONNECTED, &con->flags))
+			log_print("successful connected to node %d", con->nodeid);
+		goto out;
+	}
+
+bind_err:
+	con->sock = NULL;
+	sock_release(sock);
+
+socket_err:
+	/*
+	 * Some errors are fatal and this list might need adjusting. For other
+	 * errors we try again until the max number of retries is reached.
+	 */
+	if (result != -EHOSTUNREACH &&
+	    result != -ENETUNREACH &&
+	    result != -ENETDOWN &&
+	    result != -EINVAL &&
+	    result != -EPROTONOSUPPORT) {
+		log_print("connect %d try %d error %d", con->nodeid,
+			  con->retries, result);
+		mutex_unlock(&con->sock_mutex);
+		msleep(1000);
+		lowcomms_connect_sock(con);
+		return;
+	}
+
+out:
+	mutex_unlock(&con->sock_mutex);
+}
+
+/* Connect a new socket to its peer */
+static void tcp_connect_to_sock(struct connection *con)
+{
+	struct sockaddr_storage saddr, src_addr;
+	unsigned int mark;
+	int addr_len;
+	struct socket *sock = NULL;
+	int result;
+
+	mutex_lock(&con->sock_mutex);
+	if (con->retries++ > MAX_CONNECT_RETRIES)
+		goto out;
+
+	/* Some odd races can cause double-connects, ignore them */
+	if (con->sock)
+		goto out;
+
+	/* Create a socket to communicate with */
+	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
+				  SOCK_STREAM, IPPROTO_TCP, &sock);
+	if (result < 0)
+		goto out_err;
+
+	memset(&saddr, 0, sizeof(saddr));
+	result = nodeid_to_addr(con->nodeid, &saddr, NULL, false, &mark);
+	if (result < 0) {
+		log_print("no address for nodeid %d", con->nodeid);
+		goto out_err;
+	}
+
+	sock_set_mark(sock->sk, mark);
+
+	add_sock(sock, con);
+
+	/* Bind to our cluster-known address connecting to avoid
+	   routing problems */
+	memcpy(&src_addr, dlm_local_addr[0], sizeof(src_addr));
+	make_sockaddr(&src_addr, 0, &addr_len);
+	result = sock->ops->bind(sock, (struct sockaddr *) &src_addr,
+				 addr_len);
+	if (result < 0) {
+		log_print("could not bind for connect: %d", result);
+		/* This *may* not indicate a critical error */
+	}
+
+	make_sockaddr(&saddr, dlm_config.ci_tcp_port, &addr_len);
+
+	log_print_ratelimited("connecting to %d", con->nodeid);
+
+	/* Turn off Nagle's algorithm */
+	tcp_sock_set_nodelay(sock->sk);
+
+	result = sock->ops->connect(sock, (struct sockaddr *)&saddr, addr_len,
+				   O_NONBLOCK);
+	if (result == -EINPROGRESS)
+		result = 0;
+	if (result == 0)
+		goto out;
+
+out_err:
+	if (con->sock) {
+		sock_release(con->sock);
+		con->sock = NULL;
+	} else if (sock) {
+		sock_release(sock);
+	}
+	/*
+	 * Some errors are fatal and this list might need adjusting. For other
+	 * errors we try again until the max number of retries is reached.
+	 */
+	if (result != -EHOSTUNREACH &&
+	    result != -ENETUNREACH &&
+	    result != -ENETDOWN && 
+	    result != -EINVAL &&
+	    result != -EPROTONOSUPPORT) {
+		log_print("connect %d try %d error %d", con->nodeid,
+			  con->retries, result);
+		mutex_unlock(&con->sock_mutex);
+		msleep(1000);
+		lowcomms_connect_sock(con);
+		return;
+	}
+out:
+	mutex_unlock(&con->sock_mutex);
+	return;
+}
+
+/* On error caller must run dlm_close_sock() for the
+ * listen connection socket.
+ */
+static int tcp_create_listen_sock(struct listen_connection *con,
+				  struct sockaddr_storage *saddr)
+{
+	struct socket *sock = NULL;
+	int result = 0;
+	int addr_len;
+
+	if (dlm_local_addr[0]->ss_family == AF_INET)
+		addr_len = sizeof(struct sockaddr_in);
+	else
+		addr_len = sizeof(struct sockaddr_in6);
+
+	/* Create a socket to communicate with */
+	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
+				  SOCK_STREAM, IPPROTO_TCP, &sock);
+	if (result < 0) {
+		log_print("Can't create listening comms socket");
+		goto create_out;
+	}
+
+	sock_set_mark(sock->sk, dlm_config.ci_mark);
+
+	/* Turn off Nagle's algorithm */
+	tcp_sock_set_nodelay(sock->sk);
+
+	sock_set_reuseaddr(sock->sk);
+
+	add_listen_sock(sock, con);
+
+	/* Bind to our port */
+	make_sockaddr(saddr, dlm_config.ci_tcp_port, &addr_len);
+	result = sock->ops->bind(sock, (struct sockaddr *) saddr, addr_len);
+	if (result < 0) {
+		log_print("Can't bind to port %d", dlm_config.ci_tcp_port);
+		goto create_out;
+	}
+	sock_set_keepalive(sock->sk);
+
+	result = sock->ops->listen(sock, 5);
+	if (result < 0) {
+		log_print("Can't listen on port %d", dlm_config.ci_tcp_port);
+		goto create_out;
+	}
+
+	return 0;
+
+create_out:
+	return result;
+}
+
+/* Get local addresses */
+static void init_local(void)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct sockaddr_storage daddr;
 	int result;
@@ -1019,9 +1296,73 @@ static void sctp_connect_to_sock(struct connection *con)
 
 	mutex_lock(&con->sock_mutex);
 
+<<<<<<< HEAD
 	/* Some odd races can cause double-connects, ignore them */
 	if (con->retries++ > MAX_CONNECT_RETRIES)
 		goto out;
+=======
+/* Initialise SCTP socket and bind to all interfaces
+ * On error caller must run dlm_close_sock() for the
+ * listen connection socket.
+ */
+static int sctp_listen_for_all(struct listen_connection *con)
+{
+	struct socket *sock = NULL;
+	int result = -EINVAL;
+
+	log_print("Using SCTP for communications");
+
+	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
+				  SOCK_STREAM, IPPROTO_SCTP, &sock);
+	if (result < 0) {
+		log_print("Can't create comms socket, check SCTP is loaded");
+		goto out;
+	}
+
+	sock_set_rcvbuf(sock->sk, NEEDED_RMEM);
+	sock_set_mark(sock->sk, dlm_config.ci_mark);
+	sctp_sock_set_nodelay(sock->sk);
+
+	add_listen_sock(sock, con);
+
+	/* Bind to all addresses. */
+	result = sctp_bind_addrs(con->sock, dlm_config.ci_tcp_port);
+	if (result < 0)
+		goto out;
+
+	result = sock->ops->listen(sock, 5);
+	if (result < 0) {
+		log_print("Can't set socket listening");
+		goto out;
+	}
+
+	return 0;
+
+out:
+	return result;
+}
+
+static int tcp_listen_for_all(void)
+{
+	/* We don't support multi-homed hosts */
+	if (dlm_local_count > 1) {
+		log_print("TCP protocol can't handle multi-homed hosts, "
+			  "try SCTP");
+		return -EINVAL;
+	}
+
+	log_print("Using TCP for communications");
+
+	return tcp_create_listen_sock(&listen_con, dlm_local_addr[0]);
+}
+
+
+
+static struct writequeue_entry *new_writequeue_entry(struct connection *con,
+						     gfp_t allocation)
+{
+	struct writequeue_entry *entry;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (con->sock) {
 		log_print("node %d already connected.", con->nodeid);
@@ -1103,6 +1444,7 @@ out:
 /* Connect a new socket to its peer */
 static void tcp_connect_to_sock(struct connection *con)
 {
+<<<<<<< HEAD
 	struct sockaddr_storage saddr, src_addr;
 	int addr_len;
 	struct socket *sock = NULL;
@@ -1126,6 +1468,26 @@ static void tcp_connect_to_sock(struct connection *con)
 		goto out_err;
 
 	sock_set_mark(sock->sk, mark);
+=======
+	struct writequeue_entry *e;
+	struct dlm_msg *msg;
+
+	msg = kzalloc(sizeof(*msg), allocation);
+	if (!msg)
+		return NULL;
+
+	kref_init(&msg->ref);
+
+	e = new_wq_entry(con, len, allocation, ppc, cb, mh);
+	if (!e) {
+		kfree(msg);
+		return NULL;
+	}
+
+	msg->ppc = *ppc;
+	msg->len = len;
+	msg->entry = e;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	memset(&saddr, 0, sizeof(saddr));
 	result = nodeid_to_addr(con->nodeid, &saddr, NULL, false);
@@ -1432,9 +1794,13 @@ static void send_to_sock(struct connection *con)
 
 	spin_lock(&con->writequeue_lock);
 	for (;;) {
+<<<<<<< HEAD
 		e = list_entry(con->writequeue.next, struct writequeue_entry,
 			       list);
 		if ((struct list_head *) e == &con->writequeue)
+=======
+		if (list_empty(&con->writequeue))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			break;
 
 		len = e->len;
@@ -1459,7 +1825,11 @@ static void send_to_sock(struct connection *con)
 				cond_resched();
 				goto out;
 			} else if (ret < 0)
+<<<<<<< HEAD
 				goto send_error;
+=======
+				goto out;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		/* Don't starve people filling buffers */
@@ -1555,8 +1925,22 @@ static void process_send_sockets(struct work_struct *work)
 	struct connection *con = container_of(work, struct connection, swork);
 
 	clear_bit(CF_WRITE_PENDING, &con->flags);
+<<<<<<< HEAD
 	if (con->sock == NULL) /* not mutex protected so check it inside too */
 		con->connect_action(con);
+=======
+
+	if (test_and_clear_bit(CF_RECONNECT, &con->flags)) {
+		close_connection(con, false, false, true);
+		dlm_midcomms_unack_msg_resend(con->nodeid);
+	}
+
+	if (con->sock == NULL) { /* not mutex protected so check it inside too */
+		if (test_and_clear_bit(CF_DELAY_CONNECT, &con->flags))
+			msleep(1000);
+		con->connect_action(con);
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (!list_empty(&con->writequeue))
 		send_to_sock(con);
 }
@@ -1589,6 +1973,36 @@ static int work_start(void)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void shutdown_conn(struct connection *con)
+{
+	if (con->shutdown_action)
+		con->shutdown_action(con);
+}
+
+void dlm_lowcomms_shutdown(void)
+{
+	int idx;
+
+	/* Set all the flags to prevent any
+	 * socket activity.
+	 */
+	dlm_allow_conn = 0;
+
+	if (recv_workqueue)
+		flush_workqueue(recv_workqueue);
+	if (send_workqueue)
+		flush_workqueue(send_workqueue);
+
+	dlm_close_sock(&listen_con.sock);
+
+	idx = srcu_read_lock(&connections_srcu);
+	foreach_conn(shutdown_conn);
+	srcu_read_unlock(&connections_srcu, idx);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static void _stop_conn(struct connection *con, bool and_other)
 {
 	mutex_lock(&con->sock_mutex);
@@ -1715,10 +2129,26 @@ int dlm_lowcomms_start(void)
 	dlm_allow_conn = 1;
 
 	/* Start listening */
+<<<<<<< HEAD
 	if (dlm_config.ci_protocol == 0)
 		error = tcp_listen_for_all();
 	else
 		error = sctp_listen_for_all(&listen_con);
+=======
+	switch (dlm_config.ci_protocol) {
+	case DLM_PROTO_TCP:
+		error = tcp_listen_for_all();
+		break;
+	case DLM_PROTO_SCTP:
+		error = sctp_listen_for_all(&listen_con);
+		break;
+	default:
+		log_print("Invalid protocol identifier %d set",
+			  dlm_config.ci_protocol);
+		error = -EINVAL;
+		break;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (error)
 		goto fail_unlisten;
 

@@ -102,6 +102,8 @@
 };
 
 &cp1_i2c0 {
+<<<<<<< HEAD
+=======
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&cp1_i2c0_pins>;
@@ -193,10 +195,112 @@
 };
 
 /* CON58 */
+&cp1_utmi {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&cp1_i2c0_pins>;
+	clock-frequency = <100000>;
+};
+
+<<<<<<< HEAD
+/* CON40 */
+&cp1_pcie0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&cp1_pcie_reset_pins>;
+	num-lanes = <2>;
+	num-viewport = <8>;
+	marvell,reset-gpio = <&cp1_gpio1 0 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+	/* Generic PHY, providing serdes lanes */
+	phys = <&cp1_comphy0 0
+		&cp1_comphy1 0>;
+};
+
+&cp1_sata0 {
+	status = "okay";
+
+	/* CON32 */
+	sata-port@1 {
+		/* Generic PHY, providing serdes lanes */
+		phys = <&cp1_comphy5 1>;
+	};
+};
+
+/* U24 */
+&cp1_spi1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&cp1_spi0_pins>;
+	reg = <0x700680 0x50>;
+
+	spi-flash@0 {
+		#address-cells = <0x1>;
+		#size-cells = <0x1>;
+		compatible = "jedec,spi-nor";
+		reg = <0x0>;
+		/* On-board MUX does not allow higher frequencies */
+		spi-max-frequency = <40000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "U-Boot-1";
+				reg = <0x0 0x200000>;
+			};
+
+			partition@400000 {
+				label = "Filesystem-1";
+				reg = <0x200000 0xe00000>;
+			};
+		};
+	};
+
+};
+
+&cp1_syscon0 {
+	cp1_pinctrl: pinctrl {
+		compatible = "marvell,cp115-standalone-pinctrl";
+
+		cp1_i2c0_pins: cp1-i2c-pins-0 {
+			marvell,pins = "mpp37", "mpp38";
+			marvell,function = "i2c0";
+		};
+		cp1_spi0_pins: cp1-spi-pins-0 {
+			marvell,pins = "mpp13", "mpp14", "mpp15", "mpp16";
+			marvell,function = "spi1";
+		};
+		cp1_xhci0_vbus_pins: cp1-xhci0-vbus-pins {
+			marvell,pins = "mpp3";
+			marvell,function = "gpio";
+		};
+		cp1_sfp_pins: sfp-pins {
+			marvell,pins = "mpp8", "mpp9", "mpp10", "mpp11";
+			marvell,function = "gpio";
+		};
+		cp1_pcie_reset_pins: cp1-pcie-reset-pins {
+			marvell,pins = "mpp0";
+			marvell,function = "gpio";
+		};
+	};
+};
+
+/* CON58 */
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 &cp1_usb3_1 {
 	status = "okay";
 	usb-phy = <&cp1_usb3_0_phy0>;
 	/* Generic PHY, providing serdes lanes */
+<<<<<<< HEAD
 	phys = <&cp1_comphy3 1>;
 	phy-names = "usb";
+=======
+	phys = <&cp1_comphy3 1>, <&cp1_utmi1>;
+	phy-names = "usb", "utmi";
+	dr_mode = "host";
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };

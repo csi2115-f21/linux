@@ -27,8 +27,27 @@ void intel_ddi_fdi_post_disable(struct intel_atomic_state *state,
 				struct intel_encoder *intel_encoder,
 				const struct intel_crtc_state *old_crtc_state,
 				const struct drm_connector_state *old_conn_state);
+<<<<<<< HEAD
 void hsw_fdi_link_train(struct intel_encoder *encoder,
 			const struct intel_crtc_state *crtc_state);
+=======
+void intel_ddi_enable_clock(struct intel_encoder *encoder,
+			    const struct intel_crtc_state *crtc_state);
+void intel_ddi_get_clock(struct intel_encoder *encoder,
+			 struct intel_crtc_state *crtc_state,
+			 struct intel_shared_dpll *pll);
+void hsw_ddi_enable_clock(struct intel_encoder *encoder,
+			  const struct intel_crtc_state *crtc_state);
+void hsw_ddi_disable_clock(struct intel_encoder *encoder);
+bool hsw_ddi_is_clock_enabled(struct intel_encoder *encoder);
+void hsw_ddi_get_config(struct intel_encoder *encoder,
+			struct intel_crtc_state *crtc_state);
+struct intel_shared_dpll *icl_ddi_combo_get_pll(struct intel_encoder *encoder);
+void intel_prepare_dp_ddi_buffers(struct intel_encoder *encoder,
+				  const struct intel_crtc_state *crtc_state);
+void intel_wait_ddi_buf_idle(struct drm_i915_private *dev_priv,
+			     enum port port);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void intel_ddi_init(struct drm_i915_private *dev_priv, enum port port);
 bool intel_ddi_get_hw_state(struct intel_encoder *encoder, enum pipe *pipe);
 void intel_ddi_enable_transcoder_func(struct intel_encoder *encoder,

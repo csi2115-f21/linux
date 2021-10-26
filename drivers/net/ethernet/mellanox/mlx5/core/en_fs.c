@@ -950,6 +950,7 @@ static bool mlx5e_tunnel_any_rx_proto_supported(struct mlx5_core_dev *mdev)
 	}
 	return false;
 }
+<<<<<<< HEAD
 
 bool mlx5e_tunnel_inner_ft_supported(struct mlx5_core_dev *mdev)
 {
@@ -968,6 +969,26 @@ static u8 mlx5e_etype_to_ipv(u16 ethertype)
 	return 0;
 }
 
+=======
+
+bool mlx5e_tunnel_inner_ft_supported(struct mlx5_core_dev *mdev)
+{
+	return (mlx5e_tunnel_any_rx_proto_supported(mdev) &&
+		MLX5_CAP_FLOWTABLE_NIC_RX(mdev, ft_field_support.inner_ip_version));
+}
+
+static u8 mlx5e_etype_to_ipv(u16 ethertype)
+{
+	if (ethertype == ETH_P_IP)
+		return 4;
+
+	if (ethertype == ETH_P_IPV6)
+		return 6;
+
+	return 0;
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct mlx5_flow_handle *
 mlx5e_generate_ttc_rule(struct mlx5e_priv *priv,
 			struct mlx5_flow_table *ft,
@@ -1727,7 +1748,12 @@ err_destroy_vlan_table:
 static void mlx5e_destroy_vlan_table(struct mlx5e_priv *priv)
 {
 	mlx5e_del_vlan_rules(priv);
+<<<<<<< HEAD
 	mlx5e_destroy_flow_table(&priv->fs.vlan.ft);
+=======
+	mlx5e_destroy_flow_table(&priv->fs.vlan->ft);
+	kvfree(priv->fs.vlan);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int mlx5e_create_flow_steering(struct mlx5e_priv *priv)

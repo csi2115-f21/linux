@@ -152,6 +152,7 @@ extern unsigned long vectors_base;
 
 #ifdef CONFIG_XIP_KERNEL
 /*
+<<<<<<< HEAD
  * When referencing data in RAM from the XIP region in a relative manner
  * with the MMU off, we need the relative offset between the two physical
  * addresses.  The macro below achieves this, which is:
@@ -166,6 +167,13 @@ extern unsigned long vectors_base;
 #endif
 
 #ifndef __ASSEMBLY__
+=======
+ * Physical start and end address of the kernel sections. These addresses are
+ * 2MB-aligned to match the section mappings placed over the kernel.
+ */
+extern u32 kernel_sec_start;
+extern u32 kernel_sec_end;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Physical vs virtual RAM address space conversion.  These are

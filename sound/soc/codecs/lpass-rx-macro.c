@@ -1728,6 +1728,7 @@ static int rx_macro_digital_mute(struct snd_soc_dai *dai, int mute, int stream)
 		reg = CDC_RX_RXn_RX_PATH_CTL(j);
 		mix_reg = CDC_RX_RXn_RX_PATH_MIX_CTL(j);
 		dsm_reg = CDC_RX_RXn_RX_PATH_DSM_CTL(j);
+<<<<<<< HEAD
 
 		if (mute) {
 			snd_soc_component_update_bits(component, reg,
@@ -1746,6 +1747,26 @@ static int rx_macro_digital_mute(struct snd_soc_dai *dai, int mute, int stream)
 		if (j == INTERP_AUX)
 			dsm_reg = CDC_RX_RX2_RX_PATH_DSM_CTL;
 
+=======
+
+		if (mute) {
+			snd_soc_component_update_bits(component, reg,
+						      CDC_RX_PATH_PGA_MUTE_MASK,
+						      CDC_RX_PATH_PGA_MUTE_ENABLE);
+			snd_soc_component_update_bits(component, mix_reg,
+						      CDC_RX_PATH_PGA_MUTE_MASK,
+						      CDC_RX_PATH_PGA_MUTE_ENABLE);
+		} else {
+			snd_soc_component_update_bits(component, reg,
+						      CDC_RX_PATH_PGA_MUTE_MASK, 0x0);
+			snd_soc_component_update_bits(component, mix_reg,
+						      CDC_RX_PATH_PGA_MUTE_MASK, 0x0);
+		}
+
+		if (j == INTERP_AUX)
+			dsm_reg = CDC_RX_RX2_RX_PATH_DSM_CTL;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		int_mux_cfg0 = CDC_RX_INP_MUX_RX_INT0_CFG0 + j * 8;
 		int_mux_cfg1 = int_mux_cfg0 + 4;
 		int_mux_cfg0_val = snd_soc_component_read(component, int_mux_cfg0);

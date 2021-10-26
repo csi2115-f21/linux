@@ -77,7 +77,12 @@ static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
 	} while (curr != end);
 }
 
+<<<<<<< HEAD
 void mte_enable_kernel(void);
+=======
+void mte_enable_kernel_sync(void);
+void mte_enable_kernel_async(void);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void mte_init_tags(u64 max_tag);
 
 void mte_set_report_once(bool state);
@@ -106,6 +111,19 @@ static inline void mte_set_mem_tag_range(void *addr, size_t size, u8 tag)
 
 static inline void mte_enable_kernel(void)
 {
+}
+
+static inline void mte_init_tags(u64 max_tag)
+{
+}
+
+static inline void mte_set_report_once(bool state)
+{
+}
+
+static inline bool mte_report_once(void)
+{
+	return false;
 }
 
 static inline void mte_init_tags(u64 max_tag)

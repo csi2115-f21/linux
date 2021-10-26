@@ -15,6 +15,223 @@
 #include <linux/init.h>
 #include <linux/export.h>
 #include <asm/cpu_mcf.h>
+<<<<<<< HEAD
+=======
+#include <asm/hwctrset.h>
+#include <asm/debug.h>
+
+static unsigned int cfdiag_cpu_speed;	/* CPU speed for CF_DIAG trailer */
+static debug_info_t *cf_dbg;
+
+#define	CF_DIAG_CTRSET_DEF		0xfeef	/* Counter set header mark */
+						/* interval in seconds */
+
+/* Counter sets are stored as data stream in a page sized memory buffer and
+ * exported to user space via raw data attached to the event sample data.
+ * Each counter set starts with an eight byte header consisting of:
+ * - a two byte eye catcher (0xfeef)
+ * - a one byte counter set number
+ * - a two byte counter set size (indicates the number of counters in this set)
+ * - a three byte reserved value (must be zero) to make the header the same
+ *   size as a counter value.
+ * All counter values are eight byte in size.
+ *
+ * All counter sets are followed by a 64 byte trailer.
+ * The trailer consists of a:
+ * - flag field indicating valid fields when corresponding bit set
+ * - the counter facility first and second version number
+ * - the CPU speed if nonzero
+ * - the time stamp the counter sets have been collected
+ * - the time of day (TOD) base value
+ * - the machine type.
+ *
+ * The counter sets are saved when the process is prepared to be executed on a
+ * CPU and saved again when the process is going to be removed from a CPU.
+ * The difference of both counter sets are calculated and stored in the event
+ * sample data area.
+ */
+struct cf_ctrset_entry {	/* CPU-M CF counter set entry (8 byte) */
+	unsigned int def:16;	/* 0-15  Data Entry Format */
+	unsigned int set:16;	/* 16-31 Counter set identifier */
+	unsigned int ctr:16;	/* 32-47 Number of stored counters */
+	unsigned int res1:16;	/* 48-63 Reserved */
+};
+
+struct cf_trailer_entry {	/* CPU-M CF_DIAG trailer (64 byte) */
+	/* 0 - 7 */
+	union {
+		struct {
+			unsigned int clock_base:1;	/* TOD clock base set */
+			unsigned int speed:1;		/* CPU speed set */
+			/* Measurement alerts */
+			unsigned int mtda:1;	/* Loss of MT ctr. data alert */
+			unsigned int caca:1;	/* Counter auth. change alert */
+			unsigned int lcda:1;	/* Loss of counter data alert */
+		};
+		unsigned long flags;	/* 0-63    All indicators */
+	};
+	/* 8 - 15 */
+	unsigned int cfvn:16;			/* 64-79   Ctr First Version */
+	unsigned int csvn:16;			/* 80-95   Ctr Second Version */
+	unsigned int cpu_speed:32;		/* 96-127  CPU speed */
+	/* 16 - 23 */
+	unsigned long timestamp;		/* 128-191 Timestamp (TOD) */
+	/* 24 - 55 */
+	union {
+		struct {
+			unsigned long progusage1;
+			unsigned long progusage2;
+			unsigned long progusage3;
+			unsigned long tod_base;
+		};
+		unsigned long progusage[4];
+	};
+	/* 56 - 63 */
+	unsigned int mach_type:16;		/* Machine type */
+	unsigned int res1:16;			/* Reserved */
+	unsigned int res2:32;			/* Reserved */
+};
+
+/* Create the trailer data at the end of a page. */
+static void cfdiag_trailer(struct cf_trailer_entry *te)
+{
+	struct cpu_cf_events *cpuhw = this_cpu_ptr(&cpu_cf_events);
+	struct cpuid cpuid;
+
+	te->cfvn = cpuhw->info.cfvn;		/* Counter version numbers */
+	te->csvn = cpuhw->info.csvn;
+
+	get_cpu_id(&cpuid);			/* Machine type */
+	te->mach_type = cpuid.machine;
+	te->cpu_speed = cfdiag_cpu_speed;
+	if (te->cpu_speed)
+		te->speed = 1;
+	te->clock_base = 1;			/* Save clock base */
+	te->tod_base = tod_clock_base.tod;
+	te->timestamp = get_tod_clock_fast();
+}
+
+/* Read a counter set. The counter set number determines the counter set and
+ * the CPUM-CF first and second version number determine the number of
+ * available counters in each counter set.
+ * Each counter set starts with header containing the counter set number and
+ * the number of eight byte counters.
+ *
+ * The functions returns the number of bytes occupied by this counter set
+ * including the header.
+ * If there is no counter in the counter set, this counter set is useless and
+ * zero is returned on this case.
+ *
+ * Note that the counter sets may not be enabled or active and the stcctm
+ * instruction might return error 3. Depending on error_ok value this is ok,
+ * for example when called from cpumf_pmu_start() call back function.
+ */
+static size_t cfdiag_getctrset(struct cf_ctrset_entry *ctrdata, int ctrset,
+			       size_t room, bool error_ok)
+{
+	struct cpu_cf_events *cpuhw = this_cpu_ptr(&cpu_cf_events);
+	size_t ctrset_size, need = 0;
+	int rc = 3;				/* Assume write failure */
+
+	ctrdata->def = CF_DIAG_CTRSET_DEF;
+	ctrdata->set = ctrset;
+	ctrdata->res1 = 0;
+	ctrset_size = cpum_cf_ctrset_size(ctrset, &cpuhw->info);
+
+	if (ctrset_size) {			/* Save data */
+		need = ctrset_size * sizeof(u64) + sizeof(*ctrdata);
+		if (need <= room) {
+			rc = ctr_stcctm(ctrset, ctrset_size,
+					(u64 *)(ctrdata + 1));
+		}
+		if (rc != 3 || error_ok)
+			ctrdata->ctr = ctrset_size;
+		else
+			need = 0;
+	}
+
+	debug_sprintf_event(cf_dbg, 3,
+			    "%s ctrset %d ctrset_size %zu cfvn %d csvn %d"
+			    " need %zd rc %d\n", __func__, ctrset, ctrset_size,
+			    cpuhw->info.cfvn, cpuhw->info.csvn, need, rc);
+	return need;
+}
+
+/* Read out all counter sets and save them in the provided data buffer.
+ * The last 64 byte host an artificial trailer entry.
+ */
+static size_t cfdiag_getctr(void *data, size_t sz, unsigned long auth,
+			    bool error_ok)
+{
+	struct cf_trailer_entry *trailer;
+	size_t offset = 0, done;
+	int i;
+
+	memset(data, 0, sz);
+	sz -= sizeof(*trailer);		/* Always room for trailer */
+	for (i = CPUMF_CTR_SET_BASIC; i < CPUMF_CTR_SET_MAX; ++i) {
+		struct cf_ctrset_entry *ctrdata = data + offset;
+
+		if (!(auth & cpumf_ctr_ctl[i]))
+			continue;	/* Counter set not authorized */
+
+		done = cfdiag_getctrset(ctrdata, i, sz - offset, error_ok);
+		offset += done;
+	}
+	trailer = data + offset;
+	cfdiag_trailer(trailer);
+	return offset + sizeof(*trailer);
+}
+
+/* Calculate the difference for each counter in a counter set. */
+static void cfdiag_diffctrset(u64 *pstart, u64 *pstop, int counters)
+{
+	for (; --counters >= 0; ++pstart, ++pstop)
+		if (*pstop >= *pstart)
+			*pstop -= *pstart;
+		else
+			*pstop = *pstart - *pstop + 1;
+}
+
+/* Scan the counter sets and calculate the difference of each counter
+ * in each set. The result is the increment of each counter during the
+ * period the counter set has been activated.
+ *
+ * Return true on success.
+ */
+static int cfdiag_diffctr(struct cpu_cf_events *cpuhw, unsigned long auth)
+{
+	struct cf_trailer_entry *trailer_start, *trailer_stop;
+	struct cf_ctrset_entry *ctrstart, *ctrstop;
+	size_t offset = 0;
+
+	auth &= (1 << CPUMF_LCCTL_ENABLE_SHIFT) - 1;
+	do {
+		ctrstart = (struct cf_ctrset_entry *)(cpuhw->start + offset);
+		ctrstop = (struct cf_ctrset_entry *)(cpuhw->stop + offset);
+
+		if (memcmp(ctrstop, ctrstart, sizeof(*ctrstop))) {
+			pr_err_once("cpum_cf_diag counter set compare error "
+				    "in set %i\n", ctrstart->set);
+			return 0;
+		}
+		auth &= ~cpumf_ctr_ctl[ctrstart->set];
+		if (ctrstart->def == CF_DIAG_CTRSET_DEF) {
+			cfdiag_diffctrset((u64 *)(ctrstart + 1),
+					  (u64 *)(ctrstop + 1), ctrstart->ctr);
+			offset += ctrstart->ctr * sizeof(u64) +
+							sizeof(*ctrstart);
+		}
+	} while (ctrstart->def && auth);
+
+	/* Save time_stamp from start of event in stop's trailer */
+	trailer_start = (struct cf_trailer_entry *)(cpuhw->start + offset);
+	trailer_stop = (struct cf_trailer_entry *)(cpuhw->stop + offset);
+	trailer_stop->progusage[0] = trailer_start->timestamp;
+
+	return 1;
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static enum cpumf_ctr_set get_counter_set(u64 event)
 {
@@ -506,8 +723,48 @@ static void cpumf_pmu_cancel_txn(struct pmu *pmu)
  */
 static int cpumf_pmu_commit_txn(struct pmu *pmu)
 {
+<<<<<<< HEAD
 	struct cpu_cf_events *cpuhw = this_cpu_ptr(&cpu_cf_events);
 	u64 state;
+=======
+	int ret;
+
+	get_online_cpus();
+	mutex_lock(&cfset_ctrset_mutex);
+	switch (cmd) {
+	case S390_HWCTR_START:
+		ret = cfset_ioctl_start(arg);
+		break;
+	case S390_HWCTR_STOP:
+		ret = cfset_ioctl_stop();
+		break;
+	case S390_HWCTR_READ:
+		ret = cfset_ioctl_read(arg);
+		break;
+	default:
+		ret = -ENOTTY;
+		break;
+	}
+	mutex_unlock(&cfset_ctrset_mutex);
+	put_online_cpus();
+	return ret;
+}
+
+static const struct file_operations cfset_fops = {
+	.owner = THIS_MODULE,
+	.open = cfset_open,
+	.release = cfset_release,
+	.unlocked_ioctl	= cfset_ioctl,
+	.compat_ioctl = cfset_ioctl,
+	.llseek = no_llseek
+};
+
+static struct miscdevice cfset_dev = {
+	.name	= S390_HWCTR_DEVICE,
+	.minor	= MISC_DYNAMIC_MINOR,
+	.fops	= &cfset_fops,
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
 

@@ -67,10 +67,17 @@ do
 		srand(n + me + systime());
 		ncpus = split(cpus, ca);
 		curcpu = ca[int(rand() * ncpus + 1)];
+<<<<<<< HEAD
 		mask = lshift(1, curcpu);
 		if (mask + 0 <= 0)
 			mask = 1;
 		printf("%#x\n", mask);
+=======
+		z = "";
+		for (i = 1; 4 * i <= curcpu; i++)
+			z = z "0";
+		print "0x" 2 ^ (curcpu % 4) z;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}' < /dev/null`
 	n=$(($n+1))
 	if ! taskset -p $cpumask $$ > /dev/null 2>&1

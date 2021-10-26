@@ -195,6 +195,7 @@ ipa_table_valid_one(struct ipa *ipa, bool route, bool ipv6, bool hashed)
 /* Verify the filter and route table memory regions are the expected size */
 bool ipa_table_valid(struct ipa *ipa)
 {
+<<<<<<< HEAD
 	bool valid = true;
 
 	valid = valid && ipa_table_valid_one(ipa, false, false, false);
@@ -205,6 +206,18 @@ bool ipa_table_valid(struct ipa *ipa)
 	valid = valid && ipa_table_valid_one(ipa, true, false, true);
 	valid = valid && ipa_table_valid_one(ipa, true, true, false);
 	valid = valid && ipa_table_valid_one(ipa, true, true, true);
+=======
+	bool valid;
+
+	valid = ipa_table_valid_one(IPA_MEM_V4_FILTER, false);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V4_FILTER_HASHED, false);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V6_FILTER, false);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V6_FILTER_HASHED, false);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V4_ROUTE, true);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V4_ROUTE_HASHED, true);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V6_ROUTE, true);
+	valid = valid && ipa_table_valid_one(IPA_MEM_V6_ROUTE_HASHED, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return valid;
 }
@@ -239,11 +252,14 @@ static void ipa_table_validate_build(void)
 
 #endif /* !IPA_VALIDATE */
 
+<<<<<<< HEAD
 bool ipa_table_hash_support(struct ipa *ipa)
 {
 	return ipa->version != IPA_VERSION_4_2;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Zero entry count means no table, so just return a 0 address */
 static dma_addr_t ipa_table_addr(struct ipa *ipa, bool filter_mask, u16 count)
 {

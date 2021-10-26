@@ -59,7 +59,11 @@ struct kvm_mmu_page {
 #ifdef CONFIG_X86_64
 	bool tdp_mmu_page;
 
+<<<<<<< HEAD
 	/* Used for freeing the page asyncronously if it is a TDP MMU page. */
+=======
+	/* Used for freeing the page asynchronously if it is a TDP MMU page. */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	struct rcu_head rcu_head;
 #endif
 };
@@ -102,6 +106,7 @@ bool kvm_mmu_slot_gfn_write_protect(struct kvm *kvm,
 				    struct kvm_memory_slot *slot, u64 gfn);
 void kvm_flush_remote_tlbs_with_address(struct kvm *kvm,
 					u64 start_gfn, u64 pages);
+<<<<<<< HEAD
 
 static inline void kvm_mmu_get_root(struct kvm *kvm, struct kvm_mmu_page *sp)
 {
@@ -118,6 +123,8 @@ static inline bool kvm_mmu_put_root(struct kvm *kvm, struct kvm_mmu_page *sp)
 
 	return !sp->root_count;
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /*
  * Return values of handle_mmio_page_fault, mmu.page_fault, and fast_page_fault().

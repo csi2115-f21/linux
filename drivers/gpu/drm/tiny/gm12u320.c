@@ -265,10 +265,20 @@ static void gm12u320_copy_fb_to_blocks(struct gm12u320_device *gm12u320)
 	y1 = gm12u320->fb_update.rect.y1;
 	y2 = gm12u320->fb_update.rect.y2;
 
+<<<<<<< HEAD
 	ret = drm_gem_shmem_vmap(fb->obj[0], &map);
 	if (ret) {
 		GM12U320_ERR("failed to vmap fb: %d\n", ret);
 		goto put_fb;
+=======
+	if (fb->obj[0]->import_attach) {
+		ret = dma_buf_begin_cpu_access(
+			fb->obj[0]->import_attach->dmabuf, DMA_FROM_DEVICE);
+		if (ret) {
+			GM12U320_ERR("dma_buf_begin_cpu_access err: %d\n", ret);
+			goto put_fb;
+		}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	vaddr = map.vaddr; /* TODO: Use mapping abstraction properly */
 
@@ -321,8 +331,11 @@ static void gm12u320_copy_fb_to_blocks(struct gm12u320_device *gm12u320)
 		if (ret)
 			GM12U320_ERR("dma_buf_end_cpu_access err: %d\n", ret);
 	}
+<<<<<<< HEAD
 vunmap:
 	drm_gem_shmem_vunmap(fb->obj[0], &map);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 put_fb:
 	drm_framebuffer_put(fb);
 	gm12u320->fb_update.fb = NULL;
@@ -566,7 +579,11 @@ static void gm12u320_pipe_enable(struct drm_simple_display_pipe *pipe,
 	struct gm12u320_device *gm12u320 = to_gm12u320(pipe->crtc.dev);
 
 	gm12u320->fb_update.draw_status_timeout = FIRST_FRAME_TIMEOUT;
+<<<<<<< HEAD
 	gm12u320_fb_mark_dirty(plane_state->fb, &rect);
+=======
+	gm12u320_fb_mark_dirty(plane_state->fb, &shadow_plane_state->map[0], &rect);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void gm12u320_pipe_disable(struct drm_simple_display_pipe *pipe)
@@ -583,7 +600,11 @@ static void gm12u320_pipe_update(struct drm_simple_display_pipe *pipe,
 	struct drm_rect rect;
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &rect))
+<<<<<<< HEAD
 		gm12u320_fb_mark_dirty(pipe->plane.state->fb, &rect);
+=======
+		gm12u320_fb_mark_dirty(state->fb, &shadow_plane_state->map[0], &rect);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct drm_simple_display_pipe_funcs gm12u320_pipe_funcs = {

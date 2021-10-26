@@ -197,14 +197,32 @@ struct c_can_priv {
 	struct napi_struct napi;
 	struct net_device *dev;
 	struct device *device;
+<<<<<<< HEAD
+=======
+	unsigned int msg_obj_num;
+	unsigned int msg_obj_rx_num;
+	unsigned int msg_obj_tx_num;
+	unsigned int msg_obj_rx_first;
+	unsigned int msg_obj_rx_last;
+	unsigned int msg_obj_tx_first;
+	unsigned int msg_obj_tx_last;
+	u32 msg_obj_rx_mask;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	atomic_t tx_active;
 	atomic_t sie_pending;
 	unsigned long tx_dir;
 	int last_status;
+<<<<<<< HEAD
 	u16 (*read_reg) (const struct c_can_priv *priv, enum reg index);
 	void (*write_reg) (const struct c_can_priv *priv, enum reg index, u16 val);
 	u32 (*read_reg32) (const struct c_can_priv *priv, enum reg index);
 	void (*write_reg32) (const struct c_can_priv *priv, enum reg index, u32 val);
+=======
+	u16 (*read_reg)(const struct c_can_priv *priv, enum reg index);
+	void (*write_reg)(const struct c_can_priv *priv, enum reg index, u16 val);
+	u32 (*read_reg32)(const struct c_can_priv *priv, enum reg index);
+	void (*write_reg32)(const struct c_can_priv *priv, enum reg index, u32 val);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	void __iomem *base;
 	const u16 *regs;
 	void *priv;		/* for board-specific data */
@@ -226,4 +244,9 @@ int c_can_power_up(struct net_device *dev);
 int c_can_power_down(struct net_device *dev);
 #endif
 
+<<<<<<< HEAD
+=======
+void c_can_set_ethtool_ops(struct net_device *dev);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif /* C_CAN_H */

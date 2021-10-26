@@ -313,6 +313,7 @@ static void user_mna_trap_fault(struct pt_regs *regs, unsigned int insn)
 	send_sig_fault(SIGBUS, BUS_ADRALN,
 		       (void __user *)safe_compute_effective_address(regs, insn),
 		       0, current);
+<<<<<<< HEAD
 }
 
 asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn)
@@ -373,4 +374,6 @@ kill_user:
 	user_mna_trap_fault(regs, insn);
 out:
 	;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }

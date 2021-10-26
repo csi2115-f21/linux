@@ -81,7 +81,11 @@ static void vdpa_release_dev(struct device *d)
  */
 struct vdpa_device *__vdpa_alloc_device(struct device *parent,
 					const struct vdpa_config_ops *config,
+<<<<<<< HEAD
 					int nvqs, size_t size, const char *name)
+=======
+					size_t size, const char *name)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct vdpa_device *vdev;
 	int err = -EINVAL;
@@ -107,7 +111,10 @@ struct vdpa_device *__vdpa_alloc_device(struct device *parent,
 	vdev->index = err;
 	vdev->config = config;
 	vdev->features_valid = false;
+<<<<<<< HEAD
 	vdev->nvqs = nvqs;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (name)
 		err = dev_set_name(&vdev->dev, "%s", name);

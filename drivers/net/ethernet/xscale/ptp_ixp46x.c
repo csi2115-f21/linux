@@ -15,6 +15,12 @@
 #include <linux/module.h>
 
 #include <linux/ptp_clock_kernel.h>
+<<<<<<< HEAD
+=======
+#include <linux/soc/ixp4xx/cpu.h>
+#include <linux/module.h>
+#include <mach/ixp4xx-regs.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #include "ixp46x_ts.h"
 

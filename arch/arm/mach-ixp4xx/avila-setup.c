@@ -19,6 +19,10 @@
 #include <linux/tty.h>
 #include <linux/serial_8250.h>
 #include <linux/gpio/machine.h>
+<<<<<<< HEAD
+=======
+#include <linux/platform_data/pata_ixp4xx_cf.h>
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #include <asm/types.h>
 #include <asm/setup.h>
 #include <asm/memory.h>

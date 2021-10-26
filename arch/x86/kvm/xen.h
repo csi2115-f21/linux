@@ -38,6 +38,36 @@ static inline int kvm_xen_has_interrupt(struct kvm_vcpu *vcpu)
 
 	return 0;
 }
+<<<<<<< HEAD
+=======
+#else
+static inline int kvm_xen_write_hypercall_page(struct kvm_vcpu *vcpu, u64 data)
+{
+	return 1;
+}
+
+static inline void kvm_xen_destroy_vm(struct kvm *kvm)
+{
+}
+
+static inline bool kvm_xen_msr_enabled(struct kvm *kvm)
+{
+	return false;
+}
+
+static inline bool kvm_xen_hypercall_enabled(struct kvm *kvm)
+{
+	return false;
+}
+
+static inline int kvm_xen_has_interrupt(struct kvm_vcpu *vcpu)
+{
+	return 0;
+}
+#endif
+
+int kvm_xen_hypercall(struct kvm_vcpu *vcpu);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* 32-bit compatibility definitions, also used natively in 32-bit build */
 #include <asm/pvclock-abi.h>

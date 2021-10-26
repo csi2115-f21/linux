@@ -26,6 +26,11 @@
 #ifndef _CRYPTO_ECC_H
 #define _CRYPTO_ECC_H
 
+<<<<<<< HEAD
+=======
+#include <crypto/ecc_curve.h>
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* One digit is u64 qword. */
 #define ECC_CURVE_NIST_P192_DIGITS  3
 #define ECC_CURVE_NIST_P256_DIGITS  4
@@ -61,6 +66,7 @@ struct ecc_point {
  * @a:		Curve parameter a.
  * @b:		Curve parameter b.
  */
+<<<<<<< HEAD
 struct ecc_curve {
 	char *name;
 	struct ecc_point g;
@@ -69,6 +75,16 @@ struct ecc_curve {
 	u64 *a;
 	u64 *b;
 };
+=======
+static inline void ecc_swap_digits(const u64 *in, u64 *out, unsigned int ndigits)
+{
+	const __be64 *src = (__force __be64 *)in;
+	int i;
+
+	for (i = 0; i < ndigits; i++)
+		out[i] = be64_to_cpu(src[ndigits - 1 - i]);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /**
  * ecc_is_key_valid() - Validate a given ECDH private key

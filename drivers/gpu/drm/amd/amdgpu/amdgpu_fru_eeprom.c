@@ -101,7 +101,12 @@ static int amdgpu_fru_read_eeprom(struct amdgpu_device *adev, uint32_t addrptr,
 int amdgpu_fru_get_product_info(struct amdgpu_device *adev)
 {
 	unsigned char buff[34];
+<<<<<<< HEAD
 	int addrptr = 0, size = 0;
+=======
+	int addrptr, size;
+	int len;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (!is_fru_eeprom_supported(adev))
 		return 0;

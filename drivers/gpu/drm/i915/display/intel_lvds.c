@@ -415,7 +415,11 @@ static int intel_lvds_compute_config(struct intel_encoder *intel_encoder,
 	int ret;
 
 	/* Should never happen!! */
+<<<<<<< HEAD
 	if (INTEL_GEN(dev_priv) < 4 && intel_crtc->pipe == 0) {
+=======
+	if (DISPLAY_VER(dev_priv) < 4 && intel_crtc->pipe == 0) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		drm_err(&dev_priv->drm, "Can't support LVDS on pipe A\n");
 		return -EINVAL;
 	}

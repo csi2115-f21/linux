@@ -11,8 +11,11 @@
 #define PRINTK_NMI_CONTEXT_MASK		0xff0000000
 
 #define PRINTK_NMI_CONTEXT_OFFSET	0x010000000
+<<<<<<< HEAD
 
 extern raw_spinlock_t logbuf_lock;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 __printf(4, 0)
 int vprintk_store(int facility, int level,
@@ -21,7 +24,10 @@ int vprintk_store(int facility, int level,
 
 __printf(1, 0) int vprintk_default(const char *fmt, va_list args);
 __printf(1, 0) int vprintk_deferred(const char *fmt, va_list args);
+<<<<<<< HEAD
 __printf(1, 0) int vprintk_func(const char *fmt, va_list args);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 void __printk_safe_enter(void);
 void __printk_safe_exit(void);
 

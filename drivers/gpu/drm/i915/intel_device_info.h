@@ -84,6 +84,11 @@ enum intel_platform {
 	INTEL_TIGERLAKE,
 	INTEL_ROCKETLAKE,
 	INTEL_DG1,
+<<<<<<< HEAD
+=======
+	INTEL_ALDERLAKE_S,
+	INTEL_ALDERLAKE_P,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	INTEL_MAX_PLATFORMS
 };
 
@@ -137,7 +142,11 @@ enum intel_ppgtt_type {
 #define DEV_INFO_DISPLAY_FOR_EACH_FLAG(func) \
 	/* Keep in alphabetical order */ \
 	func(cursor_needs_physical); \
+<<<<<<< HEAD
 	func(has_csr); \
+=======
+	func(has_dmc); \
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	func(has_ddi); \
 	func(has_dp_mst); \
 	func(has_dsb); \
@@ -156,9 +165,15 @@ enum intel_ppgtt_type {
 	func(supports_tv);
 
 struct intel_device_info {
+<<<<<<< HEAD
 	u16 gen_mask;
 
 	u8 gen;
+=======
+	u8 graphics_ver;
+	u8 media_ver;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u8 gt; /* GT number, 0 if undefined */
 	intel_engine_mask_t platform_engine_mask; /* Engines supported by the HW */
 
@@ -179,6 +194,8 @@ struct intel_device_info {
 	u8 cpu_transcoder_mask;
 
 	u8 abox_mask;
+
+	u8 has_cdclk_crawl;  /* does support CDCLK crawling */
 
 #define DEFINE_FLAG(name) u8 name:1
 	DEV_INFO_FOR_EACH_FLAG(DEFINE_FLAG);

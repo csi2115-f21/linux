@@ -16,6 +16,7 @@ static char *idxd_wq_type_names[] = {
 	[IDXD_WQT_USER]		= "user",
 };
 
+<<<<<<< HEAD
 static void idxd_conf_device_release(struct device *dev)
 {
 	dev_dbg(dev, "%s for %s\n", __func__, dev_name(dev));
@@ -79,6 +80,8 @@ static inline bool is_idxd_wq_cdev(struct idxd_wq *wq)
 	return wq->type == IDXD_WQT_USER;
 }
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int idxd_config_bus_match(struct device *dev,
 				 struct device_driver *drv)
 {
@@ -110,9 +113,137 @@ static int idxd_config_bus_match(struct device *dev,
 	return matched;
 }
 
+<<<<<<< HEAD
 static int idxd_config_bus_probe(struct device *dev)
 {
 	int rc;
+=======
+static int enable_wq(struct idxd_wq *wq)
+{
+	struct idxd_device *idxd = wq->idxd;
+	struct device *dev = &idxd->pdev->dev;
+	unsigned long flags;
+	int rc;
+
+	mutex_lock(&wq->wq_lock);
+
+	if (idxd->state != IDXD_DEV_ENABLED) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "Enabling while device not enabled.\n");
+		return -EPERM;
+	}
+
+	if (wq->state != IDXD_WQ_DISABLED) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "WQ %d already enabled.\n", wq->id);
+		return -EBUSY;
+	}
+
+	if (!wq->group) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "WQ not attached to group.\n");
+		return -EINVAL;
+	}
+
+	if (strlen(wq->name) == 0) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "WQ name not set.\n");
+		return -EINVAL;
+	}
+
+	/* Shared WQ checks */
+	if (wq_shared(wq)) {
+		if (!device_swq_supported(idxd)) {
+			dev_warn(dev, "PASID not enabled and shared WQ.\n");
+			mutex_unlock(&wq->wq_lock);
+			return -ENXIO;
+		}
+		/*
+		 * Shared wq with the threshold set to 0 means the user
+		 * did not set the threshold or transitioned from a
+		 * dedicated wq but did not set threshold. A value
+		 * of 0 would effectively disable the shared wq. The
+		 * driver does not allow a value of 0 to be set for
+		 * threshold via sysfs.
+		 */
+		if (wq->threshold == 0) {
+			dev_warn(dev, "Shared WQ and threshold 0.\n");
+			mutex_unlock(&wq->wq_lock);
+			return -EINVAL;
+		}
+	}
+
+	rc = idxd_wq_alloc_resources(wq);
+	if (rc < 0) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "WQ resource alloc failed\n");
+		return rc;
+	}
+
+	spin_lock_irqsave(&idxd->dev_lock, flags);
+	if (test_bit(IDXD_FLAG_CONFIGURABLE, &idxd->flags))
+		rc = idxd_device_config(idxd);
+	spin_unlock_irqrestore(&idxd->dev_lock, flags);
+	if (rc < 0) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "Writing WQ %d config failed: %d\n", wq->id, rc);
+		return rc;
+	}
+
+	rc = idxd_wq_enable(wq);
+	if (rc < 0) {
+		mutex_unlock(&wq->wq_lock);
+		dev_warn(dev, "WQ %d enabling failed: %d\n", wq->id, rc);
+		return rc;
+	}
+
+	rc = idxd_wq_map_portal(wq);
+	if (rc < 0) {
+		dev_warn(dev, "wq portal mapping failed: %d\n", rc);
+		rc = idxd_wq_disable(wq);
+		if (rc < 0)
+			dev_warn(dev, "IDXD wq disable failed\n");
+		mutex_unlock(&wq->wq_lock);
+		return rc;
+	}
+
+	wq->client_count = 0;
+
+	if (wq->type == IDXD_WQT_KERNEL) {
+		rc = idxd_wq_init_percpu_ref(wq);
+		if (rc < 0) {
+			dev_dbg(dev, "percpu_ref setup failed\n");
+			mutex_unlock(&wq->wq_lock);
+			return rc;
+		}
+	}
+
+	if (is_idxd_wq_dmaengine(wq)) {
+		rc = idxd_register_dma_channel(wq);
+		if (rc < 0) {
+			dev_dbg(dev, "DMA channel register failed\n");
+			mutex_unlock(&wq->wq_lock);
+			return rc;
+		}
+	} else if (is_idxd_wq_cdev(wq)) {
+		rc = idxd_wq_add_cdev(wq);
+		if (rc < 0) {
+			dev_dbg(dev, "Cdev creation failed\n");
+			mutex_unlock(&wq->wq_lock);
+			return rc;
+		}
+	}
+
+	mutex_unlock(&wq->wq_lock);
+	dev_info(dev, "wq %s enabled\n", dev_name(&wq->conf_dev));
+
+	return 0;
+}
+
+static int idxd_config_bus_probe(struct device *dev)
+{
+	int rc = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	unsigned long flags;
 
 	dev_dbg(dev, "%s called\n", __func__);
@@ -130,7 +261,12 @@ static int idxd_config_bus_probe(struct device *dev)
 
 		/* Perform IDXD configuration and enabling */
 		spin_lock_irqsave(&idxd->dev_lock, flags);
+<<<<<<< HEAD
 		rc = idxd_device_config(idxd);
+=======
+		if (test_bit(IDXD_FLAG_CONFIGURABLE, &idxd->flags))
+			rc = idxd_device_config(idxd);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		spin_unlock_irqrestore(&idxd->dev_lock, flags);
 		if (rc < 0) {
 			module_put(THIS_MODULE);
@@ -157,6 +293,7 @@ static int idxd_config_bus_probe(struct device *dev)
 		return 0;
 	} else if (is_idxd_wq_dev(dev)) {
 		struct idxd_wq *wq = confdev_to_wq(dev);
+<<<<<<< HEAD
 		struct idxd_device *idxd = wq->idxd;
 
 		mutex_lock(&wq->wq_lock);
@@ -266,6 +403,10 @@ static int idxd_config_bus_probe(struct device *dev)
 
 		mutex_unlock(&wq->wq_lock);
 		return 0;
+=======
+
+		return enable_wq(wq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return -ENODEV;
@@ -275,7 +416,10 @@ static void disable_wq(struct idxd_wq *wq)
 {
 	struct idxd_device *idxd = wq->idxd;
 	struct device *dev = &idxd->pdev->dev;
+<<<<<<< HEAD
 	int rc;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&wq->wq_lock);
 	dev_dbg(dev, "%s removing WQ %s\n", __func__, dev_name(&wq->conf_dev));
@@ -284,6 +428,12 @@ static void disable_wq(struct idxd_wq *wq)
 		return;
 	}
 
+<<<<<<< HEAD
+=======
+	if (wq->type == IDXD_WQT_KERNEL)
+		idxd_wq_quiesce(wq);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (is_idxd_wq_dmaengine(wq))
 		idxd_unregister_dma_channel(wq);
 	else if (is_idxd_wq_cdev(wq))
@@ -296,17 +446,25 @@ static void disable_wq(struct idxd_wq *wq)
 	idxd_wq_unmap_portal(wq);
 
 	idxd_wq_drain(wq);
+<<<<<<< HEAD
 	rc = idxd_wq_disable(wq);
+=======
+	idxd_wq_reset(wq);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	idxd_wq_free_resources(wq);
 	wq->client_count = 0;
 	mutex_unlock(&wq->wq_lock);
 
+<<<<<<< HEAD
 	if (rc < 0)
 		dev_warn(dev, "Failed to disable %s: %d\n",
 			 dev_name(&wq->conf_dev), rc);
 	else
 		dev_info(dev, "wq %s disabled\n", dev_name(&wq->conf_dev));
+=======
+	dev_info(dev, "wq %s disabled\n", dev_name(&wq->conf_dev));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int idxd_config_bus_remove(struct device *dev)
@@ -327,7 +485,11 @@ static int idxd_config_bus_remove(struct device *dev)
 		dev_dbg(dev, "%s removing dev %s\n", __func__,
 			dev_name(&idxd->conf_dev));
 		for (i = 0; i < idxd->max_wqs; i++) {
+<<<<<<< HEAD
 			struct idxd_wq *wq = &idxd->wqs[i];
+=======
+			struct idxd_wq *wq = idxd->wqs[i];
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 			if (wq->state == IDXD_WQ_DISABLED)
 				continue;
@@ -338,12 +500,23 @@ static int idxd_config_bus_remove(struct device *dev)
 
 		idxd_unregister_dma_device(idxd);
 		rc = idxd_device_disable(idxd);
+<<<<<<< HEAD
 		for (i = 0; i < idxd->max_wqs; i++) {
 			struct idxd_wq *wq = &idxd->wqs[i];
 
 			mutex_lock(&wq->wq_lock);
 			idxd_wq_disable_cleanup(wq);
 			mutex_unlock(&wq->wq_lock);
+=======
+		if (test_bit(IDXD_FLAG_CONFIGURABLE, &idxd->flags)) {
+			for (i = 0; i < idxd->max_wqs; i++) {
+				struct idxd_wq *wq = idxd->wqs[i];
+
+				mutex_lock(&wq->wq_lock);
+				idxd_wq_disable_cleanup(wq);
+				mutex_unlock(&wq->wq_lock);
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 		module_put(THIS_MODULE);
 		if (rc < 0)
@@ -369,6 +542,7 @@ struct bus_type dsa_bus_type = {
 	.shutdown = idxd_config_bus_shutdown,
 };
 
+<<<<<<< HEAD
 struct bus_type iax_bus_type = {
 	.name = "iax",
 	.match = idxd_config_bus_match,
@@ -382,6 +556,8 @@ static struct bus_type *idxd_bus_types[] = {
 	&iax_bus_type
 };
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static struct idxd_device_driver dsa_drv = {
 	.drv = {
 		.name = "dsa",
@@ -391,6 +567,7 @@ static struct idxd_device_driver dsa_drv = {
 	},
 };
 
+<<<<<<< HEAD
 static struct idxd_device_driver iax_drv = {
 	.drv = {
 		.name = "iax",
@@ -437,14 +614,24 @@ drv_fail:
 	while (--i >= 0)
 		driver_unregister(&idxd_drvs[i]->drv);
 	return rc;
+=======
+/* IDXD generic driver setup */
+int idxd_register_driver(void)
+{
+	return driver_register(&dsa_drv.drv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void idxd_unregister_driver(void)
 {
+<<<<<<< HEAD
 	int i;
 
 	for (i = 0; i < IDXD_TYPE_MAX; i++)
 		driver_unregister(&idxd_drvs[i]->drv);
+=======
+	driver_unregister(&dsa_drv.drv);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /* IDXD engine attributes */
@@ -517,6 +704,22 @@ static const struct attribute_group *idxd_engine_attribute_groups[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static void idxd_conf_engine_release(struct device *dev)
+{
+	struct idxd_engine *engine = container_of(dev, struct idxd_engine, conf_dev);
+
+	kfree(engine);
+}
+
+struct device_type idxd_engine_device_type = {
+	.name = "engine",
+	.release = idxd_conf_engine_release,
+	.groups = idxd_engine_attribute_groups,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* Group attributes */
 
 static void idxd_set_free_tokens(struct idxd_device *idxd)
@@ -829,6 +1032,22 @@ static const struct attribute_group *idxd_group_attribute_groups[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static void idxd_conf_group_release(struct device *dev)
+{
+	struct idxd_group *group = container_of(dev, struct idxd_group, conf_dev);
+
+	kfree(group);
+}
+
+struct device_type idxd_group_device_type = {
+	.name = "group",
+	.release = idxd_conf_group_release,
+	.groups = idxd_group_attribute_groups,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* IDXD work queue attribs */
 static ssize_t wq_clients_show(struct device *dev,
 			       struct device_attribute *attr, char *buf)
@@ -1211,6 +1430,10 @@ static ssize_t wq_cdev_minor_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {
 	struct idxd_wq *wq = container_of(dev, struct idxd_wq, conf_dev);
+<<<<<<< HEAD
+=======
+	int minor = -1;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return sprintf(buf, "%d\n", wq->idxd_cdev.minor);
 }
@@ -1361,6 +1584,23 @@ static const struct attribute_group *idxd_wq_attribute_groups[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static void idxd_conf_wq_release(struct device *dev)
+{
+	struct idxd_wq *wq = container_of(dev, struct idxd_wq, conf_dev);
+
+	kfree(wq->wqcfg);
+	kfree(wq);
+}
+
+struct device_type idxd_wq_device_type = {
+	.name = "wq",
+	.release = idxd_conf_wq_release,
+	.groups = idxd_wq_attribute_groups,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* IDXD device attribs */
 static ssize_t version_show(struct device *dev, struct device_attribute *attr,
 			    char *buf)
@@ -1449,6 +1689,10 @@ static ssize_t op_cap_show(struct device *dev,
 {
 	struct idxd_device *idxd =
 		container_of(dev, struct idxd_device, conf_dev);
+<<<<<<< HEAD
+=======
+	int i, rc = 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return sprintf(buf, "%#llx\n", idxd->hw.opcap.bits[0]);
 }
@@ -1514,7 +1758,11 @@ static ssize_t state_show(struct device *dev,
 	switch (idxd->state) {
 	case IDXD_DEV_DISABLED:
 	case IDXD_DEV_CONF_READY:
+<<<<<<< HEAD
 		return sprintf(buf, "disabled\n");
+=======
+		return sysfs_emit(buf, "disabled\n");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	case IDXD_DEV_ENABLED:
 		return sprintf(buf, "enabled\n");
 	case IDXD_DEV_HALTED:
@@ -1535,7 +1783,11 @@ static ssize_t errors_show(struct device *dev,
 
 	spin_lock_irqsave(&idxd->dev_lock, flags);
 	for (i = 0; i < 4; i++)
+<<<<<<< HEAD
 		out += sprintf(buf + out, "%#018llx ", idxd->sw_err.bits[i]);
+=======
+		out += sysfs_emit_at(buf, out, "%#018llx ", idxd->sw_err.bits[i]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	spin_unlock_irqrestore(&idxd->dev_lock, flags);
 	out--;
 	out += sprintf(buf + out, "\n");
@@ -1607,7 +1859,11 @@ static ssize_t cmd_status_show(struct device *dev,
 {
 	struct idxd_device *idxd = container_of(dev, struct idxd_device, conf_dev);
 
+<<<<<<< HEAD
 	return sprintf(buf, "%#x\n", idxd->cmd_status);
+=======
+	return sysfs_emit(buf, "%#x\n", idxd->cmd_status);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 static DEVICE_ATTR_RO(cmd_status);
 
@@ -1645,6 +1901,7 @@ static const struct attribute_group *idxd_attribute_groups[] = {
 
 static int idxd_setup_engine_sysfs(struct idxd_device *idxd)
 {
+<<<<<<< HEAD
 	struct device *dev = &idxd->pdev->dev;
 	int i, rc;
 
@@ -1662,6 +1919,40 @@ static int idxd_setup_engine_sysfs(struct idxd_device *idxd)
 		rc = device_register(&engine->conf_dev);
 		if (rc < 0) {
 			put_device(&engine->conf_dev);
+=======
+	struct idxd_device *idxd = container_of(dev, struct idxd_device, conf_dev);
+
+	kfree(idxd->groups);
+	kfree(idxd->wqs);
+	kfree(idxd->engines);
+	kfree(idxd->irq_entries);
+	kfree(idxd->int_handles);
+	ida_free(&idxd_ida, idxd->id);
+	kfree(idxd);
+}
+
+struct device_type dsa_device_type = {
+	.name = "dsa",
+	.release = idxd_conf_device_release,
+	.groups = idxd_attribute_groups,
+};
+
+struct device_type iax_device_type = {
+	.name = "iax",
+	.release = idxd_conf_device_release,
+	.groups = idxd_attribute_groups,
+};
+
+static int idxd_register_engine_devices(struct idxd_device *idxd)
+{
+	int i, j, rc;
+
+	for (i = 0; i < idxd->max_engines; i++) {
+		struct idxd_engine *engine = idxd->engines[i];
+
+		rc = device_add(&engine->conf_dev);
+		if (rc < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto cleanup;
 		}
 	}
@@ -1669,16 +1960,26 @@ static int idxd_setup_engine_sysfs(struct idxd_device *idxd)
 	return 0;
 
 cleanup:
+<<<<<<< HEAD
 	while (i--) {
 		struct idxd_engine *engine = &idxd->engines[i];
 
 		device_unregister(&engine->conf_dev);
 	}
+=======
+	j = i - 1;
+	for (; i < idxd->max_engines; i++)
+		put_device(&idxd->engines[i]->conf_dev);
+
+	while (j--)
+		device_unregister(&idxd->engines[j]->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return rc;
 }
 
 static int idxd_setup_group_sysfs(struct idxd_device *idxd)
 {
+<<<<<<< HEAD
 	struct device *dev = &idxd->pdev->dev;
 	int i, rc;
 
@@ -1696,6 +1997,15 @@ static int idxd_setup_group_sysfs(struct idxd_device *idxd)
 		rc = device_register(&group->conf_dev);
 		if (rc < 0) {
 			put_device(&group->conf_dev);
+=======
+	int i, j, rc;
+
+	for (i = 0; i < idxd->max_groups; i++) {
+		struct idxd_group *group = idxd->groups[i];
+
+		rc = device_add(&group->conf_dev);
+		if (rc < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto cleanup;
 		}
 	}
@@ -1703,16 +2013,26 @@ static int idxd_setup_group_sysfs(struct idxd_device *idxd)
 	return 0;
 
 cleanup:
+<<<<<<< HEAD
 	while (i--) {
 		struct idxd_group *group = &idxd->groups[i];
 
 		device_unregister(&group->conf_dev);
 	}
+=======
+	j = i - 1;
+	for (; i < idxd->max_groups; i++)
+		put_device(&idxd->groups[i]->conf_dev);
+
+	while (j--)
+		device_unregister(&idxd->groups[j]->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return rc;
 }
 
 static int idxd_setup_wq_sysfs(struct idxd_device *idxd)
 {
+<<<<<<< HEAD
 	struct device *dev = &idxd->pdev->dev;
 	int i, rc;
 
@@ -1729,6 +2049,15 @@ static int idxd_setup_wq_sysfs(struct idxd_device *idxd)
 		rc = device_register(&wq->conf_dev);
 		if (rc < 0) {
 			put_device(&wq->conf_dev);
+=======
+	int i, rc, j;
+
+	for (i = 0; i < idxd->max_wqs; i++) {
+		struct idxd_wq *wq = idxd->wqs[i];
+
+		rc = device_add(&wq->conf_dev);
+		if (rc < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			goto cleanup;
 		}
 	}
@@ -1736,11 +2065,20 @@ static int idxd_setup_wq_sysfs(struct idxd_device *idxd)
 	return 0;
 
 cleanup:
+<<<<<<< HEAD
 	while (i--) {
 		struct idxd_wq *wq = &idxd->wqs[i];
 
 		device_unregister(&wq->conf_dev);
 	}
+=======
+	j = i - 1;
+	for (; i < idxd->max_wqs; i++)
+		put_device(&idxd->wqs[i]->conf_dev);
+
+	while (j--)
+		device_unregister(&idxd->wqs[j]->conf_dev);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return rc;
 }
 
@@ -1750,6 +2088,7 @@ static int idxd_setup_device_sysfs(struct idxd_device *idxd)
 	int rc;
 	char devname[IDXD_NAME_SIZE];
 
+<<<<<<< HEAD
 	sprintf(devname, "%s%d", idxd_get_dev_name(idxd), idxd->id);
 	idxd->conf_dev.parent = dev;
 	dev_set_name(&idxd->conf_dev, "%s", devname);
@@ -1775,6 +2114,10 @@ int idxd_setup_sysfs(struct idxd_device *idxd)
 	rc = idxd_setup_device_sysfs(idxd);
 	if (rc < 0) {
 		dev_dbg(dev, "Device sysfs registering failed: %d\n", rc);
+=======
+	rc = device_add(&idxd->conf_dev);
+	if (rc < 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return rc;
 	}
 
@@ -1800,6 +2143,19 @@ int idxd_setup_sysfs(struct idxd_device *idxd)
 	}
 
 	return 0;
+<<<<<<< HEAD
+=======
+
+ err_group:
+	for (i = 0; i < idxd->max_engines; i++)
+		device_unregister(&idxd->engines[i]->conf_dev);
+ err_engine:
+	for (i = 0; i < idxd->max_wqs; i++)
+		device_unregister(&idxd->wqs[i]->conf_dev);
+ err_wq:
+	device_del(&idxd->conf_dev);
+	return rc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 void idxd_cleanup_sysfs(struct idxd_device *idxd)

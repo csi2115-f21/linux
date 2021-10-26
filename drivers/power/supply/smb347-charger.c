@@ -930,6 +930,21 @@ static int smb347_irq_init(struct smb347_charger *smb,
 				 CFG_STAT_DISABLED);
 
 	smb347_set_writable(smb, false);
+<<<<<<< HEAD
+=======
+
+	if (ret < 0) {
+		dev_warn(smb->dev, "failed to initialize IRQ: %d\n", ret);
+		dev_warn(smb->dev, "disabling IRQ support\n");
+		return 0;
+	}
+
+	ret = devm_request_threaded_irq(smb->dev, client->irq, NULL,
+					smb347_interrupt, IRQF_ONESHOT,
+					client->name, smb);
+	if (ret)
+		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ret;
 }
@@ -1339,6 +1354,7 @@ static int smb347_probe(struct i2c_client *client,
 	if (ret < 0)
 		return ret;
 
+<<<<<<< HEAD
 	/*
 	 * Interrupt pin is optional. If it is connected, we setup the
 	 * interrupt support here.
@@ -1353,6 +1369,11 @@ static int smb347_probe(struct i2c_client *client,
 			smb347_irq_enable(smb);
 		}
 	}
+=======
+	ret = smb347_irq_init(smb, client);
+	if (ret)
+		return ret;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return 0;
 }
@@ -1387,9 +1408,15 @@ static struct i2c_driver smb347_driver = {
 		.name = "smb347",
 		.of_match_table = smb3xx_of_match,
 	},
+<<<<<<< HEAD
 	.probe        = smb347_probe,
 	.remove       = smb347_remove,
 	.id_table     = smb347_id,
+=======
+	.probe = smb347_probe,
+	.remove = smb347_remove,
+	.id_table = smb347_id,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 module_i2c_driver(smb347_driver);

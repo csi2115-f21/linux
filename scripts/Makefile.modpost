@@ -44,7 +44,11 @@ include include/config/auto.conf
 include scripts/Kbuild.include
 
 # for ld_flags
+<<<<<<< HEAD
 include scripts/Makefile.lib
+=======
+include $(srctree)/scripts/Makefile.lib
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 MODPOST = scripts/mod/modpost								\
 	$(if $(CONFIG_MODVERSIONS),-m)							\
@@ -116,6 +120,15 @@ cmd_cc_lto_link_modules =						\
 		$(shell [ -s $(@:.lto.o=.o.symversions) ] &&		\
 			echo -T $(@:.lto.o=.o.symversions))		\
 		--whole-archive $^
+<<<<<<< HEAD
+=======
+
+%.lto.o: %.o
+	$(call if_changed,cc_lto_link_modules)
+endif
+
+modules := $(sort $(shell cat $(MODORDER)))
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 %.lto.o: %.o
 	$(call if_changed,cc_lto_link_modules)

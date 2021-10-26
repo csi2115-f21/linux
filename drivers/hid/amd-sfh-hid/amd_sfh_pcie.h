@@ -22,9 +22,21 @@
 #define AMD_C2P_MSG1	0x10504
 #define AMD_C2P_MSG2	0x10508
 
+<<<<<<< HEAD
 /* MP2 P2C Message Registers */
 #define AMD_P2C_MSG3	0x1068C /* Supported Sensors info */
 
+=======
+#define AMD_C2P_MSG(regno) (0x10500 + ((regno) * 4))
+
+/* MP2 P2C Message Registers */
+#define AMD_P2C_MSG3	0x1068C /* Supported Sensors info */
+
+#define V2_STATUS	0x2
+
+#define HPD_IDX		16
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 /* SFH Command register */
 union sfh_cmd_base {
 	u32 ul;
@@ -33,6 +45,18 @@ union sfh_cmd_base {
 		u32 sensor_id : 8;
 		u32 period : 16;
 	} s;
+<<<<<<< HEAD
+=======
+	struct {
+		u32 cmd_id : 4;
+		u32 intr_enable : 1;
+		u32 rsvd1 : 3;
+		u32 length : 7;
+		u32 mem_type : 1;
+		u32 sensor_id : 8;
+		u32 period : 8;
+	} cmd_v2;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 union sfh_cmd_param {
@@ -76,4 +100,13 @@ void amd_stop_all_sensors(struct amd_mp2_dev *privdata);
 int amd_mp2_get_sensor_num(struct amd_mp2_dev *privdata, u8 *sensor_id);
 int amd_sfh_hid_client_init(struct amd_mp2_dev *privdata);
 int amd_sfh_hid_client_deinit(struct amd_mp2_dev *privdata);
+<<<<<<< HEAD
+=======
+
+struct amd_mp2_ops {
+	 void (*start)(struct amd_mp2_dev *privdata, struct amd_mp2_sensor_info info);
+	 void (*stop)(struct amd_mp2_dev *privdata, u16 sensor_idx);
+	 void (*stop_all)(struct amd_mp2_dev *privdata);
+};
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 #endif

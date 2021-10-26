@@ -49,7 +49,11 @@
  * set this bit before looking at the lock.
  */
 
+<<<<<<< HEAD
 static void
+=======
+static __always_inline void
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 rt_mutex_set_owner(struct rt_mutex *lock, struct task_struct *owner)
 {
 	unsigned long val = (unsigned long)owner;
@@ -60,13 +64,21 @@ rt_mutex_set_owner(struct rt_mutex *lock, struct task_struct *owner)
 	WRITE_ONCE(lock->owner, (struct task_struct *)val);
 }
 
+<<<<<<< HEAD
 static inline void clear_rt_mutex_waiters(struct rt_mutex *lock)
+=======
+static __always_inline void clear_rt_mutex_waiters(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	lock->owner = (struct task_struct *)
 			((unsigned long)lock->owner & ~RT_MUTEX_HAS_WAITERS);
 }
 
+<<<<<<< HEAD
 static void fixup_rt_mutex_waiters(struct rt_mutex *lock)
+=======
+static __always_inline void fixup_rt_mutex_waiters(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned long owner, *p = (unsigned long *) &lock->owner;
 
@@ -149,7 +161,11 @@ static void fixup_rt_mutex_waiters(struct rt_mutex *lock)
  * all future threads that attempt to [Rmw] the lock to the slowpath. As such
  * relaxed semantics suffice.
  */
+<<<<<<< HEAD
 static inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
+=======
+static __always_inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned long owner, *p = (unsigned long *) &lock->owner;
 
@@ -165,8 +181,13 @@ static inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
  * 2) Drop lock->wait_lock
  * 3) Try to unlock the lock with cmpxchg
  */
+<<<<<<< HEAD
 static inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
 					unsigned long flags)
+=======
+static __always_inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
+						 unsigned long flags)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__releases(lock->wait_lock)
 {
 	struct task_struct *owner = rt_mutex_owner(lock);
@@ -204,7 +225,11 @@ static inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
 # define rt_mutex_cmpxchg_acquire(l,c,n)	(0)
 # define rt_mutex_cmpxchg_release(l,c,n)	(0)
 
+<<<<<<< HEAD
 static inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
+=======
+static __always_inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	lock->owner = (struct task_struct *)
 			((unsigned long)lock->owner | RT_MUTEX_HAS_WAITERS);
@@ -213,8 +238,13 @@ static inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
 /*
  * Simple slow path only version: lock->owner is protected by lock->wait_lock.
  */
+<<<<<<< HEAD
 static inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
 					unsigned long flags)
+=======
+static __always_inline bool unlock_rt_mutex_safe(struct rt_mutex *lock,
+						 unsigned long flags)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	__releases(lock->wait_lock)
 {
 	lock->owner = NULL;
@@ -275,13 +305,21 @@ static inline bool __waiter_less(struct rb_node *a, const struct rb_node *b)
 	return rt_mutex_waiter_less(__node_2_waiter(a), __node_2_waiter(b));
 }
 
+<<<<<<< HEAD
 static void
+=======
+static __always_inline void
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 rt_mutex_enqueue(struct rt_mutex *lock, struct rt_mutex_waiter *waiter)
 {
 	rb_add_cached(&waiter->tree_entry, &lock->waiters, __waiter_less);
 }
 
+<<<<<<< HEAD
 static void
+=======
+static __always_inline void
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 rt_mutex_dequeue(struct rt_mutex *lock, struct rt_mutex_waiter *waiter)
 {
 	if (RB_EMPTY_NODE(&waiter->tree_entry))
@@ -343,6 +381,7 @@ static void rt_mutex_adjust_prio(struct task_struct *p)
 static bool rt_mutex_cond_detect_deadlock(struct rt_mutex_waiter *waiter,
 					  enum rtmutex_chainwalk chwalk)
 {
+<<<<<<< HEAD
 	/*
 	 * This is just a wrapper function for the following call,
 	 * because debug_rt_mutex_detect_deadlock() smells like a magic
@@ -351,6 +390,11 @@ static bool rt_mutex_cond_detect_deadlock(struct rt_mutex_waiter *waiter,
 	 * two of the same in the headers.
 	 */
 	return debug_rt_mutex_detect_deadlock(waiter, chwalk);
+=======
+	if (IS_ENABLED(CONFIG_DEBUG_RT_MUTEX))
+		return waiter != NULL;
+	return chwalk == RT_MUTEX_FULL_CHAINWALK;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -358,7 +402,11 @@ static bool rt_mutex_cond_detect_deadlock(struct rt_mutex_waiter *waiter,
  */
 int max_lock_depth = 1024;
 
+<<<<<<< HEAD
 static inline struct rt_mutex *task_blocked_on_lock(struct task_struct *p)
+=======
+static __always_inline struct rt_mutex *task_blocked_on_lock(struct task_struct *p)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	return p->pi_blocked_on ? p->pi_blocked_on->lock : NULL;
 }
@@ -426,12 +474,21 @@ static inline struct rt_mutex *task_blocked_on_lock(struct task_struct *p)
  *	  unlock(lock->wait_lock);		release [L]
  *	  goto again;
  */
+<<<<<<< HEAD
 static int rt_mutex_adjust_prio_chain(struct task_struct *task,
 				      enum rtmutex_chainwalk chwalk,
 				      struct rt_mutex *orig_lock,
 				      struct rt_mutex *next_lock,
 				      struct rt_mutex_waiter *orig_waiter,
 				      struct task_struct *top_task)
+=======
+static int __sched rt_mutex_adjust_prio_chain(struct task_struct *task,
+					      enum rtmutex_chainwalk chwalk,
+					      struct rt_mutex *orig_lock,
+					      struct rt_mutex *next_lock,
+					      struct rt_mutex_waiter *orig_waiter,
+					      struct task_struct *top_task)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct rt_mutex_waiter *waiter, *top_waiter = orig_waiter;
 	struct rt_mutex_waiter *prerequeue_top_waiter;
@@ -579,7 +636,10 @@ static int rt_mutex_adjust_prio_chain(struct task_struct *task,
 	 * walk, we detected a deadlock.
 	 */
 	if (lock == orig_lock || rt_mutex_owner(lock) == top_task) {
+<<<<<<< HEAD
 		debug_rt_mutex_deadlock(chwalk, orig_waiter, lock);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		raw_spin_unlock(&lock->wait_lock);
 		ret = -EDEADLK;
 		goto out_unlock_pi;
@@ -784,8 +844,14 @@ static int rt_mutex_adjust_prio_chain(struct task_struct *task,
  * @waiter: The waiter that is queued to the lock's wait tree if the
  *	    callsite called task_blocked_on_lock(), otherwise NULL
  */
+<<<<<<< HEAD
 static int try_to_take_rt_mutex(struct rt_mutex *lock, struct task_struct *task,
 				struct rt_mutex_waiter *waiter)
+=======
+static int __sched
+try_to_take_rt_mutex(struct rt_mutex *lock, struct task_struct *task,
+		     struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	lockdep_assert_held(&lock->wait_lock);
 
@@ -905,10 +971,17 @@ takeit:
  *
  * This must be called with lock->wait_lock held and interrupts disabled
  */
+<<<<<<< HEAD
 static int task_blocks_on_rt_mutex(struct rt_mutex *lock,
 				   struct rt_mutex_waiter *waiter,
 				   struct task_struct *task,
 				   enum rtmutex_chainwalk chwalk)
+=======
+static int __sched task_blocks_on_rt_mutex(struct rt_mutex *lock,
+					   struct rt_mutex_waiter *waiter,
+					   struct task_struct *task,
+					   enum rtmutex_chainwalk chwalk)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct task_struct *owner = rt_mutex_owner(lock);
 	struct rt_mutex_waiter *top_waiter = waiter;
@@ -994,8 +1067,13 @@ static int task_blocks_on_rt_mutex(struct rt_mutex *lock,
  *
  * Called with lock->wait_lock held and interrupts disabled.
  */
+<<<<<<< HEAD
 static void mark_wakeup_next_waiter(struct wake_q_head *wake_q,
 				    struct rt_mutex *lock)
+=======
+static void __sched mark_wakeup_next_waiter(struct wake_q_head *wake_q,
+					    struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct rt_mutex_waiter *waiter;
 
@@ -1044,8 +1122,13 @@ static void mark_wakeup_next_waiter(struct wake_q_head *wake_q,
  * Must be called with lock->wait_lock held and interrupts disabled. I must
  * have just failed to try_to_take_rt_mutex().
  */
+<<<<<<< HEAD
 static void remove_waiter(struct rt_mutex *lock,
 			  struct rt_mutex_waiter *waiter)
+=======
+static void __sched remove_waiter(struct rt_mutex *lock,
+				  struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool is_top_waiter = (waiter == rt_mutex_top_waiter(lock));
 	struct task_struct *owner = rt_mutex_owner(lock);
@@ -1102,7 +1185,11 @@ static void remove_waiter(struct rt_mutex *lock,
  *
  * Called from sched_setscheduler
  */
+<<<<<<< HEAD
 void rt_mutex_adjust_pi(struct task_struct *task)
+=======
+void __sched rt_mutex_adjust_pi(struct task_struct *task)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct rt_mutex_waiter *waiter;
 	struct rt_mutex *next_lock;
@@ -1125,7 +1212,11 @@ void rt_mutex_adjust_pi(struct task_struct *task)
 				   next_lock, NULL, task);
 }
 
+<<<<<<< HEAD
 void rt_mutex_init_waiter(struct rt_mutex_waiter *waiter)
+=======
+void __sched rt_mutex_init_waiter(struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	debug_rt_mutex_init_waiter(waiter);
 	RB_CLEAR_NODE(&waiter->pi_tree_entry);
@@ -1143,10 +1234,16 @@ void rt_mutex_init_waiter(struct rt_mutex_waiter *waiter)
  *
  * Must be called with lock->wait_lock held and interrupts disabled
  */
+<<<<<<< HEAD
 static int __sched
 __rt_mutex_slowlock(struct rt_mutex *lock, int state,
 		    struct hrtimer_sleeper *timeout,
 		    struct rt_mutex_waiter *waiter)
+=======
+static int __sched __rt_mutex_slowlock(struct rt_mutex *lock, unsigned int state,
+				       struct hrtimer_sleeper *timeout,
+				       struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret = 0;
 
@@ -1155,6 +1252,7 @@ __rt_mutex_slowlock(struct rt_mutex *lock, int state,
 		if (try_to_take_rt_mutex(lock, current, waiter))
 			break;
 
+<<<<<<< HEAD
 		/*
 		 * TASK_INTERRUPTIBLE checks for signals and
 		 * timeout. Ignored otherwise.
@@ -1167,12 +1265,24 @@ __rt_mutex_slowlock(struct rt_mutex *lock, int state,
 				ret = -ETIMEDOUT;
 			if (ret)
 				break;
+=======
+		if (timeout && !timeout->task) {
+			ret = -ETIMEDOUT;
+			break;
+		}
+		if (signal_pending_state(state, current)) {
+			ret = -EINTR;
+			break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		}
 
 		raw_spin_unlock_irq(&lock->wait_lock);
 
+<<<<<<< HEAD
 		debug_rt_mutex_print_deadlock(waiter);
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		schedule();
 
 		raw_spin_lock_irq(&lock->wait_lock);
@@ -1206,10 +1316,16 @@ static void rt_mutex_handle_deadlock(int res, int detect_deadlock,
 /*
  * Slow path lock function:
  */
+<<<<<<< HEAD
 static int __sched
 rt_mutex_slowlock(struct rt_mutex *lock, int state,
 		  struct hrtimer_sleeper *timeout,
 		  enum rtmutex_chainwalk chwalk)
+=======
+static int __sched rt_mutex_slowlock(struct rt_mutex *lock, unsigned int state,
+				     struct hrtimer_sleeper *timeout,
+				     enum rtmutex_chainwalk chwalk)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	struct rt_mutex_waiter waiter;
 	unsigned long flags;
@@ -1268,7 +1384,11 @@ rt_mutex_slowlock(struct rt_mutex *lock, int state,
 	return ret;
 }
 
+<<<<<<< HEAD
 static inline int __rt_mutex_slowtrylock(struct rt_mutex *lock)
+=======
+static int __sched __rt_mutex_slowtrylock(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret = try_to_take_rt_mutex(lock, current, NULL);
 
@@ -1284,7 +1404,11 @@ static inline int __rt_mutex_slowtrylock(struct rt_mutex *lock)
 /*
  * Slow path try-lock function:
  */
+<<<<<<< HEAD
 static inline int rt_mutex_slowtrylock(struct rt_mutex *lock)
+=======
+static int __sched rt_mutex_slowtrylock(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	unsigned long flags;
 	int ret;
@@ -1311,6 +1435,7 @@ static inline int rt_mutex_slowtrylock(struct rt_mutex *lock)
 }
 
 /*
+<<<<<<< HEAD
  * Slow path to release a rt-mutex.
  *
  * Return whether the current task needs to call rt_mutex_postunlock().
@@ -1387,10 +1512,102 @@ rt_mutex_fastlock(struct rt_mutex *lock, int state,
 		  int (*slowfn)(struct rt_mutex *lock, int state,
 				struct hrtimer_sleeper *timeout,
 				enum rtmutex_chainwalk chwalk))
+=======
+ * Performs the wakeup of the top-waiter and re-enables preemption.
+ */
+void __sched rt_mutex_postunlock(struct wake_q_head *wake_q)
 {
+	wake_up_q(wake_q);
+
+	/* Pairs with preempt_disable() in mark_wakeup_next_waiter() */
+	preempt_enable();
+}
+
+/*
+ * Slow path to release a rt-mutex.
+ *
+ * Return whether the current task needs to call rt_mutex_postunlock().
+ */
+static void __sched rt_mutex_slowunlock(struct rt_mutex *lock)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
+{
+	DEFINE_WAKE_Q(wake_q);
+	unsigned long flags;
+
+	/* irqsave required to support early boot calls */
+	raw_spin_lock_irqsave(&lock->wait_lock, flags);
+
+	debug_rt_mutex_unlock(lock);
+
+	/*
+	 * We must be careful here if the fast path is enabled. If we
+	 * have no waiters queued we cannot set owner to NULL here
+	 * because of:
+	 *
+	 * foo->lock->owner = NULL;
+	 *			rtmutex_lock(foo->lock);   <- fast path
+	 *			free = atomic_dec_and_test(foo->refcnt);
+	 *			rtmutex_unlock(foo->lock); <- fast path
+	 *			if (free)
+	 *				kfree(foo);
+	 * raw_spin_unlock(foo->lock->wait_lock);
+	 *
+	 * So for the fastpath enabled kernel:
+	 *
+	 * Nothing can set the waiters bit as long as we hold
+	 * lock->wait_lock. So we do the following sequence:
+	 *
+	 *	owner = rt_mutex_owner(lock);
+	 *	clear_rt_mutex_waiters(lock);
+	 *	raw_spin_unlock(&lock->wait_lock);
+	 *	if (cmpxchg(&lock->owner, owner, 0) == owner)
+	 *		return;
+	 *	goto retry;
+	 *
+	 * The fastpath disabled variant is simple as all access to
+	 * lock->owner is serialized by lock->wait_lock:
+	 *
+	 *	lock->owner = NULL;
+	 *	raw_spin_unlock(&lock->wait_lock);
+	 */
+	while (!rt_mutex_has_waiters(lock)) {
+		/* Drops lock->wait_lock ! */
+		if (unlock_rt_mutex_safe(lock, flags) == true)
+			return;
+		/* Relock the rtmutex and try again */
+		raw_spin_lock_irqsave(&lock->wait_lock, flags);
+	}
+
+	/*
+	 * The wakeup next waiter path does not suffer from the above
+	 * race. See the comments there.
+	 *
+	 * Queue the next waiter for wakeup once we release the wait_lock.
+	 */
+	mark_wakeup_next_waiter(&wake_q, lock);
+	raw_spin_unlock_irqrestore(&lock->wait_lock, flags);
+
+	rt_mutex_postunlock(&wake_q);
+}
+
+/*
+ * debug aware fast / slowpath lock,trylock,unlock
+ *
+ * The atomic acquire/release ops are compiled away, when either the
+ * architecture does not support cmpxchg or when debugging is enabled.
+ */
+static __always_inline int __rt_mutex_lock(struct rt_mutex *lock, long state,
+					   unsigned int subclass)
+{
+	int ret;
+
+	might_sleep();
+	mutex_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
+
 	if (likely(rt_mutex_cmpxchg_acquire(lock, NULL, current)))
 		return 0;
 
+<<<<<<< HEAD
 	return slowfn(lock, state, NULL, RT_MUTEX_MIN_CHAINWALK);
 }
 
@@ -1436,6 +1653,28 @@ rt_mutex_fastunlock(struct rt_mutex *lock,
 				   struct wake_q_head *wqh))
 {
 	DEFINE_WAKE_Q(wake_q);
+=======
+	ret = rt_mutex_slowlock(lock, state, NULL, RT_MUTEX_MIN_CHAINWALK);
+	if (ret)
+		mutex_release(&lock->dep_map, _RET_IP_);
+	return ret;
+}
+
+#ifdef CONFIG_DEBUG_LOCK_ALLOC
+/**
+ * rt_mutex_lock_nested - lock a rt_mutex
+ *
+ * @lock: the rt_mutex to be locked
+ * @subclass: the lockdep subclass
+ */
+void __sched rt_mutex_lock_nested(struct rt_mutex *lock, unsigned int subclass)
+{
+	__rt_mutex_lock(lock, TASK_UNINTERRUPTIBLE, subclass);
+}
+EXPORT_SYMBOL_GPL(rt_mutex_lock_nested);
+
+#else /* !CONFIG_DEBUG_LOCK_ALLOC */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (likely(rt_mutex_cmpxchg_release(lock, current, NULL)))
 		return;
@@ -1454,6 +1693,7 @@ static inline void __rt_mutex_lock(struct rt_mutex *lock, unsigned int subclass)
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 /**
+<<<<<<< HEAD
  * rt_mutex_lock_nested - lock a rt_mutex
  *
  * @lock: the rt_mutex to be locked
@@ -1597,6 +1837,108 @@ bool __sched __rt_mutex_futex_unlock(struct rt_mutex *lock,
 {
 	lockdep_assert_held(&lock->wait_lock);
 
+=======
+ * rt_mutex_lock - lock a rt_mutex
+ *
+ * @lock: the rt_mutex to be locked
+ */
+void __sched rt_mutex_lock(struct rt_mutex *lock)
+{
+	__rt_mutex_lock(lock, TASK_UNINTERRUPTIBLE, 0);
+}
+EXPORT_SYMBOL_GPL(rt_mutex_lock);
+#endif
+
+/**
+ * rt_mutex_lock_interruptible - lock a rt_mutex interruptible
+ *
+ * @lock:		the rt_mutex to be locked
+ *
+ * Returns:
+ *  0		on success
+ * -EINTR	when interrupted by a signal
+ */
+int __sched rt_mutex_lock_interruptible(struct rt_mutex *lock)
+{
+	return __rt_mutex_lock(lock, TASK_INTERRUPTIBLE, 0);
+}
+EXPORT_SYMBOL_GPL(rt_mutex_lock_interruptible);
+
+/**
+ * rt_mutex_trylock - try to lock a rt_mutex
+ *
+ * @lock:	the rt_mutex to be locked
+ *
+ * This function can only be called in thread context. It's safe to call it
+ * from atomic regions, but not from hard or soft interrupt context.
+ *
+ * Returns:
+ *  1 on success
+ *  0 on contention
+ */
+int __sched rt_mutex_trylock(struct rt_mutex *lock)
+{
+	int ret;
+
+	if (IS_ENABLED(CONFIG_DEBUG_RT_MUTEXES) && WARN_ON_ONCE(!in_task()))
+		return 0;
+
+	/*
+	 * No lockdep annotation required because lockdep disables the fast
+	 * path.
+	 */
+	if (likely(rt_mutex_cmpxchg_acquire(lock, NULL, current)))
+		return 1;
+
+	ret = rt_mutex_slowtrylock(lock);
+	if (ret)
+		mutex_acquire(&lock->dep_map, 0, 1, _RET_IP_);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(rt_mutex_trylock);
+
+/**
+ * rt_mutex_unlock - unlock a rt_mutex
+ *
+ * @lock: the rt_mutex to be unlocked
+ */
+void __sched rt_mutex_unlock(struct rt_mutex *lock)
+{
+	mutex_release(&lock->dep_map, _RET_IP_);
+	if (likely(rt_mutex_cmpxchg_release(lock, current, NULL)))
+		return;
+
+	rt_mutex_slowunlock(lock);
+}
+EXPORT_SYMBOL_GPL(rt_mutex_unlock);
+
+/*
+ * Futex variants, must not use fastpath.
+ */
+int __sched rt_mutex_futex_trylock(struct rt_mutex *lock)
+{
+	return rt_mutex_slowtrylock(lock);
+}
+
+int __sched __rt_mutex_futex_trylock(struct rt_mutex *lock)
+{
+	return __rt_mutex_slowtrylock(lock);
+}
+
+/**
+ * __rt_mutex_futex_unlock - Futex variant, that since futex variants
+ * do not use the fast-path, can be simple and will not need to retry.
+ *
+ * @lock:	The rt_mutex to be unlocked
+ * @wake_q:	The wake queue head from which to get the next lock waiter
+ */
+bool __sched __rt_mutex_futex_unlock(struct rt_mutex *lock,
+				     struct wake_q_head *wake_q)
+{
+	lockdep_assert_held(&lock->wait_lock);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	debug_rt_mutex_unlock(lock);
 
 	if (!rt_mutex_has_waiters(lock)) {
@@ -1630,6 +1972,7 @@ void __sched rt_mutex_futex_unlock(struct rt_mutex *lock)
 }
 
 /**
+<<<<<<< HEAD
  * rt_mutex_destroy - mark a mutex unusable
  * @lock: the mutex to be destroyed
  *
@@ -1647,6 +1990,8 @@ void rt_mutex_destroy(struct rt_mutex *lock)
 EXPORT_SYMBOL_GPL(rt_mutex_destroy);
 
 /**
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * __rt_mutex_init - initialize the rt_mutex
  *
  * @lock:	The rt_mutex to be initialized
@@ -1657,6 +2002,7 @@ EXPORT_SYMBOL_GPL(rt_mutex_destroy);
  *
  * Initializing of a locked rt_mutex is not allowed
  */
+<<<<<<< HEAD
 void __rt_mutex_init(struct rt_mutex *lock, const char *name,
 		     struct lock_class_key *key)
 {
@@ -1666,6 +2012,15 @@ void __rt_mutex_init(struct rt_mutex *lock, const char *name,
 
 	if (name && key)
 		debug_rt_mutex_init(lock, name, key);
+=======
+void __sched __rt_mutex_init(struct rt_mutex *lock, const char *name,
+		     struct lock_class_key *key)
+{
+	debug_check_no_locks_freed((void *)lock, sizeof(*lock));
+	lockdep_init_map(&lock->dep_map, name, key, 0);
+
+	__rt_mutex_basic_init(lock);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 EXPORT_SYMBOL_GPL(__rt_mutex_init);
 
@@ -1683,6 +2038,7 @@ EXPORT_SYMBOL_GPL(__rt_mutex_init);
  * possible at this point because the pi_state which contains the rtmutex
  * is not yet visible to other tasks.
  */
+<<<<<<< HEAD
 void rt_mutex_init_proxy_locked(struct rt_mutex *lock,
 				struct task_struct *proxy_owner)
 {
@@ -1813,6 +2169,115 @@ struct task_struct *rt_mutex_next_owner(struct rt_mutex *lock)
 }
 
 /**
+=======
+void __sched rt_mutex_init_proxy_locked(struct rt_mutex *lock,
+					struct task_struct *proxy_owner)
+{
+	__rt_mutex_basic_init(lock);
+	rt_mutex_set_owner(lock, proxy_owner);
+}
+
+/**
+ * rt_mutex_proxy_unlock - release a lock on behalf of owner
+ *
+ * @lock:	the rt_mutex to be locked
+ *
+ * No locking. Caller has to do serializing itself
+ *
+ * Special API call for PI-futex support. This merrily cleans up the rtmutex
+ * (debugging) state. Concurrent operations on this rt_mutex are not
+ * possible because it belongs to the pi_state which is about to be freed
+ * and it is not longer visible to other tasks.
+ */
+void __sched rt_mutex_proxy_unlock(struct rt_mutex *lock)
+{
+	debug_rt_mutex_proxy_unlock(lock);
+	rt_mutex_set_owner(lock, NULL);
+}
+
+/**
+ * __rt_mutex_start_proxy_lock() - Start lock acquisition for another task
+ * @lock:		the rt_mutex to take
+ * @waiter:		the pre-initialized rt_mutex_waiter
+ * @task:		the task to prepare
+ *
+ * Starts the rt_mutex acquire; it enqueues the @waiter and does deadlock
+ * detection. It does not wait, see rt_mutex_wait_proxy_lock() for that.
+ *
+ * NOTE: does _NOT_ remove the @waiter on failure; must either call
+ * rt_mutex_wait_proxy_lock() or rt_mutex_cleanup_proxy_lock() after this.
+ *
+ * Returns:
+ *  0 - task blocked on lock
+ *  1 - acquired the lock for task, caller should wake it up
+ * <0 - error
+ *
+ * Special API call for PI-futex support.
+ */
+int __sched __rt_mutex_start_proxy_lock(struct rt_mutex *lock,
+					struct rt_mutex_waiter *waiter,
+					struct task_struct *task)
+{
+	int ret;
+
+	lockdep_assert_held(&lock->wait_lock);
+
+	if (try_to_take_rt_mutex(lock, task, NULL))
+		return 1;
+
+	/* We enforce deadlock detection for futexes */
+	ret = task_blocks_on_rt_mutex(lock, waiter, task,
+				      RT_MUTEX_FULL_CHAINWALK);
+
+	if (ret && !rt_mutex_owner(lock)) {
+		/*
+		 * Reset the return value. We might have
+		 * returned with -EDEADLK and the owner
+		 * released the lock while we were walking the
+		 * pi chain.  Let the waiter sort it out.
+		 */
+		ret = 0;
+	}
+
+	return ret;
+}
+
+/**
+ * rt_mutex_start_proxy_lock() - Start lock acquisition for another task
+ * @lock:		the rt_mutex to take
+ * @waiter:		the pre-initialized rt_mutex_waiter
+ * @task:		the task to prepare
+ *
+ * Starts the rt_mutex acquire; it enqueues the @waiter and does deadlock
+ * detection. It does not wait, see rt_mutex_wait_proxy_lock() for that.
+ *
+ * NOTE: unlike __rt_mutex_start_proxy_lock this _DOES_ remove the @waiter
+ * on failure.
+ *
+ * Returns:
+ *  0 - task blocked on lock
+ *  1 - acquired the lock for task, caller should wake it up
+ * <0 - error
+ *
+ * Special API call for PI-futex support.
+ */
+int __sched rt_mutex_start_proxy_lock(struct rt_mutex *lock,
+				      struct rt_mutex_waiter *waiter,
+				      struct task_struct *task)
+{
+	int ret;
+
+	raw_spin_lock_irq(&lock->wait_lock);
+	ret = __rt_mutex_start_proxy_lock(lock, waiter, task);
+	if (unlikely(ret))
+		remove_waiter(lock, waiter);
+	raw_spin_unlock_irq(&lock->wait_lock);
+
+	return ret;
+}
+
+/**
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
  * rt_mutex_wait_proxy_lock() - Wait for lock acquisition
  * @lock:		the rt_mutex we were woken on
  * @to:			the timeout, null if none. hrtimer should already have
@@ -1829,9 +2294,15 @@ struct task_struct *rt_mutex_next_owner(struct rt_mutex *lock)
  *
  * Special API call for PI-futex support
  */
+<<<<<<< HEAD
 int rt_mutex_wait_proxy_lock(struct rt_mutex *lock,
 			       struct hrtimer_sleeper *to,
 			       struct rt_mutex_waiter *waiter)
+=======
+int __sched rt_mutex_wait_proxy_lock(struct rt_mutex *lock,
+				     struct hrtimer_sleeper *to,
+				     struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	int ret;
 
@@ -1869,8 +2340,13 @@ int rt_mutex_wait_proxy_lock(struct rt_mutex *lock,
  *
  * Special API call for PI-futex support
  */
+<<<<<<< HEAD
 bool rt_mutex_cleanup_proxy_lock(struct rt_mutex *lock,
 				 struct rt_mutex_waiter *waiter)
+=======
+bool __sched rt_mutex_cleanup_proxy_lock(struct rt_mutex *lock,
+					 struct rt_mutex_waiter *waiter)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool cleanup = false;
 
@@ -1905,3 +2381,14 @@ bool rt_mutex_cleanup_proxy_lock(struct rt_mutex *lock,
 
 	return cleanup;
 }
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_DEBUG_RT_MUTEXES
+void rt_mutex_debug_task_free(struct task_struct *task)
+{
+	DEBUG_LOCKS_WARN_ON(!RB_EMPTY_ROOT(&task->pi_waiters.rb_root));
+	DEBUG_LOCKS_WARN_ON(task->pi_blocked_on);
+}
+#endif
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

@@ -144,6 +144,7 @@ static int sealevel_close(struct net_device *d)
 static int sealevel_ioctl(struct net_device *d, struct ifreq *ifr, int cmd)
 {
 	/* struct slvl_device *slvl=dev_to_chan(d);
+<<<<<<< HEAD
 	   z8530_ioctl(d,&slvl->sync.chanA,ifr,cmd) */
 	return hdlc_ioctl(d, ifr, cmd);
 }
@@ -151,6 +152,14 @@ static int sealevel_ioctl(struct net_device *d, struct ifreq *ifr, int cmd)
 /*
  *	Passed network frames, fire them downwind.
  */
+=======
+	 * z8530_ioctl(d,&slvl->sync.chanA,ifr,cmd)
+	 */
+	return hdlc_ioctl(d, ifr, cmd);
+}
+
+/*	Passed network frames, fire them downwind. */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 static netdev_tx_t sealevel_queue_xmit(struct sk_buff *skb,
 					     struct net_device *d)

@@ -796,6 +796,11 @@ static int gmc_v10_0_mc_init(struct amdgpu_device *adev)
 		case CHIP_NAVY_FLOUNDER:
 		case CHIP_VANGOGH:
 		case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+		case CHIP_BEIGE_GOBY:
+		case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		default:
 			adev->gmc.gart_size = 512ULL << 20;
 			break;
@@ -863,6 +868,11 @@ static int gmc_v10_0_sw_init(void *handle)
 	case CHIP_NAVY_FLOUNDER:
 	case CHIP_VANGOGH:
 	case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+	case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		adev->num_vmhubs = 2;
 		/*
 		 * To fulfill 4-level page support,
@@ -978,6 +988,11 @@ static void gmc_v10_0_init_golden_registers(struct amdgpu_device *adev)
 	case CHIP_NAVY_FLOUNDER:
 	case CHIP_VANGOGH:
 	case CHIP_DIMGREY_CAVEFISH:
+<<<<<<< HEAD
+=======
+	case CHIP_BEIGE_GOBY:
+	case CHIP_YELLOW_CARP:
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	default:
 		break;

@@ -543,6 +543,7 @@ void qdio_print_subchannel_info(struct qdio_irq *irq_ptr)
 		 (irq_ptr->siga_flag.sync_after_ai) ? "A" : " ",
 		 (irq_ptr->siga_flag.sync_out_after_pci) ? "P" : " ");
 	printk(KERN_INFO "%s", s);
+<<<<<<< HEAD
 }
 
 int qdio_enable_async_operation(struct qdio_output_q *outq)
@@ -562,6 +563,8 @@ void qdio_disable_async_operation(struct qdio_output_q *q)
 	kfree(q->aobs);
 	q->aobs = NULL;
 	q->use_cq = 0;
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 int __init qdio_setup_init(void)

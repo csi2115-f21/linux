@@ -17,6 +17,7 @@ BTC_COEXIST GLBtCoexist;
 static u8 GLBtcWiFiInScanState;
 static u8 GLBtcWiFiInIQKState;
 
+<<<<<<< HEAD
 u32 GLBtcDbgType[BTC_MSG_MAX];
 static u8 GLBtcDbgBuf[BT_TMP_BUF_SIZE];
 
@@ -31,11 +32,30 @@ static BTCDBGINFO GLBtcDbgInfo;
 #define	BT_Operation(Adapter)						false
 
 static void DBG_BT_INFO_INIT(PBTCDBGINFO pinfo, u8 *pbuf, u32 size)
+=======
+static u8 GLBtcDbgBuf[BT_TMP_BUF_SIZE];
+
+struct btcdbginfo { /* _btcoexdbginfo */
+	u8 *info;
+	u32 size; /*  buffer total size */
+	u32 len; /*  now used length */
+};
+
+static struct btcdbginfo GLBtcDbgInfo;
+
+#define	BT_Operation(Adapter)						false
+
+static void DBG_BT_INFO_INIT(struct btcdbginfo *pinfo, u8 *pbuf, u32 size)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (!pinfo)
 		return;
 
+<<<<<<< HEAD
 	memset(pinfo, 0, sizeof(BTCDBGINFO));
+=======
+	memset(pinfo, 0, sizeof(struct btcdbginfo));
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	if (pbuf && size) {
 		pinfo->info = pbuf;
@@ -45,7 +65,11 @@ static void DBG_BT_INFO_INIT(PBTCDBGINFO pinfo, u8 *pbuf, u32 size)
 
 void DBG_BT_INFO(u8 *dbgmsg)
 {
+<<<<<<< HEAD
 	PBTCDBGINFO pinfo;
+=======
+	struct btcdbginfo *pinfo;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	u32 msglen;
 	u8 *pbuf;
 
@@ -642,7 +666,11 @@ static u8 halbtcoutsrc_Set(void *pBtcContext, u8 setType, void *pInBuf)
 	return ret;
 }
 
+<<<<<<< HEAD
 static void halbtcoutsrc_DisplayFwPwrModeCmd(PBTC_COEXIST pBtCoexist)
+=======
+static void halbtcoutsrc_DisplayFwPwrModeCmd(struct btc_coexist *pBtCoexist)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	u8 *cliBuf = pBtCoexist->cliBuf;
 
@@ -866,10 +894,17 @@ static void halbtcoutsrc_FillH2cCmd(void *pBtcContext, u8 elementId, u32 cmdLen,
 
 static void halbtcoutsrc_DisplayDbgMsg(void *pBtcContext, u8 dispType)
 {
+<<<<<<< HEAD
 	PBTC_COEXIST pBtCoexist;
 
 
 	pBtCoexist = (PBTC_COEXIST)pBtcContext;
+=======
+	struct btc_coexist *pBtCoexist;
+
+
+	pBtCoexist = (struct btc_coexist *)pBtcContext;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	switch (dispType) {
 	case BTC_DBG_DISP_COEX_STATISTICS:
 		break;
@@ -1255,7 +1290,11 @@ void EXhalbtcoutsrc_SetSingleAntPath(u8 singleAntPath)
 	GLBtCoexist.boardInfo.singleAntPath = singleAntPath;
 }
 
+<<<<<<< HEAD
 void EXhalbtcoutsrc_DisplayBtCoexInfo(PBTC_COEXIST pBtCoexist)
+=======
+void EXhalbtcoutsrc_DisplayBtCoexInfo(struct btc_coexist *pBtCoexist)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	if (!halbtcoutsrc_IsBtCoexistAvailable(pBtCoexist))
 		return;
@@ -1489,7 +1528,11 @@ void hal_btcoex_RecordPwrMode(struct adapter *padapter, u8 *pCmdBuf, u8 cmdLen)
 
 void hal_btcoex_DisplayBtCoexInfo(struct adapter *padapter, u8 *pbuf, u32 bufsize)
 {
+<<<<<<< HEAD
 	PBTCDBGINFO pinfo;
+=======
+	struct btcdbginfo *pinfo;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 
 	pinfo = &GLBtcDbgInfo;
@@ -1498,6 +1541,7 @@ void hal_btcoex_DisplayBtCoexInfo(struct adapter *padapter, u8 *pbuf, u32 bufsiz
 	DBG_BT_INFO_INIT(pinfo, NULL, 0);
 }
 
+<<<<<<< HEAD
 void hal_btcoex_SetDBG(struct adapter *padapter, u32 *pDbgModule)
 {
 	u32 i;
@@ -1635,3 +1679,5 @@ exit:
 
 	return count;
 }
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping

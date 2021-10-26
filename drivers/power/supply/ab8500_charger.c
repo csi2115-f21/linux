@@ -3325,12 +3325,19 @@ static char *supply_interface[] = {
 	"ab8500_btemp",
 };
 
+<<<<<<< HEAD
 static const struct power_supply_desc ab8500_ac_chg_desc = {
 	.name		= "ab8500_ac",
 	.type		= POWER_SUPPLY_TYPE_MAINS,
 	.properties	= ab8500_charger_ac_props,
 	.num_properties	= ARRAY_SIZE(ab8500_charger_ac_props),
 	.get_property	= ab8500_charger_ac_get_property,
+=======
+static struct platform_driver *const ab8500_charger_component_drivers[] = {
+	&ab8500_fg_driver,
+	&ab8500_btemp_driver,
+	&abx500_chargalg_driver,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 };
 
 static const struct power_supply_desc ab8500_usb_chg_desc = {

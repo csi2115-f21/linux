@@ -113,7 +113,11 @@ static int a6xx_crashdumper_init(struct msm_gpu *gpu,
 		struct a6xx_crashdumper *dumper)
 {
 	dumper->ptr = msm_gem_kernel_new_locked(gpu->dev,
+<<<<<<< HEAD
 		SZ_1M, MSM_BO_UNCACHED, gpu->aspace,
+=======
+		SZ_1M, MSM_BO_WC, gpu->aspace,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		&dumper->bo, &dumper->iova);
 
 	if (!IS_ERR(dumper->ptr))
@@ -935,7 +939,11 @@ struct msm_gpu_state *a6xx_gpu_state_get(struct msm_gpu *gpu)
 		a6xx_get_clusters(gpu, a6xx_state, &dumper);
 		a6xx_get_dbgahb_clusters(gpu, a6xx_state, &dumper);
 
+<<<<<<< HEAD
 		msm_gem_kernel_put(dumper.bo, gpu->aspace, true);
+=======
+		msm_gem_kernel_put(dumper->bo, gpu->aspace, true);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (snapshot_debugbus)

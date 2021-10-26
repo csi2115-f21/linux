@@ -276,7 +276,12 @@ void br_multicast_flood(struct net_bridge_mdb_entry *mdst,
 	bool allow_mode_include = true;
 	struct hlist_node *rp;
 
+<<<<<<< HEAD
 	rp = rcu_dereference(hlist_first_rcu(&br->router_list));
+=======
+	rp = br_multicast_get_first_rport_node(br, skb);
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (mdst) {
 		p = rcu_dereference(mdst->ports);
 		if (br_multicast_should_handle_mode(br, mdst->addr.proto) &&

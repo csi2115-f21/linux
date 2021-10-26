@@ -1919,8 +1919,11 @@ static HAL_VERSION ReadChipVersion8723B(struct adapter *padapter)
 		pHalData->rf_type = RF_2T2R;
 	else
 		pHalData->rf_type = RF_1T1R;
+<<<<<<< HEAD
 
 	MSG_8192C("RF_Type is %x!!\n", pHalData->rf_type);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return ChipVersion;
 }
@@ -2368,9 +2371,12 @@ static bool Hal_GetChnlGroup8723B(u8 Channel, u8 *pGroup)
 			*pGroup = 3;
 		else if (12 <= Channel && Channel <= 14)
 			*pGroup = 4;
+<<<<<<< HEAD
 		else {
 			RT_TRACE(_module_hci_hal_init_c_, _drv_notice_, ("==>Hal_GetChnlGroup8723B in 2.4 G, but Channel %d in Group not found\n", Channel));
 		}
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	} else {
 		bIn24G = false;
 
@@ -2402,6 +2408,7 @@ static bool Hal_GetChnlGroup8723B(u8 Channel, u8 *pGroup)
 			*pGroup = 12;
 		else if (173  <= Channel && Channel <= 177)
 			*pGroup = 13;
+<<<<<<< HEAD
 		else {
 			RT_TRACE(_module_hci_hal_init_c_, _drv_notice_, ("==>Hal_GetChnlGroup8723B in 5G, but Channel %d in Group not found\n", Channel));
 		}
@@ -2417,6 +2424,9 @@ static bool Hal_GetChnlGroup8723B(u8 Channel, u8 *pGroup)
 			*pGroup
 		)
 	);
+=======
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return bIn24G;
 }
 

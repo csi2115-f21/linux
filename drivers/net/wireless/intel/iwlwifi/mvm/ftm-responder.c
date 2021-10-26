@@ -75,6 +75,27 @@ static int iwl_mvm_ftm_responder_set_bw_v2(struct cfg80211_chan_def *chandef,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void
+iwl_mvm_ftm_responder_set_ndp(struct iwl_mvm *mvm,
+			      struct iwl_tof_responder_config_cmd_v8 *cmd)
+{
+	/* Up to 2 R2I STS are allowed on the responder */
+	u32 r2i_max_sts = IWL_MVM_FTM_R2I_MAX_STS < 2 ?
+		IWL_MVM_FTM_R2I_MAX_STS : 1;
+
+	cmd->r2i_ndp_params = IWL_MVM_FTM_R2I_MAX_REP |
+		(r2i_max_sts << IWL_RESPONDER_STS_POS) |
+		(IWL_MVM_FTM_R2I_MAX_TOTAL_LTF << IWL_RESPONDER_TOTAL_LTF_POS);
+	cmd->i2r_ndp_params = IWL_MVM_FTM_I2R_MAX_REP |
+		(IWL_MVM_FTM_I2R_MAX_STS << IWL_RESPONDER_STS_POS) |
+		(IWL_MVM_FTM_I2R_MAX_TOTAL_LTF << IWL_RESPONDER_TOTAL_LTF_POS);
+	cmd->cmd_valid_fields |=
+		cpu_to_le32(IWL_TOF_RESPONDER_CMD_VALID_NDP_PARAMS);
+}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int
 iwl_mvm_ftm_responder_cmd(struct iwl_mvm *mvm,
 			  struct ieee80211_vif *vif,
@@ -86,7 +107,11 @@ iwl_mvm_ftm_responder_cmd(struct iwl_mvm *mvm,
 	 * field interpretation is different), so the same struct can be use
 	 * for all cases.
 	 */
+<<<<<<< HEAD
 	struct iwl_tof_responder_config_cmd cmd = {
+=======
+	struct iwl_tof_responder_config_cmd_v8 cmd = {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		.channel_num = chandef->chan->hw_value,
 		.cmd_valid_fields =
 			cpu_to_le32(IWL_TOF_RESPONDER_CMD_VALID_CHAN_INFO |
@@ -100,7 +125,14 @@ iwl_mvm_ftm_responder_cmd(struct iwl_mvm *mvm,
 
 	lockdep_assert_held(&mvm->mutex);
 
+<<<<<<< HEAD
 	if (cmd_ver == 7)
+=======
+if (cmd_ver == 8)
+		iwl_mvm_ftm_responder_set_ndp(mvm, &cmd);
+
+	if (cmd_ver >= 7)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		err = iwl_mvm_ftm_responder_set_bw_v2(chandef, &cmd.format_bw,
 						      &cmd.ctrl_ch_position);
 	else

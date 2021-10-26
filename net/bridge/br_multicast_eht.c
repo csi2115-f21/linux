@@ -498,11 +498,21 @@ static void br_multicast_del_eht_host(struct net_bridge_port_group *pg,
 					       &set_h->h_addr);
 }
 
+<<<<<<< HEAD
 static void __eht_allow_incl(struct net_bridge_port_group *pg,
 			     union net_bridge_eht_addr *h_addr,
 			     void *srcs,
 			     u32 nsrcs,
 			     size_t addr_size)
+=======
+/* create new set entries from reports */
+static void __eht_create_set_entries(struct net_bridge_port_group *pg,
+				     union net_bridge_eht_addr *h_addr,
+				     void *srcs,
+				     u32 nsrcs,
+				     size_t addr_size,
+				     int filter_mode)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	union net_bridge_eht_addr eht_src_addr;
 	u32 src_idx;
@@ -511,7 +521,11 @@ static void __eht_allow_incl(struct net_bridge_port_group *pg,
 	for (src_idx = 0; src_idx < nsrcs; src_idx++) {
 		memcpy(&eht_src_addr, srcs + (src_idx * addr_size), addr_size);
 		br_multicast_create_eht_set_entry(pg, &eht_src_addr, h_addr,
+<<<<<<< HEAD
 						  MCAST_INCLUDE,
+=======
+						  filter_mode,
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 						  false);
 	}
 }
@@ -602,11 +616,19 @@ static bool __eht_block_incl(struct net_bridge_port_group *pg,
 	return changed;
 }
 
+<<<<<<< HEAD
 static bool __eht_block_excl(struct net_bridge_port_group *pg,
 			     union net_bridge_eht_addr *h_addr,
 			     void *srcs,
 			     u32 nsrcs,
 			     size_t addr_size)
+=======
+static bool br_multicast_eht_allow(struct net_bridge_port_group *pg,
+				   union net_bridge_eht_addr *h_addr,
+				   void *srcs,
+				   u32 nsrcs,
+				   size_t addr_size)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	bool changed = false, host_excl = false;
 	union net_bridge_eht_addr eht_src_addr;
@@ -614,6 +636,7 @@ static bool __eht_block_excl(struct net_bridge_port_group *pg,
 	struct br_ip src_ip;
 	u32 src_idx;
 
+<<<<<<< HEAD
 	host_excl = !!(br_multicast_eht_host_filter_mode(pg, h_addr) == MCAST_EXCLUDE);
 	memset(&eht_src_addr, 0, sizeof(eht_src_addr));
 	memset(&src_ip, 0, sizeof(src_ip));
@@ -635,6 +658,17 @@ static bool __eht_block_excl(struct net_bridge_port_group *pg,
 			br_multicast_del_group_src(src_ent, true);
 			changed = true;
 		}
+=======
+	switch (br_multicast_eht_host_filter_mode(pg, h_addr)) {
+	case MCAST_INCLUDE:
+		__eht_create_set_entries(pg, h_addr, srcs, nsrcs, addr_size,
+					 MCAST_INCLUDE);
+		break;
+	case MCAST_EXCLUDE:
+		changed = __eht_del_set_entries(pg, h_addr, srcs, nsrcs,
+						addr_size);
+		break;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	return changed;
@@ -653,7 +687,12 @@ static bool br_multicast_eht_block(struct net_bridge_port_group *pg,
 		changed = __eht_block_incl(pg, h_addr, srcs, nsrcs, addr_size);
 		break;
 	case MCAST_EXCLUDE:
+<<<<<<< HEAD
 		changed = __eht_block_excl(pg, h_addr, srcs, nsrcs, addr_size);
+=======
+		__eht_create_set_entries(pg, h_addr, srcs, nsrcs, addr_size,
+					 MCAST_EXCLUDE);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		break;
 	}
 
@@ -680,11 +719,16 @@ static bool __eht_inc_exc(struct net_bridge_port_group *pg,
 	/* if we're changing mode del host and its entries */
 	if (flush_entries)
 		br_multicast_del_eht_host(pg, h_addr);
+<<<<<<< HEAD
 	for (src_idx = 0; src_idx < nsrcs; src_idx++) {
 		memcpy(&eht_src_addr, srcs + (src_idx * addr_size), addr_size);
 		br_multicast_create_eht_set_entry(pg, &eht_src_addr, h_addr,
 						  filter_mode, false);
 	}
+=======
+	__eht_create_set_entries(pg, h_addr, srcs, nsrcs, addr_size,
+				 filter_mode);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	/* we can be missing sets only if we've deleted some entries */
 	if (flush_entries) {
 		struct net_bridge *br = pg->key.port->br;

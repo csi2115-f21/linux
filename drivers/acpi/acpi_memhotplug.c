@@ -171,6 +171,10 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
 	acpi_handle handle = mem_device->device->handle;
 	int result, num_enabled = 0;
 	struct acpi_memory_info *info;
+<<<<<<< HEAD
+=======
+	mhp_t mhp_flags = MHP_NONE;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	int node;
 
 	node = acpi_get_node(handle);
@@ -194,8 +198,15 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
 		if (node < 0)
 			node = memory_add_physaddr_to_nid(info->start_addr);
 
+<<<<<<< HEAD
 		result = __add_memory(node, info->start_addr, info->length,
 				      MHP_NONE);
+=======
+		if (mhp_supports_memmap_on_memory(info->length))
+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
+		result = __add_memory(node, info->start_addr, info->length,
+				      mhp_flags);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 		/*
 		 * If the memory block has been used by the kernel, add_memory()

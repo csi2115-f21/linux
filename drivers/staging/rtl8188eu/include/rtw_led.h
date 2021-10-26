@@ -52,7 +52,11 @@ struct LED_871x {
 						   * either RTW_LED_ON or RTW_LED_OFF are.
 						   */
 
+<<<<<<< HEAD
 	u8 bLedOn; /*  true if LED is ON, false if LED is OFF. */
+=======
+	u8 led_on; /*  true if LED is ON, false if LED is OFF. */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	u8 bLedBlinkInProgress; /*  true if it is blinking, false o.w.. */
 

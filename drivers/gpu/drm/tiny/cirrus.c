@@ -443,7 +443,11 @@ static void cirrus_pipe_enable(struct drm_simple_display_pipe *pipe,
 	struct cirrus_device *cirrus = to_cirrus(pipe->crtc.dev);
 
 	cirrus_mode_set(cirrus, &crtc_state->mode, plane_state->fb);
+<<<<<<< HEAD
 	cirrus_fb_blit_fullscreen(plane_state->fb);
+=======
+	cirrus_fb_blit_fullscreen(plane_state->fb, &shadow_plane_state->map[0]);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void cirrus_pipe_update(struct drm_simple_display_pipe *pipe,
@@ -460,7 +464,11 @@ static void cirrus_pipe_update(struct drm_simple_display_pipe *pipe,
 				pipe->plane.state->fb);
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &rect))
+<<<<<<< HEAD
 		cirrus_fb_blit_rect(pipe->plane.state->fb, &rect);
+=======
+		cirrus_fb_blit_rect(state->fb, &shadow_plane_state->map[0], &rect);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static const struct drm_simple_display_pipe_funcs cirrus_pipe_funcs = {
@@ -558,7 +566,11 @@ static int cirrus_pci_probe(struct pci_dev *pdev,
 	struct cirrus_device *cirrus;
 	int ret;
 
+<<<<<<< HEAD
 	ret = drm_fb_helper_remove_conflicting_pci_framebuffers(pdev, "cirrusdrmfb");
+=======
+	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, "cirrusdrmfb");
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	if (ret)
 		return ret;
 

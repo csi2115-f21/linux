@@ -3244,9 +3244,15 @@ static int __init gsm_init(void)
 
 	gsm_tty_driver = alloc_tty_driver(256);
 	if (!gsm_tty_driver) {
+<<<<<<< HEAD
 		tty_unregister_ldisc(N_GSM0710);
 		pr_err("gsm_init: tty allocation failed.\n");
 		return -EINVAL;
+=======
+		pr_err("gsm_init: tty allocation failed.\n");
+		status = -ENOMEM;
+		goto err_unreg_ldisc;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 	gsm_tty_driver->driver_name	= "gsmtty";
 	gsm_tty_driver->name		= "gsmtty";
@@ -3272,6 +3278,14 @@ static int __init gsm_init(void)
 	pr_debug("gsm_init: loaded as %d,%d.\n",
 			gsm_tty_driver->major, gsm_tty_driver->minor_start);
 	return 0;
+<<<<<<< HEAD
+=======
+err_put_driver:
+	put_tty_driver(gsm_tty_driver);
+err_unreg_ldisc:
+	tty_unregister_ldisc(&tty_ldisc_packet);
+	return status;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static void __exit gsm_exit(void)

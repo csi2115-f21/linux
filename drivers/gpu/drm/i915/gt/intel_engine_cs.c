@@ -120,7 +120,11 @@ static const struct engine_info intel_engines[] = {
 		.class = VIDEO_DECODE_CLASS,
 		.instance = 3,
 		.mmio_bases = {
+<<<<<<< HEAD
 			{ .gen = 11, .base = GEN11_BSD4_RING_BASE }
+=======
+			{ .graphics_ver = 11, .base = GEN11_BSD4_RING_BASE }
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		},
 	},
 	[VECS0] = {
@@ -137,7 +141,11 @@ static const struct engine_info intel_engines[] = {
 		.class = VIDEO_ENHANCEMENT_CLASS,
 		.instance = 1,
 		.mmio_bases = {
+<<<<<<< HEAD
 			{ .gen = 11, .base = GEN11_VEBOX2_RING_BASE }
+=======
+			{ .graphics_ver = 11, .base = GEN11_VEBOX2_RING_BASE }
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		},
 	},
 };
@@ -307,6 +315,12 @@ static int intel_engine_setup(struct intel_gt *gt, enum intel_engine_id id)
 	engine->i915 = i915;
 	engine->gt = gt;
 	engine->uncore = gt->uncore;
+<<<<<<< HEAD
+=======
+	engine->hw_id = info->hw_id;
+	guc_class = engine_class_to_guc_class(info->class);
+	engine->guc_id = MAKE_GUC_ID(guc_class, info->instance);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	engine->mmio_base = __engine_mmio_base(i915, info->mmio_bases);
 	engine->hw_id = info->hw_id;
 	engine->guc_id = MAKE_GUC_ID(info->class, info->instance);
@@ -504,7 +518,11 @@ static intel_engine_mask_t init_engine_mask(struct intel_gt *gt)
 		 * hooked up to an SFC (Scaler & Format Converter) unit.
 		 * In TGL each VDBOX has access to an SFC.
 		 */
+<<<<<<< HEAD
 		if (INTEL_GEN(i915) >= 12 || logical_vdbox++ % 2 == 0)
+=======
+		if (GRAPHICS_VER(i915) >= 12 || logical_vdbox++ % 2 == 0)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 			gt->info.vdbox_sfc_access |= BIT(i);
 	}
 	drm_dbg(&i915->drm, "vdbox enable: %04x, instances: %04lx\n",
@@ -713,6 +731,13 @@ static int engine_setup_common(struct intel_engine_cs *engine)
 		goto err_status;
 	}
 
+<<<<<<< HEAD
+=======
+	err = intel_engine_init_cmd_parser(engine);
+	if (err)
+		goto err_cmd_parser;
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	intel_engine_init_active(engine, ENGINE_PHYSICAL);
 	intel_engine_init_execlists(engine);
 	intel_engine_init_cmd_parser(engine);
@@ -732,6 +757,11 @@ static int engine_setup_common(struct intel_engine_cs *engine)
 
 	return 0;
 
+<<<<<<< HEAD
+=======
+err_cmd_parser:
+	intel_breadcrumbs_free(engine->breadcrumbs);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 err_status:
 	cleanup_status_page(engine);
 	return err;
@@ -900,7 +930,11 @@ static int engine_init_common(struct intel_engine_cs *engine)
 	return 0;
 
 err_context:
+<<<<<<< HEAD
 	intel_context_put(ce);
+=======
+	destroy_pinned_context(ce);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return ret;
 }
 
@@ -1099,7 +1133,11 @@ read_subslice_reg(const struct intel_engine_cs *engine,
 	u32 mcr_mask, mcr_ss, mcr, old_mcr, val;
 	enum forcewake_domains fw_domains;
 
+<<<<<<< HEAD
 	if (INTEL_GEN(i915) >= 11) {
+=======
+	if (GRAPHICS_VER(i915) >= 11) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		mcr_mask = GEN11_MCR_SLICE_MASK | GEN11_MCR_SUBSLICE_MASK;
 		mcr_ss = GEN11_MCR_SLICE(slice) | GEN11_MCR_SUBSLICE(subslice);
 	} else {
@@ -1556,7 +1594,11 @@ static void intel_engine_print_registers(struct intel_engine_cs *engine,
 		}
 		rcu_read_unlock();
 		execlists_active_unlock_bh(execlists);
+<<<<<<< HEAD
 	} else if (INTEL_GEN(dev_priv) > 6) {
+=======
+	} else if (GRAPHICS_VER(dev_priv) > 6) {
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		drm_printf(m, "\tPP_DIR_BASE: 0x%08x\n",
 			   ENGINE_READ(engine, RING_PP_DIR_BASE));
 		drm_printf(m, "\tPP_DIR_BASE_READ: 0x%08x\n",
@@ -1690,6 +1732,7 @@ void intel_engine_dump(struct intel_engine_cs *engine,
 	print_properties(engine, m);
 
 	drm_printf(m, "\tRequests:\n");
+<<<<<<< HEAD
 
 	spin_lock_irqsave(&engine->active.lock, flags);
 	rq = intel_engine_find_active_request(engine);
@@ -1715,6 +1758,33 @@ void intel_engine_dump(struct intel_engine_cs *engine,
 			intel_timeline_put(tl);
 		}
 
+=======
+
+	spin_lock_irqsave(&engine->active.lock, flags);
+	rq = intel_engine_find_active_request(engine);
+	if (rq) {
+		struct intel_timeline *tl = get_timeline(rq);
+
+		i915_request_show(m, rq, "\t\tactive ", 0);
+
+		drm_printf(m, "\t\tring->start:  0x%08x\n",
+			   i915_ggtt_offset(rq->ring->vma));
+		drm_printf(m, "\t\tring->head:   0x%08x\n",
+			   rq->ring->head);
+		drm_printf(m, "\t\tring->tail:   0x%08x\n",
+			   rq->ring->tail);
+		drm_printf(m, "\t\tring->emit:   0x%08x\n",
+			   rq->ring->emit);
+		drm_printf(m, "\t\tring->space:  0x%08x\n",
+			   rq->ring->space);
+
+		if (tl) {
+			drm_printf(m, "\t\tring->hwsp:   0x%08x\n",
+				   tl->hwsp_offset);
+			intel_timeline_put(tl);
+		}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		print_request_ring(m, rq);
 
 		if (rq->context->lrc_reg_state) {

@@ -17,7 +17,10 @@ cat <<EOF |
 asm-generic/atomic-instrumented.h
 asm-generic/atomic-long.h
 linux/atomic-arch-fallback.h
+<<<<<<< HEAD
 linux/atomic-fallback.h
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 EOF
 while read header; do
 	OLDSUM="$(tail -n 1 ${LINUXDIR}/include/${header})"

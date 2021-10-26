@@ -80,6 +80,7 @@ static enum dc_psr_state convert_psr_state(uint32_t raw_state)
 static void dmub_psr_get_state(struct dmub_psr *dmub, enum dc_psr_state *state)
 {
 	struct dmub_srv *srv = dmub->ctx->dmub_srv->dmub;
+<<<<<<< HEAD
 	uint32_t raw_state;
 
 	// Send gpint command and wait for ack
@@ -88,6 +89,28 @@ static void dmub_psr_get_state(struct dmub_psr *dmub, enum dc_psr_state *state)
 	dmub_srv_get_gpint_response(srv, &raw_state);
 
 	*state = convert_psr_state(raw_state);
+=======
+	uint32_t raw_state = 0;
+	uint32_t retry_count = 0;
+	enum dmub_status status;
+
+	do {
+		// Send gpint command and wait for ack
+		status = dmub_srv_send_gpint_command(srv, DMUB_GPINT__GET_PSR_STATE, panel_inst, 30);
+
+		if (status == DMUB_STATUS_OK) {
+			// GPINT was executed, get response
+			dmub_srv_get_gpint_response(srv, &raw_state);
+			*state = convert_psr_state(raw_state);
+		} else
+			// Return invalid state when GPINT times out
+			*state = PSR_STATE_INVALID;
+
+		// Assert if max retry hit
+		if (retry_count >= 1000)
+			ASSERT(0);
+	} while (++retry_count <= 1000 && *state == PSR_STATE_INVALID);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 /*
@@ -190,7 +213,12 @@ static void dmub_psr_set_level(struct dmub_psr *dmub, uint16_t psr_level)
 	cmd.psr_set_level.header.sub_type = DMUB_CMD__PSR_SET_LEVEL;
 	cmd.psr_set_level.header.payload_bytes = sizeof(struct dmub_cmd_psr_set_level_data);
 	cmd.psr_set_level.psr_set_level_data.psr_level = psr_level;
+<<<<<<< HEAD
 
+=======
+	cmd.psr_set_level.psr_set_level_data.cmd_version = PSR_VERSION_1;
+	cmd.psr_set_level.psr_set_level_data.panel_inst = panel_inst;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	dc_dmub_srv_cmd_queue(dc->dmub_srv, &cmd);
 	dc_dmub_srv_cmd_execute(dc->dmub_srv);
 	dc_dmub_srv_wait_idle(dc->dmub_srv);
@@ -272,6 +300,13 @@ static bool dmub_psr_copy_settings(struct dmub_psr *dmub,
 	copy_settings_data->debug.bitfields.visual_confirm	= dc->dc->debug.visual_confirm == VISUAL_CONFIRM_PSR ?
 									true : false;
 	copy_settings_data->debug.bitfields.use_hw_lock_mgr		= 1;
+<<<<<<< HEAD
+=======
+	copy_settings_data->fec_enable_status = (link->fec_state == dc_link_fec_enabled);
+	copy_settings_data->fec_enable_delay_in100us = link->dc->debug.fec_enable_delay_in100us;
+	copy_settings_data->cmd_version =  PSR_VERSION_1;
+	copy_settings_data->panel_inst = panel_inst;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	dc_dmub_srv_cmd_queue(dc->dmub_srv, &cmd);
 	dc_dmub_srv_cmd_execute(dc->dmub_srv);

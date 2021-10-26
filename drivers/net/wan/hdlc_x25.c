@@ -229,7 +229,10 @@ static struct hdlc_proto proto = {
 	.module		= THIS_MODULE,
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static int x25_ioctl(struct net_device *dev, struct ifreq *ifr)
 {
 	x25_hdlc_proto __user *x25_s = ifr->ifr_settings.ifs_ifsu.x25;

@@ -142,5 +142,46 @@ extern unsigned int cppc_get_transition_latency(int cpu);
 extern bool cpc_ffh_supported(void);
 extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
 extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+<<<<<<< HEAD
+=======
+#else /* !CONFIG_ACPI_CPPC_LIB */
+static inline int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
+{
+	return -ENOTSUPP;
+}
+static inline int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+{
+	return -ENOTSUPP;
+}
+static inline int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+{
+	return -ENOTSUPP;
+}
+static inline int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps)
+{
+	return -ENOTSUPP;
+}
+static inline bool acpi_cpc_valid(void)
+{
+	return false;
+}
+static inline unsigned int cppc_get_transition_latency(int cpu)
+{
+	return CPUFREQ_ETERNAL;
+}
+static inline bool cpc_ffh_supported(void)
+{
+	return false;
+}
+static inline int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val)
+{
+	return -ENOTSUPP;
+}
+static inline int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val)
+{
+	return -ENOTSUPP;
+}
+#endif /* !CONFIG_ACPI_CPPC_LIB */
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 #endif /* _CPPC_ACPI_H*/

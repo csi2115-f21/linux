@@ -1553,7 +1553,37 @@ static void tegra_pcie_pme_turnoff(struct tegra_pcie_port *port)
 
 static int tegra_msi_alloc(struct tegra_msi *chip)
 {
+<<<<<<< HEAD
 	int msi;
+=======
+	struct tegra_pcie *pcie = irq_desc_get_handler_data(desc);
+	struct irq_chip *chip = irq_desc_get_chip(desc);
+	struct tegra_msi *msi = &pcie->msi;
+	struct device *dev = pcie->dev;
+	unsigned int i;
+
+	chained_irq_enter(chip, desc);
+
+	for (i = 0; i < 8; i++) {
+		unsigned long reg = afi_readl(pcie, AFI_MSI_VEC(i));
+
+		while (reg) {
+			unsigned int offset = find_first_bit(&reg, 32);
+			unsigned int index = i * 32 + offset;
+			unsigned int irq;
+
+			irq = irq_find_mapping(msi->domain->parent, index);
+			if (irq) {
+				generic_handle_irq(irq);
+			} else {
+				/*
+				 * that's weird who triggered this?
+				 * just clear it
+				 */
+				dev_info(dev, "unexpected MSI\n");
+				afi_writel(pcie, BIT(index % 32), AFI_MSI_VEC(index));
+			}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	mutex_lock(&chip->lock);
 

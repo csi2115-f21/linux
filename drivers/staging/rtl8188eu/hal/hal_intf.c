@@ -23,12 +23,17 @@ uint rtw_hal_init(struct adapter *adapt)
 			rtw_hal_notch_filter(adapt, 1);
 	} else {
 		adapt->hw_init_completed = false;
+<<<<<<< HEAD
 		DBG_88E("%s: hal__init fail\n", __func__);
 	}
 
 	RT_TRACE(_module_hal_init_c_, _drv_err_,
 		 ("-rtl871x_hal_init:status=0x%x\n", status));
 
+=======
+	}
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	return status;
 }
 
@@ -40,8 +45,11 @@ uint rtw_hal_deinit(struct adapter *adapt)
 
 	if (status == _SUCCESS)
 		adapt->hw_init_completed = false;
+<<<<<<< HEAD
 	else
 		DBG_88E("\n %s: hal_init fail\n", __func__);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	return status;
 }

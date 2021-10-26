@@ -717,6 +717,7 @@ static int mtty_create(struct kobject *kobj, struct mdev_device *mdev)
 	if (!mdev)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	for (i = 0; i < 2; i++) {
 		snprintf(name, MTTY_STRING_LEN, "%s-%d",
 			dev_driver_string(mdev_parent_dev(mdev)), i + 1);
@@ -724,6 +725,12 @@ static int mtty_create(struct kobject *kobj, struct mdev_device *mdev)
 			nr_ports = i + 1;
 			break;
 		}
+=======
+	mdev_state = kzalloc(sizeof(struct mdev_state), GFP_KERNEL);
+	if (mdev_state == NULL) {
+		atomic_add(nr_ports, &mdev_avail_ports);
+		return -ENOMEM;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 	}
 
 	if (!nr_ports)
@@ -742,6 +749,10 @@ static int mtty_create(struct kobject *kobj, struct mdev_device *mdev)
 
 	if (mdev_state->vconfig == NULL) {
 		kfree(mdev_state);
+<<<<<<< HEAD
+=======
+		atomic_add(nr_ports, &mdev_avail_ports);
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 		return -ENOMEM;
 	}
 
@@ -751,6 +762,7 @@ static int mtty_create(struct kobject *kobj, struct mdev_device *mdev)
 
 	mtty_create_config_space(mdev_state);
 
+<<<<<<< HEAD
 	mutex_lock(&mdev_list_lock);
 	list_add(&mdev_state->next, &mdev_devices_list);
 	mutex_unlock(&mdev_list_lock);
@@ -778,6 +790,17 @@ static int mtty_remove(struct mdev_device *mdev)
 	mutex_unlock(&mdev_list_lock);
 
 	return ret;
+=======
+	ret = vfio_register_group_dev(&mdev_state->vdev);
+	if (ret) {
+		kfree(mdev_state);
+		atomic_add(nr_ports, &mdev_avail_ports);
+		return ret;
+	}
+
+	dev_set_drvdata(&mdev->dev, mdev_state);
+	return 0;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 }
 
 static int mtty_reset(struct mdev_device *mdev)
@@ -787,9 +810,16 @@ static int mtty_reset(struct mdev_device *mdev)
 	if (!mdev)
 		return -EINVAL;
 
+<<<<<<< HEAD
 	mdev_state = mdev_get_drvdata(mdev);
 	if (!mdev_state)
 		return -EINVAL;
+=======
+	kfree(mdev_state->vconfig);
+	kfree(mdev_state);
+	atomic_add(nr_ports, &mdev_avail_ports);
+}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	pr_info("%s: called\n", __func__);
 
@@ -1246,13 +1276,21 @@ static long mtty_ioctl(struct mdev_device *mdev, unsigned int cmd,
 	return -ENOTTY;
 }
 
+<<<<<<< HEAD
 static int mtty_open(struct mdev_device *mdev)
+=======
+static int mtty_open(struct vfio_device *vdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	pr_info("%s\n", __func__);
 	return 0;
 }
 
+<<<<<<< HEAD
 static void mtty_close(struct mdev_device *mdev)
+=======
+static void mtty_close(struct vfio_device *mdev)
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 {
 	pr_info("%s\n", __func__);
 }
@@ -1387,6 +1425,29 @@ static struct attribute_group *mdev_type_groups[] = {
 	NULL,
 };
 
+<<<<<<< HEAD
+=======
+static const struct vfio_device_ops mtty_dev_ops = {
+	.name = "vfio-mtty",
+	.open = mtty_open,
+	.release = mtty_close,
+	.read = mtty_read,
+	.write = mtty_write,
+	.ioctl = mtty_ioctl,
+};
+
+static struct mdev_driver mtty_driver = {
+	.driver = {
+		.name = "mtty",
+		.owner = THIS_MODULE,
+		.mod_name = KBUILD_MODNAME,
+		.dev_groups = mdev_dev_groups,
+	},
+	.probe = mtty_probe,
+	.remove	= mtty_remove,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 static const struct mdev_parent_ops mdev_fops = {
 	.owner                  = THIS_MODULE,
 	.dev_attr_groups        = mtty_dev_groups,

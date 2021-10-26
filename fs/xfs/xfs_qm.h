@@ -142,7 +142,10 @@ extern void		xfs_qm_destroy_quotainfo(struct xfs_mount *);
 
 /* dquot stuff */
 extern void		xfs_qm_dqpurge_all(struct xfs_mount *, uint);
+<<<<<<< HEAD
 extern void		xfs_qm_dqrele_all_inodes(struct xfs_mount *, uint);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 /* quota ops */
 extern int		xfs_qm_scall_trunc_qfiles(struct xfs_mount *, uint);

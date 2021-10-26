@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
+<<<<<<< HEAD
+=======
+obj-$(CONFIG_DRM_ARCPGU)		+= arcpgu.o
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 obj-$(CONFIG_DRM_CIRRUS_QEMU)		+= cirrus.o
 obj-$(CONFIG_DRM_GM12U320)		+= gm12u320.o
 obj-$(CONFIG_TINYDRM_HX8357D)		+= hx8357d.o

@@ -81,6 +81,18 @@ enum rtw_fw_feature {
 	FW_FEATURE_MAX = BIT(31),
 };
 
+<<<<<<< HEAD
+=======
+enum rtw_beacon_filter_offload_mode {
+	BCN_FILTER_OFFLOAD_MODE_0 = 0,
+	BCN_FILTER_OFFLOAD_MODE_1,
+	BCN_FILTER_OFFLOAD_MODE_2,
+	BCN_FILTER_OFFLOAD_MODE_3,
+
+	BCN_FILTER_OFFLOAD_MODE_DEFAULT = BCN_FILTER_OFFLOAD_MODE_1,
+};
+
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 struct rtw_coex_info_req {
 	u8 seq;
 	u8 op_code;

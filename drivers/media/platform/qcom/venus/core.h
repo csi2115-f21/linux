@@ -222,6 +222,10 @@ struct venc_controls {
 	u32 multi_slice_max_mb;
 
 	u32 header_mode;
+<<<<<<< HEAD
+=======
+	bool aud_enable;
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	struct {
 		u32 h264;

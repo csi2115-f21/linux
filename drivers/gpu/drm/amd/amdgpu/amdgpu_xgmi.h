@@ -58,8 +58,11 @@ int amdgpu_xgmi_remove_device(struct amdgpu_device *adev);
 int amdgpu_xgmi_set_pstate(struct amdgpu_device *adev, int pstate);
 int amdgpu_xgmi_get_hops_count(struct amdgpu_device *adev,
 		struct amdgpu_device *peer_adev);
+<<<<<<< HEAD
 int amdgpu_xgmi_ras_late_init(struct amdgpu_device *adev);
 void amdgpu_xgmi_ras_fini(struct amdgpu_device *adev);
+=======
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 uint64_t amdgpu_xgmi_get_relative_phy_addr(struct amdgpu_device *adev,
 					   uint64_t addr);
 int amdgpu_xgmi_query_ras_error_count(struct amdgpu_device *adev,

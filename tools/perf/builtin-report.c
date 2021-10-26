@@ -1367,8 +1367,15 @@ int cmd_report(int argc, const char **argv)
 
 repeat:
 	session = perf_session__new(&data, false, &report.tool);
+<<<<<<< HEAD
 	if (IS_ERR(session))
 		return PTR_ERR(session);
+=======
+	if (IS_ERR(session)) {
+		ret = PTR_ERR(session);
+		goto exit;
+	}
+>>>>>>> parent of 515dcc2e0217... Merge tag 'dma-mapping-5.15-2' of git://git.infradead.org/users/hch/dma-mapping
 
 	ret = evswitch__init(&report.evswitch, session->evlist, stderr);
 	if (ret)
