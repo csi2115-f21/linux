@@ -192,7 +192,7 @@ static unsigned int cbm_idx(struct rdt_resource *r, unsigned int closid)
  *	Intel(R) Xeon(R)  CPU E5-2608L v3  @  2.00GHz
  *	Intel(R) Xeon(R)  CPU E5-2658A v3  @  2.20GHz
  *
- * Probe by trying to write the first of the L3 cach mask registers
+ * Probe by trying to write the first of the L3 cache mask registers
  * and checking that the bits stick. Max CLOSids is always 4 and max cbm length
  * is always 20 on hsw server parts. The minimum cache bitmask length
  * allowed for HSW server is always 2 bits. Hardcode all of them.
@@ -590,6 +590,8 @@ static void domain_add_cpu(int cpu, struct rdt_resource *r)
 	}
 
 	if (r->mon_capable && domain_setup_mon_state(r, d)) {
+		kfree(d->ctrl_val);
+		kfree(d->mbps_val);
 		kfree(d);
 		return;
 	}

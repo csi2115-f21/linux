@@ -29,10 +29,10 @@ struct netns_nf {
 	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
 #endif
 #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-	bool			defrag_ipv4;
+	unsigned int defrag_ipv4_users;
 #endif
 #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-	bool			defrag_ipv6;
+	unsigned int defrag_ipv6_users;
 #endif
 };
 #endif

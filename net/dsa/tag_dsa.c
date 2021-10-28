@@ -176,7 +176,7 @@ static struct sk_buff *dsa_rcv_ll(struct sk_buff *skb, struct net_device *dev,
 	case DSA_CMD_FORWARD:
 		skb->offload_fwd_mark = 1;
 
-		trunk = !!(dsa_header[1] & 7);
+		trunk = !!(dsa_header[1] & 4);
 		break;
 
 	case DSA_CMD_TO_CPU:
@@ -303,7 +303,7 @@ static const struct dsa_device_ops dsa_netdev_ops = {
 	.proto	  = DSA_TAG_PROTO_DSA,
 	.xmit	  = dsa_xmit,
 	.rcv	  = dsa_rcv,
-	.overhead = DSA_HLEN,
+	.needed_headroom = DSA_HLEN,
 };
 
 DSA_TAG_DRIVER(dsa_netdev_ops);
@@ -346,7 +346,7 @@ static const struct dsa_device_ops edsa_netdev_ops = {
 	.proto	  = DSA_TAG_PROTO_EDSA,
 	.xmit	  = edsa_xmit,
 	.rcv	  = edsa_rcv,
-	.overhead = EDSA_HLEN,
+	.needed_headroom = EDSA_HLEN,
 };
 
 DSA_TAG_DRIVER(edsa_netdev_ops);

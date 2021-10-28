@@ -13,6 +13,7 @@
 #include <linux/dmapool.h>
 #include <linux/delay.h>
 #include <linux/interrupt.h>
+#include <linux/irqdomain.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/of.h>
@@ -21,6 +22,7 @@
 #include <linux/bsg-lib.h>
 #include <asm/firmware.h>
 #include <asm/irq.h>
+#include <asm/rtas.h>
 #include <asm/vio.h>
 #include <scsi/scsi.h>
 #include <scsi/scsi_cmnd.h>
@@ -157,6 +159,9 @@ static void ibmvfc_tgt_query_target(struct ibmvfc_target *);
 static void ibmvfc_npiv_logout(struct ibmvfc_host *);
 static void ibmvfc_tgt_implicit_logout_and_del(struct ibmvfc_target *);
 static void ibmvfc_tgt_move_login(struct ibmvfc_target *);
+
+static void ibmvfc_release_sub_crqs(struct ibmvfc_host *);
+static void ibmvfc_init_sub_crqs(struct ibmvfc_host *);
 
 static const char *unknown_error = "unknown error";
 
@@ -322,6 +327,7 @@ static const char *ibmvfc_get_cmd_error(u16 status, u16 error)
 
 /**
  * ibmvfc_get_err_result - Find the scsi status to return for the fcp response
+ * @vhost:      ibmvfc host struct
  * @vfc_cmd:	ibmvfc command struct
  *
  * Return value:
@@ -599,8 +605,17 @@ static void ibmvfc_set_host_action(struct ibmvfc_host *vhost,
 		if (vhost->action == IBMVFC_HOST_ACTION_ALLOC_TGTS)
 			vhost->action = action;
 		break;
+	case IBMVFC_HOST_ACTION_REENABLE:
+	case IBMVFC_HOST_ACTION_RESET:
+		vhost->action = action;
+		break;
 	case IBMVFC_HOST_ACTION_INIT:
 	case IBMVFC_HOST_ACTION_TGT_DEL:
+	case IBMVFC_HOST_ACTION_LOGO:
+	case IBMVFC_HOST_ACTION_QUERY_TGTS:
+	case IBMVFC_HOST_ACTION_TGT_DEL_FAILED:
+	case IBMVFC_HOST_ACTION_NONE:
+	default:
 		switch (vhost->action) {
 		case IBMVFC_HOST_ACTION_RESET:
 		case IBMVFC_HOST_ACTION_REENABLE:
@@ -609,15 +624,6 @@ static void ibmvfc_set_host_action(struct ibmvfc_host *vhost,
 			vhost->action = action;
 			break;
 		}
-		break;
-	case IBMVFC_HOST_ACTION_LOGO:
-	case IBMVFC_HOST_ACTION_QUERY_TGTS:
-	case IBMVFC_HOST_ACTION_TGT_DEL_FAILED:
-	case IBMVFC_HOST_ACTION_NONE:
-	case IBMVFC_HOST_ACTION_RESET:
-	case IBMVFC_HOST_ACTION_REENABLE:
-	default:
-		vhost->action = action;
 		break;
 	}
 }
@@ -646,13 +652,13 @@ static void ibmvfc_reinit_host(struct ibmvfc_host *vhost)
 /**
  * ibmvfc_del_tgt - Schedule cleanup and removal of the target
  * @tgt:		ibmvfc target struct
- * @job_step:	job step to perform
- *
  **/
 static void ibmvfc_del_tgt(struct ibmvfc_target *tgt)
 {
-	if (!ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_LOGOUT_RPORT))
+	if (!ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_LOGOUT_RPORT)) {
 		tgt->job_step = ibmvfc_tgt_implicit_logout_and_del;
+		tgt->init_retries = 0;
+	}
 	wake_up(&tgt->vhost->work_wait_q);
 }
 
@@ -764,6 +770,8 @@ static int ibmvfc_send_crq_init_complete(struct ibmvfc_host *vhost)
 /**
  * ibmvfc_init_event_pool - Allocates and initializes the event pool for a host
  * @vhost:	ibmvfc host who owns the event pool
+ * @queue:      ibmvfc queue struct
+ * @size:       pool size
  *
  * Returns zero on success.
  **/
@@ -799,6 +807,13 @@ static int ibmvfc_init_event_pool(struct ibmvfc_host *vhost,
 	for (i = 0; i < size; ++i) {
 		struct ibmvfc_event *evt = &pool->events[i];
 
+		/*
+		 * evt->active states
+		 *  1 = in flight
+		 *  0 = being completed
+		 * -1 = free/freed
+		 */
+		atomic_set(&evt->active, -1);
 		atomic_set(&evt->free, 1);
 		evt->crq.valid = 0x80;
 		evt->crq.ioba = cpu_to_be64(pool->iu_token + (sizeof(*evt->xfer_iu) * i));
@@ -816,6 +831,7 @@ static int ibmvfc_init_event_pool(struct ibmvfc_host *vhost,
 /**
  * ibmvfc_free_event_pool - Frees memory of the event pool of a host
  * @vhost:	ibmvfc host who owns the event pool
+ * @queue:      ibmvfc queue struct
  *
  **/
 static void ibmvfc_free_event_pool(struct ibmvfc_host *vhost,
@@ -899,6 +915,9 @@ static int ibmvfc_reenable_crq_queue(struct ibmvfc_host *vhost)
 {
 	int rc = 0;
 	struct vio_dev *vdev = to_vio_dev(vhost->dev);
+	unsigned long flags;
+
+	ibmvfc_release_sub_crqs(vhost);
 
 	/* Re-enable the CRQ */
 	do {
@@ -909,6 +928,15 @@ static int ibmvfc_reenable_crq_queue(struct ibmvfc_host *vhost)
 
 	if (rc)
 		dev_err(vhost->dev, "Error enabling adapter (rc=%d)\n", rc);
+
+	spin_lock_irqsave(vhost->host->host_lock, flags);
+	spin_lock(vhost->crq.q_lock);
+	vhost->do_enquiry = 1;
+	vhost->using_channels = 0;
+	spin_unlock(vhost->crq.q_lock);
+	spin_unlock_irqrestore(vhost->host->host_lock, flags);
+
+	ibmvfc_init_sub_crqs(vhost);
 
 	return rc;
 }
@@ -926,8 +954,8 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 	unsigned long flags;
 	struct vio_dev *vdev = to_vio_dev(vhost->dev);
 	struct ibmvfc_queue *crq = &vhost->crq;
-	struct ibmvfc_queue *scrq;
-	int i;
+
+	ibmvfc_release_sub_crqs(vhost);
 
 	/* Close the CRQ */
 	do {
@@ -947,16 +975,6 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 	memset(crq->msgs.crq, 0, PAGE_SIZE);
 	crq->cur = 0;
 
-	if (vhost->scsi_scrqs.scrqs) {
-		for (i = 0; i < nr_scsi_hw_queues; i++) {
-			scrq = &vhost->scsi_scrqs.scrqs[i];
-			spin_lock(scrq->q_lock);
-			memset(scrq->msgs.scrq, 0, PAGE_SIZE);
-			scrq->cur = 0;
-			spin_unlock(scrq->q_lock);
-		}
-	}
-
 	/* And re-open it again */
 	rc = plpar_hcall_norets(H_REG_CRQ, vdev->unit_address,
 				crq->msg_token, PAGE_SIZE);
@@ -966,8 +984,11 @@ static int ibmvfc_reset_crq(struct ibmvfc_host *vhost)
 		dev_warn(vhost->dev, "Partner adapter not ready\n");
 	else if (rc != 0)
 		dev_warn(vhost->dev, "Couldn't register crq (rc=%d)\n", rc);
+
 	spin_unlock(vhost->crq.q_lock);
 	spin_unlock_irqrestore(vhost->host->host_lock, flags);
+
+	ibmvfc_init_sub_crqs(vhost);
 
 	return rc;
 }
@@ -1003,6 +1024,7 @@ static void ibmvfc_free_event(struct ibmvfc_event *evt)
 
 	BUG_ON(!ibmvfc_valid_event(pool, evt));
 	BUG_ON(atomic_inc_return(&evt->free) != 1);
+	BUG_ON(atomic_dec_and_test(&evt->active));
 
 	spin_lock_irqsave(&evt->queue->l_lock, flags);
 	list_add_tail(&evt->queue_list, &evt->queue->free);
@@ -1058,6 +1080,12 @@ static void ibmvfc_complete_purge(struct list_head *purge_list)
  **/
 static void ibmvfc_fail_request(struct ibmvfc_event *evt, int error_code)
 {
+	/*
+	 * Anything we are failing should still be active. Otherwise, it
+	 * implies we already got a response for the command and are doing
+	 * something bad like double completing it.
+	 */
+	BUG_ON(!atomic_dec_and_test(&evt->active));
 	if (evt->cmnd) {
 		evt->cmnd->result = (error_code << 16);
 		evt->done = ibmvfc_scsi_eh_done;
@@ -1405,6 +1433,7 @@ static int ibmvfc_issue_fc_host_lip(struct Scsi_Host *shost)
 
 /**
  * ibmvfc_gather_partition_info - Gather info about the LPAR
+ * @vhost:      ibmvfc host struct
  *
  * Return value:
  *	none
@@ -1475,7 +1504,7 @@ static void ibmvfc_set_login_info(struct ibmvfc_host *vhost)
 
 /**
  * ibmvfc_get_event - Gets the next free event in pool
- * @vhost:	ibmvfc host struct
+ * @queue:      ibmvfc queue struct
  *
  * Returns a free event from the pool.
  **/
@@ -1622,7 +1651,7 @@ static int ibmvfc_map_sg_data(struct scsi_cmnd *scmd,
 
 /**
  * ibmvfc_timeout - Internal command timeout handler
- * @evt:	struct ibmvfc_event that timed out
+ * @t:	struct ibmvfc_event that timed out
  *
  * Called when an internally generated command times out
  **/
@@ -1708,6 +1737,7 @@ static int ibmvfc_send_event(struct ibmvfc_event *evt,
 
 		evt->done(evt);
 	} else {
+		atomic_set(&evt->active, 1);
 		spin_unlock_irqrestore(&evt->queue->l_lock, flags);
 		ibmvfc_trc_start(evt);
 	}
@@ -1883,8 +1913,8 @@ static struct ibmvfc_cmd *ibmvfc_init_vfc_cmd(struct ibmvfc_event *evt, struct s
 
 /**
  * ibmvfc_queuecommand - The queuecommand function of the scsi template
+ * @shost:	scsi host struct
  * @cmnd:	struct scsi_cmnd to be executed
- * @done:	Callback function to be called when cmnd is completed
  *
  * Returns:
  *	0 on success / other on failure
@@ -2315,7 +2345,7 @@ static int ibmvfc_reset_device(struct scsi_device *sdev, int type, char *desc)
 /**
  * ibmvfc_match_rport - Match function for specified remote port
  * @evt:	ibmvfc event struct
- * @device:	device to match (rport)
+ * @rport:	device to match
  *
  * Returns:
  *	1 if event matches rport / 0 if event does not match rport
@@ -2363,6 +2393,24 @@ static int ibmvfc_match_lun(struct ibmvfc_event *evt, void *device)
 }
 
 /**
+ * ibmvfc_event_is_free - Check if event is free or not
+ * @evt:	ibmvfc event struct
+ *
+ * Returns:
+ *	true / false
+ **/
+static bool ibmvfc_event_is_free(struct ibmvfc_event *evt)
+{
+	struct ibmvfc_event *loop_evt;
+
+	list_for_each_entry(loop_evt, &evt->queue->free, queue_list)
+		if (loop_evt == evt)
+			return true;
+
+	return false;
+}
+
+/**
  * ibmvfc_wait_for_ops - Wait for ops to complete
  * @vhost:	ibmvfc host struct
  * @device:	device to match (starget or sdev)
@@ -2376,35 +2424,58 @@ static int ibmvfc_wait_for_ops(struct ibmvfc_host *vhost, void *device,
 {
 	struct ibmvfc_event *evt;
 	DECLARE_COMPLETION_ONSTACK(comp);
-	int wait;
+	int wait, i, q_index, q_size;
 	unsigned long flags;
 	signed long timeout = IBMVFC_ABORT_WAIT_TIMEOUT * HZ;
+	struct ibmvfc_queue *queues;
 
 	ENTER;
+	if (vhost->mq_enabled && vhost->using_channels) {
+		queues = vhost->scsi_scrqs.scrqs;
+		q_size = vhost->scsi_scrqs.active_queues;
+	} else {
+		queues = &vhost->crq;
+		q_size = 1;
+	}
+
 	do {
 		wait = 0;
-		spin_lock_irqsave(&vhost->crq.l_lock, flags);
-		list_for_each_entry(evt, &vhost->crq.sent, queue_list) {
-			if (match(evt, device)) {
-				evt->eh_comp = &comp;
-				wait++;
+		spin_lock_irqsave(vhost->host->host_lock, flags);
+		for (q_index = 0; q_index < q_size; q_index++) {
+			spin_lock(&queues[q_index].l_lock);
+			for (i = 0; i < queues[q_index].evt_pool.size; i++) {
+				evt = &queues[q_index].evt_pool.events[i];
+				if (!ibmvfc_event_is_free(evt)) {
+					if (match(evt, device)) {
+						evt->eh_comp = &comp;
+						wait++;
+					}
+				}
 			}
+			spin_unlock(&queues[q_index].l_lock);
 		}
-		spin_unlock_irqrestore(&vhost->crq.l_lock, flags);
+		spin_unlock_irqrestore(vhost->host->host_lock, flags);
 
 		if (wait) {
 			timeout = wait_for_completion_timeout(&comp, timeout);
 
 			if (!timeout) {
 				wait = 0;
-				spin_lock_irqsave(&vhost->crq.l_lock, flags);
-				list_for_each_entry(evt, &vhost->crq.sent, queue_list) {
-					if (match(evt, device)) {
-						evt->eh_comp = NULL;
-						wait++;
+				spin_lock_irqsave(vhost->host->host_lock, flags);
+				for (q_index = 0; q_index < q_size; q_index++) {
+					spin_lock(&queues[q_index].l_lock);
+					for (i = 0; i < queues[q_index].evt_pool.size; i++) {
+						evt = &queues[q_index].evt_pool.events[i];
+						if (!ibmvfc_event_is_free(evt)) {
+							if (match(evt, device)) {
+								evt->eh_comp = NULL;
+								wait++;
+							}
+						}
 					}
+					spin_unlock(&queues[q_index].l_lock);
 				}
-				spin_unlock_irqrestore(&vhost->crq.l_lock, flags);
+				spin_unlock_irqrestore(vhost->host->host_lock, flags);
 				if (wait)
 					dev_err(vhost->dev, "Timed out waiting for aborted commands\n");
 				LEAVE;
@@ -3126,8 +3197,9 @@ static void ibmvfc_handle_async(struct ibmvfc_async_crq *crq,
  * ibmvfc_handle_crq - Handles and frees received events in the CRQ
  * @crq:	Command/Response queue
  * @vhost:	ibmvfc host struct
+ * @evt_doneq:	Event done queue
  *
- **/
+**/
 static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost,
 			      struct list_head *evt_doneq)
 {
@@ -3194,7 +3266,7 @@ static void ibmvfc_handle_crq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost,
 		return;
 	}
 
-	if (unlikely(atomic_read(&evt->free))) {
+	if (unlikely(atomic_dec_if_positive(&evt->active))) {
 		dev_err(vhost->dev, "Received duplicate correlation_token 0x%08llx!\n",
 			crq->ioba);
 		return;
@@ -3308,7 +3380,6 @@ static int ibmvfc_slave_configure(struct scsi_device *sdev)
  * ibmvfc_change_queue_depth - Change the device's queue depth
  * @sdev:	scsi device struct
  * @qdepth:	depth to set
- * @reason:	calling context
  *
  * Return value:
  * 	actual depth set
@@ -3380,6 +3451,7 @@ static ssize_t ibmvfc_show_host_capabilities(struct device *dev,
 /**
  * ibmvfc_show_log_level - Show the adapter's error logging level
  * @dev:	class device struct
+ * @attr:	unused
  * @buf:	buffer
  *
  * Return value:
@@ -3402,7 +3474,9 @@ static ssize_t ibmvfc_show_log_level(struct device *dev,
 /**
  * ibmvfc_store_log_level - Change the adapter's error logging level
  * @dev:	class device struct
+ * @attr:	unused
  * @buf:	buffer
+ * @count:      buffer size
  *
  * Return value:
  * 	number of bytes printed to buffer
@@ -3480,7 +3554,7 @@ static ssize_t ibmvfc_read_trace(struct file *filp, struct kobject *kobj,
 				 struct bin_attribute *bin_attr,
 				 char *buf, loff_t off, size_t count)
 {
-	struct device *dev = container_of(kobj, struct device, kobj);
+	struct device *dev = kobj_to_dev(kobj);
 	struct Scsi_Host *shost = class_to_shost(dev);
 	struct ibmvfc_host *vhost = shost_priv(shost);
 	unsigned long flags = 0;
@@ -3719,7 +3793,7 @@ static void ibmvfc_handle_scrq(struct ibmvfc_crq *crq, struct ibmvfc_host *vhost
 		return;
 	}
 
-	if (unlikely(atomic_read(&evt->free))) {
+	if (unlikely(atomic_dec_if_positive(&evt->active))) {
 		dev_err(vhost->dev, "Received duplicate correlation_token 0x%08llx!\n",
 			crq->ioba);
 		return;
@@ -4112,6 +4186,7 @@ static void ibmvfc_tgt_implicit_logout_done(struct ibmvfc_event *evt)
 /**
  * __ibmvfc_tgt_get_implicit_logout_evt - Allocate and init an event for implicit logout
  * @tgt:		ibmvfc target struct
+ * @done:		Routine to call when the event is responded to
  *
  * Returns:
  *	Allocated and initialized ibmvfc_event struct
@@ -4242,9 +4317,10 @@ static void ibmvfc_tgt_move_login_done(struct ibmvfc_event *evt)
 	ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_NONE);
 	switch (status) {
 	case IBMVFC_MAD_SUCCESS:
-		tgt_dbg(tgt, "Move Login succeeded for old scsi_id: %llX\n", tgt->old_scsi_id);
+		tgt_dbg(tgt, "Move Login succeeded for new scsi_id: %llX\n", tgt->new_scsi_id);
 		tgt->ids.node_name = wwn_to_u64(rsp->service_parms.node_name);
 		tgt->ids.port_name = wwn_to_u64(rsp->service_parms.port_name);
+		tgt->scsi_id = tgt->new_scsi_id;
 		tgt->ids.port_id = tgt->scsi_id;
 		memcpy(&tgt->service_parms, &rsp->service_parms,
 		       sizeof(tgt->service_parms));
@@ -4262,8 +4338,8 @@ static void ibmvfc_tgt_move_login_done(struct ibmvfc_event *evt)
 		level += ibmvfc_retry_tgt_init(tgt, ibmvfc_tgt_move_login);
 
 		tgt_log(tgt, level,
-			"Move Login failed: old scsi_id: %llX, flags:%x, vios_flags:%x, rc=0x%02X\n",
-			tgt->old_scsi_id, be32_to_cpu(rsp->flags), be16_to_cpu(rsp->vios_flags),
+			"Move Login failed: new scsi_id: %llX, flags:%x, vios_flags:%x, rc=0x%02X\n",
+			tgt->new_scsi_id, be32_to_cpu(rsp->flags), be16_to_cpu(rsp->vios_flags),
 			status);
 		break;
 	}
@@ -4300,8 +4376,8 @@ static void ibmvfc_tgt_move_login(struct ibmvfc_target *tgt)
 	move->common.opcode = cpu_to_be32(IBMVFC_MOVE_LOGIN);
 	move->common.length = cpu_to_be16(sizeof(*move));
 
-	move->old_scsi_id = cpu_to_be64(tgt->old_scsi_id);
-	move->new_scsi_id = cpu_to_be64(tgt->scsi_id);
+	move->old_scsi_id = cpu_to_be64(tgt->scsi_id);
+	move->new_scsi_id = cpu_to_be64(tgt->new_scsi_id);
 	move->wwpn = cpu_to_be64(tgt->wwpn);
 	move->node_name = cpu_to_be64(tgt->ids.node_name);
 
@@ -4310,7 +4386,7 @@ static void ibmvfc_tgt_move_login(struct ibmvfc_target *tgt)
 		ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_DEL_RPORT);
 		kref_put(&tgt->kref, ibmvfc_release_tgt);
 	} else
-		tgt_dbg(tgt, "Sent Move Login for old scsi_id: %llX\n", tgt->old_scsi_id);
+		tgt_dbg(tgt, "Sent Move Login for new scsi_id: %llX\n", tgt->new_scsi_id);
 }
 
 /**
@@ -4428,7 +4504,7 @@ static void ibmvfc_tgt_adisc_cancel_done(struct ibmvfc_event *evt)
 
 /**
  * ibmvfc_adisc_timeout - Handle an ADISC timeout
- * @tgt:		ibmvfc target struct
+ * @t:		ibmvfc target struct
  *
  * If an ADISC times out, send a cancel. If the cancel times
  * out, reset the CRQ. When the ADISC comes back as cancelled,
@@ -4631,7 +4707,7 @@ static void ibmvfc_tgt_query_target(struct ibmvfc_target *tgt)
 /**
  * ibmvfc_alloc_target - Allocate and initialize an ibmvfc target
  * @vhost:		ibmvfc host struct
- * @scsi_id:	SCSI ID to allocate target for
+ * @target:		Holds SCSI ID to allocate target forand the WWPN
  *
  * Returns:
  *	0 on success / other on failure
@@ -4670,20 +4746,25 @@ static int ibmvfc_alloc_target(struct ibmvfc_host *vhost,
 		 * and it failed for some reason, such as there being I/O
 		 * pending to the target. In this case, we will have already
 		 * deleted the rport from the FC transport so we do a move
-		 * login, which works even with I/O pending, as it will cancel
-		 * any active commands.
+		 * login, which works even with I/O pending, however, if
+		 * there is still I/O pending, it will stay outstanding, so
+		 * we only do this if fast fail is disabled for the rport,
+		 * otherwise we let terminate_rport_io clean up the port
+		 * before we login at the new location.
 		 */
 		if (wtgt->action == IBMVFC_TGT_ACTION_LOGOUT_DELETED_RPORT) {
-			/*
-			 * Do a move login here. The old target is no longer
-			 * known to the transport layer We don't use the
-			 * normal ibmvfc_set_tgt_action to set this, as we
-			 * don't normally want to allow this state change.
-			 */
-			wtgt->old_scsi_id = wtgt->scsi_id;
-			wtgt->scsi_id = scsi_id;
-			wtgt->action = IBMVFC_TGT_ACTION_INIT;
-			ibmvfc_init_tgt(wtgt, ibmvfc_tgt_move_login);
+			if (wtgt->move_login) {
+				/*
+				 * Do a move login here. The old target is no longer
+				 * known to the transport layer We don't use the
+				 * normal ibmvfc_set_tgt_action to set this, as we
+				 * don't normally want to allow this state change.
+				 */
+				wtgt->new_scsi_id = scsi_id;
+				wtgt->action = IBMVFC_TGT_ACTION_INIT;
+				wtgt->init_retries = 0;
+				ibmvfc_init_tgt(wtgt, ibmvfc_tgt_move_login);
+			}
 			goto unlock_out;
 		} else {
 			tgt_err(wtgt, "Unexpected target state: %d, %p\n",
@@ -5061,7 +5142,7 @@ static void ibmvfc_npiv_login(struct ibmvfc_host *vhost)
 
 /**
  * ibmvfc_npiv_logout_done - Completion handler for NPIV Logout
- * @vhost:		ibmvfc host struct
+ * @evt:		ibmvfc event struct
  *
  **/
 static void ibmvfc_npiv_logout_done(struct ibmvfc_event *evt)
@@ -5274,6 +5355,7 @@ static void ibmvfc_tgt_add_rport(struct ibmvfc_target *tgt)
 		tgt_dbg(tgt, "Deleting rport with outstanding I/O\n");
 		ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_LOGOUT_DELETED_RPORT);
 		tgt->rport = NULL;
+		tgt->init_retries = 0;
 		spin_unlock_irqrestore(vhost->host->host_lock, flags);
 		fc_remote_port_delete(rport);
 		return;
@@ -5323,30 +5405,49 @@ static void ibmvfc_do_work(struct ibmvfc_host *vhost)
 	case IBMVFC_HOST_ACTION_INIT_WAIT:
 		break;
 	case IBMVFC_HOST_ACTION_RESET:
-		vhost->action = IBMVFC_HOST_ACTION_TGT_DEL;
 		list_splice_init(&vhost->purge, &purge);
 		spin_unlock_irqrestore(vhost->host->host_lock, flags);
 		ibmvfc_complete_purge(&purge);
 		rc = ibmvfc_reset_crq(vhost);
+
 		spin_lock_irqsave(vhost->host->host_lock, flags);
-		if (rc == H_CLOSED)
+		if (!rc || rc == H_CLOSED)
 			vio_enable_interrupts(to_vio_dev(vhost->dev));
-		if (rc || (rc = ibmvfc_send_crq_init(vhost)) ||
-		    (rc = vio_enable_interrupts(to_vio_dev(vhost->dev)))) {
-			ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
-			dev_err(vhost->dev, "Error after reset (rc=%d)\n", rc);
+		if (vhost->action == IBMVFC_HOST_ACTION_RESET) {
+			/*
+			 * The only action we could have changed to would have
+			 * been reenable, in which case, we skip the rest of
+			 * this path and wait until we've done the re-enable
+			 * before sending the crq init.
+			 */
+			vhost->action = IBMVFC_HOST_ACTION_TGT_DEL;
+
+			if (rc || (rc = ibmvfc_send_crq_init(vhost)) ||
+			    (rc = vio_enable_interrupts(to_vio_dev(vhost->dev)))) {
+				ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
+				dev_err(vhost->dev, "Error after reset (rc=%d)\n", rc);
+			}
 		}
 		break;
 	case IBMVFC_HOST_ACTION_REENABLE:
-		vhost->action = IBMVFC_HOST_ACTION_TGT_DEL;
 		list_splice_init(&vhost->purge, &purge);
 		spin_unlock_irqrestore(vhost->host->host_lock, flags);
 		ibmvfc_complete_purge(&purge);
 		rc = ibmvfc_reenable_crq_queue(vhost);
+
 		spin_lock_irqsave(vhost->host->host_lock, flags);
-		if (rc || (rc = ibmvfc_send_crq_init(vhost))) {
-			ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
-			dev_err(vhost->dev, "Error after enable (rc=%d)\n", rc);
+		if (vhost->action == IBMVFC_HOST_ACTION_REENABLE) {
+			/*
+			 * The only action we could have changed to would have
+			 * been reset, in which case, we skip the rest of this
+			 * path and wait until we've done the reset before
+			 * sending the crq init.
+			 */
+			vhost->action = IBMVFC_HOST_ACTION_TGT_DEL;
+			if (rc || (rc = ibmvfc_send_crq_init(vhost))) {
+				ibmvfc_link_down(vhost, IBMVFC_LINK_DEAD);
+				dev_err(vhost->dev, "Error after enable (rc=%d)\n", rc);
+			}
 		}
 		break;
 	case IBMVFC_HOST_ACTION_LOGO:
@@ -5409,7 +5510,20 @@ static void ibmvfc_do_work(struct ibmvfc_host *vhost)
 				tgt_dbg(tgt, "Deleting rport with I/O outstanding\n");
 				rport = tgt->rport;
 				tgt->rport = NULL;
+				tgt->init_retries = 0;
 				ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_LOGOUT_DELETED_RPORT);
+
+				/*
+				 * If fast fail is enabled, we wait for it to fire and then clean up
+				 * the old port, since we expect the fast fail timer to clean up the
+				 * outstanding I/O faster than waiting for normal command timeouts.
+				 * However, if fast fail is disabled, any I/O outstanding to the
+				 * rport LUNs will stay outstanding indefinitely, since the EH handlers
+				 * won't get invoked for I/O's timing out. If this is a NPIV failover
+				 * scenario, the better alternative is to use the move login.
+				 */
+				if (rport && rport->fast_io_fail_tmo == -1)
+					tgt->move_login = 1;
 				spin_unlock_irqrestore(vhost->host->host_lock, flags);
 				if (rport)
 					fc_remote_port_delete(rport);
@@ -5642,7 +5756,8 @@ static int ibmvfc_register_scsi_channel(struct ibmvfc_host *vhost,
 	rc = h_reg_sub_crq(vdev->unit_address, scrq->msg_token, PAGE_SIZE,
 			   &scrq->cookie, &scrq->hw_irq);
 
-	if (rc) {
+	/* H_CLOSED indicates successful register, but no CRQ partner */
+	if (rc && rc != H_CLOSED) {
 		dev_warn(dev, "Error registering sub-crq: %d\n", rc);
 		if (rc == H_PARAMETER)
 			dev_warn_once(dev, "Firmware may not support MQ\n");
@@ -5675,8 +5790,8 @@ static int ibmvfc_register_scsi_channel(struct ibmvfc_host *vhost,
 
 irq_failed:
 	do {
-		plpar_hcall_norets(H_FREE_SUB_CRQ, vdev->unit_address, scrq->cookie);
-	} while (rc == H_BUSY || H_IS_LONG_BUSY(rc));
+		rc = plpar_hcall_norets(H_FREE_SUB_CRQ, vdev->unit_address, scrq->cookie);
+	} while (rtas_busy_delay(rc));
 reg_failed:
 	ibmvfc_free_queue(vhost, scrq);
 	LEAVE;
@@ -5694,6 +5809,7 @@ static void ibmvfc_deregister_scsi_channel(struct ibmvfc_host *vhost, int index)
 
 	free_irq(scrq->irq, scrq);
 	irq_dispose_mapping(scrq->irq);
+	scrq->irq = 0;
 
 	do {
 		rc = plpar_hcall_norets(H_FREE_SUB_CRQ, vdev->unit_address,
@@ -5707,17 +5823,21 @@ static void ibmvfc_deregister_scsi_channel(struct ibmvfc_host *vhost, int index)
 	LEAVE;
 }
 
-static int ibmvfc_init_sub_crqs(struct ibmvfc_host *vhost)
+static void ibmvfc_init_sub_crqs(struct ibmvfc_host *vhost)
 {
 	int i, j;
 
 	ENTER;
+	if (!vhost->mq_enabled)
+		return;
 
 	vhost->scsi_scrqs.scrqs = kcalloc(nr_scsi_hw_queues,
 					  sizeof(*vhost->scsi_scrqs.scrqs),
 					  GFP_KERNEL);
-	if (!vhost->scsi_scrqs.scrqs)
-		return -1;
+	if (!vhost->scsi_scrqs.scrqs) {
+		vhost->do_enquiry = 0;
+		return;
+	}
 
 	for (i = 0; i < nr_scsi_hw_queues; i++) {
 		if (ibmvfc_register_scsi_channel(vhost, i)) {
@@ -5726,13 +5846,12 @@ static int ibmvfc_init_sub_crqs(struct ibmvfc_host *vhost)
 			kfree(vhost->scsi_scrqs.scrqs);
 			vhost->scsi_scrqs.scrqs = NULL;
 			vhost->scsi_scrqs.active_queues = 0;
-			LEAVE;
-			return -1;
+			vhost->do_enquiry = 0;
+			break;
 		}
 	}
 
 	LEAVE;
-	return 0;
 }
 
 static void ibmvfc_release_sub_crqs(struct ibmvfc_host *vhost)
@@ -5770,6 +5889,8 @@ static void ibmvfc_free_mem(struct ibmvfc_host *vhost)
 			  vhost->disc_buf_dma);
 	dma_free_coherent(vhost->dev, sizeof(*vhost->login_buf),
 			  vhost->login_buf, vhost->login_buf_dma);
+	dma_free_coherent(vhost->dev, sizeof(*vhost->channel_setup_buf),
+			  vhost->channel_setup_buf, vhost->channel_setup_dma);
 	dma_pool_destroy(vhost->sg_pool);
 	ibmvfc_free_queue(vhost, async_q);
 	LEAVE;
@@ -5999,11 +6120,7 @@ static int ibmvfc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 		goto remove_shost;
 	}
 
-	if (vhost->mq_enabled) {
-		rc = ibmvfc_init_sub_crqs(vhost);
-		if (rc)
-			dev_warn(dev, "Failed to allocate Sub-CRQs. rc=%d\n", rc);
-	}
+	ibmvfc_init_sub_crqs(vhost);
 
 	if (shost_to_fc_host(shost)->rqst_q)
 		blk_queue_max_segments(shost_to_fc_host(shost)->rqst_q, 1);
@@ -6038,7 +6155,7 @@ out:
  * Return value:
  * 	0
  **/
-static int ibmvfc_remove(struct vio_dev *vdev)
+static void ibmvfc_remove(struct vio_dev *vdev)
 {
 	struct ibmvfc_host *vhost = dev_get_drvdata(&vdev->dev);
 	LIST_HEAD(purge);
@@ -6070,7 +6187,6 @@ static int ibmvfc_remove(struct vio_dev *vdev)
 	spin_unlock(&ibmvfc_driver_lock);
 	scsi_host_put(vhost->host);
 	LEAVE;
-	return 0;
 }
 
 /**

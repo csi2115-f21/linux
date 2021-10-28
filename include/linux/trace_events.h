@@ -206,7 +206,7 @@ static inline unsigned int tracing_gen_ctx_dec(void)
 
 	trace_ctx = tracing_gen_ctx();
 	/*
-	 * Subtract one from the preeption counter if preemption is enabled,
+	 * Subtract one from the preemption counter if preemption is enabled,
 	 * see trace_event_buffer_reserve()for details.
 	 */
 	if (IS_ENABLED(CONFIG_PREEMPTION))
@@ -349,15 +349,8 @@ struct trace_event_call {
 	struct event_filter	*filter;
 	void			*mod;
 	void			*data;
-	/*
-	 *   bit 0:		filter_active
-	 *   bit 1:		allow trace by non root (cap any)
-	 *   bit 2:		failed to apply filter
-	 *   bit 3:		trace internal event (do not enable)
-	 *   bit 4:		Event was enabled by module
-	 *   bit 5:		use call filter rather than file filter
-	 *   bit 6:		Event is a tracepoint
-	 */
+
+	/* See the TRACE_EVENT_FL_* flags above */
 	int			flags; /* static flags of different events */
 
 #ifdef CONFIG_PERF_EVENTS
@@ -411,7 +404,6 @@ trace_get_fields(struct trace_event_call *event_call)
 	return event_call->class->get_fields(event_call);
 }
 
-struct trace_array;
 struct trace_subsystem_dir;
 
 enum {
@@ -647,7 +639,8 @@ enum event_trigger_type {
 extern int filter_match_preds(struct event_filter *filter, void *rec);
 
 extern enum event_trigger_type
-event_triggers_call(struct trace_event_file *file, void *rec,
+event_triggers_call(struct trace_event_file *file,
+		    struct trace_buffer *buffer, void *rec,
 		    struct ring_buffer_event *event);
 extern void
 event_triggers_post_call(struct trace_event_file *file,
@@ -671,7 +664,7 @@ trace_trigger_soft_disabled(struct trace_event_file *file)
 
 	if (!(eflags & EVENT_FILE_FL_TRIGGER_COND)) {
 		if (eflags & EVENT_FILE_FL_TRIGGER_MODE)
-			event_triggers_call(file, NULL, NULL);
+			event_triggers_call(file, NULL, NULL, NULL);
 		if (eflags & EVENT_FILE_FL_SOFT_DISABLED)
 			return true;
 		if (eflags & EVENT_FILE_FL_PID_FILTER)

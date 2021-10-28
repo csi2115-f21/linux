@@ -168,7 +168,7 @@ void __trace_probe_log_err(int offset, int err_type)
 	if (!trace_probe_log.argv)
 		return;
 
-	/* Recalcurate the length and allocate buffer */
+	/* Recalculate the length and allocate buffer */
 	for (i = 0; i < trace_probe_log.argc; i++) {
 		if (i == trace_probe_log.index)
 			pos = len;
@@ -182,7 +182,7 @@ void __trace_probe_log_err(int offset, int err_type)
 		/**
 		 * Set the error position is next to the last arg + space.
 		 * Note that len includes the terminal null and the cursor
-		 * appaers at pos + 1.
+		 * appears at pos + 1.
 		 */
 		pos = len;
 		offset = 0;
@@ -592,7 +592,7 @@ static int traceprobe_parse_probe_arg_body(char *arg, ssize_t *size,
 	}
 
 	/*
-	 * Since $comm and immediate string can not be dereferred,
+	 * Since $comm and immediate string can not be dereferenced,
 	 * we can find those by strcmp.
 	 */
 	if (strcmp(arg, "$comm") == 0 || strncmp(arg, "\\\"", 2) == 0) {
@@ -1029,10 +1029,35 @@ error:
 	return ret;
 }
 
+static struct trace_event_call *
+find_trace_event_call(const char *system, const char *event_name)
+{
+	struct trace_event_call *tp_event;
+	const char *name;
+
+	list_for_each_entry(tp_event, &ftrace_events, list) {
+		if (!tp_event->class->system ||
+		    strcmp(system, tp_event->class->system))
+			continue;
+		name = trace_event_name(tp_event);
+		if (!name || strcmp(event_name, name))
+			continue;
+		return tp_event;
+	}
+
+	return NULL;
+}
+
 int trace_probe_register_event_call(struct trace_probe *tp)
 {
 	struct trace_event_call *call = trace_probe_event_call(tp);
 	int ret;
+
+	lockdep_assert_held(&event_mutex);
+
+	if (find_trace_event_call(trace_probe_group_name(tp),
+				  trace_probe_name(tp)))
+		return -EEXIST;
 
 	ret = register_trace_event(&call->event);
 	if (!ret)

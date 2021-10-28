@@ -196,7 +196,6 @@
 MODULE_AUTHOR("Andreas Mohr <andi AT lisas.de>");
 MODULE_DESCRIPTION("Aztech AZF3328 (PCI168)");
 MODULE_LICENSE("GPL");
-MODULE_SUPPORTED_DEVICE("{{Aztech,AZF3328}}");
 
 #if IS_REACHABLE(CONFIG_GAMEPORT)
 #define SUPPORT_GAMEPORT 1
@@ -1195,7 +1194,8 @@ snd_azf3328_mixer_new(struct snd_azf3328 *chip)
 	sw = snd_azf3328_mixer_controls;
 	for (idx = 0; idx < ARRAY_SIZE(snd_azf3328_mixer_controls);
 			++idx, ++sw) {
-		if ((err = snd_ctl_add(chip->card, snd_ctl_new1(sw, chip))) < 0)
+		err = snd_ctl_add(chip->card, snd_ctl_new1(sw, chip));
+		if (err < 0)
 			return err;
 	}
 	snd_component_add(card, "AZF3328 mixer");

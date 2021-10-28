@@ -312,14 +312,14 @@ static int __init n64audio_probe(struct platform_device *pdev)
 	}
 
 	priv->mi_reg_base = devm_platform_ioremap_resource(pdev, 0);
-	if (!priv->mi_reg_base) {
-		err = -EINVAL;
+	if (IS_ERR(priv->mi_reg_base)) {
+		err = PTR_ERR(priv->mi_reg_base);
 		goto fail_dma_alloc;
 	}
 
 	priv->ai_reg_base = devm_platform_ioremap_resource(pdev, 1);
-	if (!priv->ai_reg_base) {
-		err = -EINVAL;
+	if (IS_ERR(priv->ai_reg_base)) {
+		err = PTR_ERR(priv->ai_reg_base);
 		goto fail_dma_alloc;
 	}
 
@@ -338,6 +338,10 @@ static int __init n64audio_probe(struct platform_device *pdev)
 	strcpy(card->longname, "N64 Audio");
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+	if (!res) {
+		err = -EINVAL;
+		goto fail_dma_alloc;
+	}
 	if (devm_request_irq(&pdev->dev, res->start, n64audio_isr,
 				IRQF_SHARED, "N64 Audio", priv)) {
 		err = -EBUSY;

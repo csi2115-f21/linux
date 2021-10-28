@@ -357,6 +357,83 @@ static int clk_rcg2_set_floor_rate_and_parent(struct clk_hw *hw,
 	return __clk_rcg2_set_rate(hw, rate, FLOOR);
 }
 
+static int clk_rcg2_get_duty_cycle(struct clk_hw *hw, struct clk_duty *duty)
+{
+	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
+	u32 notn_m, n, m, d, not2d, mask;
+
+	if (!rcg->mnd_width) {
+		/* 50 % duty-cycle for Non-MND RCGs */
+		duty->num = 1;
+		duty->den = 2;
+		return 0;
+	}
+
+	regmap_read(rcg->clkr.regmap, RCG_D_OFFSET(rcg), &not2d);
+	regmap_read(rcg->clkr.regmap, RCG_M_OFFSET(rcg), &m);
+	regmap_read(rcg->clkr.regmap, RCG_N_OFFSET(rcg), &notn_m);
+
+	if (!not2d && !m && !notn_m) {
+		/* 50 % duty-cycle always */
+		duty->num = 1;
+		duty->den = 2;
+		return 0;
+	}
+
+	mask = BIT(rcg->mnd_width) - 1;
+
+	d = ~(not2d) & mask;
+	d = DIV_ROUND_CLOSEST(d, 2);
+
+	n = (~(notn_m) + m) & mask;
+
+	duty->num = d;
+	duty->den = n;
+
+	return 0;
+}
+
+static int clk_rcg2_set_duty_cycle(struct clk_hw *hw, struct clk_duty *duty)
+{
+	struct clk_rcg2 *rcg = to_clk_rcg2(hw);
+	u32 notn_m, n, m, d, not2d, mask, duty_per;
+	int ret;
+
+	/* Duty-cycle cannot be modified for non-MND RCGs */
+	if (!rcg->mnd_width)
+		return -EINVAL;
+
+	mask = BIT(rcg->mnd_width) - 1;
+
+	regmap_read(rcg->clkr.regmap, RCG_N_OFFSET(rcg), &notn_m);
+	regmap_read(rcg->clkr.regmap, RCG_M_OFFSET(rcg), &m);
+
+	n = (~(notn_m) + m) & mask;
+
+	duty_per = (duty->num * 100) / duty->den;
+
+	/* Calculate 2d value */
+	d = DIV_ROUND_CLOSEST(n * duty_per * 2, 100);
+
+	 /* Check bit widths of 2d. If D is too big reduce duty cycle. */
+	if (d > mask)
+		d = mask;
+
+	if ((d / 2) > (n - m))
+		d = (n - m) * 2;
+	else if ((d / 2) < (m / 2))
+		d = m;
+
+	not2d = ~d & mask;
+
+	ret = regmap_update_bits(rcg->clkr.regmap, RCG_D_OFFSET(rcg), mask,
+				 not2d);
+	if (ret)
+		return ret;
+
+	return update_config(rcg);
+}
+
 const struct clk_ops clk_rcg2_ops = {
 	.is_enabled = clk_rcg2_is_enabled,
 	.get_parent = clk_rcg2_get_parent,
@@ -365,6 +442,8 @@ const struct clk_ops clk_rcg2_ops = {
 	.determine_rate = clk_rcg2_determine_rate,
 	.set_rate = clk_rcg2_set_rate,
 	.set_rate_and_parent = clk_rcg2_set_rate_and_parent,
+	.get_duty_cycle = clk_rcg2_get_duty_cycle,
+	.set_duty_cycle = clk_rcg2_set_duty_cycle,
 };
 EXPORT_SYMBOL_GPL(clk_rcg2_ops);
 
@@ -376,6 +455,8 @@ const struct clk_ops clk_rcg2_floor_ops = {
 	.determine_rate = clk_rcg2_determine_floor_rate,
 	.set_rate = clk_rcg2_set_floor_rate,
 	.set_rate_and_parent = clk_rcg2_set_floor_rate_and_parent,
+	.get_duty_cycle = clk_rcg2_get_duty_cycle,
+	.set_duty_cycle = clk_rcg2_set_duty_cycle,
 };
 EXPORT_SYMBOL_GPL(clk_rcg2_floor_ops);
 
@@ -730,7 +811,8 @@ static int clk_gfx3d_determine_rate(struct clk_hw *hw,
 	struct clk_rate_request parent_req = { };
 	struct clk_rcg2_gfx3d *cgfx = to_clk_rcg2_gfx3d(hw);
 	struct clk_hw *xo, *p0, *p1, *p2;
-	unsigned long request, p0_rate;
+	unsigned long p0_rate;
+	u8 mux_div = cgfx->div;
 	int ret;
 
 	p0 = cgfx->hws[0];
@@ -750,14 +832,15 @@ static int clk_gfx3d_determine_rate(struct clk_hw *hw,
 		return 0;
 	}
 
-	request = req->rate;
-	if (cgfx->div > 1)
-		parent_req.rate = request = request * cgfx->div;
+	if (mux_div == 0)
+		mux_div = 1;
+
+	parent_req.rate = req->rate * mux_div;
 
 	/* This has to be a fixed rate PLL */
 	p0_rate = clk_hw_get_rate(p0);
 
-	if (request == p0_rate) {
+	if (parent_req.rate == p0_rate) {
 		req->rate = req->best_parent_rate = p0_rate;
 		req->best_parent_hw = p0;
 		return 0;
@@ -765,7 +848,7 @@ static int clk_gfx3d_determine_rate(struct clk_hw *hw,
 
 	if (req->best_parent_hw == p0) {
 		/* Are we going back to a previously used rate? */
-		if (clk_hw_get_rate(p2) == request)
+		if (clk_hw_get_rate(p2) == parent_req.rate)
 			req->best_parent_hw = p2;
 		else
 			req->best_parent_hw = p1;
@@ -780,8 +863,7 @@ static int clk_gfx3d_determine_rate(struct clk_hw *hw,
 		return ret;
 
 	req->rate = req->best_parent_rate = parent_req.rate;
-	if (cgfx->div > 1)
-		req->rate /= cgfx->div;
+	req->rate /= mux_div;
 
 	return 0;
 }

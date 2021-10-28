@@ -248,7 +248,7 @@ err_mod_hdr_regc0:
 err_ethertype:
 	kfree(rule);
 out:
-	kfree(rule_spec);
+	kvfree(rule_spec);
 	return err;
 }
 
@@ -328,7 +328,7 @@ static int mlx5_create_indir_recirc_group(struct mlx5_eswitch *esw,
 	e->recirc_cnt = 0;
 
 out:
-	kfree(in);
+	kvfree(in);
 	return err;
 }
 
@@ -347,7 +347,7 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
 
 	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
-		kfree(in);
+		kvfree(in);
 		return -ENOMEM;
 	}
 
@@ -364,6 +364,7 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
 	dest.type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
 	dest.vport.num = e->vport;
 	dest.vport.vhca_id = MLX5_CAP_GEN(esw->dev, vhca_id);
+	dest.vport.flags = MLX5_FLOW_DEST_VPORT_VHCA_ID;
 	e->fwd_rule = mlx5_add_flow_rules(e->ft, spec, &flow_act, &dest, 1);
 	if (IS_ERR(e->fwd_rule)) {
 		mlx5_destroy_flow_group(e->fwd_grp);
@@ -371,8 +372,8 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
 	}
 
 err_out:
-	kfree(spec);
-	kfree(in);
+	kvfree(spec);
+	kvfree(in);
 	return err;
 }
 
