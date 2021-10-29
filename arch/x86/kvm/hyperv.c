@@ -1935,8 +1935,6 @@ void kvm_hv_set_cpuid(struct kvm_vcpu *vcpu)
 	struct kvm_cpuid_entry2 *entry;
 	struct kvm_vcpu_hv *hv_vcpu;
 
-	struct kvm_vcpu_hv *hv_vcpu;
-
 
 	entry = kvm_find_cpuid_entry(vcpu, HYPERV_CPUID_INTERFACE, 0);
 	if (entry && entry->eax == HYPERV_CPUID_SIGNATURE_EAX) {

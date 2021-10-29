@@ -450,9 +450,6 @@ static int enable_net_traffic(struct net_device *dev, struct usb_device *usb)
 fail:
 	netif_dbg(pegasus, drv, pegasus->net, "%s failed\n", __func__);
 	return ret;
-fail:
-	netif_dbg(pegasus, drv, pegasus->net, "%s failed\n", __func__);
-	return ret;
 }
 
 static void read_bulk_callback(struct urb *urb)
