@@ -27,6 +27,7 @@
 #define NVMET_ERROR_LOG_SLOTS		128
 #define NVMET_NO_ERROR_LOC		((u16)-1)
 #define NVMET_DEFAULT_CTRL_MODEL	"Linux"
+#define NVMET_MN_MAX_SIZE		40
 
 /*
  * Supported optional AENs:
@@ -208,11 +209,6 @@ struct nvmet_ctrl {
 	bool			pi_support;
 };
 
-struct nvmet_subsys_model {
-	struct rcu_head		rcuhead;
-	char			number[];
-};
-
 struct nvmet_subsys {
 	enum nvme_subsys_type	type;
 
@@ -242,7 +238,7 @@ struct nvmet_subsys {
 	struct config_group	namespaces_group;
 	struct config_group	allowed_hosts_group;
 
-	struct nvmet_subsys_model	__rcu *model;
+	char			*model_number;
 
 #ifdef CONFIG_NVME_TARGET_PASSTHRU
 	struct nvme_ctrl	*passthru_ctrl;
@@ -433,10 +429,11 @@ void nvmet_ctrl_fatal_error(struct nvmet_ctrl *ctrl);
 void nvmet_update_cc(struct nvmet_ctrl *ctrl, u32 new);
 u16 nvmet_alloc_ctrl(const char *subsysnqn, const char *hostnqn,
 		struct nvmet_req *req, u32 kato, struct nvmet_ctrl **ctrlp);
-u16 nvmet_ctrl_find_get(const char *subsysnqn, const char *hostnqn, u16 cntlid,
-		struct nvmet_req *req, struct nvmet_ctrl **ret);
+struct nvmet_ctrl *nvmet_ctrl_find_get(const char *subsysnqn,
+				       const char *hostnqn, u16 cntlid,
+				       struct nvmet_req *req);
 void nvmet_ctrl_put(struct nvmet_ctrl *ctrl);
-u16 nvmet_check_ctrl_status(struct nvmet_req *req, struct nvme_command *cmd);
+u16 nvmet_check_ctrl_status(struct nvmet_req *req);
 
 struct nvmet_subsys *nvmet_subsys_alloc(const char *subsysnqn,
 		enum nvme_subsys_type type);

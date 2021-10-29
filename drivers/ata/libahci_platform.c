@@ -570,6 +570,7 @@ int ahci_platform_init_host(struct platform_device *pdev,
 					    			    const struct ata_port_info *pi_template,
 								    			    struct scsi_host_template *sht)
 {
+<<<<<<< HEAD
 		struct device *dev = &pdev->dev;
 			struct ata_port_info pi = *pi_template;
 				const struct ata_port_info *ppi[] = { &pi, NULL };
@@ -658,6 +659,96 @@ int ahci_platform_init_host(struct platform_device *pdev,
 																												ahci_print_info(host, "platform");
 
 																													return ahci_host_activate(host, sht);
+=======
+	struct device *dev = &pdev->dev;
+	struct ata_port_info pi = *pi_template;
+	const struct ata_port_info *ppi[] = { &pi, NULL };
+	struct ata_host *host;
+	int i, irq, n_ports, rc;
+
+	irq = platform_get_irq(pdev, 0);
+	if (irq < 0) {
+		if (irq != -EPROBE_DEFER)
+			dev_err(dev, "no irq\n");
+		return irq;
+	}
+	if (!irq)
+		return -EINVAL;
+
+	hpriv->irq = irq;
+
+	/* prepare host */
+	pi.private_data = (void *)(unsigned long)hpriv->flags;
+
+	ahci_save_initial_config(dev, hpriv);
+
+	if (hpriv->cap & HOST_CAP_NCQ)
+		pi.flags |= ATA_FLAG_NCQ;
+
+	if (hpriv->cap & HOST_CAP_PMP)
+		pi.flags |= ATA_FLAG_PMP;
+
+	ahci_set_em_messages(hpriv, &pi);
+
+	/* CAP.NP sometimes indicate the index of the last enabled
+	 * port, at other times, that of the last possible port, so
+	 * determining the maximum port number requires looking at
+	 * both CAP.NP and port_map.
+	 */
+	n_ports = max(ahci_nr_ports(hpriv->cap), fls(hpriv->port_map));
+
+	host = ata_host_alloc_pinfo(dev, ppi, n_ports);
+	if (!host)
+		return -ENOMEM;
+
+	host->private_data = hpriv;
+
+	if (!(hpriv->cap & HOST_CAP_SSS) || ahci_ignore_sss)
+		host->flags |= ATA_HOST_PARALLEL_SCAN;
+	else
+		dev_info(dev, "SSS flag set, parallel bus scan disabled\n");
+
+	if (pi.flags & ATA_FLAG_EM)
+		ahci_reset_em(host);
+
+	for (i = 0; i < host->n_ports; i++) {
+		struct ata_port *ap = host->ports[i];
+
+		ata_port_desc(ap, "mmio %pR",
+			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
+		ata_port_desc(ap, "port 0x%x", 0x100 + ap->port_no * 0x80);
+
+		/* set enclosure management message type */
+		if (ap->flags & ATA_FLAG_EM)
+			ap->em_message_type = hpriv->em_msg_type;
+
+		/* disabled/not-implemented port */
+		if (!(hpriv->port_map & (1 << i)))
+			ap->ops = &ata_dummy_port_ops;
+	}
+
+	if (hpriv->cap & HOST_CAP_64) {
+		rc = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(64));
+		if (rc) {
+			rc = dma_coerce_mask_and_coherent(dev,
+							  DMA_BIT_MASK(32));
+			if (rc) {
+				dev_err(dev, "Failed to enable 64-bit DMA.\n");
+				return rc;
+			}
+			dev_warn(dev, "Enable 32-bit DMA instead of 64-bit.\n");
+		}
+	}
+
+	rc = ahci_reset_controller(host);
+	if (rc)
+		return rc;
+
+	ahci_init_controller(host);
+	ahci_print_info(host, "platform");
+
+	return ahci_host_activate(host, sht);
+>>>>>>> b2405b1efeaf1ef087ead4848ded33d38d55fd1c
 }
 EXPORT_SYMBOL_GPL(ahci_platform_init_host);
 
