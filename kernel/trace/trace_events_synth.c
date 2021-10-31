@@ -1225,8 +1225,10 @@ static int __create_synth_event(const char *name, const char *raw_fields)
 			goto err;
 		}
 
-		if (!argc)
+		if (!argc) {
+			argv_free(argv);
 			continue;
+		}
 
 		n_fields_this_loop = 0;
 		consumed = 0;
@@ -1383,7 +1385,7 @@ static int destroy_synth_event(struct synth_event *se)
 
 /**
  * synth_event_delete - Delete a synthetic event
- * @event_name: The name of the new sythetic event
+ * @event_name: The name of the new synthetic event
  *
  * Delete a synthetic event that was created with synth_event_create().
  *
